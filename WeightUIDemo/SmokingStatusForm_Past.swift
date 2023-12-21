@@ -105,7 +105,7 @@ struct SmokingStatusForm_Past: View {
 
     var explanation: some View {
         Section {
-            Text("Your smoking status may be used when picking daily values for micronutrients. For example, if you are a smoker then the recommended daily intake of Vitamin C will be slightly higher.")
+            Text("Your smoking status may be used when picking daily values for micronutrients.\n\nFor example, if you are a smoker then the recommended daily intake of Vitamin C will be slightly higher.")
         }
     }
 

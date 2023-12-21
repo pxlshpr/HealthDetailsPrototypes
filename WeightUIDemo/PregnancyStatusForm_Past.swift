@@ -105,7 +105,7 @@ struct PregnancyStatusForm_Past: View {
 
     var explanation: some View {
         Section {
-            Text("Your pregnancy status may be used when picking daily values for micronutrients. For example, the recommended daily allowance for Iodine almost doubles when a mother is breastfeeding.")
+            Text("Your pregnancy status may be used when picking daily values for micronutrients.\n\nFor example, the recommended daily allowance for Iodine almost doubles when a mother is breastfeeding.")
         }
     }
 
