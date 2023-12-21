@@ -5,10 +5,14 @@ struct HeightForm: View {
     
     @Environment(\.dismiss) var dismiss
 
+    @ScaledMetric var scale: CGFloat = 1
+    let imageScale: CGFloat = 24
+
     @State var hasAppeared = false
-    @State var dailyWeightType: Int = 0
     @State var value: Double = 177.4
-    @State var showingWeightSettings = false
+
+    @State var isSynced: Bool = true
+    @State var showingSyncOffConfirmation: Bool = false
 
     var body: some View {
         NavigationStack {
@@ -16,9 +20,8 @@ struct HeightForm: View {
                 if hasAppeared {
                     Form {
                         explanation
-//                        weightSettings
                         list
-//                        valueSection
+                        syncToggle
                     }
                 } else {
                     Color.clear
@@ -33,23 +36,45 @@ struct HeightForm: View {
                 hasAppeared = true
             }
         }
-        .sheet(isPresented: $showingWeightSettings) {
-            HeightSettings(
-                dailyWeightType: $dailyWeightType,
-                value: $value
-            )
+        .confirmationDialog("Turn Off Sync", isPresented: $showingSyncOffConfirmation, titleVisibility: .visible) {
+            Button("Turn Off", role: .destructive) {
+                
+            }
+        } message: {
+            Text("Height data will no longer be read from or written to Apple Health.")
         }
     }
     
+    var syncToggle: some View {
+        let binding = Binding<Bool>(
+            get: { isSynced },
+            set: {
+                if !$0 {
+                    showingSyncOffConfirmation = true
+                }
+            }
+        )
+
+        return Section(footer: Text("Automatically reads height data from Apple Health. Data you enter here will also be exported back to Apple Health.")) {
+            HStack {
+                Image("AppleHealthIcon")
+                    .resizable()
+                    .frame(width: imageScale * scale, height: imageScale * scale)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 5)
+                            .stroke(Color(.systemGray3), lineWidth: 0.5)
+                    )
+                Text("Sync with Apple Health")
+                    .layoutPriority(1)
+                Spacer()
+                Toggle("", isOn: binding)
+            }
+        }
+    }
     var toolbarContent: some ToolbarContent {
         Group {
             ToolbarItem(placement: .bottomBar) {
                 HStack(alignment: .firstTextBaseline, spacing: 5) {
-                    Button {
-                        showingWeightSettings = true
-                    } label: {
-                        Image(systemName: "switch.2")
-                    }
                     Spacer()
                     Text("\(value.clean)")
                         .contentTransition(.numericText(value: value))
@@ -68,14 +93,6 @@ struct HeightForm: View {
         }
     }
 
-    var weightSettings: some View {
-        Button {
-            showingWeightSettings = true
-        } label: {
-            Text("Weight Settings")
-        }
-    }
-    
     var explanation: some View {
         Section {
             VStack(alignment: .leading) {
@@ -143,14 +160,12 @@ struct HeightForm: View {
     
     var list: some View {
         Group {
-            Section(footer: Text("The latest measurement is always used.")) {
+            Section(footer: Text("The latest entry is always used.")) {
                 ForEach(listData, id: \.self) {
                     cell(for: $0)
                         .deleteDisabled($0.isHealth)
                 }
                 .onDelete(perform: delete)
-            }
-            Section {
                 Button {
                     
                 } label: {
@@ -162,17 +177,6 @@ struct HeightForm: View {
     
     func delete(at offsets: IndexSet) {
 
-    }
-    
-    var valueSection: some View {
-        Section {
-            HStack {
-                Spacer()
-                Text("\(value.clean)")
-                    .contentTransition(.numericText(value: value))
-                    .font(LargeNumberFont)
-            }
-        }
     }
 }
 

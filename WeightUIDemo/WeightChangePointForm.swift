@@ -54,7 +54,7 @@ struct WeightChangePointForm: View {
             }
         )
 
-        return Section(footer: Text("Automatically reads weight data from Apple Health. Entered weights will be exported to it as well.")) {
+        return Section(footer: Text("Automatically reads weight data from Apple Health. Data you enter here will also be exported back to Apple Health.")) {
             HStack {
                 Image("AppleHealthIcon")
                     .resizable()
@@ -237,17 +237,6 @@ struct WeightChangePointForm: View {
     
     func delete(at offsets: IndexSet) {
 
-    }
-    
-    var valueSection: some View {
-        Section {
-            HStack {
-                Spacer()
-                Text("\(value.clean)")
-                    .contentTransition(.numericText(value: value))
-                    .font(LargeNumberFont)
-            }
-        }
     }
 }
 

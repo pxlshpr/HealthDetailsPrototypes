@@ -6,10 +6,9 @@ struct LeanBodyMassForm_Past: View {
     @Environment(\.dismiss) var dismiss
 
     @State var hasAppeared = false
-    @State var dailyWeightType: Int = 0
+    @State var dailyValueType: DailyValueType = .average
     @State var value: Double = 93.6
     @State var isEditing = false
-    @State var showingWeightSettings = false
 
     var body: some View {
         NavigationStack {
@@ -20,12 +19,10 @@ struct LeanBodyMassForm_Past: View {
                         if !isEditing {
                             notice
                         }
-//                        weightSettings
-                        if !isEditing {
-                            dailyWeightPicker
+                        if isEditing {
+                            dailyValuePicker
                         }
                         list
-//                        valueSection
                     }
                 } else {
                     Color.clear
@@ -40,12 +37,6 @@ struct LeanBodyMassForm_Past: View {
                 hasAppeared = true
             }
         }
-        .sheet(isPresented: $showingWeightSettings) {
-            LeanBodyMassSettings(
-                dailyWeightType: $dailyWeightType,
-                value: $value
-            )
-        }
     }
     
     var controlColor: Color {
@@ -56,15 +47,16 @@ struct LeanBodyMassForm_Past: View {
         !isEditing
     }
     
-    var dailyWeightPicker: some View {
-        DailyLeanBodyMassPicker(
-            dailyWeightType: $dailyWeightType,
-            value: $value,
-            isDisabled: Binding<Bool>(
-                get: { isDisabled },
-                set: { _ in }
-            )
-        )
+    var dailyValuePicker: some View {
+        Section("Use") {
+            Picker("", selection: $dailyValueType) {
+                ForEach(DailyValueType.allCases, id: \.self) {
+                    Text($0.name).tag($0)
+                }
+            }
+            .pickerStyle(.segmented)
+            .disabled(isDisabled)
+        }
     }
 
     var notice: some View {
@@ -116,13 +108,6 @@ struct LeanBodyMassForm_Past: View {
             }
             ToolbarItem(placement: .bottomBar) {
                 HStack(alignment: .firstTextBaseline, spacing: 5) {
-                    if isEditing {
-                        Button {
-                            showingWeightSettings = true
-                        } label: {
-                            Image(systemName: "switch.2")
-                        }
-                    }
                     Spacer()
                     Text("\(value.clean)")
                         .contentTransition(.numericText(value: value))
@@ -134,14 +119,6 @@ struct LeanBodyMassForm_Past: View {
                         .foregroundStyle(isDisabled ? .tertiary : .secondary)
                 }
             }
-        }
-    }
-
-    var weightSettings: some View {
-        Button {
-            showingWeightSettings = true
-        } label: {
-            Text("Weight Settings")
         }
     }
     
@@ -224,7 +201,7 @@ struct LeanBodyMassForm_Past: View {
             }
             
             var label: String {
-                isEditing ? "Add Lean Body Mass" : "Not Set"
+                isEditing ? "Add Measurement" : "Not Set"
             }
             
             var color: Color {
@@ -247,7 +224,11 @@ struct LeanBodyMassForm_Past: View {
             }
         }
         
-        return Section {
+        var footer: some View {
+            Text(dailyValueType.description)
+        }
+
+        return Section(footer: footer) {
             ForEach(listData, id: \.self) {
                 cell(for: $0)
                     .deleteDisabled($0.isHealth)
@@ -259,17 +240,6 @@ struct LeanBodyMassForm_Past: View {
     
     func delete(at offsets: IndexSet) {
 
-    }
-    
-    var valueSection: some View {
-        Section {
-            HStack {
-                Spacer()
-                Text("\(value.clean)")
-                    .contentTransition(.numericText(value: value))
-                    .font(LargeNumberFont)
-            }
-        }
     }
 }
 

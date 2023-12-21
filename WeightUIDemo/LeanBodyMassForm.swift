@@ -5,10 +5,15 @@ struct LeanBodyMassForm: View {
     
     @Environment(\.dismiss) var dismiss
 
+    @ScaledMetric var scale: CGFloat = 1
+    let imageScale: CGFloat = 24
+
     @State var hasAppeared = false
-    @State var dailyWeightType: Int = 0
+    @State var dailyValueType: DailyValueType = .average
     @State var value: Double = 73.6
-    @State var showingLeanBodyMassSettings = false
+
+    @State var isSynced: Bool = true
+    @State var showingSyncOffConfirmation: Bool = false
 
     var body: some View {
         NavigationStack {
@@ -16,9 +21,9 @@ struct LeanBodyMassForm: View {
                 if hasAppeared {
                     Form {
                         explanation
-//                        weightSettings
+                        dailyValuePicker
                         list
-//                        valueSection
+                        syncToggle
                     }
                 } else {
                     Color.clear
@@ -33,11 +38,43 @@ struct LeanBodyMassForm: View {
                 hasAppeared = true
             }
         }
-        .sheet(isPresented: $showingLeanBodyMassSettings) {
-            LeanBodyMassSettings(
-                dailyWeightType: $dailyWeightType,
-                value: $value
-            )
+    }
+    
+    var dailyValuePicker: some View {
+        Section("Use") {
+            Picker("", selection: $dailyValueType) {
+                ForEach(DailyValueType.allCases, id: \.self) {
+                    Text($0.name).tag($0)
+                }
+            }
+            .pickerStyle(.segmented)
+        }
+    }
+
+    var syncToggle: some View {
+        let binding = Binding<Bool>(
+            get: { isSynced },
+            set: {
+                if !$0 {
+                    showingSyncOffConfirmation = true
+                }
+            }
+        )
+
+        return Section(footer: Text("Automatically reads lean body mass data from Apple Health. Data you enter here will also be exported back to Apple Health.")) {
+            HStack {
+                Image("AppleHealthIcon")
+                    .resizable()
+                    .frame(width: imageScale * scale, height: imageScale * scale)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 5)
+                            .stroke(Color(.systemGray3), lineWidth: 0.5)
+                    )
+                Text("Sync with Apple Health")
+                    .layoutPriority(1)
+                Spacer()
+                Toggle("", isOn: binding)
+            }
         }
     }
     
@@ -45,11 +82,6 @@ struct LeanBodyMassForm: View {
         Group {
             ToolbarItem(placement: .bottomBar) {
                 HStack(alignment: .firstTextBaseline, spacing: 5) {
-                    Button {
-                        showingLeanBodyMassSettings = true
-                    } label: {
-                        Image(systemName: "switch.2")
-                    }
                     Spacer()
                     Text("\(value.clean)")
                         .contentTransition(.numericText(value: value))
@@ -68,14 +100,6 @@ struct LeanBodyMassForm: View {
         }
     }
 
-    var weightSettings: some View {
-        Button {
-            showingLeanBodyMassSettings = true
-        } label: {
-            Text("Weight Settings")
-        }
-    }
-    
     var explanation: some View {
         Section {
             VStack(alignment: .leading) {
@@ -142,7 +166,12 @@ struct LeanBodyMassForm: View {
     }
     
     var list: some View {
-        Section {
+        
+        var footer: some View {
+            Text(dailyValueType.description)
+        }
+
+        return Section(footer: footer) {
             ForEach(listData, id: \.self) {
                 cell(for: $0)
                     .deleteDisabled($0.isHealth)
@@ -151,24 +180,13 @@ struct LeanBodyMassForm: View {
             Button {
                 
             } label: {
-                Text("Add Lean Body Mass")
+                Text("Add Measurement")
             }
         }
     }
     
     func delete(at offsets: IndexSet) {
 
-    }
-    
-    var valueSection: some View {
-        Section {
-            HStack {
-                Spacer()
-                Text("\(value.clean)")
-                    .contentTransition(.numericText(value: value))
-                    .font(LargeNumberFont)
-            }
-        }
     }
 }
 

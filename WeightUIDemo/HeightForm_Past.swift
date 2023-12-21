@@ -6,10 +6,8 @@ struct HeightForm_Past: View {
     @Environment(\.dismiss) var dismiss
 
     @State var hasAppeared = false
-    @State var dailyWeightType: Int = 0
     @State var value: Double = 117.4
     @State var isEditing = false
-    @State var showingWeightSettings = false
 
     var body: some View {
         NavigationStack {
@@ -20,12 +18,7 @@ struct HeightForm_Past: View {
                         if !isEditing {
                             notice
                         }
-//                        weightSettings
-//                        if !isEditing {
-//                            dailyWeightPicker
-//                        }
                         list
-//                        valueSection
                     }
                 } else {
                     Color.clear
@@ -40,12 +33,6 @@ struct HeightForm_Past: View {
                 hasAppeared = true
             }
         }
-        .sheet(isPresented: $showingWeightSettings) {
-            HeightSettings(
-                dailyWeightType: $dailyWeightType,
-                value: $value
-            )
-        }
     }
     
     var controlColor: Color {
@@ -56,17 +43,6 @@ struct HeightForm_Past: View {
         !isEditing
     }
     
-    var dailyWeightPicker: some View {
-        DailyWeightPicker(
-            dailyWeightType: $dailyWeightType,
-            value: $value,
-            isDisabled: Binding<Bool>(
-                get: { isDisabled },
-                set: { _ in }
-            )
-        )
-    }
-
     var notice: some View {
         var primaryAction: NoticeAction {
             .init(title: isEditing ? "View Preserved Data" : "Edit to View Actual Data") {
@@ -116,13 +92,6 @@ struct HeightForm_Past: View {
             }
             ToolbarItem(placement: .bottomBar) {
                 HStack(alignment: .firstTextBaseline, spacing: 5) {
-                    if isEditing {
-                        Button {
-                            showingWeightSettings = true
-                        } label: {
-                            Image(systemName: "switch.2")
-                        }
-                    }
                     Spacer()
                     Text("\(value.clean)")
                         .contentTransition(.numericText(value: value))
@@ -134,14 +103,6 @@ struct HeightForm_Past: View {
                         .foregroundStyle(isDisabled ? .tertiary : .secondary)
                 }
             }
-        }
-    }
-
-    var weightSettings: some View {
-        Button {
-            showingWeightSettings = true
-        } label: {
-            Text("Weight Settings")
         }
     }
     
@@ -259,8 +220,6 @@ struct HeightForm_Past: View {
                         .deleteDisabled($0.isHealth)
                 }
                 .onDelete(perform: delete)
-            }
-            Section {
                 bottomContent
             }
         }
@@ -268,17 +227,6 @@ struct HeightForm_Past: View {
     
     func delete(at offsets: IndexSet) {
 
-    }
-    
-    var valueSection: some View {
-        Section {
-            HStack {
-                Spacer()
-                Text("\(value.clean)")
-                    .contentTransition(.numericText(value: value))
-                    .font(LargeNumberFont)
-            }
-        }
     }
 }
 

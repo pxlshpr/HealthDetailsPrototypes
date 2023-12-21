@@ -269,17 +269,6 @@ struct WeightForm_Past: View {
     func delete(at offsets: IndexSet) {
 
     }
-    
-    var valueSection: some View {
-        Section {
-            HStack {
-                Spacer()
-                Text("\(value.clean)")
-                    .contentTransition(.numericText(value: value))
-                    .font(LargeNumberFont)
-            }
-        }
-    }
 }
 
 #Preview {
