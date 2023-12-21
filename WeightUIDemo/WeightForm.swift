@@ -5,6 +5,8 @@ struct WeightForm: View {
     
     @Environment(\.dismiss) var dismiss
 
+    @ScaledMetric var scale: CGFloat = 1
+
     @State var hasAppeared = false
     @State var dailyValueType: DailyValueType = .average
     @State var value: Double = 93.6
@@ -18,8 +20,8 @@ struct WeightForm: View {
                 if hasAppeared {
                     Form {
                         explanation
-                        list
                         dailyValuePicker
+                        list
                         syncToggle
                     }
                 } else {
@@ -56,6 +58,8 @@ struct WeightForm: View {
         }
     }
 
+    let imageScale: CGFloat = 24
+
     var syncToggle: some View {
         let binding = Binding<Bool>(
             get: { isSynced },
@@ -68,7 +72,14 @@ struct WeightForm: View {
 
         return Section(footer: Text("Automatically reads weight data from Apple Health. Entered weights will be exported to it as well.")) {
             HStack {
-                Text("Sync with Health App")
+                Image("AppleHealthIcon")
+                    .resizable()
+                    .frame(width: imageScale * scale, height: imageScale * scale)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 5)
+                            .stroke(Color(.systemGray3), lineWidth: 0.5)
+                    )
+                Text("Sync with Apple Health")
                     .layoutPriority(1)
                 Spacer()
                 Toggle("", isOn: binding)

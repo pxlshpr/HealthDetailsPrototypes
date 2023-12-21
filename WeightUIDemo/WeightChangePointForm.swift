@@ -15,6 +15,9 @@ struct WeightChangePointForm: View {
     @State var isSynced: Bool = true
     @State var showingSyncOffConfirmation: Bool = false
 
+    @ScaledMetric var scale: CGFloat = 1
+    let imageScale: CGFloat = 24
+
     var body: some View {
         NavigationStack {
             Group {
@@ -53,7 +56,14 @@ struct WeightChangePointForm: View {
 
         return Section(footer: Text("Automatically reads weight data from Apple Health. Entered weights will be exported to it as well.")) {
             HStack {
-                Text("Sync with Health App")
+                Image("AppleHealthIcon")
+                    .resizable()
+                    .frame(width: imageScale * scale, height: imageScale * scale)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 5)
+                            .stroke(Color(.systemGray3), lineWidth: 0.5)
+                    )
+                Text("Sync with Apple Health")
                     .layoutPriority(1)
                 Spacer()
                 Toggle("", isOn: binding)

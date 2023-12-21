@@ -6,6 +6,8 @@ struct AgeForm: View {
     @Environment(\.dismiss) var dismiss
 
     @ScaledMetric var scale: CGFloat = 1
+    let imageScale: CGFloat = 24
+    
     @State var hasAppeared = false
     
     @State var showingAgeAlert = false
@@ -195,9 +197,7 @@ struct AgeForm: View {
             Text(listData.valueString)
         }
     }
-    
-    let imageScale: CGFloat = 20
-    
+        
     var content: some View {
         Group {
             Section {
