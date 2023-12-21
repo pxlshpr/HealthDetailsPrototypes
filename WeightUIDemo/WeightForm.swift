@@ -6,9 +6,11 @@ struct WeightForm: View {
     @Environment(\.dismiss) var dismiss
 
     @State var hasAppeared = false
-    @State var dailyWeightType: Int = 0
+    @State var dailyValueType: DailyValueType = .average
     @State var value: Double = 93.6
-    @State var showingWeightSettings = false
+
+    @State var isSynced: Bool = true
+    @State var showingSyncOffConfirmation: Bool = false
 
     var body: some View {
         NavigationStack {
@@ -16,9 +18,9 @@ struct WeightForm: View {
                 if hasAppeared {
                     Form {
                         explanation
-//                        weightSettings
                         list
-//                        valueSection
+                        dailyValuePicker
+                        syncToggle
                     }
                 } else {
                     Color.clear
@@ -33,11 +35,44 @@ struct WeightForm: View {
                 hasAppeared = true
             }
         }
-        .sheet(isPresented: $showingWeightSettings) {
-            WeightSettings(
-                dailyWeightType: $dailyWeightType,
-                value: $value
-            )
+        .confirmationDialog("Turn Off Sync", isPresented: $showingSyncOffConfirmation, titleVisibility: .visible) {
+            Button("Turn Off", role: .destructive) {
+                
+            }
+        } message: {
+            Text("Weight data will no longer be read from or written to Apple Health.")
+        }
+
+    }
+    
+    var dailyValuePicker: some View {
+        Section("Use") {
+            Picker("", selection: $dailyValueType) {
+                ForEach(DailyValueType.allCases, id: \.self) {
+                    Text($0.name).tag($0)
+                }
+            }
+            .pickerStyle(.segmented)
+        }
+    }
+
+    var syncToggle: some View {
+        let binding = Binding<Bool>(
+            get: { isSynced },
+            set: {
+                if !$0 {
+                    showingSyncOffConfirmation = true
+                }
+            }
+        )
+
+        return Section(footer: Text("Automatically reads weight data from Apple Health. Entered weights will be exported to it as well.")) {
+            HStack {
+                Text("Sync with Health App")
+                    .layoutPriority(1)
+                Spacer()
+                Toggle("", isOn: binding)
+            }
         }
     }
     
@@ -45,11 +80,6 @@ struct WeightForm: View {
         Group {
             ToolbarItem(placement: .bottomBar) {
                 HStack(alignment: .firstTextBaseline, spacing: 5) {
-                    Button {
-                        showingWeightSettings = true
-                    } label: {
-                        Image(systemName: "switch.2")
-                    }
                     Spacer()
                     Text("\(value.clean)")
                         .contentTransition(.numericText(value: value))
@@ -68,14 +98,6 @@ struct WeightForm: View {
         }
     }
 
-    var weightSettings: some View {
-        Button {
-            showingWeightSettings = true
-        } label: {
-            Text("Weight Settings")
-        }
-    }
-    
     var explanation: some View {
         Section {
             VStack(alignment: .leading) {
@@ -142,7 +164,11 @@ struct WeightForm: View {
     }
     
     var list: some View {
-        Section {
+        var footer: some View {
+            Text(dailyValueType.description)
+        }
+
+        return Section(footer: footer) {
             ForEach(listData, id: \.self) {
                 cell(for: $0)
                     .deleteDisabled($0.isHealth)

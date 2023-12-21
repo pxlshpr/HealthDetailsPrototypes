@@ -9,14 +9,13 @@ struct WeightChangePointForm_Past: View {
     @Environment(\.dismiss) var dismiss
     
     @State var hasAppeared = false
-    @State var dailyWeightType: Int = 0
+    @State var dailyValueType: DailyValueType = .average
     @State var value: Double = 93.6
     
     @State var useMovingAverage = true
     @State var days: Int = 7
 
     @State var isEditing = false
-    @State var showingWeightSettings = false
     
     var body: some View {
         NavigationStack {
@@ -27,13 +26,11 @@ struct WeightChangePointForm_Past: View {
                         if !isEditing {
                             notice
                         }
-//                        weightSettings
-                        if !isEditing {
-                            dailyWeightPicker
-                        }
                         movingAverageToggle
+                        if isEditing {
+                            dailyValuePicker
+                        }
                         lists
-//                        valueSection
                     }
                 } else {
                     Color.clear
@@ -47,12 +44,6 @@ struct WeightChangePointForm_Past: View {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
                 hasAppeared = true
             }
-        }
-        .sheet(isPresented: $showingWeightSettings) {
-            WeightSettings(
-                dailyWeightType: $dailyWeightType,
-                value: $value
-            )
         }
     }
     
@@ -91,13 +82,6 @@ struct WeightChangePointForm_Past: View {
             }
             ToolbarItem(placement: .bottomBar) {
                 HStack(alignment: .firstTextBaseline, spacing: 5) {
-                    if isEditing {
-                        Button {
-                            showingWeightSettings = true
-                        } label: {
-                            Image(systemName: "switch.2")
-                        }
-                    }
                     Spacer()
                     Text("\(value.clean)")
                         .contentTransition(.numericText(value: value))
@@ -112,69 +96,17 @@ struct WeightChangePointForm_Past: View {
         }
     }
     
-    var weightSettings: some View {
-        Button {
-            showingWeightSettings = true
-        } label: {
-            Text("Weight Settings")
-        }
-    }
-    
     var notice: some View {
-        var primaryAction: NoticeAction {
-            .init(title: isEditing ? "View Preserved Data" : "Edit to View Actual Data") {
-                withAnimation {
-                    isEditing.toggle()
-                }
+        NoticeSection(
+            style: .plain,
+            title: "Previous Data",
+            message: "This data has been preserved to ensure any goals set on this day remain unchanged.",
+            image: {
+                Image(systemName: "calendar.badge.clock")
+                    .font(.system(size: 30))
+                    .padding(5)
             }
-        }
-        
-        var image: some View {
-            var primaryColor: Color {
-                isEditing ? .green : .yellow
-            }
-            
-            var systemName: String {
-                "calendar.badge.clock"
-            }
-            
-            return Image(systemName: systemName)
-                .font(.system(size: 30))
-                .padding(5)
-        }
-        
-        var message: String {
-            isEditing
-//            ? "You're viewing your current weight data, which may differ from what was set previously."
-            ? "You are viewing current weight data, which may differ from what was saved previously."
-//            ? "You are viewing your actual weight data for a past date which may have changed since you set it.\n\nUpdating will overwrite previously saved data and modify any dependent goals for that day."
-//            : "You're currently viewing data that has been preserved despite possibly having changed since then, ensuring the goals set on that day remain unchanged."
-//            : "You are viewing previously saved data that may have changed."
-            : "This data has been preserved to ensure any goals set on this day remain unchanged."
-//            : "You are viewing data of a past date that was set on that day and preserved to ensure your goals remain unchanged.\n\nYour actual weight data may have changed since then."
-        }
-        
-        var title: String {
-            isEditing
-            ? "Current Data"
-            : "Previous Data"
-        }
-        
-        var section: some View {
-            NoticeSection(
-                style: .plain,
-                title: title,
-                message: message,
-//                primaryAction: primaryAction,
-                image: { image }
-            )
-        }
-        
-        return Group {
-//            if !isEditing {
-                section
-//            }
-        }
+        )
     }
 
     var explanation: some View {
@@ -321,15 +253,15 @@ struct WeightChangePointForm_Past: View {
     
     let emptyListData: [ListData] = []
     
-    var dailyWeightPicker: some View {
-        DailyWeightPicker(
-            dailyWeightType: $dailyWeightType,
-            value: $value,
-            isDisabled: Binding<Bool>(
-                get: { isDisabled },
-                set: { _ in }
-            )
-        )
+    var dailyValuePicker: some View {
+        Section("Use") {
+            Picker("", selection: $dailyValueType) {
+                ForEach(DailyValueType.allCases, id: \.self) {
+                    Text($0.name).tag($0)
+                }
+            }
+            .pickerStyle(.segmented)
+        }
     }
     
     var lists: some View {
@@ -391,8 +323,15 @@ struct WeightChangePointForm_Past: View {
             }
         }
         
+        @ViewBuilder
+        func footer(_ i: Int) -> some View {
+            if [0, 5, 6].contains(i) {
+                Text(dailyValueType.description)
+            }
+        }
+
         return ForEach(range, id: \.self) { i in
-            Section(header: header(i)) {
+            Section(header: header(i), footer: footer(i)) {
                 if indexesWithValues.contains(i) {
                     ForEach(listData, id: \.self) {
                         cell(for: $0)

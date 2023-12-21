@@ -1,14 +1,13 @@
 import SwiftUI
 import SwiftSugar
 
-struct SexForm_Past: View {
+struct PregnancyStatusForm_Past: View {
     
     @Environment(\.dismiss) var dismiss
 
     @State var hasAppeared = false
-    @State var sex: Sex = .male
+    @State var pregnancyStatus: PregnancyStatus = .notPregnantOrLactating
     @State var isEditing = false
-    @State var showingWeightSettings = false
 
     var body: some View {
         NavigationStack {
@@ -25,7 +24,7 @@ struct SexForm_Past: View {
                     Color.clear
                 }
             }
-            .navigationTitle("Biological Sex")
+            .navigationTitle("Pregnancy Status")
             .navigationBarTitleDisplayMode(.large)
             .toolbar { toolbarContent }
         }
@@ -49,14 +48,33 @@ struct SexForm_Past: View {
         )
     }
     
+    var isDisabled: Bool {
+        !isEditing
+    }
+
+    var picker: some View {
+        PickerSection(
+            [PregnancyStatus.notPregnantOrLactating, PregnancyStatus.pregnant, PregnancyStatus.lactating],
+            $pregnancyStatus,
+            isDisabled: Binding<Bool>(
+                get: { isDisabled },
+                set: { _ in }
+            )
+        )
+    }
+
     var toolbarContent: some ToolbarContent {
-        Group {
+        var valueLabel: String {
+            pregnancyStatus.name
+        }
+        
+        return Group {
             ToolbarItem(placement: .bottomBar) {
                 HStack(alignment: .firstTextBaseline, spacing: 5) {
                     Spacer()
-                    Text(sex != .other ? sex.name : "Not Set")
+                    Text(valueLabel)
                         .font(NotSetFont)
-                        .foregroundStyle(sex != .other ? (isDisabled ? .secondary : .primary) : (isDisabled ? .tertiary : .secondary))
+                        .foregroundStyle(pregnancyStatus == .noneOption ? .secondary : .primary)
                 }
             }
             ToolbarItem(placement: .topBarTrailing) {
@@ -84,45 +102,15 @@ struct SexForm_Past: View {
             }
         }
     }
-    
-    var isDisabled: Bool {
-        !isEditing
-    }
 
     var explanation: some View {
         Section {
-            VStack(alignment: .leading) {
-                Text("Your biological sex may be used when:")
-                Label {
-                    Text("Calculating your estimated resting energy or lean body mass.")
-                } icon: {
-                    Circle()
-                        .foregroundStyle(Color(.label))
-                        .frame(width: 5, height: 5)
-                }
-                Label {
-                    Text("Picking daily values for micronutrients.")
-                } icon: {
-                    Circle()
-                        .foregroundStyle(Color(.label))
-                        .frame(width: 5, height: 5)
-                }
-            }
+            Text("Your pregnancy status may be used when picking daily values for micronutrients. For example, the recommended daily allowance for Iodine almost doubles when a mother is breastfeeding.")
         }
     }
-    
-    var picker: some View {
-        PickerSection(
-            [Sex.female, Sex.male],
-            $sex,
-            isDisabled: Binding<Bool>(
-                get: { isDisabled },
-                set: { _ in }
-            )
-        )
-    }
+
 }
 
 #Preview {
-    SexForm_Past()
+    PregnancyStatusForm_Past()
 }

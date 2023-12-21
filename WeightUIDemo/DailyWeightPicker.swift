@@ -5,19 +5,22 @@ struct DailyWeightPicker: View {
     @Binding var dailyWeightType: Int
     @Binding var value: Double
     var isDisabled: Binding<Bool>?
+    let header: String
     
     init(
         dailyWeightType: Binding<Int>,
         value: Binding<Double>,
+        header: String = "Daily Weight",
         isDisabled: Binding<Bool>? = nil
     ) {
         _dailyWeightType = dailyWeightType
         _value = value
+        self.header = header
         self.isDisabled = isDisabled
     }
 
     var body: some View {
-        return Section(header: header, footer: footer) {
+        return Section(header: Text(header)) {
             Picker("", selection: binding) {
                 Text("Average").tag(0)
                 Text("Last").tag(1)
@@ -54,10 +57,6 @@ struct DailyWeightPicker: View {
                 }
             }
         )
-    }
-    
-    var header: some View {
-        Text("Daily Weight")
     }
 }
 

@@ -1,15 +1,42 @@
 import SwiftUI
 import SwiftSugar
 
+enum DailyValueType: CaseIterable, Hashable {
+    case average
+    case last
+    case first
+    
+    var name: String {
+        switch self {
+        case .average:
+            "Average"
+        case .last:
+            "Last"
+        case .first:
+            "First"
+        }
+    }
+    
+    var description: String {
+        switch self {
+        case .average:
+            "The average is being used."
+        case .last:
+            "The last entry is being used."
+        case .first:
+            "The first entry is being used."
+        }
+    }
+}
+
 struct WeightForm_Past: View {
     
     @Environment(\.dismiss) var dismiss
 
     @State var hasAppeared = false
-    @State var dailyWeightType: Int = 0
+    @State var dailyValueType: DailyValueType = .average
     @State var value: Double = 93.6
     @State var isEditing = false
-    @State var showingWeightSettings = false
 
     var body: some View {
         NavigationStack {
@@ -20,12 +47,10 @@ struct WeightForm_Past: View {
                         if !isEditing {
                             notice
                         }
-//                        weightSettings
-                        if !isEditing {
-                            dailyWeightPicker
+                        if isEditing {
+                            dailyValuePicker
                         }
                         list
-//                        valueSection
                     }
                 } else {
                     Color.clear
@@ -40,12 +65,6 @@ struct WeightForm_Past: View {
                 hasAppeared = true
             }
         }
-        .sheet(isPresented: $showingWeightSettings) {
-            WeightSettings(
-                dailyWeightType: $dailyWeightType,
-                value: $value
-            )
-        }
     }
     
     var controlColor: Color {
@@ -56,15 +75,16 @@ struct WeightForm_Past: View {
         !isEditing
     }
     
-    var dailyWeightPicker: some View {
-        DailyWeightPicker(
-            dailyWeightType: $dailyWeightType,
-            value: $value,
-            isDisabled: Binding<Bool>(
-                get: { isDisabled },
-                set: { _ in }
-            )
-        )
+    var dailyValuePicker: some View {
+        Section("Use") {
+            Picker("", selection: $dailyValueType) {
+                ForEach(DailyValueType.allCases, id: \.self) {
+                    Text($0.name).tag($0)
+                }
+            }
+            .pickerStyle(.segmented)
+            .disabled(isDisabled)
+        }
     }
 
     var notice: some View {
@@ -116,13 +136,6 @@ struct WeightForm_Past: View {
             }
             ToolbarItem(placement: .bottomBar) {
                 HStack(alignment: .firstTextBaseline, spacing: 5) {
-                    if isEditing {
-                        Button {
-                            showingWeightSettings = true
-                        } label: {
-                            Image(systemName: "switch.2")
-                        }
-                    }
                     Spacer()
                     Text("\(value.clean)")
                         .contentTransition(.numericText(value: value))
@@ -137,14 +150,6 @@ struct WeightForm_Past: View {
         }
     }
 
-    var weightSettings: some View {
-        Button {
-            showingWeightSettings = true
-        } label: {
-            Text("Weight Settings")
-        }
-    }
-    
     var explanation: some View {
         Section {
             VStack(alignment: .leading) {
@@ -247,7 +252,11 @@ struct WeightForm_Past: View {
             }
         }
         
-        return Section {
+        var footer: some View {
+            Text(dailyValueType.description)
+        }
+        
+        return Section(footer: footer) {
             ForEach(listData, id: \.self) {
                 cell(for: $0)
                     .deleteDisabled($0.isHealth)

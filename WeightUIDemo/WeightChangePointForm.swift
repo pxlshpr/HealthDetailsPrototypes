@@ -6,12 +6,14 @@ struct WeightChangePointForm: View {
     @Environment(\.dismiss) var dismiss
     
     @State var hasAppeared = false
-    @State var dailyWeightType: Int = 0
+    @State var dailyValueType: DailyValueType = .average
     @State var value: Double = 93.6
     
     @State var useMovingAverage = true
     @State var days: Int = 7
-    @State var showingWeightSettings = false
+    
+    @State var isSynced: Bool = true
+    @State var showingSyncOffConfirmation: Bool = false
 
     var body: some View {
         NavigationStack {
@@ -20,7 +22,9 @@ struct WeightChangePointForm: View {
                     Form {
                         explanation
                         movingAverageToggle
+                        dailyValuePicker
                         lists
+                        syncToggle
                     }
                 } else {
                     Color.clear
@@ -35,23 +39,43 @@ struct WeightChangePointForm: View {
                 hasAppeared = true
             }
         }
-        .sheet(isPresented: $showingWeightSettings) {
-            WeightSettings(
-                dailyWeightType: $dailyWeightType,
-                value: $value
-            )
+    }
+    
+    var syncToggle: some View {
+        let binding = Binding<Bool>(
+            get: { isSynced },
+            set: {
+                if !$0 {
+                    showingSyncOffConfirmation = true
+                }
+            }
+        )
+
+        return Section(footer: Text("Automatically reads weight data from Apple Health. Entered weights will be exported to it as well.")) {
+            HStack {
+                Text("Sync with Health App")
+                    .layoutPriority(1)
+                Spacer()
+                Toggle("", isOn: binding)
+            }
         }
     }
 
+    var dailyValuePicker: some View {
+        Section("Use") {
+            Picker("", selection: $dailyValueType) {
+                ForEach(DailyValueType.allCases, id: \.self) {
+                    Text($0.name).tag($0)
+                }
+            }
+            .pickerStyle(.segmented)
+        }
+    }
+    
     var toolbarContent: some ToolbarContent {
         Group {
             ToolbarItem(placement: .bottomBar) {
                 HStack(alignment: .firstTextBaseline, spacing: 5) {
-                    Button {
-                        showingWeightSettings = true
-                    } label: {
-                        Image(systemName: "switch.2")
-                    }
                     Spacer()
                     Text("\(value.clean)")
                         .contentTransition(.numericText(value: value))
@@ -70,14 +94,6 @@ struct WeightChangePointForm: View {
         }
     }
     
-    var weightSettings: some View {
-        Button {
-            showingWeightSettings = true
-        } label: {
-            Text("Weight Settings")
-        }
-    }
-
     var explanation: some View {
         Section {
             VStack(alignment: .leading) {
@@ -184,8 +200,15 @@ struct WeightChangePointForm: View {
             useMovingAverage ? 0..<days : 0..<1
         }
         
+        @ViewBuilder
+        func footer(_ i: Int) -> some View {
+            if [0, 5, 6].contains(i) {
+                Text(dailyValueType.description)
+            }
+        }
+        
         return ForEach(range, id: \.self) { i in
-            Section(header: header(i)) {
+            Section(header: header(i), footer: footer(i)) {
                 if [0, 5, 6].contains(i) {
                     ForEach(listData, id: \.self) {
                         cell(for: $0)
