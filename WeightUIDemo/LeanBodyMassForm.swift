@@ -1,14 +1,14 @@
 import SwiftUI
 import SwiftSugar
 
-struct WeightForm: View {
+struct LeanBodyMassForm: View {
     
     @Environment(\.dismiss) var dismiss
 
     @State var hasAppeared = false
     @State var dailyWeightType: Int = 0
-    @State var value: Double = 93.6
-    @State var showingWeightSettings = false
+    @State var value: Double = 73.6
+    @State var showingLeanBodyMassSettings = false
 
     var body: some View {
         NavigationStack {
@@ -24,7 +24,7 @@ struct WeightForm: View {
                     Color.clear
                 }
             }
-            .navigationTitle("Weight")
+            .navigationTitle("Lean Body Mass")
             .navigationBarTitleDisplayMode(.large)
             .toolbar { toolbarContent }
         }
@@ -33,8 +33,8 @@ struct WeightForm: View {
                 hasAppeared = true
             }
         }
-        .sheet(isPresented: $showingWeightSettings) {
-            WeightSettings(
+        .sheet(isPresented: $showingLeanBodyMassSettings) {
+            LeanBodyMassSettings(
                 dailyWeightType: $dailyWeightType,
                 value: $value
             )
@@ -46,7 +46,7 @@ struct WeightForm: View {
             ToolbarItem(placement: .bottomBar) {
                 HStack(alignment: .firstTextBaseline, spacing: 5) {
                     Button {
-                        showingWeightSettings = true
+                        showingLeanBodyMassSettings = true
                     } label: {
                         Image(systemName: "switch.2")
                     }
@@ -70,7 +70,7 @@ struct WeightForm: View {
 
     var weightSettings: some View {
         Button {
-            showingWeightSettings = true
+            showingLeanBodyMassSettings = true
         } label: {
             Text("Weight Settings")
         }
@@ -79,16 +79,16 @@ struct WeightForm: View {
     var explanation: some View {
         Section {
             VStack(alignment: .leading) {
-                Text("Your weight may be used to:")
+                Text("Your lean body mass is the weight of your body minus your body fat (adipose tissue). It may be used to:")
                 Label {
-                    Text("Create goals. For example, you could create a protein goal relative to your weight.")
+                    Text("Create goals. For example, you could create a protein goal relative to your lean body mass instead of your weight.")
                 } icon: {
                     Circle()
                         .foregroundStyle(Color(.label))
                         .frame(width: 5, height: 5)
                 }
                 Label {
-                    Text("Calculate your adaptive maintenance energy, estimated resting energy, or lean body mass.")
+                    Text("Calculate your estimated resting energy.")
                 } icon: {
                     Circle()
                         .foregroundStyle(Color(.label))
@@ -111,9 +111,9 @@ struct WeightForm: View {
     }
     
     let listData: [ListData] = [
-        .init(false, "9:42 am", "93.7 kg"),
-        .init(true, "12:07 pm", "94.6 kg"),
-        .init(false, "5:35 pm", "92.5 kg"),
+        .init(false, "9:42 am", "73.7 kg"),
+        .init(true, "12:07 pm", "74.6 kg"),
+        .init(false, "5:35 pm", "72.5 kg"),
     ]
     
     func cell(for listData: ListData) -> some View {
@@ -151,7 +151,7 @@ struct WeightForm: View {
             Button {
                 
             } label: {
-                Text("Add Weight")
+                Text("Add Lean Body Mass")
             }
         }
     }
@@ -173,5 +173,5 @@ struct WeightForm: View {
 }
 
 #Preview {
-    WeightForm()
+    LeanBodyMassForm()
 }

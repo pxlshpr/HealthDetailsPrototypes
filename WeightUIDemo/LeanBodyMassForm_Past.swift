@@ -1,7 +1,7 @@
 import SwiftUI
 import SwiftSugar
 
-struct WeightForm_Past: View {
+struct LeanBodyMassForm_Past: View {
     
     @Environment(\.dismiss) var dismiss
 
@@ -31,7 +31,7 @@ struct WeightForm_Past: View {
                     Color.clear
                 }
             }
-            .navigationTitle("Weight")
+            .navigationTitle("Lean Body Mass")
             .navigationBarTitleDisplayMode(.large)
             .toolbar { toolbarContent }
         }
@@ -41,7 +41,7 @@ struct WeightForm_Past: View {
             }
         }
         .sheet(isPresented: $showingWeightSettings) {
-            WeightSettings(
+            LeanBodyMassSettings(
                 dailyWeightType: $dailyWeightType,
                 value: $value
             )
@@ -57,7 +57,7 @@ struct WeightForm_Past: View {
     }
     
     var dailyWeightPicker: some View {
-        DailyWeightPicker(
+        DailyLeanBodyMassPicker(
             dailyWeightType: $dailyWeightType,
             value: $value,
             isDisabled: Binding<Bool>(
@@ -148,16 +148,16 @@ struct WeightForm_Past: View {
     var explanation: some View {
         Section {
             VStack(alignment: .leading) {
-                Text("Your weight may be used to:")
+                Text("Your lean body mass is the weight of your body minus your body fat (adipose tissue). It may be used to:")
                 Label {
-                    Text("Create goals. For example, you could create a protein goal relative to your weight.")
+                    Text("Create goals. For example, you could create a protein goal relative to your lean body mass instead of your weight.")
                 } icon: {
                     Circle()
                         .foregroundStyle(Color(.label))
                         .frame(width: 5, height: 5)
                 }
                 Label {
-                    Text("Calculate your adaptive maintenance energy, estimated resting energy, or lean body mass.")
+                    Text("Calculate your estimated resting energy.")
                 } icon: {
                     Circle()
                         .foregroundStyle(Color(.label))
@@ -224,7 +224,7 @@ struct WeightForm_Past: View {
             }
             
             var label: String {
-                isEditing ? "Add Weight" : "Not Set"
+                isEditing ? "Add Lean Body Mass" : "Not Set"
             }
             
             var color: Color {
@@ -274,5 +274,5 @@ struct WeightForm_Past: View {
 }
 
 #Preview {
-    WeightForm_Past()
+    LeanBodyMassForm_Past()
 }

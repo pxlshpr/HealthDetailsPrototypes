@@ -14,6 +14,8 @@ struct DemoView: View {
         case sexPast
         case age
         case agePast
+        case leanBodyMass
+        case leanBodyMassPast
 
         var id: Int { rawValue }
         var label: String {
@@ -22,6 +24,10 @@ struct DemoView: View {
                 "Age"
             case .agePast:
                 "Age Past"
+            case .leanBodyMass:
+                "Lean Body Mass"
+            case .leanBodyMassPast:
+                "Lean Body Mass Past"
             case .weight:
                 "Weight"
             case .weightPast:
@@ -65,6 +71,10 @@ struct DemoView: View {
             AgeForm()
         case .agePast:
             AgeForm_Past()
+        case .leanBodyMass:
+            LeanBodyMassForm()
+        case .leanBodyMassPast:
+            LeanBodyMassForm_Past()
         case .sex:
             SexForm()
         case .sexPast:
