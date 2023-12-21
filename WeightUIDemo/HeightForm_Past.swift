@@ -1,13 +1,13 @@
 import SwiftUI
 import SwiftSugar
 
-struct WeightForm_Past: View {
+struct HeightForm_Past: View {
     
     @Environment(\.dismiss) var dismiss
 
     @State var hasAppeared = false
     @State var dailyWeightType: Int = 0
-    @State var value: Double = 93.6
+    @State var value: Double = 117.4
     @State var isEditing = false
     @State var showingWeightSettings = false
 
@@ -21,9 +21,9 @@ struct WeightForm_Past: View {
                             notice
                         }
 //                        weightSettings
-                        if !isEditing {
-                            dailyWeightPicker
-                        }
+//                        if !isEditing {
+//                            dailyWeightPicker
+//                        }
                         list
 //                        valueSection
                     }
@@ -31,7 +31,7 @@ struct WeightForm_Past: View {
                     Color.clear
                 }
             }
-            .navigationTitle("Weight")
+            .navigationTitle("Height")
             .navigationBarTitleDisplayMode(.large)
             .toolbar { toolbarContent }
         }
@@ -41,7 +41,7 @@ struct WeightForm_Past: View {
             }
         }
         .sheet(isPresented: $showingWeightSettings) {
-            WeightSettings(
+            HeightSettings(
                 dailyWeightType: $dailyWeightType,
                 value: $value
             )
@@ -128,7 +128,7 @@ struct WeightForm_Past: View {
                         .contentTransition(.numericText(value: value))
                         .font(LargeNumberFont)
                         .foregroundStyle(isDisabled ? .secondary : .primary)
-                    Text("kg")
+                    Text("cm")
                         .font(LargeUnitFont)
 //                        .foregroundStyle(.secondary)
                         .foregroundStyle(isDisabled ? .tertiary : .secondary)
@@ -148,16 +148,16 @@ struct WeightForm_Past: View {
     var explanation: some View {
         Section {
             VStack(alignment: .leading) {
-                Text("Your weight may be used to:")
+                Text("Your height may be used to:")
                 Label {
-                    Text("Create goals. For example, you could create a protein goal relative to your weight.")
+                    Text("Calculate your estimated resting energy.")
                 } icon: {
                     Circle()
                         .foregroundStyle(Color(.label))
                         .frame(width: 5, height: 5)
                 }
                 Label {
-                    Text("Calculate your adaptive maintenance energy, estimated resting energy, or lean body mass.")
+                    Text("Calculate your lean body mass.")
                 } icon: {
                     Circle()
                         .foregroundStyle(Color(.label))
@@ -180,11 +180,11 @@ struct WeightForm_Past: View {
     }
     
     let listData: [ListData] = [
-        .init(false, "9:42 am", "93.7 kg"),
-        .init(true, "12:07 pm", "94.6 kg"),
-        .init(false, "5:35 pm", "92.5 kg"),
+        .init(false, "9:42 am", "117.3 cm"),
+        .init(true, "12:07 pm", "117.6 cm"),
+        .init(false, "5:35 pm", "117.4 cm"),
     ]
-    
+
     func cell(for listData: ListData) -> some View {
         @ViewBuilder
         var image: some View {
@@ -247,13 +247,22 @@ struct WeightForm_Past: View {
             }
         }
         
-        return Section {
-            ForEach(listData, id: \.self) {
-                cell(for: $0)
-                    .deleteDisabled($0.isHealth)
+        var footer: some View {
+            //TODO: Only show if multiple values are present
+            Text("The latest measurement is always used.")
+        }
+        
+        return Group {
+            Section(footer: footer) {
+                ForEach(listData, id: \.self) {
+                    cell(for: $0)
+                        .deleteDisabled($0.isHealth)
+                }
+                .onDelete(perform: delete)
             }
-            .onDelete(perform: delete)
-            bottomContent
+            Section {
+                bottomContent
+            }
         }
     }
     
@@ -274,5 +283,5 @@ struct WeightForm_Past: View {
 }
 
 #Preview {
-    WeightForm_Past()
+    HeightForm_Past()
 }

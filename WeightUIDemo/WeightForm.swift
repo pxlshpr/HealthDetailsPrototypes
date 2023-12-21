@@ -151,7 +151,7 @@ struct WeightForm: View {
             Button {
                 
             } label: {
-                Text("Add Weight")
+                Text("Add Measurement")
             }
         }
     }

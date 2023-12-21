@@ -352,7 +352,7 @@ struct WeightChangePointForm_Past: View {
             }
             
             var label: String {
-                isEditing ? "Add Weight" : "Not Set"
+                isEditing ? "Add Measurement" : "Not Set"
             }
             
             var color: Color {

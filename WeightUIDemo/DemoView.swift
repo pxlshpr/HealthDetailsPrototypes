@@ -16,10 +16,16 @@ struct DemoView: View {
         case agePast
         case leanBodyMass
         case leanBodyMassPast
+        case height
+        case heightPast
 
         var id: Int { rawValue }
         var label: String {
             switch self {
+            case .height:
+                "Height"
+            case .heightPast:
+                "Height (Past)"
             case .age:
                 "Age"
             case .agePast:
@@ -27,7 +33,7 @@ struct DemoView: View {
             case .leanBodyMass:
                 "Lean Body Mass"
             case .leanBodyMassPast:
-                "Lean Body Mass Past"
+                "Lean Body Mass (Past)"
             case .weight:
                 "Weight"
             case .weightPast:
@@ -67,6 +73,10 @@ struct DemoView: View {
     @ViewBuilder
     func sheet(for type: WeightFormType) -> some View {
         switch type {
+        case .height:
+            HeightForm()
+        case .heightPast:
+            HeightForm_Past()
         case .age:
             AgeForm()
         case .agePast:

@@ -1,16 +1,13 @@
 import SwiftUI
 import SwiftSugar
 
-struct WeightChangePointForm: View {
+struct HeightForm: View {
     
     @Environment(\.dismiss) var dismiss
-    
+
     @State var hasAppeared = false
     @State var dailyWeightType: Int = 0
-    @State var value: Double = 93.6
-    
-    @State var useMovingAverage = true
-    @State var days: Int = 7
+    @State var value: Double = 177.4
     @State var showingWeightSettings = false
 
     var body: some View {
@@ -19,14 +16,15 @@ struct WeightChangePointForm: View {
                 if hasAppeared {
                     Form {
                         explanation
-                        movingAverageToggle
-                        lists
+//                        weightSettings
+                        list
+//                        valueSection
                     }
                 } else {
                     Color.clear
                 }
             }
-            .navigationTitle("Current Weight")
+            .navigationTitle("Height")
             .navigationBarTitleDisplayMode(.large)
             .toolbar { toolbarContent }
         }
@@ -36,13 +34,13 @@ struct WeightChangePointForm: View {
             }
         }
         .sheet(isPresented: $showingWeightSettings) {
-            WeightSettings(
+            HeightSettings(
                 dailyWeightType: $dailyWeightType,
                 value: $value
             )
         }
     }
-
+    
     var toolbarContent: some ToolbarContent {
         Group {
             ToolbarItem(placement: .bottomBar) {
@@ -56,7 +54,7 @@ struct WeightChangePointForm: View {
                     Text("\(value.clean)")
                         .contentTransition(.numericText(value: value))
                         .font(LargeNumberFont)
-                    Text("kg")
+                    Text("cm")
                         .font(LargeUnitFont)
                         .foregroundStyle(.secondary)
                 }
@@ -69,7 +67,7 @@ struct WeightChangePointForm: View {
             }
         }
     }
-    
+
     var weightSettings: some View {
         Button {
             showingWeightSettings = true
@@ -77,51 +75,24 @@ struct WeightChangePointForm: View {
             Text("Weight Settings")
         }
     }
-
+    
     var explanation: some View {
         Section {
             VStack(alignment: .leading) {
-                Text("This is used to calculate the change in your weight.")
-            }
-        }
-    }
-    
-    var movingAverageToggle: some View {
-        let binding = Binding<Bool>(
-            get: { useMovingAverage },
-            set: { newValue in
-                withAnimation {
-                    useMovingAverage = newValue
+                Text("Your height may be used to:")
+                Label {
+                    Text("Calculate your estimated resting energy.")
+                } icon: {
+                    Circle()
+                        .foregroundStyle(Color(.label))
+                        .frame(width: 5, height: 5)
                 }
-            }
-        )
-        let daysBinding = Binding<Int>(
-            get: { days },
-            set: { newValue in
-                withAnimation {
-                    days = newValue
-                }
-            }
-        )
-        return Section(footer: Text("Use a moving average of multiple days to smooth out short-term fluctuations.")) {
-            HStack {
-                Text("Use a Moving Average")
-                    .layoutPriority(1)
-                Spacer()
-                Toggle("", isOn: binding)
-            }
-            if useMovingAverage {
-                HStack(spacing: 3) {
-                    Stepper(
-                        "",
-                        value: daysBinding,
-                        in: 2...7
-                    )
-                    .fixedSize()
-                    Spacer()
-                    Text("\(days)")
-                        .contentTransition(.numericText(value: Double(days)))
-                    Text("days")
+                Label {
+                    Text("Calculate your lean body mass.")
+                } icon: {
+                    Circle()
+                        .foregroundStyle(Color(.label))
+                        .frame(width: 5, height: 5)
                 }
             }
         }
@@ -140,11 +111,11 @@ struct WeightChangePointForm: View {
     }
     
     let listData: [ListData] = [
-        .init(false, "9:42 am", "93.7 kg"),
-        .init(true, "12:07 pm", "94.6 kg"),
-        .init(false, "5:35 pm", "92.5 kg"),
+        .init(false, "9:42 am", "117.3 cm"),
+        .init(true, "12:07 pm", "117.6 cm"),
+        .init(false, "5:35 pm", "117.4 cm"),
     ]
-    
+
     func cell(for listData: ListData) -> some View {
         HStack {
             if listData.isHealth {
@@ -164,35 +135,22 @@ struct WeightChangePointForm: View {
                     )
             }
             Text(listData.dateString)
+            
             Spacer()
             Text(listData.valueString)
         }
     }
     
-    let emptyListData: [ListData] = []
-    
-    var lists: some View {
-        @ViewBuilder
-        func header(_ i: Int) -> some View {
-            if useMovingAverage {
-                Text(Date.now.moveDayBy(-i).dateString)
-            } else {
-                EmptyView()
-            }
-        }
-        var range: Range<Int> {
-            useMovingAverage ? 0..<days : 0..<1
-        }
-        
-        return ForEach(range, id: \.self) { i in
-            Section(header: header(i)) {
-                if [0, 5, 6].contains(i) {
-                    ForEach(listData, id: \.self) {
-                        cell(for: $0)
-                            .deleteDisabled($0.isHealth)
-                    }
-                    .onDelete(perform: delete)
+    var list: some View {
+        Group {
+            Section(footer: Text("The latest measurement is always used.")) {
+                ForEach(listData, id: \.self) {
+                    cell(for: $0)
+                        .deleteDisabled($0.isHealth)
                 }
+                .onDelete(perform: delete)
+            }
+            Section {
                 Button {
                     
                 } label: {
@@ -219,5 +177,5 @@ struct WeightChangePointForm: View {
 }
 
 #Preview {
-    WeightChangePointForm()
+    HeightForm()
 }

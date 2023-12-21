@@ -92,9 +92,9 @@ struct DailyLeanBodyMassPicker: View {
     var footer: some View {
         var string: String {
             switch dailyWeightType {
-            case 0: "Use the average of all lean body mass data for the day if there are multiple available."
-            case 1: "Use the last lean body mass data of the day if there are multiple available."
-            case 2: "Use the first lean body mass data of the day if there are multiple available."
+            case 0: "Use the average of all lean body mass entries for the day if there are multiple available."
+            case 1: "Use the last lean body mass entry of the day if there are multiple available."
+            case 2: "Use the first lean body mass entry of the day if there are multiple available."
             default: ""
             }
         }
