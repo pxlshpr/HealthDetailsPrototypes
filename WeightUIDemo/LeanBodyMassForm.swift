@@ -38,6 +38,14 @@ struct LeanBodyMassForm: View {
                 hasAppeared = true
             }
         }
+        .confirmationDialog("Turn Off Sync", isPresented: $showingSyncOffConfirmation, titleVisibility: .visible) {
+            Button("Turn Off", role: .destructive) {
+                
+            }
+        } message: {
+            Text("Lean body mass data will no longer be read from or written to Apple Health.")
+        }
+
     }
     
     var dailyValuePicker: some View {

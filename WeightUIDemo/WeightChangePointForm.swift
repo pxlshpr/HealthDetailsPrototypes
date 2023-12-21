@@ -42,6 +42,13 @@ struct WeightChangePointForm: View {
                 hasAppeared = true
             }
         }
+        .confirmationDialog("Turn Off Sync", isPresented: $showingSyncOffConfirmation, titleVisibility: .visible) {
+            Button("Turn Off", role: .destructive) {
+                
+            }
+        } message: {
+            Text("Weight data will no longer be read from or written to Apple Health.")
+        }
     }
     
     var syncToggle: some View {
