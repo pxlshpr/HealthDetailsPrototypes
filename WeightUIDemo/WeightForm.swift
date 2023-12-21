@@ -111,16 +111,16 @@ struct WeightForm: View {
     var explanation: some View {
         Section {
             VStack(alignment: .leading) {
-                Text("Your weight may be used to:")
+                Text("Your weight may be used when:")
                 Label {
-                    Text("Create goals. For example, you could create a protein goal relative to your weight.")
+                    Text("Creating goals. For example, you could create a protein goal relative to your weight.")
                 } icon: {
                     Circle()
                         .foregroundStyle(Color(.label))
                         .frame(width: 5, height: 5)
                 }
                 Label {
-                    Text("Calculate your adaptive maintenance energy, estimated resting energy, or lean body mass.")
+                    Text("Calculating your adaptive maintenance energy, estimated resting energy, or lean body mass.")
                 } icon: {
                     Circle()
                         .foregroundStyle(Color(.label))

@@ -109,16 +109,16 @@ struct HeightForm_Past: View {
     var explanation: some View {
         Section {
             VStack(alignment: .leading) {
-                Text("Your height may be used to:")
+                Text("Your height may be used when:")
                 Label {
-                    Text("Calculate your estimated resting energy.")
+                    Text("Calculating your estimated resting energy.")
                 } icon: {
                     Circle()
                         .foregroundStyle(Color(.label))
                         .frame(width: 5, height: 5)
                 }
                 Label {
-                    Text("Calculate your lean body mass.")
+                    Text("Calculating your lean body mass.")
                 } icon: {
                     Circle()
                         .foregroundStyle(Color(.label))
