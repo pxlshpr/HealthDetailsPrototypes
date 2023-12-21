@@ -1,0 +1,14 @@
+{
+  "pins" : [
+    {
+      "identity" : "swiftsugar",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/pxlshpr/SwiftSugar",
+      "state" : {
+        "revision" : "1a03a2ca2ea9c0f459e0870c25e8470556bbc842",
+        "version" : "0.0.97"
+      }
+    }
+  ],
+  "version" : 2
+}
