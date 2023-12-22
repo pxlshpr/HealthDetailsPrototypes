@@ -6,7 +6,9 @@ let LargeNumberFont: Font = .system(.largeTitle, design: .rounded, weight: .bold
 struct DemoView: View {
     
     enum WeightFormType: Int, Hashable, Identifiable, CaseIterable {
-        case weight = 1
+        case maintenance = 1
+        case maintenancePast
+        case weight
         case weightPast
         case weightChangePoint
         case weightChangePointPast
@@ -26,6 +28,10 @@ struct DemoView: View {
         var id: Int { rawValue }
         var label: String {
             switch self {
+            case .maintenance:
+                "Maintenance"
+            case .maintenancePast:
+                "Maintenance (Past)"
             case .smokingStatus:
                 "Smoking Status"
             case .smokingStatusPast:
@@ -85,6 +91,10 @@ struct DemoView: View {
     @ViewBuilder
     func sheet(for type: WeightFormType) -> some View {
         switch type {
+        case .maintenance:
+            MaintenanceForm()
+        case .maintenancePast:
+            MaintenanceForm_Past()
         case .smokingStatus:
             SmokingStatusForm()
         case .smokingStatusPast:

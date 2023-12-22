@@ -1,34 +1,6 @@
 import SwiftUI
 import SwiftSugar
 
-enum DailyValueType: CaseIterable, Hashable {
-    case average
-    case last
-    case first
-    
-    var name: String {
-        switch self {
-        case .average:
-            "Average"
-        case .last:
-            "Last"
-        case .first:
-            "First"
-        }
-    }
-    
-    var description: String {
-        switch self {
-        case .average:
-            "The average is being used."
-        case .last:
-            "The last entry is being used."
-        case .first:
-            "The first entry is being used."
-        }
-    }
-}
-
 struct WeightForm_Past: View {
     
     @Environment(\.dismiss) var dismiss
@@ -88,19 +60,10 @@ struct WeightForm_Past: View {
     }
 
     var notice: some View {
-        var primaryAction: NoticeAction {
-            .init(title: isEditing ? "View Preserved Data" : "Edit to View Actual Data") {
-                withAnimation {
-                    isEditing.toggle()
-                }
-            }
-        }
-        
-        return NoticeSection(
+        NoticeSection(
             style: .plain,
             title: "Previous Data",
             message: "This data has been preserved to ensure any goals set on this day remain unchanged.",
-//                primaryAction: primaryAction,
             image: {
                 Image(systemName: "calendar.badge.clock")
                     .font(.system(size: 30))
