@@ -85,24 +85,7 @@ struct DietaryEnergyPointForm: View {
             Button {
                 showingAlert = true
             } label: {
-                if let value {
-                    HStack {
-                        Image(systemName: "pencil")
-                            .frame(width: 24, height: 24)
-                            .background(
-                                RoundedRectangle(cornerRadius: 5)
-                                    .foregroundStyle(Color(.systemGray4))
-                            )
-                        Text("22 Dec")
-                        
-                        Spacer()
-                        Text("\(value.formattedEnergy) kcal")
-                            .contentTransition(.numericText(value: Double(value)))
-                    }
-                    .foregroundStyle(Color(.label))
-                } else {
-                   Text("Set Dietary Energy")
-                }
+                Text("\(value != nil ? "Edit" : "Set") Dietary Energy")
             }
         }
     }
