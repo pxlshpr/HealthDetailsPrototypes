@@ -180,9 +180,9 @@ struct WeightChangeForm: View {
     var explanation: some View {
         Section {
             VStack(alignment: .leading) {
-                Text("Your weight can be specified by either:")
+                Text("Your weight change can be set by either:")
                 Label {
-                    Text("Calculating it using current and previous weights.")
+                    Text("Using current and previous weights to calculate it.")
                 } icon: {
                     Circle()
                         .foregroundStyle(Color(.label))
@@ -207,7 +207,8 @@ struct WeightChangeForm: View {
                     }
                 }
             )) {
-                Text("Calculate").tag(false)
+//                Text("Calculate").tag(false)
+                Text("Use Weights").tag(false)
                 Text("Enter Manually").tag(true)
             }
             .pickerStyle(.segmented)

@@ -72,7 +72,7 @@ struct AdaptiveMaintenanceForm_Past: View {
     var dietaryEnergyLink: some View {
         Section {
             NavigationLink {
-                
+                DietaryEnergyForm(isPast: true)
             } label: {
                 HStack {
                     Text("Dietary Energy")
