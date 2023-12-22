@@ -1,13 +1,14 @@
 import SwiftUI
 import SwiftSugar
 
-struct WeightChangeForm: View {
+struct WeightChangeForm_Past: View {
     
     @Environment(\.dismiss) var dismiss
 
     @ScaledMetric var scale: CGFloat = 1
     let imageScale: CGFloat = 24
 
+    @State var hasAppeared = false
     @State var isCustom: Bool = true
     @State var value: Double? = nil
 
@@ -24,20 +25,35 @@ struct WeightChangeForm: View {
     @State var includeTrailingZero: Bool = false
     @State var numberOfTrailingZeros: Int = 0
 
+    @State var isEditing = false
 
     var body: some View {
         NavigationStack {
-            Form {
-                explanation
-                if isCustom {
-                    enterSection
+            Group {
+                if hasAppeared {
+                    Form {
+                        explanation
+                        if !isEditing {
+                            notice
+                        }
+                        if isCustom {
+                            enterSection
+                        } else {
+                            weightSections
+                        }
+                    }
                 } else {
-                    weightSections
+                    Color.clear
                 }
             }
             .navigationTitle("Weight Change")
             .navigationBarTitleDisplayMode(.large)
             .toolbar { toolbarContent }
+        }
+        .onAppear {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                hasAppeared = true
+            }
         }
         .alert("Enter your weight \(isGain ? "gain" : "loss")", isPresented: $showingAlert) {
             TextField("kg", text: customValueTextBinding)
@@ -47,11 +63,24 @@ struct WeightChangeForm: View {
         }
     }
     
+    var notice: some View {
+        NoticeSection(
+            style: .plain,
+            title: "Previous Data",
+            message: "This data has been preserved to ensure any goals set on this day remain unchanged.",
+            image: {
+                Image(systemName: "calendar.badge.clock")
+                    .font(.system(size: 30))
+                    .padding(5)
+            }
+        )
+    }
+    
     var weightSections: some View {
         Group {
             Section {
                 NavigationLink {
-                    WeightChangePointForm()
+                    WeightChangePointForm_Past()
                 } label: {
                     HStack {
                         Text("22 Dec")
@@ -59,10 +88,11 @@ struct WeightChangeForm: View {
                         Text("93.4 kg")
                     }
                 }
+                .disabled(isEditing)
             }
             Section {
                 NavigationLink {
-                    WeightChangePointForm()
+                    WeightChangePointForm_Past()
                 } label: {
                     HStack {
                         Text("15 Dec")
@@ -70,6 +100,7 @@ struct WeightChangeForm: View {
                         Text("94.2 kg")
                     }
                 }
+                .disabled(isEditing)
             }
         }
     }
@@ -132,17 +163,25 @@ struct WeightChangeForm: View {
                 }
             }
         )
-        return Section("15 – 22 Dec") {
-            Picker("", selection: binding) {
-                Text("Gain").tag(true)
-                Text("Loss").tag(false)
+        var section: some View {
+            Section("15 – 22 Dec") {
+                Picker("", selection: binding) {
+                    Text("Gain").tag(true)
+                    Text("Loss").tag(false)
+                }
+                .pickerStyle(.segmented)
+                .listRowSeparator(.hidden)
+                Button {
+                    showingAlert = true
+                } label: {
+                    Text("\(customValue == nil ? "Set" : "Change") Weight \(isGain ? "Gain" : "Loss")")
+                }
             }
-            .pickerStyle(.segmented)
-            .listRowSeparator(.hidden)
-            Button {
-                showingAlert = true
-            } label: {
-                Text("\(customValue == nil ? "Set" : "Change") Weight \(isGain ? "Gain" : "Loss")")
+        }
+        
+        return Group {
+            if isEditing {
+                section
             }
         }
     }
@@ -169,10 +208,27 @@ struct WeightChangeForm: View {
                 }
             }
             ToolbarItem(placement: .topBarTrailing) {
-                Button("Done") {
-                    dismiss()
+                Button(isEditing ? "Done" : "Edit") {
+                    if isEditing {
+                        withAnimation {
+                            isEditing = false
+                        }
+                    } else {
+                        withAnimation {
+                            isEditing = true
+                        }
+                    }
                 }
                 .fontWeight(.semibold)
+            }
+            ToolbarItem(placement: .topBarLeading) {
+                if isEditing {
+                    Button("Cancel") {
+                        withAnimation {
+                            isEditing = false
+                        }
+                    }
+                }
             }
         }
     }
@@ -180,16 +236,16 @@ struct WeightChangeForm: View {
     var explanation: some View {
         Section {
             VStack(alignment: .leading) {
-                Text("Your weight can be specified by either:")
+                Text("This is your weight change used in the adaptive maintenance energy calculation. You can either:")
                 Label {
-                    Text("Calculating it using current and previous weights.")
+                    Text("Calculate it using current and previous weights.")
                 } icon: {
                     Circle()
                         .foregroundStyle(Color(.label))
                         .frame(width: 5, height: 5)
                 }
                 Label {
-                    Text("Entering it in manually.")
+                    Text("Enter the weight change directly.")
                 } icon: {
                     Circle()
                         .foregroundStyle(Color(.label))
@@ -208,14 +264,15 @@ struct WeightChangeForm: View {
                 }
             )) {
                 Text("Calculate").tag(false)
-                Text("Enter Manually").tag(true)
+                Text("Custom").tag(true)
             }
             .pickerStyle(.segmented)
             .listRowSeparator(.hidden)
+            .disabled(!isEditing)
         }
     }
 }
 
 #Preview {
-    WeightChangeForm()
+    WeightChangeForm_Past()
 }

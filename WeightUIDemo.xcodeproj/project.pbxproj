@@ -14,6 +14,9 @@
 		E2103AFB2B35A85500B0C381 /* AdaptiveMaintenanceForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2103AFA2B35A85500B0C381 /* AdaptiveMaintenanceForm.swift */; };
 		E2103AFD2B35B06500B0C381 /* AdaptiveMaintenanceForm_Past.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2103AFC2B35B06500B0C381 /* AdaptiveMaintenanceForm_Past.swift */; };
 		E2103AFF2B35B27C00B0C381 /* WeightChangeForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2103AFE2B35B27C00B0C381 /* WeightChangeForm.swift */; };
+		E2103B012B35BC0D00B0C381 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2103B002B35BC0D00B0C381 /* Extensions.swift */; };
+		E2103B032B35BC1600B0C381 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2103B022B35BC1600B0C381 /* Constants.swift */; };
+		E2103B052B35BC4000B0C381 /* WeightChangeForm_Past.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2103B042B35BC4000B0C381 /* WeightChangeForm_Past.swift */; };
 		E2A687082B337E3900163078 /* DailyWeightPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2A687072B337E3900163078 /* DailyWeightPicker.swift */; };
 		E2BAE3222B30B601003C5B7F /* WeightUIDemoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2BAE3212B30B601003C5B7F /* WeightUIDemoApp.swift */; };
 		E2BAE3242B30B601003C5B7F /* DemoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2BAE3232B30B601003C5B7F /* DemoView.swift */; };
@@ -56,6 +59,9 @@
 		E2103AFA2B35A85500B0C381 /* AdaptiveMaintenanceForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdaptiveMaintenanceForm.swift; sourceTree = "<group>"; };
 		E2103AFC2B35B06500B0C381 /* AdaptiveMaintenanceForm_Past.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdaptiveMaintenanceForm_Past.swift; sourceTree = "<group>"; };
 		E2103AFE2B35B27C00B0C381 /* WeightChangeForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightChangeForm.swift; sourceTree = "<group>"; };
+		E2103B002B35BC0D00B0C381 /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
+		E2103B022B35BC1600B0C381 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
+		E2103B042B35BC4000B0C381 /* WeightChangeForm_Past.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightChangeForm_Past.swift; sourceTree = "<group>"; };
 		E2A687072B337E3900163078 /* DailyWeightPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyWeightPicker.swift; sourceTree = "<group>"; };
 		E2BAE31E2B30B601003C5B7F /* WeightUIDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WeightUIDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E2BAE3212B30B601003C5B7F /* WeightUIDemoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightUIDemoApp.swift; sourceTree = "<group>"; };
@@ -126,9 +132,12 @@
 				E2F79F5B2B349E9500A09BDF /* AgeForm_Past.swift */,
 				E2F79F672B34A68600A09BDF /* HeightForm_Past.swift */,
 				E2F79F592B348C4D00A09BDF /* AgeForm.swift */,
+				E2103B002B35BC0D00B0C381 /* Extensions.swift */,
+				E2103B022B35BC1600B0C381 /* Constants.swift */,
 				E2A687072B337E3900163078 /* DailyWeightPicker.swift */,
 				E2BAE3232B30B601003C5B7F /* DemoView.swift */,
 				E2103AFE2B35B27C00B0C381 /* WeightChangeForm.swift */,
+				E2103B042B35BC4000B0C381 /* WeightChangeForm_Past.swift */,
 				E2F79F632B34A54B00A09BDF /* HeightForm.swift */,
 				E2F79F652B34A5BA00A09BDF /* HeightSettings.swift */,
 				E2F79F612B34A48F00A09BDF /* LeanBodyMassForm_Past.swift */,
@@ -250,6 +259,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				E2F79F522B3484B900A09BDF /* MenuPicker.swift in Sources */,
+				E2103B032B35BC1600B0C381 /* Constants.swift in Sources */,
 				E2F79F502B347F6000A09BDF /* SexForm.swift in Sources */,
 				E2F16EB62B323041004AD1BA /* WeightSettings.swift in Sources */,
 				E2103AF72B35A2E200B0C381 /* MaintenanceForm_Past.swift in Sources */,
@@ -263,8 +273,10 @@
 				E2103AF52B35A2AC00B0C381 /* MaintenanceType.swift in Sources */,
 				E2F79F6E2B34BE4100A09BDF /* SmokingStatusForm_Past.swift in Sources */,
 				E2F79F702B34BEB300A09BDF /* PregnancyStatusForm.swift in Sources */,
+				E2103B012B35BC0D00B0C381 /* Extensions.swift in Sources */,
 				E2F79F5E2B34A2CF00A09BDF /* LeanBodyMassForm.swift in Sources */,
 				E2F79F602B34A3AC00A09BDF /* LeanBodyMassSettings.swift in Sources */,
+				E2103B052B35BC4000B0C381 /* WeightChangeForm_Past.swift in Sources */,
 				E2F79F622B34A48F00A09BDF /* LeanBodyMassForm_Past.swift in Sources */,
 				E2F79F5C2B349E9500A09BDF /* AgeForm_Past.swift in Sources */,
 				E2F79F662B34A5BA00A09BDF /* HeightSettings.swift in Sources */,

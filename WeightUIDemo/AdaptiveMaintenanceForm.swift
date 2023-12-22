@@ -5,7 +5,6 @@ struct AdaptiveMaintenanceForm: View {
     
     @Environment(\.dismiss) var dismiss
 
-    @State var hasAppeared = false
     @State var maintenancetype: MaintenanceType = .adaptive
     @State var value: Double = 3225
 
@@ -14,25 +13,16 @@ struct AdaptiveMaintenanceForm: View {
     var body: some View {
         NavigationStack {
             Group {
-                if hasAppeared {
-                    Form {
-                        intervalSection
-                        weightChangeLink
-                        dietaryEnergyLink
-                        explanation
-                    }
-                } else {
-                    Color.clear
+                Form {
+                    explanation
+                    intervalSection
+                    dietaryEnergyLink
+                    weightChangeLink
                 }
             }
-            .navigationTitle("Maintenance Energy")
+            .navigationTitle("Adaptive Maintenance")
             .navigationBarTitleDisplayMode(.large)
             .toolbar { toolbarContent }
-        }
-        .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                hasAppeared = true
-            }
         }
     }
     
@@ -113,6 +103,14 @@ struct AdaptiveMaintenanceForm: View {
     }
 
     var explanation: some View {
+        Section {
+            VStack(alignment: .leading) {
+                Text("Your adaptive maintenance is a calculation of your maintenance energy using the energy balance equation. The dietary energy you consumed and change in your weight over a specified period is used.")
+            }
+        }
+    }
+    
+    var explanation_old: some View {
         Section {
             VStack(alignment: .leading) {
                 Text("Your adaptive maintenance is being calculated by comparing your weight change to the energy you consumed over the past \(weeks) week\(weeks > 1 ? "s" : "").\n\nThis utilises the energy balance equation which states that:")

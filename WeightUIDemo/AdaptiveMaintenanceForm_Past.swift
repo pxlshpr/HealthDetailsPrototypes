@@ -57,7 +57,7 @@ struct AdaptiveMaintenanceForm_Past: View {
     var weightChangeLink: some View {
         Section {
             NavigationLink {
-                
+                WeightChangeForm_Past()
             } label: {
                 HStack {
                     Text("Weight Change")

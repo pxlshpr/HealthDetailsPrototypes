@@ -16,10 +16,10 @@ struct MaintenanceForm: View {
             Group {
                 if hasAppeared {
                     Form {
+                        explanation
                         valuePicker
                         adaptiveLink
                         estimatedLink
-                        explanation
                     }
                 } else {
                     Color.clear
@@ -109,7 +109,7 @@ struct MaintenanceForm: View {
     var explanation: some View {
         Section {
             VStack(alignment: .leading) {
-                Text("Your maintenance energy (also known as your Total Daily Energy Expenditure or TDEE) is the dietary energy you would need to consume daily to maintain your weight.\n\nIt may be used when creating energy goals that target a desired change in your weight.\n\nYou can choose to calculate it in two ways:")
+                Text("Your Maintenance Energy (also known as your Total Daily Energy Expenditure or TDEE) is the dietary energy you would need to consume daily to maintain your weight.\n\nIt may be used when creating energy goals that target a desired change in your weight.\n\nYou can choose to calculate it in two ways:")
                 Label {
                     Text("\"Adaptive\" compares your weight change to the energy you consumed over a specified period.")
                 } icon: {
@@ -124,8 +124,7 @@ struct MaintenanceForm: View {
                         .foregroundStyle(Color(.label))
                         .frame(width: 5, height: 5)
                 }
-                Text("\nThe adaptive calculation be more accurate in most cases as it takes into account trends over time.")
-                /// You would find the adaptive calculation to be more accurate, especially when you have enough data.
+                Text("\nThe adaptive calculation is more accurate as it's personalised to your body weight's response to the energy you consume.")
             }
         }
     }
