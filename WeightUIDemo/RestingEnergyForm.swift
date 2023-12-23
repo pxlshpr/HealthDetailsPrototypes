@@ -73,16 +73,16 @@ struct RestingEnergyForm: View {
                 if applyCorrection, let correction {
                     switch correctionType {
                     case .divide:
-                        "Your Resting Energy in Apple Health is being divided by \(correction.clean) before being used."
+                        "Your Resting Energy from Apple Health is being divided by \(correction.clean) before being used."
                     case .multiply:
-                        "Your Resting Energy in Apple Health is being multiplied by \(correction.clean) before being used."
+                        "Your Resting Energy from Apple Health is being multiplied by \(correction.clean) before being used."
                     case .add:
-                        "\(correction.clean) kcal is being added to your Resting Energy in Apple Health before being used."
+                        "\(correction.clean) kcal is being added to your Resting Energy from Apple Health before being used."
                     case .subtract:
-                        "\(correction.clean) kcal is being subtracted from your Resting Energy in Apple Health before being used."
+                        "\(correction.clean) kcal is being subtracted from your Resting Energy from Apple Health before being used."
                     }
                 } else {
-                    "If you have reason to believe that the data in Apple Health may be inaccurate, use a correction to account for this."
+                    "If you have reason to believe that the data from Apple Health may be inaccurate, use a correction to account for this."
                 }
             }
             
