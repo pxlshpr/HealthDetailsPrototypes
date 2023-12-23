@@ -1,12 +1,12 @@
 import SwiftUI
 
-struct ActiveEnergyForm: View {
+struct RestingEnergyForm: View {
 
     @Environment(\.dismiss) var dismiss
 
     @State var value: Double? = valueForActivityLevel(.lightlyActive)
-    @State var source: ActiveEnergySource = .activityLevel
-    @State var activityLevel: ActivityLevel = .lightlyActive
+    @State var source: RestingEnergySource = .equation
+    @State var equation: RestingEnergyEquation = .katchMcardle
     @State var intervalType: HealthIntervalType = .average
     @State var interval: HealthInterval = .init(3, .day)
     @State var applyCorrection: Bool = false
@@ -34,9 +34,9 @@ struct ActiveEnergyForm: View {
                 switch source {
                 case .userEntered:
                     customSection
-                case .activityLevel:
-                    activityLevelExplanation
-                    activityLevelSection
+                case .equation:
+                    equationExplanation
+                    equationSection
                 case .healthKit:
                     healthKitExplanation
                     intervalTypeSection
@@ -46,7 +46,7 @@ struct ActiveEnergyForm: View {
                     correctionSection
                 }
             }
-            .navigationTitle("Active Energy")
+            .navigationTitle("Resting Energy")
             .toolbar { toolbarContent }
             .alert("Enter your Active Energy", isPresented: $showingAlert) {
                 TextField("kcal", text: customValueTextBinding)
@@ -152,19 +152,19 @@ struct ActiveEnergyForm: View {
             }
         }
     }
-    var activityLevelSection: some View {
-        let binding = Binding<ActivityLevel>(
-            get: { activityLevel },
+    var equationSection: some View {
+        let binding = Binding<RestingEnergyEquation>(
+            get: { equation },
             set: { newValue in
                 withAnimation {
-                    activityLevel = newValue
-                    value = valueForActivityLevel(newValue)
+                    equation = newValue
+//                    value = valueForActivityLevel(newValue)
                 }
             }
         )
         return Section {
-            Picker("Activity Level", selection: binding) {
-                ForEach(ActivityLevel.allCases, id: \.self) {
+            Picker("Equation", selection: binding) {
+                ForEach(RestingEnergyEquation.allCases, id: \.self) {
                     Text($0.name).tag($0)
                 }
             }
@@ -256,7 +256,7 @@ struct ActiveEnergyForm: View {
     }
 
     var sourceSection: some View {
-        let binding = Binding<ActiveEnergySource>(
+        let binding = Binding<RestingEnergySource>(
             get: { source },
             set: { newValue in
                 withAnimation {
@@ -265,8 +265,8 @@ struct ActiveEnergyForm: View {
             }
         )
         return Section {
-            Picker("Active Energy", selection: binding) {
-                ForEach(ActiveEnergySource.allCases, id: \.self) {
+            Picker("Resting Energy", selection: binding) {
+                ForEach(RestingEnergySource.allCases, id: \.self) {
                     Text($0.name).tag($0)
                 }
             }
@@ -316,23 +316,21 @@ struct ActiveEnergyForm: View {
     var explanation: some View {
         Section {
             VStack(alignment: .leading) {
-                Text("This is the energy burnt over and above your Resting Energy use. You can set it in three ways:")
+                Text("Your Resting Energy, or your Basal Metabolic Rate (BMR), is the energy your body uses each day while minimally active. You can set it in three ways:")
                 dotPoint("\"Apple Health\" uses the data recorded in the Health App.")
-                dotPoint("\"Activity Level\" uses a multiplier on your Resting energy based on how active you are.")
+                dotPoint("\"Equation\" calculates it using your health details.")
                 dotPoint("\"Custom\" allows you to enter the energy manually.")
             }
         }
     }
 
-    var activityLevelExplanation: some View {
+    var equationExplanation: some View {
         Section {
             VStack(alignment: .leading) {
-                Text("Select an activity level that matches your lifestyle:")
-                dotPoint("Sedentary — You work a desk job with little or no exercise.")
-                dotPoint("Lightly Active — You work a job with light physical demands, or you work a desk job and perform light exercise (at the level of a brisk walk) for 30 minutes per day, 3-5 times per week.")
-                dotPoint("Moderately Active — You work a moderately physically demanding job, such as a construction worker, or you work a desk job and engage in moderate exercise for 1 hour per day, 3-5 times per week.")
-                dotPoint("Vigorously Active — You work a consistently physically demanding job, such as an agricultural worker, or you work a desk job and engage in intense exercise for 1 hour per day or moderate exercise for 2 hours per day, 5-7 times per week.")
-                dotPoint("Extremely Active — You work an extremely physically demanding job, such as a professional athlete, competitive cyclist, or fitness professional, or you engage in intense exercise for at least 2 hours per day.")
+                Text("Select an equation to use:")
+                ForEach(RestingEnergyEquation.inOrderOfYear, id: \.self) {
+                    dotPoint("\($0.name) (\($0.year)) — \($0.description)")
+                }
             }
         }
     }
@@ -388,77 +386,5 @@ struct ActiveEnergyForm: View {
 }
 
 #Preview {
-    ActiveEnergyForm()
-}
-
-func valueForActivityLevel(_ activityLevel: ActivityLevel) -> Double {
-    switch activityLevel {
-    case .sedentary:            2442
-    case .lightlyActive:        2798.125
-    case .moderatelyActive:     3154.25
-    case .active:               3510.375
-    case .veryActive:           3866.5
-    }
-}
-
-enum CorrectionType: CaseIterable {
-    case add
-    case subtract
-    case multiply
-    case divide
-    
-    var name: String {
-        switch self {
-        case .add:      "Add"
-        case .subtract: "Subtract"
-        case .multiply: "Multiply"
-        case .divide:   "Divide"
-        }
-    }
-    
-    var label: String {
-        switch self {
-        case .add:      "Add"
-        case .subtract: "Subtract"
-        case .multiply: "Multiply by"
-        case .divide:   "Divide by"
-        }
-    }
-    
-    var symbol: String {
-        switch self {
-        case .add:      "+"
-        case .subtract: "-"
-        case .multiply: "×"
-        case .divide:   "÷"
-        }
-    }
-    
-    var textFieldPlaceholder: String {
-        switch self {
-        case .add:      "kcal to add"
-        case .subtract: "kcal to subtract"
-        case .multiply: "Multiply by"
-        case .divide:   "Divide by"
-        }
-    }
-    
-    var unit: String? {
-        switch self {
-        case .add:      "kcal"
-        case .subtract: "kcal"
-        case .multiply: nil
-        case .divide:   nil
-        }
-    }
-}
-
-func dotPoint(_ string: String) -> some View {
-    Label {
-        Text(string)
-    } icon: {
-        Circle()
-            .foregroundStyle(Color(.label))
-            .frame(width: 5, height: 5)
-    }
+    RestingEnergyForm()
 }
