@@ -11,29 +11,35 @@ struct MaintenanceForm: View {
     @State var adaptiveValue: Double = 3225
     @State var estimatedValue: Double = 2856
 
+    @State var showingMaintenanceInfo = false
+    
     var body: some View {
         NavigationStack {
-            Group {
-                if hasAppeared {
+//            Group {
+//                if hasAppeared {
                     Form {
                         explanation
                         valuePicker
                         adaptiveLink
                         estimatedLink
                     }
-                } else {
-                    Color.clear
-                }
-            }
+                    .padding(.top, 0.3) /// Navigation Bar Fix
+//                } else {
+//                    Color.clear
+//                }
+//            }
             .navigationTitle("Maintenance Energy")
             .navigationBarTitleDisplayMode(.large)
             .toolbar { toolbarContent }
         }
-        .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                hasAppeared = true
-            }
+        .sheet(isPresented: $showingMaintenanceInfo) {
+            MaintenanceInfo()
         }
+//        .onAppear {
+//            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+//                hasAppeared = true
+//            }
+//        }
     }
     
     var adaptiveLink: some View {
@@ -107,13 +113,16 @@ struct MaintenanceForm: View {
     }
 
     var explanation: some View {
-        Section {
-            VStack(alignment: .leading) {
-                Text("Your Maintenance Energy (also known as your Total Daily Energy Expenditure or TDEE) is the dietary energy you would need to consume daily to maintain your weight.\n\nIt may be used when creating energy goals that target a desired change in your weight.\n\nYou can choose to calculate it in two ways:")
-                dotPoint("\"Adaptive\" compares your weight change to the energy you consumed over a specified period.")
-                dotPoint("\"Estimated\" estimates and totals your daily resting and active energies.")
-                Text("\nThe adaptive calculation is more accurate as it's personalised to your body weight's response to the energy you consume.")
+        var footer: some View {
+            Button {
+                showingMaintenanceInfo = true
+            } label: {
+                Text("Learn more…")
+                    .font(.footnote)
             }
+        }
+        return Section(footer: footer) {
+            Text("Your Maintenance Energy (also known as your Total Daily Energy Expenditure or TDEE) is the dietary energy you would need to consume daily to maintain your weight.\n\nIt may be used when creating energy goals that target a desired change in your weight.")
         }
     }
 }

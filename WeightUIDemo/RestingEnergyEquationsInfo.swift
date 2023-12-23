@@ -66,6 +66,68 @@ struct HealthIntervalInfo: View {
     }
 }
 
+struct MaintenanceInfo: View {
+    
+    @Environment(\.dismiss) var dismiss
+    @State var hasAppeared = false
+    
+    var body: some View {
+        NavigationStack {
+            Group {
+                if hasAppeared {
+                    form
+                } else {
+                    Color.clear
+                }
+            }
+            .navigationTitle("Calculation")
+            .onAppear(perform: appeared)
+            .toolbar { toolbarContent }
+        }
+    }
+    
+    func appeared() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+            hasAppeared = true
+        }
+    }
+    
+    var toolbarContent: some ToolbarContent {
+        ToolbarItem(placement: .topBarTrailing) {
+            Button("Done") {
+                dismiss()
+            }
+            .fontWeight(.semibold)
+        }
+    }
+    
+    var form: some View {
+        Form {
+            Section {
+                Text("Your Maintenance Energy can be calculated in two ways.")
+            }
+            section("Adaptive", "The Adaptive Calculation compares your weight change to the energy you consumed over a specified period. It then uses the energy balance equation to determine what your dietary energy should have been to result in no weight change, ie. your Maintenance Energy.\n\nIt is considerably more accurate than the Estimated Calculation as it is personalised to your body weight's particular response to the energy you consume. It would also correct itself over time as long as you are weighing yourself and logging the food you eat reasonably accurately.")
+            section("Estimated", "The Estimated Calculation determines the daily Resting Energy and Active Energy components and adds them together. Each of these components have various ways of estimating them.\n\nHowever, it is not personalised to your body's unique metabolic response to the food you eat, and should be considered as more of an approximation.")
+        }
+    }
+    
+    func section(_ title: String, _ description: String) -> some View {
+        var header: some View {
+            HStack(alignment: .bottom) {
+                Text(title)
+                    .textCase(.none)
+                    .font(.system(.title2, design: .rounded, weight: .semibold))
+                    .foregroundStyle(Color(.label))
+                 Spacer()
+            }
+        }
+        
+        return Section(header: header) {
+            Text(description)
+        }
+    }
+}
+
 struct RestingEnergyEquationsInfo: View {
     
     @Environment(\.dismiss) var dismiss
