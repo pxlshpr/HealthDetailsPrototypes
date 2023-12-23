@@ -109,7 +109,7 @@ struct ActiveEnergyForm: View {
             }
             .navigationTitle("Active Energy")
             .toolbar { toolbarContent }
-            .alert("Enter your dietary energy", isPresented: $showingAlert) {
+            .alert("Enter your Active Energy", isPresented: $showingAlert) {
                 TextField("kcal", text: customValueTextBinding)
                     .keyboardType(.decimalPad)
                 Button("OK", action: submitCustomValue)
@@ -437,7 +437,7 @@ struct ActiveEnergyForm: View {
             Button {
                 showingAlert = true
             } label: {
-                Text("\(value != nil ? "Edit" : "Set") Dietary Energy")
+                Text("\(value != nil ? "Edit" : "Set") Active Energy")
             }
         }
     }
