@@ -140,7 +140,7 @@ struct ActiveEnergyForm: View {
                         "\(correction.clean) kcal is being subtracted from your Active Energy in Apple Health before being used."
                     }
                 } else {
-                    "If you have a reason to believe that the data in Apple Health may be inaccurate, use a correction to account for this."
+                    "If you have reason to believe that the data in Apple Health may be inaccurate, use a correction to account for this."
                 }
             }
             
@@ -415,14 +415,14 @@ struct ActiveEnergyForm: View {
                         .frame(width: 5, height: 5)
                 }
                 Label {
-                    Text("\"Same Day\" uses the value for the current day. Use this if you want your goals to reflect how active you are throughout the day. Keep in mind that this value will keep increasing until the day is over.")
+                    Text("\"Same Day\" uses the data for the current day. Use this if you want your goals to reflect how active you are throughout the day. Keep in mind that this value will keep increasing until the day is over.")
                 } icon: {
                     Circle()
                         .foregroundStyle(Color(.label))
                         .frame(width: 5, height: 5)
                 }
                 Label {
-                    Text("\"Previous Day\" uses the day for the previous day. Use this if you want your goals to reflect how active you were the day before.")
+                    Text("\"Previous Day\" uses the data for the previous day. Use this if you want your goals to reflect how active you were the day before.")
                 } icon: {
                     Circle()
                         .foregroundStyle(Color(.label))
