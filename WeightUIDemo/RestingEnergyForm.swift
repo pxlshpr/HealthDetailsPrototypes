@@ -26,7 +26,8 @@ struct RestingEnergyForm: View {
     @State var correctionTextAsDouble: Double? = nil
     @State var correctionText: String = ""
 
-    @State var showingEquationExplanations = false
+    @State var showingEquationsInfo = false
+    @State var showingHealthIntervalInfo = false
     
     var body: some View {
         NavigationStack {
@@ -40,7 +41,7 @@ struct RestingEnergyForm: View {
                     equationSection
                     variablesSections
                 case .healthKit:
-                    healthKitExplanation
+//                    healthKitExplanation
                     intervalTypeSection
                     if intervalType == .average {
                         intervalSection
@@ -62,7 +63,10 @@ struct RestingEnergyForm: View {
                 Button("OK", action: submitCorrection)
                 Button("Cancel") { }
             }
-            .sheet(isPresented: $showingEquationExplanations) { equationExplanations }
+            .sheet(isPresented: $showingEquationsInfo) { equationExplanations }
+            .sheet(isPresented: $showingHealthIntervalInfo) {
+                HealthIntervalInfo(isRestingEnergy: true)
+            }
         }
     }
     
@@ -156,22 +160,6 @@ struct RestingEnergyForm: View {
         }
     }
     
-    var variablesSections: some View {
-        var header: some View {
-            Text("Variables")
-                .textCase(.none)
-                .font(.system(.title2, design: .rounded, weight: .semibold))
-                .foregroundStyle(Color(.label))
-        }
-        return Section(header: header) {
-            HStack {
-                Text("Lean Body Mass")
-                Spacer()
-                Text("71.5 kg")
-            }
-        }
-    }
-    
     var equationSection: some View {
         let binding = Binding<RestingEnergyEquation>(
             get: { equation },
@@ -185,7 +173,7 @@ struct RestingEnergyForm: View {
         
         var footer: some View {
             Button {
-                showingEquationExplanations = true
+                showingEquationsInfo = true
             } label: {
                 Text("Learn more…")
                     .font(.footnote)
@@ -312,7 +300,17 @@ struct RestingEnergyForm: View {
                 }
             }
         )
-        return Section {
+        
+        var footer: some View {
+            Button {
+                showingHealthIntervalInfo = true
+            } label: {
+                Text("Learn more…")
+                    .font(.footnote)
+            }
+        }
+
+        return Section(footer: footer) {
             Picker("Use", selection: binding) {
                 ForEach(HealthIntervalType.allCases, id: \.self) {
                     Text($0.name).tag($0)
@@ -357,17 +355,6 @@ struct RestingEnergyForm: View {
         RestingEnergyEquationsInfo()
     }
 
-    var healthKitExplanation: some View {
-        Section {
-            VStack(alignment: .leading) {
-                Text("You are reading your Resting Energy data from Apple Health. It can be read in three ways:")
-                dotPoint("\"Daily Average\" uses the daily average of a previous number of days that you specify.")
-                dotPoint("\"Same Day\" uses the data for the current day. Use this if you want your goals to reflect how active you are throughout the day. Keep in mind that this value will keep increasing until the day is over.")
-                dotPoint("\"Previous Day\" uses the data for the previous day. Use this if you want your goals to reflect how active you were the day before.")
-            }
-        }
-    }
-    
     var customSection: some View {
         Section {
             Button {
@@ -406,6 +393,60 @@ struct RestingEnergyForm: View {
         }
     }
 
+    var variablesSections: some View {
+        var header: some View {
+            Text("Variables")
+//                .textCase(.none)
+//                .font(.system(.title2, design: .rounded, weight: .semibold))
+//                .foregroundStyle(Color(.label))
+        }
+        return Section(header: header) {
+            NavigationLink {
+                SexForm()
+            } label: {
+                HStack {
+                    Text("Biological Sex")
+                    Spacer()
+                    Text("Male")
+                }
+            }
+            NavigationLink {
+                AgeForm()
+            } label: {
+                HStack {
+                    Text("Age")
+                    Spacer()
+                    Text("36 years")
+                }
+            }
+            NavigationLink {
+                HeightForm()
+            } label: {
+                HStack {
+                    Text("Height")
+                    Spacer()
+                    Text("13 Jan 2017")
+                        .foregroundStyle(.secondary)
+                    Text("•")
+                        .foregroundStyle(.tertiary)
+                    Text("177 cm")
+                }
+            }
+            NavigationLink {
+                WeightForm()
+            } label: {
+                HStack {
+                    Text("Weight")
+                    Spacer()
+                    Text("18 Nov")
+                        .foregroundStyle(.secondary)
+                    Text("•")
+                        .foregroundStyle(.tertiary)
+                    Text("95.7 kg")
+                }
+            }
+        }
+    }
 }
 
 #Preview {

@@ -26,6 +26,9 @@ struct ActiveEnergyForm: View {
     @State var correctionTextAsDouble: Double? = nil
     @State var correctionText: String = ""
 
+    @State var showingHealthIntervalInfo = false
+    @State var showingActivityLevelInfo = false
+
     var body: some View {
         NavigationStack {
             Form {
@@ -35,10 +38,8 @@ struct ActiveEnergyForm: View {
                 case .userEntered:
                     customSection
                 case .activityLevel:
-                    activityLevelExplanation
                     activityLevelSection
                 case .healthKit:
-                    healthKitExplanation
                     intervalTypeSection
                     if intervalType == .average {
                         intervalSection
@@ -59,6 +60,12 @@ struct ActiveEnergyForm: View {
                     .keyboardType(.decimalPad)
                 Button("OK", action: submitCorrection)
                 Button("Cancel") { }
+            }
+            .sheet(isPresented: $showingHealthIntervalInfo) {
+                HealthIntervalInfo(isRestingEnergy: false)
+            }
+            .sheet(isPresented: $showingActivityLevelInfo) {
+                ActivityLevelInfo()
             }
         }
     }
@@ -162,7 +169,17 @@ struct ActiveEnergyForm: View {
                 }
             }
         )
-        return Section {
+        
+        var footer: some View {
+            Button {
+                showingActivityLevelInfo = true
+            } label: {
+                Text("Learn more…")
+                    .font(.footnote)
+            }
+        }
+
+        return Section(footer: footer) {
             Picker("Activity Level", selection: binding) {
                 ForEach(ActivityLevel.allCases, id: \.self) {
                     Text($0.name).tag($0)
@@ -283,7 +300,17 @@ struct ActiveEnergyForm: View {
                 }
             }
         )
-        return Section {
+        
+        var footer: some View {
+            Button {
+                showingHealthIntervalInfo = true
+            } label: {
+                Text("Learn more…")
+                    .font(.footnote)
+            }
+        }
+
+        return Section(footer: footer) {
             Picker("Use", selection: binding) {
                 ForEach(HealthIntervalType.allCases, id: \.self) {
                     Text($0.name).tag($0)
@@ -324,29 +351,6 @@ struct ActiveEnergyForm: View {
         }
     }
 
-    var activityLevelExplanation: some View {
-        Section {
-            VStack(alignment: .leading) {
-                Text("Select an activity level that matches your lifestyle:")
-                dotPoint("Sedentary — You work a desk job with little or no exercise.")
-                dotPoint("Lightly Active — You work a job with light physical demands, or you work a desk job and perform light exercise (at the level of a brisk walk) for 30 minutes per day, 3-5 times per week.")
-                dotPoint("Moderately Active — You work a moderately physically demanding job, such as a construction worker, or you work a desk job and engage in moderate exercise for 1 hour per day, 3-5 times per week.")
-                dotPoint("Vigorously Active — You work a consistently physically demanding job, such as an agricultural worker, or you work a desk job and engage in intense exercise for 1 hour per day or moderate exercise for 2 hours per day, 5-7 times per week.")
-                dotPoint("Extremely Active — You work an extremely physically demanding job, such as a professional athlete, competitive cyclist, or fitness professional, or you engage in intense exercise for at least 2 hours per day.")
-            }
-        }
-    }
-    var healthKitExplanation: some View {
-        Section {
-            VStack(alignment: .leading) {
-                Text("You are reading your Active Energy data from Apple Health. It can be read in three ways:")
-                dotPoint("\"Daily Average\" uses the daily average of a previous number of days that you specify.")
-                dotPoint("\"Same Day\" uses the data for the current day. Use this if you want your goals to reflect how active you are throughout the day. Keep in mind that this value will keep increasing until the day is over.")
-                dotPoint("\"Previous Day\" uses the data for the previous day. Use this if you want your goals to reflect how active you were the day before.")
-            }
-        }
-    }
-    
     var customSection: some View {
         Section {
             Button {

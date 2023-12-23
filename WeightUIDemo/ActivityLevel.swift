@@ -41,3 +41,20 @@ extension ActivityLevel: Pickable {
     }
     public static var `default`: ActivityLevel { .sedentary }
 }
+
+extension ActivityLevel {
+    var description: String {
+        switch self {
+        case .sedentary:
+            "You work a desk job with little or no exercise."
+        case .lightlyActive:
+            "You work a job with light physical demands, or you work a desk job and perform light exercise (at the level of a brisk walk) for 30 minutes per day, 3-5 times per week."
+        case .moderatelyActive:
+            "You work a moderately physically demanding job, such as a construction worker, or you work a desk job and engage in moderate exercise for 1 hour per day, 3-5 times per week."
+        case .active:
+            "You work a consistently physically demanding job, such as an agricultural worker, or you work a desk job and engage in intense exercise for 1 hour per day or moderate exercise for 2 hours per day, 5-7 times per week."
+        case .veryActive:
+            "You work an extremely physically demanding job, such as a professional athlete, competitive cyclist, or fitness professional, or you engage in intense exercise for at least 2 hours per day."
+        }
+    }
+}
