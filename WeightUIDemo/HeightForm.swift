@@ -8,34 +8,20 @@ struct HeightForm: View {
     @ScaledMetric var scale: CGFloat = 1
     let imageScale: CGFloat = 24
 
-    @State var hasAppeared = false
     @State var value: Double = 177.4
 
     @State var isSynced: Bool = true
     @State var showingSyncOffConfirmation: Bool = false
 
     var body: some View {
-        NavigationStack {
-            Group {
-                if hasAppeared {
-                    Form {
-                        explanation
-                        list
-                        syncToggle
-                    }
-                } else {
-                    Color.clear
-                }
-            }
-            .navigationTitle("Height")
-            .navigationBarTitleDisplayMode(.large)
-            .toolbar { toolbarContent }
+        Form {
+            explanation
+            list
+            syncToggle
         }
-        .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                hasAppeared = true
-            }
-        }
+        .navigationTitle("Height")
+        .navigationBarTitleDisplayMode(.large)
+        .toolbar { toolbarContent }
         .confirmationDialog("Turn Off Sync", isPresented: $showingSyncOffConfirmation, titleVisibility: .visible) {
             Button("Turn Off", role: .destructive) {
                 

@@ -11,45 +11,51 @@ struct AdaptiveMaintenanceForm: View {
     @State var weeks: Int = 1
 
     var body: some View {
-        NavigationStack {
-            Group {
-                Form {
-                    explanation
-                    intervalSection
-                    dietaryEnergyLink
-                    weightChangeLink
-                }
-            }
-            .navigationTitle("Adaptive")
-            .navigationBarTitleDisplayMode(.large)
-            .toolbar { toolbarContent }
+        Form {
+            explanation
+            intervalSection
+            dietaryEnergyLink
+            weightChangeLink
         }
+        .navigationTitle("Adaptive")
+        .navigationBarTitleDisplayMode(.large)
+        .toolbar { toolbarContent }
     }
     
+    enum WeightChangeRoute {
+        case form
+    }
+
+    enum DietaryEnergyRoute {
+        case form
+    }
+
     var weightChangeLink: some View {
         Section {
-            NavigationLink {
-                WeightChangeForm()
-            } label: {
+            NavigationLink(value: WeightChangeRoute.form) {
                 HStack {
                     Text("Weight Change")
                     Spacer()
                     Text("-1.42 kg")
                 }
             }
+            .navigationDestination(for: WeightChangeRoute.self) { _ in
+                WeightChangeForm()
+            }
         }
     }
 
     var dietaryEnergyLink: some View {
         Section {
-            NavigationLink {
-                DietaryEnergyForm(isPast: false)
-            } label: {
+            NavigationLink(value: DietaryEnergyRoute.form) {
                 HStack {
                     Text("Dietary Energy")
                     Spacer()
                     Text("3,456 kcal / day")
                 }
+            }
+            .navigationDestination(for: DietaryEnergyRoute.self) { _ in
+                DietaryEnergyForm(isPast: false)
             }
         }
     }

@@ -8,8 +8,6 @@ struct AgeForm: View {
     @ScaledMetric var scale: CGFloat = 1
     let imageScale: CGFloat = 24
     
-    @State var hasAppeared = false
-    
     @State var showingAgeAlert = false
     @State var showingDateOfBirthAlert = false
 
@@ -20,26 +18,13 @@ struct AgeForm: View {
     @State var chosenDateOfBirth = DefaultDateOfBirth
 
     var body: some View {
-        NavigationStack {
-            Group {
-                if hasAppeared {
-                    Form {
-                        explanation
-                        content
-                    }
-                } else {
-                    Color.clear
-                }
-            }
-            .navigationTitle("Age")
-            .navigationBarTitleDisplayMode(.large)
-            .toolbar { toolbarContent }
+        Form {
+            explanation
+            content
         }
-        .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                hasAppeared = true
-            }
-        }
+        .navigationTitle("Age")
+        .navigationBarTitleDisplayMode(.large)
+        .toolbar { toolbarContent }
         .alert("Enter your age", isPresented: $showingAgeAlert) {
             TextField("Enter your age", text: ageTextBinding)
                 .keyboardType(.numberPad)

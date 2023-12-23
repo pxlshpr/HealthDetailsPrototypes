@@ -30,43 +30,40 @@ struct RestingEnergyForm: View {
     @State var showingHealthIntervalInfo = false
     
     var body: some View {
-        NavigationStack {
-            Form {
-                explanation
-                sourceSection
-                switch source {
-                case .userEntered:
-                    customSection
-                case .equation:
-                    equationSection
-                    variablesSections
-                case .healthKit:
-//                    healthKitExplanation
-                    intervalTypeSection
-                    if intervalType == .average {
-                        intervalSection
-                    }
-                    correctionSection
+        Form {
+            explanation
+            sourceSection
+            switch source {
+            case .userEntered:
+                customSection
+            case .equation:
+                equationSection
+                variablesSections
+            case .healthKit:
+                intervalTypeSection
+                if intervalType == .average {
+                    intervalSection
                 }
+                correctionSection
             }
-            .navigationTitle("Resting Energy")
-            .toolbar { toolbarContent }
-            .alert("Enter your Resting", isPresented: $showingAlert) {
-                TextField("kcal", text: customValueTextBinding)
-                    .keyboardType(.decimalPad)
-                Button("OK", action: submitCustomValue)
-                Button("Cancel") { }
-            }
-            .alert("Enter a correction", isPresented: $showingCorrectionAlert) {
-                TextField(correctionType.textFieldPlaceholder, text: correctionTextBinding)
-                    .keyboardType(.decimalPad)
-                Button("OK", action: submitCorrection)
-                Button("Cancel") { }
-            }
-            .sheet(isPresented: $showingEquationsInfo) { equationExplanations }
-            .sheet(isPresented: $showingHealthIntervalInfo) {
-                HealthIntervalInfo(isRestingEnergy: true)
-            }
+        }
+        .navigationTitle("Resting Energy")
+        .toolbar { toolbarContent }
+        .alert("Enter your Resting", isPresented: $showingAlert) {
+            TextField("kcal", text: customValueTextBinding)
+                .keyboardType(.decimalPad)
+            Button("OK", action: submitCustomValue)
+            Button("Cancel") { }
+        }
+        .alert("Enter a correction", isPresented: $showingCorrectionAlert) {
+            TextField(correctionType.textFieldPlaceholder, text: correctionTextBinding)
+                .keyboardType(.decimalPad)
+            Button("OK", action: submitCorrection)
+            Button("Cancel") { }
+        }
+        .sheet(isPresented: $showingEquationsInfo) { equationExplanations }
+        .sheet(isPresented: $showingHealthIntervalInfo) {
+            HealthIntervalInfo(isRestingEnergy: true)
         }
     }
     
@@ -393,6 +390,22 @@ struct RestingEnergyForm: View {
         }
     }
 
+    enum SexRoute {
+        case form
+    }
+    
+    enum AgeRoute {
+        case form
+    }
+    
+    enum HeightRoute {
+        case form
+    }
+    
+    enum WeightRoute {
+        case form
+    }
+
     var variablesSections: some View {
         var header: some View {
             Text("Variables")
@@ -401,27 +414,27 @@ struct RestingEnergyForm: View {
 //                .foregroundStyle(Color(.label))
         }
         return Section(header: header) {
-            NavigationLink {
-                SexForm()
-            } label: {
+            NavigationLink(value: SexRoute.form) {
                 HStack {
                     Text("Biological Sex")
                     Spacer()
                     Text("Male")
                 }
             }
-            NavigationLink {
-                AgeForm()
-            } label: {
+            .navigationDestination(for: SexRoute.self) { _ in
+                SexForm()
+            }
+            NavigationLink(value: AgeRoute.form) {
                 HStack {
                     Text("Age")
                     Spacer()
                     Text("36 years")
                 }
             }
-            NavigationLink {
-                HeightForm()
-            } label: {
+            .navigationDestination(for: AgeRoute.self) { _ in
+                AgeForm()
+            }
+            NavigationLink(value: HeightRoute.form) {
                 HStack {
                     Text("Height")
                     Spacer()
@@ -432,9 +445,10 @@ struct RestingEnergyForm: View {
                     Text("177 cm")
                 }
             }
-            NavigationLink {
-                WeightForm()
-            } label: {
+            .navigationDestination(for: HeightRoute.self) { _ in
+                HeightForm()
+            }
+            NavigationLink(value: WeightRoute.form) {
                 HStack {
                     Text("Weight")
                     Spacer()
@@ -445,10 +459,15 @@ struct RestingEnergyForm: View {
                     Text("95.7 kg")
                 }
             }
+            .navigationDestination(for: WeightRoute.self) { _ in
+                WeightForm()
+            }
         }
     }
 }
 
 #Preview {
-    RestingEnergyForm()
+    NavigationStack {
+        RestingEnergyForm()
+    }
 }

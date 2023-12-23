@@ -8,7 +8,6 @@ struct WeightForm: View {
     @ScaledMetric var scale: CGFloat = 1
     let imageScale: CGFloat = 24
 
-    @State var hasAppeared = false
     @State var dailyValueType: DailyValueType = .average
     @State var value: Double = 93.6
 
@@ -16,28 +15,15 @@ struct WeightForm: View {
     @State var showingSyncOffConfirmation: Bool = false
 
     var body: some View {
-        NavigationStack {
-            Group {
-                if hasAppeared {
-                    Form {
-                        explanation
-                        dailyValuePicker
-                        list
-                        syncToggle
-                    }
-                } else {
-                    Color.clear
-                }
-            }
-            .navigationTitle("Weight")
-            .navigationBarTitleDisplayMode(.large)
-            .toolbar { toolbarContent }
+        Form {
+            explanation
+            dailyValuePicker
+            list
+            syncToggle
         }
-        .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                hasAppeared = true
-            }
-        }
+        .navigationTitle("Weight")
+        .navigationBarTitleDisplayMode(.large)
+        .toolbar { toolbarContent }
         .confirmationDialog("Turn Off Sync", isPresented: $showingSyncOffConfirmation, titleVisibility: .visible) {
             Button("Turn Off", role: .destructive) {
                 

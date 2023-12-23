@@ -19,22 +19,20 @@ struct DietaryEnergyPointForm: View {
     @State var numberOfTrailingZeros: Int = 0
 
     var body: some View {
-        NavigationStack {
-            Form {
-                explanation
-                picker
-                if type == .custom {
-                    customSection
-                }
+        Form {
+            explanation
+            picker
+            if type == .custom {
+                customSection
             }
-            .navigationTitle(dateString)
-            .toolbar { toolbarContent }
-            .alert("Enter your dietary energy", isPresented: $showingAlert) {
-                TextField("kcal", text: customValueTextBinding)
-                    .keyboardType(.decimalPad)
-                Button("OK", action: submitCustomValue)
-                Button("Cancel") { }
-            }
+        }
+        .navigationTitle(dateString)
+        .toolbar { toolbarContent }
+        .alert("Enter your dietary energy", isPresented: $showingAlert) {
+            TextField("kcal", text: customValueTextBinding)
+                .keyboardType(.decimalPad)
+            Button("OK", action: submitCustomValue)
+            Button("Cancel") { }
         }
     }
     

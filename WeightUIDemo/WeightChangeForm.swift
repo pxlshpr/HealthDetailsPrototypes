@@ -26,19 +26,17 @@ struct WeightChangeForm: View {
 
 
     var body: some View {
-        NavigationStack {
-            Form {
-                explanation
-                if isCustom {
-                    enterSection
-                } else {
-                    weightSections
-                }
+        Form {
+            explanation
+            if isCustom {
+                enterSection
+            } else {
+                weightSections
             }
-            .navigationTitle("Weight Change")
-            .navigationBarTitleDisplayMode(.large)
-            .toolbar { toolbarContent }
         }
+        .navigationTitle("Weight Change")
+        .navigationBarTitleDisplayMode(.large)
+        .toolbar { toolbarContent }
         .alert("Enter your weight \(isGain ? "gain" : "loss")", isPresented: $showingAlert) {
             TextField("kg", text: customValueTextBinding)
                 .keyboardType(.decimalPad)
@@ -47,28 +45,38 @@ struct WeightChangeForm: View {
         }
     }
     
+    enum PreviousPointRoute {
+        case form
+    }
+
+    enum CurrentPointRoute {
+        case form
+    }
+
     var weightSections: some View {
         Group {
             Section {
-                NavigationLink {
-                    WeightChangePointForm()
-                } label: {
+                NavigationLink(value: PreviousPointRoute.form) {
                     HStack {
                         Text("22 Dec")
                         Spacer()
                         Text("93.4 kg")
                     }
                 }
+                .navigationDestination(for: PreviousPointRoute.self) { _ in
+                    WeightChangePointForm()
+                }
             }
             Section {
-                NavigationLink {
-                    WeightChangePointForm()
-                } label: {
+                NavigationLink(value: CurrentPointRoute.form) {
                     HStack {
                         Text("15 Dec")
                         Spacer()
                         Text("94.2 kg")
                     }
+                }
+                .navigationDestination(for: PreviousPointRoute.self) { _ in
+                    WeightChangePointForm()
                 }
             }
         }

@@ -30,43 +30,41 @@ struct ActiveEnergyForm: View {
     @State var showingActivityLevelInfo = false
 
     var body: some View {
-        NavigationStack {
-            Form {
-                explanation
-                sourceSection
-                switch source {
-                case .userEntered:
-                    customSection
-                case .activityLevel:
-                    activityLevelSection
-                case .healthKit:
-                    intervalTypeSection
-                    if intervalType == .average {
-                        intervalSection
-                    }
-                    correctionSection
+        Form {
+            explanation
+            sourceSection
+            switch source {
+            case .userEntered:
+                customSection
+            case .activityLevel:
+                activityLevelSection
+            case .healthKit:
+                intervalTypeSection
+                if intervalType == .average {
+                    intervalSection
                 }
+                correctionSection
             }
-            .navigationTitle("Active Energy")
-            .toolbar { toolbarContent }
-            .alert("Enter your Active Energy", isPresented: $showingAlert) {
-                TextField("kcal", text: customValueTextBinding)
-                    .keyboardType(.decimalPad)
-                Button("OK", action: submitCustomValue)
-                Button("Cancel") { }
-            }
-            .alert("Enter a correction", isPresented: $showingCorrectionAlert) {
-                TextField(correctionType.textFieldPlaceholder, text: correctionTextBinding)
-                    .keyboardType(.decimalPad)
-                Button("OK", action: submitCorrection)
-                Button("Cancel") { }
-            }
-            .sheet(isPresented: $showingHealthIntervalInfo) {
-                HealthIntervalInfo(isRestingEnergy: false)
-            }
-            .sheet(isPresented: $showingActivityLevelInfo) {
-                ActivityLevelInfo()
-            }
+        }
+        .navigationTitle("Active Energy")
+        .toolbar { toolbarContent }
+        .alert("Enter your Active Energy", isPresented: $showingAlert) {
+            TextField("kcal", text: customValueTextBinding)
+                .keyboardType(.decimalPad)
+            Button("OK", action: submitCustomValue)
+            Button("Cancel") { }
+        }
+        .alert("Enter a correction", isPresented: $showingCorrectionAlert) {
+            TextField(correctionType.textFieldPlaceholder, text: correctionTextBinding)
+                .keyboardType(.decimalPad)
+            Button("OK", action: submitCorrection)
+            Button("Cancel") { }
+        }
+        .sheet(isPresented: $showingHealthIntervalInfo) {
+            HealthIntervalInfo(isRestingEnergy: false)
+        }
+        .sheet(isPresented: $showingActivityLevelInfo) {
+            ActivityLevelInfo()
         }
     }
     

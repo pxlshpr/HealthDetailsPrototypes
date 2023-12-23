@@ -5,13 +5,11 @@ struct DietaryEnergyForm: View {
     let isPast: Bool
     
     var body: some View {
-        NavigationStack {
-            Form {
-                explanation
-                list
-            }
-            .navigationTitle("Dietary Energy")
+        Form {
+            explanation
+            list
         }
+        .navigationTitle("Dietary Energy")
     }
     
     var explanation: some View {
@@ -93,17 +91,22 @@ struct DietaryEnergyForm: View {
         }
     }
     
+    enum Route {
+        case past
+        case current
+    }
+    
     var list: some View {
         Section {
             ForEach(listData, id: \.self) { data in
-                NavigationLink {
-                    if isPast {
-                        DietaryEnergyPointForm_Past()
-                    } else {
-                        DietaryEnergyPointForm(dateString: data.dateString)
-                    }
-                } label: {
+                NavigationLink(value: isPast ? Route.past : Route.current) {
                     cell(for: data)
+                }
+                .navigationDestination(for: Route.self) { route in
+                    switch route {
+                    case .current:  DietaryEnergyPointForm(dateString: data.dateString)
+                    case .past:     DietaryEnergyPointForm_Past()
+                    }
                 }
             }
         }

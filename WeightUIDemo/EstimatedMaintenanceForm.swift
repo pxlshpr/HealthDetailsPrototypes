@@ -7,22 +7,29 @@ struct EstimatedMaintenanceForm: View {
     @State var value: Double = 2782
     
     var body: some View {
-        NavigationStack {
-            Form {
-                explanation
-                restingEnergyLink
-                activeEnergyLink
-            }
-            .navigationTitle("Estimated")
-            .toolbar { toolbarContent }
+        Form {
+            explanation
+            restingEnergyLink
+            activeEnergyLink
         }
+        .navigationTitle("Estimated")
+        .toolbar { toolbarContent }
+        .navigationDestination(for: Route.self) { route in
+            switch route {
+            case .resting:  RestingEnergyForm()
+            case .active:   ActiveEnergyForm()
+            }
+        }
+    }
+    
+    enum Route {
+        case resting
+        case active
     }
     
     var restingEnergyLink: some View {
         Section {
-            NavigationLink {
-                RestingEnergyForm()
-            } label: {
+            NavigationLink(value: Route.resting) {
                 HStack {
                     Text("Resting Energy")
                     Spacer()
@@ -34,9 +41,7 @@ struct EstimatedMaintenanceForm: View {
 
     var activeEnergyLink: some View {
         Section {
-            NavigationLink {
-                ActiveEnergyForm()
-            } label: {
+            NavigationLink(value: Route.active) {
                 HStack {
                     Text("Active Energy")
                     Spacer()

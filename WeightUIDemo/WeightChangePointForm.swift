@@ -5,7 +5,6 @@ struct WeightChangePointForm: View {
     
     @Environment(\.dismiss) var dismiss
     
-    @State var hasAppeared = false
     @State var dailyValueType: DailyValueType = .average
     @State var value: Double = 93.6
     
@@ -19,29 +18,16 @@ struct WeightChangePointForm: View {
     let imageScale: CGFloat = 24
 
     var body: some View {
-        NavigationStack {
-            Group {
-                if hasAppeared {
-                    Form {
-                        explanation
-                        movingAverageToggle
-                        dailyValuePicker
-                        lists
-                        syncToggle
-                    }
-                } else {
-                    Color.clear
-                }
-            }
-            .navigationTitle("Current Weight")
-            .navigationBarTitleDisplayMode(.large)
-            .toolbar { toolbarContent }
+        Form {
+            explanation
+            movingAverageToggle
+            dailyValuePicker
+            lists
+            syncToggle
         }
-        .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                hasAppeared = true
-            }
-        }
+        .navigationTitle("Current Weight")
+        .navigationBarTitleDisplayMode(.large)
+        .toolbar { toolbarContent }
         .confirmationDialog("Turn Off Sync", isPresented: $showingSyncOffConfirmation, titleVisibility: .visible) {
             Button("Turn Off", role: .destructive) {
                 

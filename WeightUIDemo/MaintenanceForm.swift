@@ -5,7 +5,6 @@ struct MaintenanceForm: View {
     
     @Environment(\.dismiss) var dismiss
 
-    @State var hasAppeared = false
     @State var maintenancetype: MaintenanceType = .adaptive
     @State var value: Double = 3225
     @State var adaptiveValue: Double = 3225
@@ -15,38 +14,36 @@ struct MaintenanceForm: View {
     
     var body: some View {
         NavigationStack {
-//            Group {
-//                if hasAppeared {
-                    Form {
-                        explanation
-                        valuePicker
-                        adaptiveLink
-                        estimatedLink
-                    }
-                    .padding(.top, 0.3) /// Navigation Bar Fix
-//                } else {
-//                    Color.clear
-//                }
-//            }
+            Form {
+                explanation
+                valuePicker
+                adaptiveLink
+                estimatedLink
+            }
+            .padding(.top, 0.3) /// Navigation Bar Fix
             .navigationTitle("Maintenance Energy")
             .navigationBarTitleDisplayMode(.large)
             .toolbar { toolbarContent }
+            .navigationDestination(for: Route.self) { route in
+                switch route {
+                case .adaptive:     AdaptiveMaintenanceForm()
+                case .estimated:    EstimatedMaintenanceForm()
+                }
+            }
         }
         .sheet(isPresented: $showingMaintenanceInfo) {
             MaintenanceInfo()
         }
-//        .onAppear {
-//            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-//                hasAppeared = true
-//            }
-//        }
+    }
+    
+    enum Route {
+        case adaptive
+        case estimated
     }
     
     var adaptiveLink: some View {
         Section {
-            NavigationLink {
-                AdaptiveMaintenanceForm()
-            } label: {
+            NavigationLink(value: Route.adaptive) {
                 HStack {
                     Text("Adaptive")
                     Spacer()
@@ -58,9 +55,7 @@ struct MaintenanceForm: View {
 
     var estimatedLink: some View {
         Section {
-            NavigationLink {
-                EstimatedMaintenanceForm()
-            } label: {
+            NavigationLink(value: Route.estimated) {
                 HStack {
                     Text("Estimated")
                     Spacer()

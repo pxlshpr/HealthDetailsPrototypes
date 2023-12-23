@@ -5,32 +5,18 @@ struct SexForm: View {
     
     @Environment(\.dismiss) var dismiss
 
-    @State var hasAppeared = false
     @State var value: Double = 93.6
     @State var showingWeightSettings = false
     @State var sex: Sex = .other
     
     var body: some View {
-        NavigationStack {
-            Group {
-                if hasAppeared {
-                    Form {
-                        explanation
-                        picker
-                    }
-                } else {
-                    Color.clear
-                }
-            }
-            .navigationTitle("Biological Sex")
-            .navigationBarTitleDisplayMode(.large)
-            .toolbar { toolbarContent }
+        Form {
+            explanation
+            picker
         }
-        .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                hasAppeared = true
-            }
-        }
+        .navigationTitle("Biological Sex")
+        .navigationBarTitleDisplayMode(.large)
+        .toolbar { toolbarContent }
     }
     
     var toolbarContent: some ToolbarContent {
