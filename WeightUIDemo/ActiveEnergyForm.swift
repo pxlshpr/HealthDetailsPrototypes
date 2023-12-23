@@ -99,11 +99,11 @@ struct ActiveEnergyForm: View {
                 case .activityLevel:
                     activityLevelSection
                 case .healthKit:
-//                    healthKitExplanation
-//                    intervalTypeSection
-//                    if intervalType == .average {
-//                        intervalSection
-//                    }
+                    healthKitExplanation
+                    intervalTypeSection
+                    if intervalType == .average {
+                        intervalSection
+                    }
                     correctionSection
                 }
             }

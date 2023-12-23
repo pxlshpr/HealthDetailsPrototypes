@@ -53,7 +53,7 @@ struct MaintenanceForm: View {
     var estimatedLink: some View {
         Section {
             NavigationLink {
-                
+                EstimatedMaintenanceForm()
             } label: {
                 HStack {
                     Text("Estimated")
