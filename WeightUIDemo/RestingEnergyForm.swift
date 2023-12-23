@@ -6,7 +6,7 @@ struct RestingEnergyForm: View {
 
     @State var value: Double? = valueForActivityLevel(.lightlyActive)
     @State var source: RestingEnergySource = .equation
-    @State var equation: RestingEnergyEquation = .katchMcardle
+    @State var equation: RestingEnergyEquation = .mifflinStJeor
     @State var intervalType: HealthIntervalType = .average
     @State var interval: HealthInterval = .init(3, .day)
     @State var applyCorrection: Bool = false
@@ -26,7 +26,7 @@ struct RestingEnergyForm: View {
     @State var correctionTextAsDouble: Double? = nil
     @State var correctionText: String = ""
 
-    @State var showingEquationExplanations = true
+    @State var showingEquationExplanations = false
     
     var body: some View {
         NavigationStack {
@@ -38,6 +38,7 @@ struct RestingEnergyForm: View {
                     customSection
                 case .equation:
                     equationSection
+                    variablesSections
                 case .healthKit:
                     healthKitExplanation
                     intervalTypeSection
@@ -154,6 +155,23 @@ struct RestingEnergyForm: View {
             }
         }
     }
+    
+    var variablesSections: some View {
+        var header: some View {
+            Text("Variables")
+                .textCase(.none)
+                .font(.system(.title2, design: .rounded, weight: .semibold))
+                .foregroundStyle(Color(.label))
+        }
+        return Section(header: header) {
+            HStack {
+                Text("Lean Body Mass")
+                Spacer()
+                Text("71.5 kg")
+            }
+        }
+    }
+    
     var equationSection: some View {
         let binding = Binding<RestingEnergyEquation>(
             get: { equation },
@@ -392,80 +410,4 @@ struct RestingEnergyForm: View {
 
 #Preview {
     RestingEnergyForm()
-}
-
-struct RestingEnergyEquationsInfo: View {
-    
-    @Environment(\.dismiss) var dismiss
-    @State var hasAppeared = false
-    
-    var body: some View {
-        NavigationStack {
-            Group {
-                if hasAppeared {
-                    form
-                } else {
-                    Color.clear
-                }
-            }
-            .navigationTitle("Equations")
-            .navigationBarTitleDisplayMode(.large)
-            .onAppear(perform: appeared)
-            .toolbar { toolbarContent }
-        }
-    }
-    
-    func appeared() {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-            hasAppeared = true
-        }
-    }
-    
-    var toolbarContent: some ToolbarContent {
-        ToolbarItem(placement: .topBarTrailing) {
-            Button("Done") {
-                dismiss()
-            }
-            .fontWeight(.semibold)
-        }
-    }
-    
-    var form: some View {
-        Form {
-            ForEach(RestingEnergyEquation.inOrderOfYear, id: \.self) {
-                section(for: $0)
-            }
-        }
-    }
-    
-    func section(for equation: RestingEnergyEquation) -> some View {
-        var header: some View {
-            HStack(alignment: .bottom) {
-                Text(equation.name)
-                    .textCase(.none)
-                    .font(.system(.title2, design: .rounded, weight: .semibold))
-                    .foregroundStyle(Color(.label))
-                 Spacer()
-                 Text(equation.year)
-                     .textCase(.none)
-                     .font(.system(.title3, design: .rounded, weight: .medium))
-                     .foregroundStyle(Color(.label))
-            }
-        }
-        
-        var variablesRow: some View {
-            HStack(alignment: .firstTextBaseline) {
-                Text("Uses")
-                    .foregroundStyle(.secondary)
-                Spacer()
-                Text(equation.variablesDescription)
-                    .multilineTextAlignment(.trailing)
-            }
-        }
-        
-        return Section(header: header) {
-            Text(equation.description)
-            variablesRow
-        }
-    }
 }
