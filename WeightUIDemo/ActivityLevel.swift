@@ -14,10 +14,10 @@ public extension ActivityLevel {
     var name: String {
         switch self {
         case .sedentary:        return "Sedentary"
-        case .lightlyActive:    return "Lightly active"
-        case .moderatelyActive: return "Moderately active"
-        case .active:           return "Active"
-        case .veryActive:       return "Very active"
+        case .lightlyActive:    return "Lightly Active"
+        case .moderatelyActive: return "Moderately Active"
+        case .active:           return "Vigorously Active"
+        case .veryActive:       return "Extremely active"
         }
     }
     

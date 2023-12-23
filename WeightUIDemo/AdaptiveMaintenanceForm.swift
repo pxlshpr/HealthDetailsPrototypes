@@ -99,6 +99,10 @@ struct AdaptiveMaintenanceForm: View {
                 }
                 .fontWeight(.semibold)
             }
+            ToolbarItem(placement: .principal) {
+                Text("Maintenance Energy")
+                    .font(.headline)
+            }
         }
     }
 

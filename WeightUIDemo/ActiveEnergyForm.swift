@@ -1,73 +1,11 @@
 import SwiftUI
 
-func valueForActivityLevel(_ activityLevel: ActivityLevel) -> Double {
-    switch activityLevel {
-    case .sedentary:            2442
-    case .lightlyActive:        2798.125
-    case .moderatelyActive:     3154.25
-    case .active:               3510.375
-    case .veryActive:           3866.5
-    }
-}
-
-enum CorrectionType: CaseIterable {
-    case add
-    case subtract
-    case multiply
-    case divide
-    
-    var name: String {
-        switch self {
-        case .add:      "Add"
-        case .subtract: "Subtract"
-        case .multiply: "Multiply"
-        case .divide:   "Divide"
-        }
-    }
-    
-    var label: String {
-        switch self {
-        case .add:      "Add"
-        case .subtract: "Subtract"
-        case .multiply: "Multiply by"
-        case .divide:   "Divide by"
-        }
-    }
-    
-    var symbol: String {
-        switch self {
-        case .add:      "+"
-        case .subtract: "-"
-        case .multiply: "×"
-        case .divide:   "÷"
-        }
-    }
-    
-    var textFieldPlaceholder: String {
-        switch self {
-        case .add:      "kcal to add"
-        case .subtract: "kcal to subtract"
-        case .multiply: "Multiply by"
-        case .divide:   "Divide by"
-        }
-    }
-    
-    var unit: String? {
-        switch self {
-        case .add:      "kcal"
-        case .subtract: "kcal"
-        case .multiply: nil
-        case .divide:   nil
-        }
-    }
-}
-
 struct ActiveEnergyForm: View {
 
     @Environment(\.dismiss) var dismiss
 
     @State var value: Double? = valueForActivityLevel(.lightlyActive)
-    @State var source: ActiveEnergySource = .healthKit
+    @State var source: ActiveEnergySource = .activityLevel
     @State var activityLevel: ActivityLevel = .lightlyActive
     @State var intervalType: HealthIntervalType = .average
     @State var interval: HealthInterval = .init(3, .day)
@@ -97,6 +35,7 @@ struct ActiveEnergyForm: View {
                 case .userEntered:
                     customSection
                 case .activityLevel:
+                    activityLevelExplanation
                     activityLevelSection
                 case .healthKit:
                     healthKitExplanation
@@ -378,56 +317,32 @@ struct ActiveEnergyForm: View {
         Section {
             VStack(alignment: .leading) {
                 Text("This is the energy burnt over and above your Resting Energy use. It can be specified in three ways:")
-                Label {
-                    Text("\"Apple Health\" uses the data recorded in the Health App.")
-                } icon: {
-                    Circle()
-                        .foregroundStyle(Color(.label))
-                        .frame(width: 5, height: 5)
-                }
-                Label {
-                    Text("\"Activity Level\" uses a multiplier on your Resting energy based on how active you are.")
-                } icon: {
-                    Circle()
-                        .foregroundStyle(Color(.label))
-                        .frame(width: 5, height: 5)
-                }
-                Label {
-                    Text("\"Custom\" allows you to enter the energy manually.")
-                } icon: {
-                    Circle()
-                        .foregroundStyle(Color(.label))
-                        .frame(width: 5, height: 5)
-                }
+                dotPoint("\"Apple Health\" uses the data recorded in the Health App.")
+                dotPoint("\"Activity Level\" uses a multiplier on your Resting energy based on how active you are.")
+                dotPoint("\"Custom\" allows you to enter the energy manually.")
             }
         }
     }
-    
+
+    var activityLevelExplanation: some View {
+        Section {
+            VStack(alignment: .leading) {
+                Text("Select an activity level that matches your lifestyle.")
+                dotPoint("Sedentary — You work a desk job with little or no exercise.")
+                dotPoint("Lightly Active — You work a job with light physical demands, or you work a desk job and perform light exercise (at the level of a brisk walk) for 30 minutes per day, 3-5 times per week.")
+                dotPoint("Moderately Active — You work a moderately physically demanding job, such as a construction worker, or you work a desk job and engage in moderate exercise for 1 hour per day, 3-5 times per week.")
+                dotPoint("Vigorously Active — You work a consistently physically demanding job, such as an agricultural worker, or you work a desk job and engage in intense exercise for 1 hour per day or moderate exercise for 2 hours per day, 5-7 times per week.")
+                dotPoint("Extremely Active — You work an extremely physically demanding job, such as a professional athlete, competitive cyclist, or fitness professional, or you engage in intense exercise for at least 2 hours per day.")
+            }
+        }
+    }
     var healthKitExplanation: some View {
         Section {
             VStack(alignment: .leading) {
-                Text("You are using your Resting Energy data from Apple Health. It can be read in three ways:")
-                Label {
-                    Text("\"Daily Average\" uses the daily average of a previous number of days that you specify.")
-                } icon: {
-                    Circle()
-                        .foregroundStyle(Color(.label))
-                        .frame(width: 5, height: 5)
-                }
-                Label {
-                    Text("\"Same Day\" uses the data for the current day. Use this if you want your goals to reflect how active you are throughout the day. Keep in mind that this value will keep increasing until the day is over.")
-                } icon: {
-                    Circle()
-                        .foregroundStyle(Color(.label))
-                        .frame(width: 5, height: 5)
-                }
-                Label {
-                    Text("\"Previous Day\" uses the data for the previous day. Use this if you want your goals to reflect how active you were the day before.")
-                } icon: {
-                    Circle()
-                        .foregroundStyle(Color(.label))
-                        .frame(width: 5, height: 5)
-                }
+                Text("You are reading your Active Energy data from Apple Health. It can be read in three ways:")
+                dotPoint("\"Daily Average\" uses the daily average of a previous number of days that you specify.")
+                dotPoint("\"Same Day\" uses the data for the current day. Use this if you want your goals to reflect how active you are throughout the day. Keep in mind that this value will keep increasing until the day is over.")
+                dotPoint("\"Previous Day\" uses the data for the previous day. Use this if you want your goals to reflect how active you were the day before.")
             }
         }
     }
@@ -474,4 +389,76 @@ struct ActiveEnergyForm: View {
 
 #Preview {
     ActiveEnergyForm()
+}
+
+func valueForActivityLevel(_ activityLevel: ActivityLevel) -> Double {
+    switch activityLevel {
+    case .sedentary:            2442
+    case .lightlyActive:        2798.125
+    case .moderatelyActive:     3154.25
+    case .active:               3510.375
+    case .veryActive:           3866.5
+    }
+}
+
+enum CorrectionType: CaseIterable {
+    case add
+    case subtract
+    case multiply
+    case divide
+    
+    var name: String {
+        switch self {
+        case .add:      "Add"
+        case .subtract: "Subtract"
+        case .multiply: "Multiply"
+        case .divide:   "Divide"
+        }
+    }
+    
+    var label: String {
+        switch self {
+        case .add:      "Add"
+        case .subtract: "Subtract"
+        case .multiply: "Multiply by"
+        case .divide:   "Divide by"
+        }
+    }
+    
+    var symbol: String {
+        switch self {
+        case .add:      "+"
+        case .subtract: "-"
+        case .multiply: "×"
+        case .divide:   "÷"
+        }
+    }
+    
+    var textFieldPlaceholder: String {
+        switch self {
+        case .add:      "kcal to add"
+        case .subtract: "kcal to subtract"
+        case .multiply: "Multiply by"
+        case .divide:   "Divide by"
+        }
+    }
+    
+    var unit: String? {
+        switch self {
+        case .add:      "kcal"
+        case .subtract: "kcal"
+        case .multiply: nil
+        case .divide:   nil
+        }
+    }
+}
+
+func dotPoint(_ string: String) -> some View {
+    Label {
+        Text(string)
+    } icon: {
+        Circle()
+            .foregroundStyle(Color(.label))
+            .frame(width: 5, height: 5)
+    }
 }

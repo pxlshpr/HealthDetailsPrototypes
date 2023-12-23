@@ -112,20 +112,8 @@ struct LeanBodyMassForm: View {
         Section {
             VStack(alignment: .leading) {
                 Text("Your lean body mass is the weight of your body minus your body fat (adipose tissue). It may be used when:")
-                Label {
-                    Text("Creating goals. For example, you could create a protein goal relative to your lean body mass instead of your weight.")
-                } icon: {
-                    Circle()
-                        .foregroundStyle(Color(.label))
-                        .frame(width: 5, height: 5)
-                }
-                Label {
-                    Text("Calculating your estimated resting energy.")
-                } icon: {
-                    Circle()
-                        .foregroundStyle(Color(.label))
-                        .frame(width: 5, height: 5)
-                }
+                dotPoint("Creating goals. For example, you could create a protein goal relative to your lean body mass instead of your weight.")
+                dotPoint("Calculating your estimated resting energy.")
             }
         }
     }

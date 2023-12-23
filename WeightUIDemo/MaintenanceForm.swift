@@ -110,20 +110,8 @@ struct MaintenanceForm: View {
         Section {
             VStack(alignment: .leading) {
                 Text("Your Maintenance Energy (also known as your Total Daily Energy Expenditure or TDEE) is the dietary energy you would need to consume daily to maintain your weight.\n\nIt may be used when creating energy goals that target a desired change in your weight.\n\nYou can choose to calculate it in two ways:")
-                Label {
-                    Text("\"Adaptive\" compares your weight change to the energy you consumed over a specified period.")
-                } icon: {
-                    Circle()
-                        .foregroundStyle(Color(.label))
-                        .frame(width: 5, height: 5)
-                }
-                Label {
-                    Text("\"Estimated\" estimates and totals your daily resting and active energies.")
-                } icon: {
-                    Circle()
-                        .foregroundStyle(Color(.label))
-                        .frame(width: 5, height: 5)
-                }
+                dotPoint("\"Adaptive\" compares your weight change to the energy you consumed over a specified period.")
+                dotPoint("\"Estimated\" estimates and totals your daily resting and active energies.")
                 Text("\nThe adaptive calculation is more accurate as it's personalised to your body weight's response to the energy you consume.")
             }
         }

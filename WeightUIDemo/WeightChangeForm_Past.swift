@@ -237,20 +237,8 @@ struct WeightChangeForm_Past: View {
         Section {
             VStack(alignment: .leading) {
                 Text("This is your weight change used in the adaptive maintenance energy calculation. You can either:")
-                Label {
-                    Text("Calculate it using current and previous weights.")
-                } icon: {
-                    Circle()
-                        .foregroundStyle(Color(.label))
-                        .frame(width: 5, height: 5)
-                }
-                Label {
-                    Text("Enter the weight change directly.")
-                } icon: {
-                    Circle()
-                        .foregroundStyle(Color(.label))
-                        .frame(width: 5, height: 5)
-                }
+                dotPoint("Calculate it using current and previous weights.")
+                dotPoint("Enter the weight change directly.")
             }
             Picker("", selection: Binding<Bool>(
                 get: { isCustom },

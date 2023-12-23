@@ -155,41 +155,11 @@ struct DietaryEnergyPointForm: View {
         Section {
             VStack(alignment: .leading) {
                 Text("The daily dietary energy to use for this date. You can specify it in a few ways:")
-                Label {
-                    Text("\"Log\" uses the value from your food log. Choose this if you logged all the food you consumed reliably.")
-                } icon: {
-                    Circle()
-                        .foregroundStyle(Color(.label))
-                        .frame(width: 5, height: 5)
-                }
-                Label {
-                    Text("\"Apple Health\" uses the data recorded in the Health App.")
-                } icon: {
-                    Circle()
-                        .foregroundStyle(Color(.label))
-                        .frame(width: 5, height: 5)
-                }
-                Label {
-                    Text("\"Fasted\" marks the day as fasted, and assigns it a dietary energy of zero.")
-                } icon: {
-                    Circle()
-                        .foregroundStyle(Color(.label))
-                        .frame(width: 5, height: 5)
-                }
-                Label {
-                    Text("\"Custom\" allows you to enter the energy manually.")
-                } icon: {
-                    Circle()
-                        .foregroundStyle(Color(.label))
-                        .frame(width: 5, height: 5)
-                }
-                Label {
-                    Text("\"Not Included\" does not include this day's dietary energy and assigns it the average. Choose this if you don't have a complete or accurate log of the food you ate.")
-                } icon: {
-                    Circle()
-                        .foregroundStyle(Color(.label))
-                        .frame(width: 5, height: 5)
-                }
+                dotPoint("\"Log\" uses the value from your food log. Choose this if you logged all the food you consumed reliably.")
+                dotPoint("\"Apple Health\" uses the data recorded in the Health App.")
+                dotPoint("\"Fasted\" marks the day as fasted, and assigns it a dietary energy of zero.")
+                dotPoint("\"Custom\" allows you to enter the energy manually.")
+                dotPoint("\"Not Included\" does not include this day's dietary energy and assigns it the average. Choose this if you don't have a complete or accurate log of the food you ate.")
             }
         }
     }

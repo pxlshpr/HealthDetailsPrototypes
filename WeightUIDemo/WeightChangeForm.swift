@@ -181,20 +181,8 @@ struct WeightChangeForm: View {
         Section {
             VStack(alignment: .leading) {
                 Text("Your weight change can be set by either:")
-                Label {
-                    Text("Using current and previous weights to calculate it.")
-                } icon: {
-                    Circle()
-                        .foregroundStyle(Color(.label))
-                        .frame(width: 5, height: 5)
-                }
-                Label {
-                    Text("Entering it in manually.")
-                } icon: {
-                    Circle()
-                        .foregroundStyle(Color(.label))
-                        .frame(width: 5, height: 5)
-                }
+                dotPoint("Using current and previous weights to calculate it.")
+                dotPoint("Entering it in manually.")
             }
             Picker("", selection: Binding<Bool>(
                 get: { isCustom },

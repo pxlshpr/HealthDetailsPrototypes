@@ -176,20 +176,8 @@ struct AgeForm_Past: View {
         Section {
             VStack(alignment: .leading) {
                 Text("Your age may be used when:")
-                Label {
-                    Text("Calculating your estimated resting energy.")
-                } icon: {
-                    Circle()
-                        .foregroundStyle(Color(.label))
-                        .frame(width: 5, height: 5)
-                }
-                Label {
-                    Text("Picking daily values for micronutrients.")
-                } icon: {
-                    Circle()
-                        .foregroundStyle(Color(.label))
-                        .frame(width: 5, height: 5)
-                }
+                dotPoint("Calculating your estimated resting energy.")
+                dotPoint("Picking daily values for micronutrients.")
             }
         }
     }

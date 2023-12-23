@@ -64,20 +64,8 @@ struct SexForm: View {
         Section {
             VStack(alignment: .leading) {
                 Text("Your biological sex may be used when:")
-                Label {
-                    Text("Calculating your estimated resting energy or lean body mass.")
-                } icon: {
-                    Circle()
-                        .foregroundStyle(Color(.label))
-                        .frame(width: 5, height: 5)
-                }
-                Label {
-                    Text("Picking daily values for micronutrients.")
-                } icon: {
-                    Circle()
-                        .foregroundStyle(Color(.label))
-                        .frame(width: 5, height: 5)
-                }
+                dotPoint("Calculating your estimated resting energy or lean body mass.")
+                dotPoint("Picking daily values for micronutrients.")
             }
         }
     }
