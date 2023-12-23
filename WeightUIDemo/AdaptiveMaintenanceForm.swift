@@ -20,7 +20,7 @@ struct AdaptiveMaintenanceForm: View {
                     weightChangeLink
                 }
             }
-            .navigationTitle("Adaptive Maintenance")
+            .navigationTitle("Adaptive")
             .navigationBarTitleDisplayMode(.large)
             .toolbar { toolbarContent }
         }
