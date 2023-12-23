@@ -26,6 +26,8 @@ struct RestingEnergyForm: View {
     @State var correctionTextAsDouble: Double? = nil
     @State var correctionText: String = ""
 
+    @State var showingEquationExplanations = true
+    
     var body: some View {
         NavigationStack {
             Form {
@@ -35,7 +37,6 @@ struct RestingEnergyForm: View {
                 case .userEntered:
                     customSection
                 case .equation:
-                    equationExplanation
                     equationSection
                 case .healthKit:
                     healthKitExplanation
@@ -48,7 +49,7 @@ struct RestingEnergyForm: View {
             }
             .navigationTitle("Resting Energy")
             .toolbar { toolbarContent }
-            .alert("Enter your Active Energy", isPresented: $showingAlert) {
+            .alert("Enter your Resting", isPresented: $showingAlert) {
                 TextField("kcal", text: customValueTextBinding)
                     .keyboardType(.decimalPad)
                 Button("OK", action: submitCustomValue)
@@ -60,6 +61,7 @@ struct RestingEnergyForm: View {
                 Button("OK", action: submitCorrection)
                 Button("Cancel") { }
             }
+            .sheet(isPresented: $showingEquationExplanations) { equationExplanations }
         }
     }
     
@@ -70,13 +72,13 @@ struct RestingEnergyForm: View {
                 if applyCorrection, let correction {
                     switch correctionType {
                     case .divide:
-                        "Your Active Energy in Apple Health is being divided by \(correction.clean) before being used."
+                        "Your Resting Energy in Apple Health is being divided by \(correction.clean) before being used."
                     case .multiply:
-                        "Your Active Energy in Apple Health is being multiplied by \(correction.clean) before being used."
+                        "Your Resting Energy in Apple Health is being multiplied by \(correction.clean) before being used."
                     case .add:
-                        "\(correction.clean) kcal is being added to your Active Energy in Apple Health before being used."
+                        "\(correction.clean) kcal is being added to your Resting Energy in Apple Health before being used."
                     case .subtract:
-                        "\(correction.clean) kcal is being subtracted from your Active Energy in Apple Health before being used."
+                        "\(correction.clean) kcal is being subtracted from your Resting Energy in Apple Health before being used."
                     }
                 } else {
                     "If you have reason to believe that the data in Apple Health may be inaccurate, use a correction to account for this."
@@ -162,7 +164,16 @@ struct RestingEnergyForm: View {
                 }
             }
         )
-        return Section {
+        
+        var footer: some View {
+            Button {
+                showingEquationExplanations = true
+            } label: {
+                Text("Learn more…")
+                    .font(.footnote)
+            }
+        }
+        return Section(footer: footer) {
             Picker("Equation", selection: binding) {
                 ForEach(RestingEnergyEquation.allCases, id: \.self) {
                     Text($0.name).tag($0)
@@ -324,20 +335,14 @@ struct RestingEnergyForm: View {
         }
     }
 
-    var equationExplanation: some View {
-        Section {
-            VStack(alignment: .leading) {
-                Text("Select an equation to use:")
-                ForEach(RestingEnergyEquation.inOrderOfYear, id: \.self) {
-                    dotPoint("\($0.name) (\($0.year)) — \($0.description)")
-                }
-            }
-        }
+    var equationExplanations: some View {
+        RestingEnergyEquationsInfo()
     }
+
     var healthKitExplanation: some View {
         Section {
             VStack(alignment: .leading) {
-                Text("You are reading your Active Energy data from Apple Health. It can be read in three ways:")
+                Text("You are reading your Resting Energy data from Apple Health. It can be read in three ways:")
                 dotPoint("\"Daily Average\" uses the daily average of a previous number of days that you specify.")
                 dotPoint("\"Same Day\" uses the data for the current day. Use this if you want your goals to reflect how active you are throughout the day. Keep in mind that this value will keep increasing until the day is over.")
                 dotPoint("\"Previous Day\" uses the data for the previous day. Use this if you want your goals to reflect how active you were the day before.")
@@ -350,7 +355,7 @@ struct RestingEnergyForm: View {
             Button {
                 showingAlert = true
             } label: {
-                Text("\(value != nil ? "Edit" : "Set") Active Energy")
+                Text("\(value != nil ? "Edit" : "Set") Resting Energy")
             }
         }
     }
@@ -387,4 +392,80 @@ struct RestingEnergyForm: View {
 
 #Preview {
     RestingEnergyForm()
+}
+
+struct RestingEnergyEquationsInfo: View {
+    
+    @Environment(\.dismiss) var dismiss
+    @State var hasAppeared = false
+    
+    var body: some View {
+        NavigationStack {
+            Group {
+                if hasAppeared {
+                    form
+                } else {
+                    Color.clear
+                }
+            }
+            .navigationTitle("Equations")
+            .navigationBarTitleDisplayMode(.large)
+            .onAppear(perform: appeared)
+            .toolbar { toolbarContent }
+        }
+    }
+    
+    func appeared() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+            hasAppeared = true
+        }
+    }
+    
+    var toolbarContent: some ToolbarContent {
+        ToolbarItem(placement: .topBarTrailing) {
+            Button("Done") {
+                dismiss()
+            }
+            .fontWeight(.semibold)
+        }
+    }
+    
+    var form: some View {
+        Form {
+            ForEach(RestingEnergyEquation.inOrderOfYear, id: \.self) {
+                section(for: $0)
+            }
+        }
+    }
+    
+    func section(for equation: RestingEnergyEquation) -> some View {
+        var header: some View {
+            HStack(alignment: .bottom) {
+                Text(equation.name)
+                    .textCase(.none)
+                    .font(.system(.title2, design: .rounded, weight: .semibold))
+                    .foregroundStyle(Color(.label))
+                 Spacer()
+                 Text(equation.year)
+                     .textCase(.none)
+                     .font(.system(.title3, design: .rounded, weight: .medium))
+                     .foregroundStyle(Color(.label))
+            }
+        }
+        
+        var variablesRow: some View {
+            HStack(alignment: .firstTextBaseline) {
+                Text("Uses")
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Text(equation.variablesDescription)
+                    .multilineTextAlignment(.trailing)
+            }
+        }
+        
+        return Section(header: header) {
+            Text(equation.description)
+            variablesRow
+        }
+    }
 }

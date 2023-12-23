@@ -47,22 +47,42 @@ public extension RestingEnergyEquation {
 /// https://www.mdpi.com/2218-1989/13/2/189 (lots more info)
 
 extension RestingEnergyEquation {
+    
+    var variablesDescription: String {
+        switch self {
+        case .katchMcardle:
+            "Lean body mass"
+        case .cunningham:
+            "Lean body mass"
+        case .rozaShizgal:
+            "Height, weight, age, and biological sex"
+        case .schofield:
+            "Weight, age and biological sex"
+        case .mifflinStJeor:
+            "Height, weight, age, and biological sex"
+        case .harrisBenedict:
+            "Height, weight, age, and biological sex"
+        case .henryOxford:
+            "Weight, age and biological sex"
+        }
+    }
+
     var description: String {
         switch self {
         case .katchMcardle:
-            "Uses your lean body mass, similar to the Cunningham equation. It is considered more accurate for individuals with low percentages of body fat or high amounts of muscle mass"
-        case .henryOxford:
-            "Uses your weight, age and biological sex. It is among the 'newer' equations. It is thought that it also represents all ethnicities, as it is based on 10,502 men and women from both developed and developing countries."
-        case .mifflinStJeor:
-            "Uses your height, weight, age, and biological sex. The second revision/simplification of the Harris-Benedict equation that was carried out 71 years later, based on a sample that was wider in age and larger by 259 individuals."
-        case .schofield:
-            "Uses your weight, age and biological sex. The original dataset is made up of predominantly Italian subjects, a large percentage of whom were male. Growing evidence suggests that this formula has the tendency to overestimate per kilogram body weight amongst other ethnicities, particularly individuals outside of Europe."
+            "Similar to the Cunningham equation, but considered to be more accurate for individuals with low percentages of body fat or high amounts of muscle mass."
         case .cunningham:
-            "Uses your lean body mass, similar to the Katch-McArdle equation. It can be more accurate for individuals with high percentages of body fat."
+            "Similar to the Katch-McArdle equation, but considered to be more accurate for individuals with high percentages of body fat."
         case .rozaShizgal:
-            "Uses your height, weight, age, and biological sex. The first revision of the Harris-Benedict equation that was carried out 65 years later, based on a sample that was older, larger by 98 people, and almost equally divided between the sexes."
+            "The first revision of the Harris-Benedict equation that was carried out 65 years later, based on a dataset that was older, larger by 98 people, and almost equally divided between the sexes."
+        case .schofield:
+            "This is the equation used by the WHO.\n\nThe dataset is made up of predominantly Italian subjects, a large percentage of whom were male.\n\nGrowing evidence suggests that this formula has the tendency to overestimate per kilogram body weight amongst other ethnicities, particularly individuals outside of Europe."
+        case .mifflinStJeor:
+            "The second revision/simplification of the Harris-Benedict equation that was carried out 71 years later, based on a sample that was wider in age and larger by 259 individuals."
         case .harrisBenedict:
-            "Uses your height, weight, age, and biological sex. The equation was published more than 100 years ago and remains still the most frequently used in daily practice. This equation was based on 239 subjects (136 men and 108 women), aged 16–63 years."
+            "The Harris–Benedict equation was published more than 100 years ago, without the help of modern computers. It remains still the most frequently used in daily practice.\n\nThis equation was based on 239 subjects (136 men and 108 women), aged 16–63 years."
+        case .henryOxford:
+            "Among the 'newer' equations, the Henry-Oxford equation is considered to represent all ethnicities, as it is based on 10,502 men and women from both developed and developing countries."
         }
     }
     
