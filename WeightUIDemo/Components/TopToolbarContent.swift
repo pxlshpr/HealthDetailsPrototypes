@@ -56,14 +56,14 @@ struct EditDoneButton: View {
             "Are you sure",
             isPresented: $showingDirtyConfirmation
         ) {
-            Button("Modify and Change Goals", role: .destructive) {
+            Button("Modify and Update Goals", role: .destructive) {
                 Haptics.successFeedback()
                 withAnimation {
                     saveAction()
                     isEditing = false
                 }
             }
-            Button("Cancel") {
+            Button("Cancel", role: .cancel) {
                 Haptics.warningFeedback()
                 withAnimation {
                     undoAction()
@@ -71,7 +71,7 @@ struct EditDoneButton: View {
                 }
             }
         } message: {
-            Text("Modifying your data will update any goals dependent on it. This cannot be done.")
+            Text("This will update any dependent goals.")
         }
     }
     

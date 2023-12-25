@@ -12,19 +12,18 @@ struct MaintenanceForm: View {
 
     @State var showingMaintenanceInfo = false
     
-    let isPast: Bool
+    let pastDate: Date?
     @State var isEditing: Bool
     @State var isDirty: Bool = false
     
-    init(isPast: Bool = false) {
-        self.isPast = isPast
-        _isEditing = State(initialValue: !isPast)
+    init(pastDate: Date? = nil) {
+        self.pastDate = pastDate
+        _isEditing = State(initialValue: pastDate == nil)
     }
     
     var body: some View {
         NavigationStack {
             Form {
-                dateSection
                 notice
                 valuePicker
                 adaptiveLink
@@ -48,23 +47,14 @@ struct MaintenanceForm: View {
         }
     }
     
-    @ViewBuilder
-    var dateSection: some View {
-        if isPast {
-            Section {
-                HStack {
-                    Text("Date")
-                    Spacer()
-                    Text("22 Dec")
-                }
-            }
-        }
+    var isPast: Bool {
+        pastDate != nil
     }
     
     @ViewBuilder
     var notice: some View {
-        if isPast, !isEditing {
-            NoticeSection.legacy
+        if let pastDate {
+            NoticeSection.legacy(pastDate, isEditing: $isEditing)
         }
     }
             
@@ -172,5 +162,7 @@ struct MaintenanceForm: View {
 }
 
 #Preview("Past") {
-    MaintenanceForm(isPast: true)
+    MaintenanceForm(pastDate: MockPastDate)
 }
+
+let MockPastDate = Date.now.moveDayBy(-3)

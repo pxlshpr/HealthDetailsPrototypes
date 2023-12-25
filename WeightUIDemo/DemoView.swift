@@ -46,7 +46,7 @@ struct DemoView: View {
         case .maintenance:
             MaintenanceForm()
         case .pastMaintenance:
-            MaintenanceForm(isPast: true)
+            MaintenanceForm(pastDate: MockPastDate)
         }
     }
 }

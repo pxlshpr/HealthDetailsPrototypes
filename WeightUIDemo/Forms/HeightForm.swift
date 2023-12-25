@@ -18,7 +18,7 @@ struct HeightForm: View {
 
     let mode: Mode
     
-    init(mode: Mode = .healthDetails) {
+    init(mode: Mode = .healthDetails(nil)) {
         self.mode = mode
         _isEditing = State(initialValue: !mode.isPast)
     }
@@ -241,12 +241,9 @@ struct HeightForm: View {
     }
     
     enum Mode {
-        case healthDetails
-        case pastHealthDetails
-        case restingEnergyVariable
-        case pastRestingEnergyVariable
-        case leanBodyMassVariable
-        case pastLeanBodyMassVariable
+        case healthDetails(Date?)
+        case restingEnergyVariable(Date?)
+        case leanBodyMassVariable(Date?)
         
         var showsExplanation: Bool {
             switch self {
@@ -255,45 +252,61 @@ struct HeightForm: View {
             }
         }
         
-        var isPast: Bool {
+        var pastDate: Date? {
             switch self {
-            case .pastHealthDetails, .pastRestingEnergyVariable, .pastLeanBodyMassVariable:
-                true
-            default:
-                false
+            case .healthDetails(let date):
+                date
+            case .restingEnergyVariable(let date):
+                date
+            case .leanBodyMassVariable(let date):
+                date
             }
+        }
+        
+        var isPast: Bool {
+            pastDate != nil
         }
         
         var legacyNotice: Notice? {
             switch self {
-            case .pastHealthDetails:
-                .legacy
-            case .pastRestingEnergyVariable:
-                Notice(
-                    title: "Legacy Data",
-                    message: "This data has been preserved to ensure that your Resting Energy calculation remains unchanged.",
-                    imageName: "calendar.badge.clock"
-                )
-            case .pastLeanBodyMassVariable:
-                Notice(
-                    title: "Legacy Data",
-                    message: "This data has been preserved to ensure any goals set on this day remain unchanged.",
-                    imageName: "calendar.badge.clock"
-                )
-            default:
-                nil
+            case .healthDetails(let pastDate):
+                if let pastDate {
+                    Notice.legacy(pastDate)
+                } else {
+                    nil
+                }
+            case .restingEnergyVariable(let pastDate):
+                if pastDate != nil {
+                    Notice(
+                        title: "Legacy Data",
+                        message: "This data has been preserved to ensure that your Resting Energy calculation remains unchanged.",
+                        imageName: "calendar.badge.clock"
+                    )
+                } else {
+                    nil
+                }
+            case .leanBodyMassVariable(let pastDate):
+                if pastDate != nil {
+                    Notice(
+                        title: "Legacy Data",
+                        message: "This data has been preserved to ensure any goals set on this day remain unchanged.",
+                        imageName: "calendar.badge.clock"
+                    )
+                } else {
+                    nil
+                }
             }
         }
         
         var notice: Notice? {
             switch self {
-            case .restingEnergyVariable, .pastRestingEnergyVariable:
+            case .restingEnergyVariable:
                 Notice(
                     title: "Equation Variable",
                     message: "This is used as a variable for the equation calculating your Resting Energy.",
                     imageName: "function"
                 )
-            case .leanBodyMassVariable, .pastLeanBodyMassVariable:
+            case .leanBodyMassVariable:
                 Notice(
                     title: "Equation Variable",
                     message: "This is used as a variable for the equation calculating your Lean Body Mass.",
@@ -308,36 +321,36 @@ struct HeightForm: View {
 
 #Preview("Health Details") {
     NavigationStack {
-        HeightForm(mode: .healthDetails)
+        HeightForm(mode: .healthDetails(nil))
     }
 }
 
 #Preview("Past Health Details") {
     NavigationStack {
-        HeightForm(mode: .pastHealthDetails)
+        HeightForm(mode: .healthDetails(MockPastDate))
     }
 }
 
 #Preview("Lean Body Mass Variable") {
     NavigationStack {
-        HeightForm(mode: .leanBodyMassVariable)
+        HeightForm(mode: .leanBodyMassVariable(nil))
     }
 }
 
 #Preview("Past Lean Body Mass Variable") {
     NavigationStack {
-        HeightForm(mode: .pastLeanBodyMassVariable)
+        HeightForm(mode: .leanBodyMassVariable(MockPastDate))
     }
 }
 
 #Preview("Resting Energy Variable") {
     NavigationStack {
-        HeightForm(mode: .restingEnergyVariable)
+        HeightForm(mode: .restingEnergyVariable(nil))
     }
 }
 
 #Preview("Past Resting energy Variable") {
     NavigationStack {
-        HeightForm(mode: .pastRestingEnergyVariable)
+        HeightForm(mode: .restingEnergyVariable(MockPastDate))
     }
 }

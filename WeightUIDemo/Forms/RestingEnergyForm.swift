@@ -82,7 +82,7 @@ struct RestingEnergyForm: View {
     @ViewBuilder
     var notice: some View {
         if !isEditing {
-            NoticeSection.legacy
+            NoticeSection.legacy(MockPastDate)
         }
     }
     
@@ -529,7 +529,7 @@ struct RestingEnergyForm: View {
                 }
             }
             .navigationDestination(for: HeightRoute.self) { _ in
-                HeightForm(mode: isPast ? .pastRestingEnergyVariable : .restingEnergyVariable)
+                HeightForm(mode: .restingEnergyVariable(nil))
             }
             NavigationLink(value: WeightRoute.form) {
                 HStack {

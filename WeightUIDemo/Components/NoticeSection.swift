@@ -15,14 +15,38 @@ enum NoticeStyle {
 struct Notice {
     let title: String
     let message: String
+    let date: Date?
     let imageName: String
+    let isEditing: Binding<Bool>
+
+    init(
+        title: String,
+        message: String,
+        date: Date? = nil,
+        imageName: String,
+        isEditing: Binding<Bool> = .constant(false)
+    ) {
+        self.title = title
+        self.message = message
+        self.date = date
+        self.imageName = imageName
+        self.isEditing = isEditing
+    }
     
-    static var legacy: Notice {
+    static func legacy(
+        _ date: Date,
+        isEditing: Binding<Bool> = .constant(false)
+    ) -> Notice {
         .init(
             title: "Legacy Data",
 //            message: "This data has been preserved to ensure any goals set on this day remain unchanged.",
-            message: "This data has been preserved to ensure that any goals dependent on it remain unchanged.",
-            imageName: "calendar.badge.clock"
+//            message: "This data has been preserved to ensure that any goals dependent on it remain unchanged.",
+//            message: "This data has been preserved to ensure that any goals dependent on it on this date remain unchanged.",
+            message: "This data has been preserved to ensure that any goals dependent on it on this date remain unchanged.",
+//            message: "This data has been kept unchanged to secure any goals dependent on it as of this date.",
+            date: date,
+            imageName: "calendar.badge.clock",
+            isEditing: isEditing
         )
     }
 }
@@ -32,12 +56,17 @@ struct NoticeSection: View {
     let style: NoticeStyle
     let title: String?
     let message: String
+    let date: Date?
     let primaryAction: NoticeAction?
     let secondaryAction: NoticeAction?
     let imageName: String?
+    var isEditing: Binding<Bool>
     
-    static var legacy: Self {
-        NoticeSection(notice: .legacy)
+    static func legacy(
+        _ date: Date,
+        isEditing: Binding<Bool> = .constant(false)
+    ) -> Self {
+        NoticeSection(notice: .legacy(date, isEditing: isEditing))
     }
     
     init(
@@ -52,6 +81,8 @@ struct NoticeSection: View {
         self.primaryAction = primaryAction
         self.secondaryAction = secondaryAction
         self.imageName = notice.imageName
+        self.date = notice.date
+        self.isEditing = notice.isEditing
     }
     
     init(
@@ -67,30 +98,50 @@ struct NoticeSection: View {
         self.primaryAction = primaryAction
         self.secondaryAction = secondaryAction
         self.imageName = nil
+        self.date = nil
+        self.isEditing = .constant(false)
     }
     
     var body: some View {
         Section {
-            HStack(alignment: .top) {
-                if let imageName {
-                    VStack {
-                        Image(systemName: imageName)
-                            .frame(width: 30)
-                            .imageScale(.large)
-                        Spacer()
-                    }
-                }
-                VStack(alignment: .leading) {
-                    titleView
-                    messageView
-                    divider
-                    primaryButton
-                    secondaryButton
-                }
+            if !isEditing.wrappedValue {
+                noticeRow
             }
-            .padding(.top)
+            dateRow
         }
         .listRowBackground(background)
+    }
+    
+    var noticeRow: some View {
+        HStack(alignment: .top) {
+            if let imageName {
+                VStack {
+                    Image(systemName: imageName)
+                        .frame(width: 30)
+                        .imageScale(.large)
+                    Spacer()
+                }
+            }
+            VStack(alignment: .leading) {
+                titleView
+                messageView
+                divider
+                primaryButton
+                secondaryButton
+            }
+        }
+        .padding(.top)
+    }
+    
+    @ViewBuilder
+    var dateRow: some View {
+        if let date {
+            HStack {
+                Text("Date")
+                Spacer()
+                Text(date.dateString)
+            }
+        }
     }
     
     var buttonColor: Color {
