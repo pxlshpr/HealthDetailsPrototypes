@@ -71,13 +71,13 @@ struct LeanBodyMassForm_Past: View {
         return NoticeSection(
             style: .plain,
             title: "Previous Data",
-            message: "This data has been preserved to ensure any goals set on this day remain unchanged.",
+            message: "This data has been preserved to ensure any goals set on this day remain unchanged."
 //                primaryAction: primaryAction,
-            image: {
-                Image(systemName: "calendar.badge.clock")
-                    .font(.system(size: 30))
-                    .padding(5)
-            }
+//            image: {
+//                Image(systemName: "calendar.badge.clock")
+//                    .font(.system(size: 30))
+//                    .padding(5)
+//            }
         )
     }
     

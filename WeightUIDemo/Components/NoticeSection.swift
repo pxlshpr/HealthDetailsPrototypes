@@ -12,37 +12,71 @@ enum NoticeStyle {
     case plain
 }
 
-struct NoticeSection<Content>: View where Content: View {
+struct Notice {
+    let title: String
+    let message: String
+    let imageName: String
+    
+    static var legacy: Notice {
+        .init(
+            title: "Legacy Data",
+//            message: "This data has been preserved to ensure any goals set on this day remain unchanged.",
+            message: "This data has been preserved to ensure that any goals dependent on it remain unchanged.",
+            imageName: "calendar.badge.clock"
+        )
+    }
+}
+
+struct NoticeSection: View {
     
     let style: NoticeStyle
     let title: String?
     let message: String
     let primaryAction: NoticeAction?
     let secondaryAction: NoticeAction?
-    let image: () -> Content?
+    let imageName: String?
+    
+    static var legacy: Self {
+        NoticeSection(notice: .legacy)
+    }
+    
+    init(
+        style: NoticeStyle = .accentColor,
+        notice: Notice,
+        primaryAction: NoticeAction? = nil,
+        secondaryAction: NoticeAction? = nil
+    ) {
+        self.style = style
+        self.title = notice.title
+        self.message = notice.message
+        self.primaryAction = primaryAction
+        self.secondaryAction = secondaryAction
+        self.imageName = notice.imageName
+    }
     
     init(
         style: NoticeStyle = .accentColor,
         title: String? = nil,
         message: String,
         primaryAction: NoticeAction? = nil,
-        secondaryAction: NoticeAction? = nil,
-        @ViewBuilder image: @escaping () -> Content? = { nil }
+        secondaryAction: NoticeAction? = nil
     ) {
         self.style = style
         self.title = title
         self.message = message
         self.primaryAction = primaryAction
         self.secondaryAction = secondaryAction
-        self.image = image
+        self.imageName = nil
     }
     
     var body: some View {
         Section {
             HStack(alignment: .top) {
-                if image() != nil {
+                if let imageName {
                     VStack {
-                        image()
+                        Image(systemName: imageName)
+                            .frame(width: 30)
+                            .imageScale(.large)
                         Spacer()
                     }
                 }

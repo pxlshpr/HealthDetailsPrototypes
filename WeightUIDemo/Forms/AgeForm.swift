@@ -17,10 +17,31 @@ struct AgeForm: View {
     @State var dateOfBirth = DefaultDateOfBirth
     @State var chosenDateOfBirth = DefaultDateOfBirth
 
+    @State var isEditing: Bool
+    let isPast: Bool
+    
+    enum Mode {
+        case healthDetails
+        case healthDetailsPast
+        case restingEnergyVariable
+        case pastRestingEnergyVariable
+        case leanBodyMassVariable
+        case pastLeanBodyMassVariable
+    }
+    
+    init(isPast: Bool = false) {
+        _isEditing = State(initialValue: isPast ? false : true)
+        self.isPast = isPast
+    }
+    
     var body: some View {
         Form {
             explanation
-            content
+            if !isEditing {
+                notice
+            } else {
+                actions
+            }
         }
         .navigationTitle("Age")
         .navigationBarTitleDisplayMode(.large)
@@ -66,6 +87,19 @@ struct AgeForm: View {
         }
     }
     
+    var notice: some View {
+        NoticeSection(
+            style: .plain,
+            title: "Previous Data",
+            message: "This data has been preserved to ensure any goals or daily values set on this day remain unchanged."
+//            image: {
+//                Image(systemName: "calendar.badge.clock")
+//                    .font(.system(size: 30))
+//                    .padding(5)
+//            }
+        )
+    }
+
     var ageTextBinding: Binding<String> {
         Binding<String>(
             get: { ageText },
@@ -171,7 +205,7 @@ struct AgeForm: View {
         }
     }
         
-    var content: some View {
+    var actions: some View {
         Group {
             Section {
                 Button {
@@ -188,18 +222,6 @@ struct AgeForm: View {
                                     .stroke(Color(.systemGray3), lineWidth: 0.5)
                             )
                     }
-//                    Label(
-//                        title: { Text("Read from Apple Health") },
-//                        icon: {
-//                            Image("AppleHealthIcon")
-//                                .resizable()
-//                                .frame(width: 24, height: 24)
-//                                .overlay(
-//                                    RoundedRectangle(cornerRadius: 5)
-//                                        .stroke(Color(.systemGray3), lineWidth: 0.5)
-//                                )
-//                        }
-//                    )
                 }
             }
             Section {
@@ -212,10 +234,6 @@ struct AgeForm: View {
                         Image(systemName: "calendar")
                             .frame(width: imageScale * scale, height: imageScale * scale)
                     }
-//                    Label(
-//                        title: { Text("Choose Date of Birth") },
-//                        icon: { Image(systemName: "calendar") }
-//                    )
                 }
             }
             Section {
@@ -228,10 +246,6 @@ struct AgeForm: View {
                         Image(systemName: "keyboard")
                             .frame(width: imageScale * scale, height: imageScale * scale)
                     }
-//                    Label(
-//                        title: { Text("Enter Age") },
-//                        icon: { Image(systemName: "keyboard") }
-//                    )
                 }
             }
         }
@@ -239,5 +253,12 @@ struct AgeForm: View {
 }
 
 #Preview {
-    AgeForm()
+    NavigationStack {
+        AgeForm()
+    }
+}
+#Preview {
+    NavigationStack {
+        AgeForm(isPast: true)
+    }
 }

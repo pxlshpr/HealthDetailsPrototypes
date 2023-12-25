@@ -7,63 +7,12 @@ struct DemoView: View {
     
     enum WeightFormType: Int, Hashable, Identifiable, CaseIterable {
         case maintenance = 1
-        case maintenancePast
-        case weight
-        case weightPast
-        case weightChangePoint
-        case weightChangePointPast
-        case sex
-        case sexPast
-        case age
-        case agePast
-        case leanBodyMass
-        case leanBodyMassPast
-        case height
-        case heightPast
-        case smokingStatus
-        case smokingStatusPast
-        case pregnancyStatus
-        case pregnancyStatusPast
 
         var id: Int { rawValue }
         var label: String {
             switch self {
             case .maintenance:
                 "Maintenance"
-            case .maintenancePast:
-                "Maintenance (Past)"
-            case .smokingStatus:
-                "Smoking Status"
-            case .smokingStatusPast:
-                "Smoking Status (Past)"
-            case .pregnancyStatus:
-                "Pregnancy Status"
-            case .pregnancyStatusPast:
-                "Pregnancy Status (Past)"
-            case .height:
-                "Height"
-            case .heightPast:
-                "Height (Past)"
-            case .age:
-                "Age"
-            case .agePast:
-                "Age Past"
-            case .leanBodyMass:
-                "Lean Body Mass"
-            case .leanBodyMassPast:
-                "Lean Body Mass (Past)"
-            case .weight:
-                "Weight"
-            case .weightPast:
-                "Weight (Past)"
-            case .weightChangePoint:
-                "Weight Change Point"
-            case .weightChangePointPast:
-                "Weight Change Point (Past)"
-            case .sex:
-                "Biological Sex"
-            case .sexPast:
-                "Biological Sex (Past)"
             }
         }
     }
@@ -93,40 +42,6 @@ struct DemoView: View {
         switch type {
         case .maintenance:
             MaintenanceForm()
-        case .maintenancePast:
-            MaintenanceForm_Past()
-        case .smokingStatus:
-            SmokingStatusForm()
-        case .smokingStatusPast:
-            SmokingStatusForm_Past()
-        case .pregnancyStatus:
-            PregnancyStatusForm()
-        case .pregnancyStatusPast:
-            PregnancyStatusForm_Past()
-        case .height:
-            HeightForm()
-        case .heightPast:
-            HeightForm_Past()
-        case .age:
-            AgeForm()
-        case .agePast:
-            AgeForm_Past()
-        case .leanBodyMass:
-            LeanBodyMassForm()
-        case .leanBodyMassPast:
-            LeanBodyMassForm_Past()
-        case .sex:
-            SexForm()
-        case .sexPast:
-            SexForm_Past()
-        case .weight:
-            WeightForm()
-        case .weightPast:
-            WeightForm_Past()
-        case .weightChangePoint:
-            WeightChangePointForm()
-        case .weightChangePointPast:
-            WeightChangePointForm_Past()
         }
     }
 }

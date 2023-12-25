@@ -6,23 +6,38 @@ struct IntervalPicker: View {
     let periods: [HealthPeriod]?
     let ranges: [HealthPeriod: ClosedRange<Int>]?
     let title: String?
+    @Binding var isDisabled: Bool
     
     init(
         interval: Binding<HealthInterval>,
         periods: [HealthPeriod]? = nil,
         ranges: [HealthPeriod: ClosedRange<Int>]? = nil,
-        title: String? = nil
+        title: String? = nil,
+        isDisabled: Binding<Bool> = .constant(false)
     ) {
         _interval = interval
         self.periods = periods
         self.ranges = ranges
         self.title = title
+        _isDisabled = isDisabled
+    }
+    
+    var body: some View {
+        Section(header: header) {
+            HStack(spacing: 3) {
+                stepper
+                Spacer()
+                value
+                periodPicker
+            }
+        }
     }
     
     var value: some View {
         Text("\(interval.value)")
 //            .font(NumberFont)
             .contentTransition(.numericText(value: Double(interval.value)))
+            .foregroundStyle(isDisabled ? .secondary : .primary)
     }
     
     func range(for period: HealthPeriod) -> ClosedRange<Int> {
@@ -43,6 +58,7 @@ struct IntervalPicker: View {
             in: range(for: interval.period)
         )
         .fixedSize()
+        .disabled(isDisabled)
     }
     
     var periodBinding: Binding<HealthPeriod> {
@@ -73,12 +89,14 @@ struct IntervalPicker: View {
                 MenuPicker(
                     periods,
                     periodBinding,
-                    isPlural: interval.value != 1
+                    isPlural: interval.value != 1,
+                    isDisabled: $isDisabled
                 )
             } else {
                 MenuPicker(
                     $interval.period,
-                    isPlural: interval.value != 1
+                    isPlural: interval.value != 1,
+                    isDisabled: $isDisabled
                 )
             }
         }
@@ -89,17 +107,6 @@ struct IntervalPicker: View {
     var header: some View {
         if let title {
             Text(title)
-        }
-    }
-    
-    var body: some View {
-        Section(header: header) {
-            HStack(spacing: 3) {
-                stepper
-                Spacer()
-                value
-                periodPicker
-            }
         }
     }
 }
@@ -324,44 +331,63 @@ import SwiftUI
 
 public struct MenuPicker<T: Pickable>: View {
 
+    @Binding var isDisabled: Bool
     let options: [T]
     let binding: Binding<T>
     let isPlural: Bool
-    
+
     //MARK: - Initializers
     
     public init(
         _ options: [T],
         _ binding: Binding<T>,
-        isPlural: Bool = false
+        isPlural: Bool = false,
+        isDisabled: Binding<Bool> = .constant(false)
     ) {
         self.options = options
         self.binding = binding
         self.isPlural = isPlural
+        _isDisabled = isDisabled
     }
 
-    public init(_ binding: Binding<T>, isPlural: Bool = false) {
+    public init(
+        _ binding: Binding<T>,
+        isPlural: Bool = false,
+        isDisabled: Binding<Bool> = .constant(false)
+    ) {
         self.options = T.allCases as! [T]
         self.binding = binding
         self.isPlural = isPlural
+        _isDisabled = isDisabled
     }
 
-    public init(_ binding: Binding<T?>, isPlural: Bool = false) {
+    public init(
+        _ binding: Binding<T?>,
+        isPlural: Bool = false,
+        isDisabled: Binding<Bool> = .constant(false)
+    ) {
         self.options = T.allCases as! [T]
         self.binding = Binding<T>(
             get: { binding.wrappedValue ?? T.noneOption ?? T.default },
             set: { binding.wrappedValue = $0 }
         )
         self.isPlural = isPlural
+        _isDisabled = isDisabled
     }
 
-    public init(_ options: [T], _ binding: Binding<T?>, isPlural: Bool = false) {
+    public init(
+        _ options: [T],
+        _ binding: Binding<T?>,
+        isPlural: Bool = false,
+        isDisabled: Binding<Bool> = .constant(false)
+    ) {
         self.options = options
         self.binding = Binding<T>(
             get: { binding.wrappedValue ?? T.noneOption ?? T.default },
             set: { binding.wrappedValue = $0 }
         )
         self.isPlural = isPlural
+        _isDisabled = isDisabled
     }
 
     //MARK: - Body
@@ -425,7 +451,7 @@ public struct MenuPicker<T: Pickable>: View {
         }
         .font(.body)
 //        .foregroundStyle(foregroundColor)
-        .foregroundStyle(Color(.label))
+        .foregroundStyle(isDisabled ? Color(.secondaryLabel) : Color.accentColor)
     }
     
     var foregroundColor: Color {

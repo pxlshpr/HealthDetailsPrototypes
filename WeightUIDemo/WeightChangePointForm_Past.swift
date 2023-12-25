@@ -2,7 +2,7 @@ import SwiftUI
 import SwiftSugar
 
 let LargeUnitFont: Font = .system(.title3, design: .rounded, weight: .semibold)
-let NotSetFont = LargeNumberFont
+let NotSetFont = LargeUnitFont
 
 struct WeightChangePointForm_Past: View {
     
@@ -100,12 +100,12 @@ struct WeightChangePointForm_Past: View {
         NoticeSection(
             style: .plain,
             title: "Previous Data",
-            message: "This data has been preserved to ensure any goals set on this day remain unchanged.",
-            image: {
-                Image(systemName: "calendar.badge.clock")
-                    .font(.system(size: 30))
-                    .padding(5)
-            }
+            message: "This data has been preserved to ensure any goals set on this day remain unchanged."
+//            image: {
+//                Image(systemName: "calendar.badge.clock")
+//                    .font(.system(size: 30))
+//                    .padding(5)
+//            }
         )
     }
 

@@ -67,12 +67,12 @@ struct WeightChangeForm_Past: View {
         NoticeSection(
             style: .plain,
             title: "Previous Data",
-            message: "This data has been preserved to ensure any goals set on this day remain unchanged.",
-            image: {
-                Image(systemName: "calendar.badge.clock")
-                    .font(.system(size: 30))
-                    .padding(5)
-            }
+            message: "This data has been preserved to ensure any goals set on this day remain unchanged."
+//            image: {
+//                Image(systemName: "calendar.badge.clock")
+//                    .font(.system(size: 30))
+//                    .padding(5)
+//            }
         )
     }
     

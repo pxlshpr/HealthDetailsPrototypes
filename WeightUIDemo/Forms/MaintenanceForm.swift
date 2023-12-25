@@ -12,13 +12,23 @@ struct MaintenanceForm: View {
 
     @State var showingMaintenanceInfo = false
     
+    let isPast: Bool
+    @State var isEditing: Bool
+    
+    init(isPast: Bool = false) {
+        self.isPast = isPast
+        _isEditing = State(initialValue: !isPast)
+    }
+    
     var body: some View {
         NavigationStack {
             Form {
-                explanation
+                dateSection
+                notice
                 valuePicker
                 adaptiveLink
                 estimatedLink
+                explanation
             }
             .padding(.top, 0.3) /// Navigation Bar Fix
             .navigationTitle("Maintenance Energy")
@@ -30,12 +40,33 @@ struct MaintenanceForm: View {
                 case .estimated:    EstimatedMaintenanceForm()
                 }
             }
+            .navigationBarBackButtonHidden(isEditing && isPast)
         }
         .sheet(isPresented: $showingMaintenanceInfo) {
             MaintenanceInfo()
         }
     }
     
+    @ViewBuilder
+    var dateSection: some View {
+        if isPast {
+            Section {
+                HStack {
+                    Text("Date")
+                    Spacer()
+                    Text("22 Dec")
+                }
+            }
+        }
+    }
+    
+    @ViewBuilder
+    var notice: some View {
+        if isPast, !isEditing {
+            NoticeSection.legacy
+        }
+    }
+            
     enum Route {
         case adaptive
         case estimated
@@ -50,6 +81,7 @@ struct MaintenanceForm: View {
                     Text("\(adaptiveValue.formattedEnergy) kcal")
                 }
             }
+            .disabled(isEditing)
         }
     }
 
@@ -62,6 +94,7 @@ struct MaintenanceForm: View {
                     Text("\(estimatedValue.formattedEnergy) kcal")
                 }
             }
+            .disabled(isEditing)
         }
     }
 
@@ -82,28 +115,23 @@ struct MaintenanceForm: View {
                 }
             }
             .pickerStyle(.segmented)
+            .disabled(!isEditing)
         }
     }
     
     var toolbarContent: some ToolbarContent {
         Group {
-            ToolbarItem(placement: .bottomBar) {
-                HStack(alignment: .firstTextBaseline, spacing: 5) {
-                    Spacer()
-                    Text("\(value.formattedEnergy)")
-                        .contentTransition(.numericText(value: value))
-                        .font(LargeNumberFont)
-                    Text("kcal")
-                        .font(LargeUnitFont)
-                        .foregroundStyle(.secondary)
-                }
-            }
-            ToolbarItem(placement: .topBarTrailing) {
-                Button("Done") {
-                    dismiss()
-                }
-                .fontWeight(.semibold)
-            }
+            bottomToolbarContent(
+                value: value,
+                valueString: value.formattedEnergy,
+                isDisabled: !isEditing,
+                unitString: "kcal"
+            )
+            topToolbarContent(
+                isEditing: $isEditing,
+                isPast: isPast,
+                dismissAction: { dismiss() }
+            )
         }
     }
 
@@ -122,6 +150,10 @@ struct MaintenanceForm: View {
     }
 }
 
-#Preview {
+#Preview("Current") {
     MaintenanceForm()
+}
+
+#Preview("Past") {
+    MaintenanceForm(isPast: true)
 }

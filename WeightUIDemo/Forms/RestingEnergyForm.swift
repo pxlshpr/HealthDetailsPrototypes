@@ -4,12 +4,18 @@ struct RestingEnergyForm: View {
 
     @Environment(\.dismiss) var dismiss
 
+    let isPast: Bool
+    @State var isEditing: Bool
+
     @State var value: Double? = valueForActivityLevel(.lightlyActive)
+
     @State var source: RestingEnergySource = .equation
     @State var equation: RestingEnergyEquation = .mifflinStJeor
+    
     @State var intervalType: HealthIntervalType = .average
     @State var interval: HealthInterval = .init(3, .day)
-    @State var applyCorrection: Bool = false
+
+    @State var applyCorrection: Bool = true
     @State var correctionType: CorrectionType = .divide
     @State var correction: Double? = nil
 
@@ -29,9 +35,15 @@ struct RestingEnergyForm: View {
     @State var showingEquationsInfo = false
     @State var showingHealthIntervalInfo = false
     
+    init(isPast: Bool = false) {
+        _isEditing = State(initialValue: isPast ? false : true)
+        self.isPast = isPast
+    }
+    
     var body: some View {
         Form {
             explanation
+            notice
             sourceSection
             switch source {
             case .userEntered:
@@ -67,6 +79,13 @@ struct RestingEnergyForm: View {
         }
     }
     
+    @ViewBuilder
+    var notice: some View {
+        if !isEditing {
+            NoticeSection.legacy
+        }
+    }
+    
     var correctionSection: some View {
         
         var footer: some View {
@@ -74,7 +93,7 @@ struct RestingEnergyForm: View {
                 if applyCorrection, let correction {
                     switch correctionType {
                     case .divide:
-                        "Your Resting Energy from Apple Health is being divided by \(correction.clean) before being used."
+                        "Your Resting Energy from Apple Health  being divided by \(correction.clean) before being used."
                     case .multiply:
                         "Your Resting Energy from Apple Health is being multiplied by \(correction.clean) before being used."
                     case .add:
@@ -104,6 +123,8 @@ struct RestingEnergyForm: View {
                 Spacer()
                 Toggle("", isOn: binding)
             }
+            .disabled(isDisabled)
+            .foregroundStyle(controlColor)
         }
         
         var correctionTypeRow: some View {
@@ -123,22 +144,29 @@ struct RestingEnergyForm: View {
                     }
                 }
                 .pickerStyle(.menu)
+                .disabled(isDisabled)
+                .foregroundStyle(controlColor)
             }
         }
         
         var correctionRow: some View {
             HStack {
                 if let correction {
-                    Text(correctionType.label)
-                    Spacer()
-                    Text(correction.clean)
-                    if let unit = correctionType.unit {
-                        Text(unit)
+                    Group {
+                        Text(correctionType.label)
+                        Spacer()
+                        Text(correction.clean)
+                        if let unit = correctionType.unit {
+                            Text(unit)
+                        }
                     }
-                    Button {
-                        showingCorrectionAlert = true
-                    } label: {
-                        Image(systemName: "pencil")
+                    .foregroundStyle(controlColor)
+                    if !isDisabled {
+                        Button {
+                            showingCorrectionAlert = true
+                        } label: {
+                            Image(systemName: "pencil")
+                        }
                     }
                 } else {
                     Button("Set Correction") {
@@ -152,7 +180,9 @@ struct RestingEnergyForm: View {
             toggleRow
             if applyCorrection {
                 correctionTypeRow
-                correctionRow
+                if correction != nil || !isDisabled {
+                    correctionRow
+                }
             }
         }
     }
@@ -163,19 +193,22 @@ struct RestingEnergyForm: View {
             set: { newValue in
                 withAnimation {
                     equation = newValue
-//                    value = valueForActivityLevel(newValue)
                 }
             }
         )
         
+        @ViewBuilder
         var footer: some View {
-            Button {
-                showingEquationsInfo = true
-            } label: {
-                Text("Learn more…")
-                    .font(.footnote)
+            if !isDisabled {
+                Button {
+                    showingEquationsInfo = true
+                } label: {
+                    Text("Learn more…")
+                        .font(.footnote)
+                }
             }
         }
+        
         return Section(footer: footer) {
             Picker("Equation", selection: binding) {
                 ForEach(RestingEnergyEquation.allCases, id: \.self) {
@@ -183,6 +216,8 @@ struct RestingEnergyForm: View {
                 }
             }
             .pickerStyle(.menu)
+            .disabled(isDisabled)
+            .foregroundStyle(controlColor)
         }
     }
     
@@ -268,6 +303,14 @@ struct RestingEnergyForm: View {
             correction = correctionTextAsDouble
         }
     }
+    
+    var isDisabled: Bool {
+        isPast && !isEditing
+    }
+    
+    var controlColor: Color {
+        isDisabled ? .secondary : .primary
+    }
 
     var sourceSection: some View {
         let binding = Binding<RestingEnergySource>(
@@ -278,14 +321,17 @@ struct RestingEnergyForm: View {
                 }
             }
         )
+        
         return Section {
             Picker("Resting Energy", selection: binding) {
                 ForEach(RestingEnergySource.allCases, id: \.self) {
                     Text($0.name).tag($0)
                 }
             }
+            .foregroundStyle(controlColor)
             .pickerStyle(.menu)
         }
+        .disabled(isDisabled)
     }
     
     var intervalTypeSection: some View {
@@ -298,12 +344,15 @@ struct RestingEnergyForm: View {
             }
         )
         
+        @ViewBuilder
         var footer: some View {
-            Button {
-                showingHealthIntervalInfo = true
-            } label: {
-                Text("Learn more…")
-                    .font(.footnote)
+            if !isDisabled {
+                Button {
+                    showingHealthIntervalInfo = true
+                } label: {
+                    Text("Learn more…")
+                        .font(.footnote)
+                }
             }
         }
 
@@ -314,6 +363,8 @@ struct RestingEnergyForm: View {
                 }
             }
             .pickerStyle(.menu)
+            .disabled(isDisabled)
+            .foregroundStyle(controlColor)
         }
     }
     
@@ -333,7 +384,11 @@ struct RestingEnergyForm: View {
             interval: binding,
             periods: [.day, .week],
             ranges: [.week: 1...2],
-            title: "Average of Previous"
+            title: "Average of Previous",
+            isDisabled: Binding<Bool>(
+                get: { isDisabled },
+                set: { _ in }
+            )
         )
     }
     
@@ -352,12 +407,15 @@ struct RestingEnergyForm: View {
         RestingEnergyEquationsInfo()
     }
 
+    @ViewBuilder
     var customSection: some View {
-        Section {
-            Button {
-                showingAlert = true
-            } label: {
-                Text("\(value != nil ? "Edit" : "Set") Resting Energy")
+        if !isDisabled {
+            Section {
+                Button {
+                    showingAlert = true
+                } label: {
+                    Text("\(value != nil ? "Edit" : "Set") Resting Energy")
+                }
             }
         }
     }
@@ -382,10 +440,31 @@ struct RestingEnergyForm: View {
                 }
             }
             ToolbarItem(placement: .topBarTrailing) {
-                Button("Done") {
-                    dismiss()
+                Button(isEditing ? "Done" : "Edit") {
+                    if isEditing {
+                        if isPast {
+                            withAnimation {
+                                isEditing = false
+                            }
+                        } else {
+                            dismiss()
+                        }
+                    } else {
+                        withAnimation {
+                            isEditing = true
+                        }
+                    }
                 }
                 .fontWeight(.semibold)
+            }
+            ToolbarItem(placement: .topBarLeading) {
+                if isPast, isEditing {
+                    Button("Cancel") {
+                        withAnimation {
+                            isEditing = false
+                        }
+                    }
+                }
             }
         }
     }
@@ -422,7 +501,11 @@ struct RestingEnergyForm: View {
                 }
             }
             .navigationDestination(for: SexRoute.self) { _ in
-                SexForm()
+                if isPast {
+                    
+                } else {
+                    SexForm()
+                }
             }
             NavigationLink(value: AgeRoute.form) {
                 HStack {
@@ -446,7 +529,7 @@ struct RestingEnergyForm: View {
                 }
             }
             .navigationDestination(for: HeightRoute.self) { _ in
-                HeightForm()
+                HeightForm(mode: isPast ? .pastRestingEnergyVariable : .restingEnergyVariable)
             }
             NavigationLink(value: WeightRoute.form) {
                 HStack {
@@ -466,8 +549,14 @@ struct RestingEnergyForm: View {
     }
 }
 
-#Preview {
+#Preview("Current") {
     NavigationStack {
         RestingEnergyForm()
+    }
+}
+
+#Preview("Past") {
+    NavigationStack {
+        RestingEnergyForm(isPast: true)
     }
 }
