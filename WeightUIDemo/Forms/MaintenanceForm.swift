@@ -148,10 +148,8 @@ struct MaintenanceForm: View {
     
     func undo() {
         isDirty = false
-//        withAnimation {
-            maintenancetype = .adaptive
-            value = adaptiveValue
-//        }
+        maintenancetype = .adaptive
+        value = adaptiveValue
     }
 
     var explanation: some View {

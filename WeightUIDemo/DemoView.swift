@@ -15,7 +15,7 @@ struct DemoView: View {
             case .maintenance:
                 "Maintenance"
             case .pastMaintenance:
-                "Maintenance (Past"
+                "Maintenance (Past)"
             }
         }
     }

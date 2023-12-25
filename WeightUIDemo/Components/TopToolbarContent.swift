@@ -50,28 +50,33 @@ struct EditDoneButton: View {
                 tappedEdit()
             }
         }
+        .disabled(disableRightButton)
         .fontWeight(.semibold)
         .confirmationDialog(
             "Are you sure",
-            isPresented: $showingDirtyConfirmation) {
-                Button("Modify and Change Goals", role: .destructive) {
-                    Haptics.successFeedback()
-                    withAnimation {
-                        saveAction()
-                        isEditing = false
-                    }
+            isPresented: $showingDirtyConfirmation
+        ) {
+            Button("Modify and Change Goals", role: .destructive) {
+                Haptics.successFeedback()
+                withAnimation {
+                    saveAction()
+                    isEditing = false
                 }
-                Button("Cancel") {
-                    Haptics.warningFeedback()
-                    withAnimation {
-                        undoAction()
-                        isEditing = false
-                    }
-                }
-            } message: {
-                Text("Modifying your data will update any goals dependent on it. This cannot be done.")
             }
-
+            Button("Cancel") {
+                Haptics.warningFeedback()
+                withAnimation {
+                    undoAction()
+                    isEditing = false
+                }
+            }
+        } message: {
+            Text("Modifying your data will update any goals dependent on it. This cannot be done.")
+        }
+    }
+    
+    var disableRightButton: Bool {
+        isPast && isEditing && !isDirty
     }
     
     func tappedDone() {
