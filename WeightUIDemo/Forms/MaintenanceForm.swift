@@ -14,6 +14,7 @@ struct MaintenanceForm: View {
     
     let isPast: Bool
     @State var isEditing: Bool
+    @State var isDirty: Bool = false
     
     init(isPast: Bool = false) {
         self.isPast = isPast
@@ -81,7 +82,7 @@ struct MaintenanceForm: View {
                     Text("\(adaptiveValue.formattedEnergy) kcal")
                 }
             }
-            .disabled(isEditing)
+            .disabled(isPast && isEditing)
         }
     }
 
@@ -94,7 +95,7 @@ struct MaintenanceForm: View {
                     Text("\(estimatedValue.formattedEnergy) kcal")
                 }
             }
-            .disabled(isEditing)
+            .disabled(isPast && isEditing)
         }
     }
 
@@ -106,8 +107,11 @@ struct MaintenanceForm: View {
                     maintenancetype = newValue
                     value = maintenancetype == .adaptive ? adaptiveValue : estimatedValue
                 }
+                
+                isDirty = maintenancetype != .adaptive
             }
         )
+        
         return Section("Use") {
             Picker("", selection: binding) {
                 ForEach(MaintenanceType.allCases, id: \.self) {
@@ -129,10 +133,25 @@ struct MaintenanceForm: View {
             )
             topToolbarContent(
                 isEditing: $isEditing,
+                isDirty: $isDirty,
                 isPast: isPast,
-                dismissAction: { dismiss() }
+                dismissAction: { dismiss() },
+                undoAction: undo,
+                saveAction: save
             )
         }
+    }
+    
+    func save() {
+        
+    }
+    
+    func undo() {
+        isDirty = false
+//        withAnimation {
+            maintenancetype = .adaptive
+            value = adaptiveValue
+//        }
     }
 
     var explanation: some View {

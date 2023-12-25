@@ -7,12 +7,15 @@ struct DemoView: View {
     
     enum WeightFormType: Int, Hashable, Identifiable, CaseIterable {
         case maintenance = 1
+        case pastMaintenance
 
         var id: Int { rawValue }
         var label: String {
             switch self {
             case .maintenance:
                 "Maintenance"
+            case .pastMaintenance:
+                "Maintenance (Past"
             }
         }
     }
@@ -42,6 +45,8 @@ struct DemoView: View {
         switch type {
         case .maintenance:
             MaintenanceForm()
+        case .pastMaintenance:
+            MaintenanceForm(isPast: true)
         }
     }
 }

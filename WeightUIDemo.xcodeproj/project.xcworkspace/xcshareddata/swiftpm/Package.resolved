@@ -1,6 +1,15 @@
 {
   "pins" : [
     {
+      "identity" : "swifthaptics",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/pxlshpr/SwiftHaptics",
+      "state" : {
+        "revision" : "045e42a7650744361da92943474b09ba7bbaa39b",
+        "version" : "0.1.4"
+      }
+    },
+    {
       "identity" : "swiftsugar",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/pxlshpr/SwiftSugar",

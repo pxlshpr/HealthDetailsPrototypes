@@ -29,6 +29,7 @@
 		E2261F822B371B9A007B7DDD /* IntervalPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2261F812B371B9A007B7DDD /* IntervalPicker.swift */; };
 		E23A25122B39EF2C00BDAECE /* TopToolbarContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = E23A25112B39EF2C00BDAECE /* TopToolbarContent.swift */; };
 		E23A25142B39F09100BDAECE /* BottomToolbarContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = E23A25132B39F09100BDAECE /* BottomToolbarContent.swift */; };
+		E23A25182B39F58F00BDAECE /* SwiftHaptics in Frameworks */ = {isa = PBXBuildFile; productRef = E23A25172B39F58F00BDAECE /* SwiftHaptics */; };
 		E2A687082B337E3900163078 /* DailyWeightPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2A687072B337E3900163078 /* DailyWeightPicker.swift */; };
 		E2BAE3222B30B601003C5B7F /* WeightUIDemoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2BAE3212B30B601003C5B7F /* WeightUIDemoApp.swift */; };
 		E2BAE3242B30B601003C5B7F /* DemoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2BAE3232B30B601003C5B7F /* DemoView.swift */; };
@@ -135,6 +136,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				E2BAE3322B30C504003C5B7F /* SwiftSugar in Frameworks */,
+				E23A25182B39F58F00BDAECE /* SwiftHaptics in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -312,6 +314,7 @@
 			name = WeightUIDemo;
 			packageProductDependencies = (
 				E2BAE3312B30C504003C5B7F /* SwiftSugar */,
+				E23A25172B39F58F00BDAECE /* SwiftHaptics */,
 			);
 			productName = WeightUIDemo;
 			productReference = E2BAE31E2B30B601003C5B7F /* WeightUIDemo.app */;
@@ -343,6 +346,7 @@
 			mainGroup = E2BAE3152B30B601003C5B7F;
 			packageReferences = (
 				E2BAE3302B30C504003C5B7F /* XCRemoteSwiftPackageReference "SwiftSugar" */,
+				E23A25162B39F58F00BDAECE /* XCRemoteSwiftPackageReference "SwiftHaptics" */,
 			);
 			productRefGroup = E2BAE31F2B30B601003C5B7F /* Products */;
 			projectDirPath = "";
@@ -645,6 +649,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		E23A25162B39F58F00BDAECE /* XCRemoteSwiftPackageReference "SwiftHaptics" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/pxlshpr/SwiftHaptics";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.1.4;
+			};
+		};
 		E2BAE3302B30C504003C5B7F /* XCRemoteSwiftPackageReference "SwiftSugar" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/pxlshpr/SwiftSugar";
@@ -656,6 +668,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		E23A25172B39F58F00BDAECE /* SwiftHaptics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E23A25162B39F58F00BDAECE /* XCRemoteSwiftPackageReference "SwiftHaptics" */;
+			productName = SwiftHaptics;
+		};
 		E2BAE3312B30C504003C5B7F /* SwiftSugar */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = E2BAE3302B30C504003C5B7F /* XCRemoteSwiftPackageReference "SwiftSugar" */;

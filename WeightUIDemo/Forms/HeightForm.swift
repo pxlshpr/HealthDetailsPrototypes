@@ -3,71 +3,6 @@ import SwiftSugar
 
 struct HeightForm: View {
     
-    enum Mode {
-        case healthDetails
-        case pastHealthDetails
-        case restingEnergyVariable
-        case pastRestingEnergyVariable
-        case leanBodyMassVariable
-        case pastLeanBodyMassVariable
-        
-        var showsExplanation: Bool {
-            switch self {
-            case .healthDetails:    true
-            default:                false
-            }
-        }
-        
-        var isPast: Bool {
-            switch self {
-            case .pastHealthDetails, .pastRestingEnergyVariable, .pastLeanBodyMassVariable:
-                true
-            default:
-                false
-            }
-        }
-        
-        var legacyNotice: Notice? {
-            switch self {
-            case .pastHealthDetails:
-                .legacy
-            case .pastRestingEnergyVariable:
-                Notice(
-                    title: "Legacy Data",
-                    message: "This data has been preserved to ensure that your Resting Energy calculation remains unchanged.",
-                    imageName: "calendar.badge.clock"
-                )
-            case .pastLeanBodyMassVariable:
-                Notice(
-                    title: "Legacy Data",
-                    message: "This data has been preserved to ensure any goals set on this day remain unchanged.",
-                    imageName: "calendar.badge.clock"
-                )
-            default:
-                nil
-            }
-        }
-        
-        var notice: Notice? {
-            switch self {
-            case .restingEnergyVariable, .pastRestingEnergyVariable:
-                Notice(
-                    title: "Equation Variable",
-                    message: "This is used as a variable for the equation calculating your Resting Energy.",
-                    imageName: "function"
-                )
-            case .leanBodyMassVariable, .pastLeanBodyMassVariable:
-                Notice(
-                    title: "Equation Variable",
-                    message: "This is used as a variable for the equation calculating your Lean Body Mass.",
-                    imageName: "function"
-                )
-            default:
-                nil
-            }
-        }
-    }
-    
     @Environment(\.dismiss) var dismiss
 
     @ScaledMetric var scale: CGFloat = 1
@@ -79,7 +14,8 @@ struct HeightForm: View {
     @State var showingSyncOffConfirmation: Bool = false
 
     @State var isEditing: Bool
-    
+    @State var isDirty: Bool = false
+
     let mode: Mode
     
     init(mode: Mode = .healthDetails) {
@@ -157,24 +93,23 @@ struct HeightForm: View {
                 isDisabled: isDisabled,
                 unitString: "cm"
             )
-//            ToolbarItem(placement: .bottomBar) {
-//                HStack(alignment: .firstTextBaseline, spacing: 5) {
-//                    Spacer()
-//                    Text("\(value.clean)")
-//                        .contentTransition(.numericText(value: value))
-//                        .font(LargeNumberFont)
-//                        .foregroundStyle(isDisabled ? .secondary : .primary)
-//                    Text("cm")
-//                        .font(LargeUnitFont)
-//                        .foregroundStyle(isDisabled ? .tertiary : .secondary)
-//                }
-//            }
             topToolbarContent(
                 isEditing: $isEditing,
+                isDirty: $isDirty,
                 isPast: mode.isPast,
-                dismissAction: { dismiss() }
+                dismissAction: { dismiss() },
+                undoAction: undo,
+                saveAction: save
             )
         }
+    }
+    
+    func save() {
+        
+    }
+    
+    func undo() {
+        
     }
 
     @ViewBuilder
@@ -303,6 +238,71 @@ struct HeightForm: View {
     
     func delete(at offsets: IndexSet) {
 
+    }
+    
+    enum Mode {
+        case healthDetails
+        case pastHealthDetails
+        case restingEnergyVariable
+        case pastRestingEnergyVariable
+        case leanBodyMassVariable
+        case pastLeanBodyMassVariable
+        
+        var showsExplanation: Bool {
+            switch self {
+            case .healthDetails:    true
+            default:                false
+            }
+        }
+        
+        var isPast: Bool {
+            switch self {
+            case .pastHealthDetails, .pastRestingEnergyVariable, .pastLeanBodyMassVariable:
+                true
+            default:
+                false
+            }
+        }
+        
+        var legacyNotice: Notice? {
+            switch self {
+            case .pastHealthDetails:
+                .legacy
+            case .pastRestingEnergyVariable:
+                Notice(
+                    title: "Legacy Data",
+                    message: "This data has been preserved to ensure that your Resting Energy calculation remains unchanged.",
+                    imageName: "calendar.badge.clock"
+                )
+            case .pastLeanBodyMassVariable:
+                Notice(
+                    title: "Legacy Data",
+                    message: "This data has been preserved to ensure any goals set on this day remain unchanged.",
+                    imageName: "calendar.badge.clock"
+                )
+            default:
+                nil
+            }
+        }
+        
+        var notice: Notice? {
+            switch self {
+            case .restingEnergyVariable, .pastRestingEnergyVariable:
+                Notice(
+                    title: "Equation Variable",
+                    message: "This is used as a variable for the equation calculating your Resting Energy.",
+                    imageName: "function"
+                )
+            case .leanBodyMassVariable, .pastLeanBodyMassVariable:
+                Notice(
+                    title: "Equation Variable",
+                    message: "This is used as a variable for the equation calculating your Lean Body Mass.",
+                    imageName: "function"
+                )
+            default:
+                nil
+            }
+        }
     }
 }
 
