@@ -13,9 +13,9 @@ struct DemoView: View {
         var label: String {
             switch self {
             case .maintenance:
-                "Maintenance"
+                "Health Details"
             case .pastMaintenance:
-                "Maintenance (Past)"
+                "Health Details (Past)"
             }
         }
     }
@@ -44,9 +44,9 @@ struct DemoView: View {
     func sheet(for type: WeightFormType) -> some View {
         switch type {
         case .maintenance:
-            MaintenanceForm()
+            HealthDetails()
         case .pastMaintenance:
-            MaintenanceForm(pastDate: MockPastDate)
+            HealthDetails(pastDate: MockPastDate)
         }
     }
 }
