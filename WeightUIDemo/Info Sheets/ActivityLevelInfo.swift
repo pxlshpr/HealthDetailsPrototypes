@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct RestingEnergyEquationsInfo: View {
+struct ActivityLevelInfo: View {
     
     @Environment(\.dismiss) var dismiss
     
@@ -8,7 +8,7 @@ struct RestingEnergyEquationsInfo: View {
         NavigationStack {
             form
                 .padding(.top, 0.3) /// Navigation Bar Fix
-                .navigationTitle("Equations")
+                .navigationTitle("Activity Level")
                 .navigationBarTitleDisplayMode(.large)
                 .toolbar { toolbarContent }
         }
@@ -25,40 +25,28 @@ struct RestingEnergyEquationsInfo: View {
     
     var form: some View {
         Form {
-            ForEach(RestingEnergyEquation.inOrderOfYear, id: \.self) {
+            Section {
+                Text("Choose an activity that matches your lifestyle.")
+            }
+            ForEach(ActivityLevel.allCases, id: \.self) {
                 section(for: $0)
             }
         }
     }
     
-    func section(for equation: RestingEnergyEquation) -> some View {
+    func section(for level: ActivityLevel) -> some View {
         var header: some View {
             HStack(alignment: .bottom) {
-                Text(equation.name)
+                Text(level.name)
                     .textCase(.none)
                     .font(.system(.title2, design: .rounded, weight: .semibold))
                     .foregroundStyle(Color(.label))
                  Spacer()
-                 Text(equation.year)
-                     .textCase(.none)
-                     .font(.system(.title3, design: .rounded, weight: .medium))
-                     .foregroundStyle(Color(.label))
-            }
-        }
-        
-        var variablesRow: some View {
-            HStack(alignment: .firstTextBaseline) {
-                Text("Uses")
-                    .foregroundStyle(.secondary)
-                Spacer()
-                Text(equation.variablesDescription)
-                    .multilineTextAlignment(.trailing)
             }
         }
         
         return Section(header: header) {
-            Text(equation.description)
-            variablesRow
+            Text(level.description)
         }
     }
 }

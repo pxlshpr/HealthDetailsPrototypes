@@ -2,9 +2,9 @@ import SwiftUI
 
 struct DietaryEnergyPointForm: View {
     
-    let dateString: String
-    
     @Environment(\.dismiss) var dismiss
+    
+    let dateString: String
     
     @State var type: DietaryEnergyPointType = .log
     @State var value: Double? = 2356
@@ -18,22 +18,94 @@ struct DietaryEnergyPointForm: View {
     @State var includeTrailingZero: Bool = false
     @State var numberOfTrailingZeros: Int = 0
 
+    let pastDate: Date?
+    @State var isEditing: Bool
+    @State var isDirty: Bool = false
+    
+    @State var showingInfo = false
+    
+    init(dateString: String, pastDate: Date? = nil) {
+        self.pastDate = pastDate
+        _isEditing = State(initialValue: pastDate == nil)
+        self.dateString = dateString
+    }
+
     var body: some View {
-        Form {
-            explanation
-            picker
-            if type == .custom {
-                customSection
+        NavigationStack {
+            Form {
+                notice
+                picker
+                if type == .custom {
+                    customSection
+                }
+                explanation
+            }
+            .padding(.top, 0.3) /// Navigation Bar Fix
+            .navigationTitle(dateString)
+            .toolbar { toolbarContent }
+            .alert("Enter your dietary energy", isPresented: $showingAlert) {
+                TextField("kcal", text: customValueTextBinding)
+                    .keyboardType(.decimalPad)
+                Button("OK", action: submitCustomValue)
+                Button("Cancel") { }
             }
         }
-        .navigationTitle(dateString)
-        .toolbar { toolbarContent }
-        .alert("Enter your dietary energy", isPresented: $showingAlert) {
-            TextField("kcal", text: customValueTextBinding)
-                .keyboardType(.decimalPad)
-            Button("OK", action: submitCustomValue)
-            Button("Cancel") { }
+        .sheet(isPresented: $showingInfo) {
+            AdaptiveDietaryEnergyInfo()
         }
+    }
+    
+    var isPast: Bool {
+        pastDate != nil
+    }
+    
+    @ViewBuilder
+    var notice: some View {
+        if let pastDate {
+            NoticeSection.legacy(
+                pastDate,
+                isEditing: $isEditing
+            )
+        }
+    }
+    
+    var toolbarContent: some ToolbarContent {
+        Group {
+            ToolbarItem(placement: .bottomBar) {
+                HStack(alignment: .firstTextBaseline, spacing: 5) {
+                    Spacer()
+                    if let value {
+                        Text("\(value.formattedEnergy)")
+                            .contentTransition(.numericText(value: value))
+                            .font(LargeNumberFont)
+                        Text("kcal")
+                            .font(LargeUnitFont)
+                            .foregroundStyle(.secondary)
+                    } else {
+                        Text(type == .custom ? "Not Set" : "Not Included")
+                            .font(LargeUnitFont)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+            topToolbarContent(
+                isEditing: $isEditing,
+                isDirty: $isDirty,
+                isPast: isPast,
+                dismissAction: { dismiss() },
+                undoAction: undo,
+                saveAction: save
+            )
+        }
+    }
+    
+    func save() {
+        
+    }
+    
+    func undo() {
+        isDirty = false
+        value = 2893
     }
     
     var customValueTextBinding: Binding<String> {
@@ -85,6 +157,7 @@ struct DietaryEnergyPointForm: View {
             } label: {
                 Text("\(value != nil ? "Edit" : "Set") Dietary Energy")
             }
+            .disabled(!isEditing)
         }
     }
     
@@ -95,34 +168,6 @@ struct DietaryEnergyPointForm: View {
         case .fasted:       0
         case .custom:       nil
         case .notIncluded:  nil
-        }
-    }
-    
-    var toolbarContent: some ToolbarContent {
-        Group {
-            ToolbarItem(placement: .bottomBar) {
-                HStack(alignment: .firstTextBaseline, spacing: 5) {
-                    Spacer()
-                    if let value {
-                        Text("\(value.formattedEnergy)")
-                            .contentTransition(.numericText(value: value))
-                            .font(LargeNumberFont)
-                        Text("kcal")
-                            .font(LargeUnitFont)
-                            .foregroundStyle(.secondary)
-                    } else {
-                        Text(type == .custom ? "Not Set" : "Not Included")
-                            .font(LargeUnitFont)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-            }
-            ToolbarItem(placement: .topBarTrailing) {
-                Button("Done") {
-                    dismiss()
-                }
-                .fontWeight(.semibold)
-            }
         }
     }
     
@@ -137,6 +182,7 @@ struct DietaryEnergyPointForm: View {
                 if newValue == .custom {
                     showingAlert = true
                 }
+                isDirty = type != .log
             }
         )
         return Section {
@@ -146,23 +192,71 @@ struct DietaryEnergyPointForm: View {
                 }
             }
             .pickerStyle(.menu)
+            .foregroundStyle(isEditing ? .primary : .secondary)
+            .disabled(!isEditing)
         }
     }
     
+    var isDisabled: Bool {
+        isPast && !isEditing
+    }
+    
     var explanation: some View {
-        Section {
-            VStack(alignment: .leading) {
-                Text("The daily dietary energy to use for this date. You can specify it in a few ways:")
-                dotPoint("\"Log\" uses the value from your food log. Choose this if you logged all the food you consumed reliably.")
-                dotPoint("\"Apple Health\" uses the data recorded in the Health App.")
-                dotPoint("\"Fasted\" marks the day as fasted, and assigns it a dietary energy of zero.")
-                dotPoint("\"Custom\" allows you to enter the energy manually.")
-                dotPoint("\"Not Included\" does not include this day's dietary energy and assigns it the average. Choose this if you don't have a complete or accurate log of the food you ate.")
+        @ViewBuilder
+        var footer: some View {
+            if !isDisabled {
+                Button {
+                    showingInfo = true
+                } label: {
+                    Text("Learn more…")
+                        .font(.footnote)
+                }
             }
+        }
+
+        return Section(footer: footer) {
+                Text("This is the dietary energy being used for this date when calculating your adaptive maintenance energy. You can set it in multiple ways.")
         }
     }
 }
 
-#Preview {
+struct AdaptiveDietaryEnergyInfo: View {
+    
+    @Environment(\.dismiss) var dismiss
+
+    var body: some View {
+        NavigationStack {
+            form
+                .navigationTitle("Setting Dietary Energy")
+                .navigationBarTitleDisplayMode(.inline)
+        }
+    }
+    
+    var form: some View {
+        Form {
+            InfoSection("Log", "This will use the energy total from your food log.\n\nChoose this if you logged all the food you consumed reliably on this date.")
+            InfoSection("Apple Health", "This will fetch the data recorded in the Apple Health for this date.\n\nChoose this if you have the correct data in there, either entered manually or exported from another app.")
+            InfoSection("Fasted", "This will mark this day as fasted by assigning it a dietary energy of zero.\n\nMake sure you choose this for the days where you consumed no calories, as they would be assigned the average of the other days otherwise.")
+            InfoSection("Custom", "Choosing this will allow you to enter the dietary manually.")
+            InfoSection("Not Included", "This will not include this day's dietary energy and instead assigns it the average of the other days.\n\nChoose this if you don't believe you have a complete and accurate log of the food you ate for this date.")
+        }
+    }
+    
+    var toolbarContent: some ToolbarContent {
+        ToolbarItem(placement: .topBarTrailing) {
+            Button("Done") {
+                dismiss()
+            }
+            .fontWeight(.semibold)
+        }
+    }
+
+}
+
+#Preview("Current") {
     DietaryEnergyPointForm(dateString: "22 Dec")
+}
+
+#Preview("Past") {
+    DietaryEnergyPointForm(dateString: "22 Dec", pastDate: MockPastDate)
 }
