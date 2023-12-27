@@ -137,7 +137,10 @@ struct MaintenanceForm: View {
         }
         
         var destination: some View {
-            EstimatedMaintenanceForm()
+            EstimatedMaintenanceForm(
+                pastDate: pastDate,
+                isPresented: $isPresented
+            )
         }
         
         var NavigationViewLink: some View {

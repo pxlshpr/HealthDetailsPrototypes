@@ -2,34 +2,38 @@ import SwiftUI
 
 struct EstimatedMaintenanceForm: View {
 
-    @Environment(\.dismiss) var dismiss
-
     @State var value: Double = 2782
     
+    let pastDate: Date?
+    @State var isEditing: Bool
+    @State var isDirty: Bool = false
+    @Binding var isPresented: Bool
+
+    init(
+        pastDate: Date? = nil,
+        isPresented: Binding<Bool> = .constant(true)
+    ) {
+        self.pastDate = pastDate
+        _isPresented = isPresented
+        _isEditing = State(initialValue: true)
+    }
+
     var body: some View {
         Form {
-            explanation
+            notice
             restingEnergyLink
             activeEnergyLink
+            explanation
         }
         .navigationTitle("Estimated")
         .toolbar { toolbarContent }
-        .navigationDestination(for: Route.self) { route in
-            switch route {
-            case .resting:  RestingEnergyForm()
-            case .active:   ActiveEnergyForm()
-            }
-        }
-    }
-    
-    enum Route {
-        case resting
-        case active
     }
     
     var restingEnergyLink: some View {
         Section {
-            NavigationLink(value: Route.resting) {
+            NavigationLink {
+                RestingEnergyForm()
+            } label: {
                 HStack {
                     Text("Resting Energy")
                     Spacer()
@@ -41,7 +45,9 @@ struct EstimatedMaintenanceForm: View {
 
     var activeEnergyLink: some View {
         Section {
-            NavigationLink(value: Route.active) {
+            NavigationLink {
+                ActiveEnergyForm()
+            } label: {
                 HStack {
                     Text("Active Energy")
                     Spacer()
@@ -59,25 +65,33 @@ struct EstimatedMaintenanceForm: View {
         }
     }
     
+    var isPast: Bool {
+        pastDate != nil
+    }
+
+    @ViewBuilder
+    var notice: some View {
+        if let pastDate {
+            NoticeSection.legacy(pastDate, isEditing: $isEditing)
+        }
+    }
+
     var toolbarContent: some ToolbarContent {
         Group {
-            ToolbarItem(placement: .bottomBar) {
-                HStack(alignment: .firstTextBaseline, spacing: 5) {
-                    Spacer()
-                    Text("\(value.formattedEnergy)")
-                        .contentTransition(.numericText(value: value))
-                        .font(LargeNumberFont)
-                    Text("kcal")
-                        .font(LargeUnitFont)
-                        .foregroundStyle(.secondary)
-                }
-            }
-            ToolbarItem(placement: .topBarTrailing) {
-                Button("Done") {
-                    dismiss()
-                }
-                .fontWeight(.semibold)
-            }
+            bottomToolbarContent(
+                value: value,
+                valueString: value.formattedEnergy,
+                isDisabled: true,
+                unitString: "kcal"
+            )
+            topToolbarContent(
+                isEditing: $isEditing,
+                isDirty: $isDirty,
+                isPast: isPast,
+                dismissAction: { isPresented = false },
+                undoAction: { },
+                saveAction: { }
+            )
             ToolbarItem(placement: .principal) {
                 Text("Maintenance Energy")
                     .font(.headline)
@@ -87,6 +101,14 @@ struct EstimatedMaintenanceForm: View {
 
 }
 
-#Preview {
-    EstimatedMaintenanceForm()
+#Preview("Current") {
+    NavigationView {
+        EstimatedMaintenanceForm()
+    }
+}
+
+#Preview("Past") {
+    NavigationView {
+        EstimatedMaintenanceForm(pastDate: MockPastDate)
+    }
 }

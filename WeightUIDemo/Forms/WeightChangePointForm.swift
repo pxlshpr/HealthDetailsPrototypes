@@ -12,14 +12,14 @@ struct WeightChangePointForm: View {
     @ScaledMetric var scale: CGFloat = 1
     let imageScale: CGFloat = 24
 
+    let dateString: String
+    let isCurrent: Bool
+    
     let pastDate: Date?
     @State var isEditing: Bool
     @State var isDirty: Bool = false
     @Binding var isPresented: Bool
 
-    let dateString: String
-    let isCurrent: Bool
-    
     init(
         pastDate: Date? = nil,
         isPresented: Binding<Bool> = .constant(true),
