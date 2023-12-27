@@ -7,7 +7,6 @@ struct ActivityLevelInfo: View {
     var body: some View {
         NavigationStack {
             form
-                .padding(.top, 0.3) /// Navigation Bar Fix
                 .navigationTitle("Activity Level")
                 .navigationBarTitleDisplayMode(.large)
                 .toolbar { toolbarContent }

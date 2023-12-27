@@ -48,34 +48,74 @@ struct AdaptiveMaintenanceForm: View {
     }
 
     var weightChangeLink: some View {
-        Section {
+        var destination: some View {
+            WeightChangeForm()
+        }
+        
+        var label: some View {
+            HStack {
+                Text("Weight Change")
+                Spacer()
+                Text("-1.42 kg")
+            }
+        }
+        
+        var navigationStackLink: some View {
             NavigationLink(value: WeightChangeRoute.form) {
-                HStack {
-                    Text("Weight Change")
-                    Spacer()
-                    Text("-1.42 kg")
-                }
+                label
             }
             .navigationDestination(for: WeightChangeRoute.self) { _ in
-                WeightChangeForm()
+                destination
             }
-            .disabled(isPast && isEditing)
+        }
+        
+        var navigationViewLink: some View {
+            NavigationLink {
+                destination
+            } label: {
+                label
+            }
+        }
+        
+        return Section {
+//            navigationStackLink
+            navigationViewLink
+                .disabled(isPast && isEditing)
         }
     }
 
     var dietaryEnergyLink: some View {
-        Section {
+        var destination: some View {
+            DietaryEnergyForm(pastDate: pastDate, isPresented: $isPresented)
+        }
+        var label: some View {
+            HStack {
+                Text("Dietary Energy")
+                Spacer()
+                Text("3,456 kcal / day")
+            }
+        }
+        var navigationViewLink: some View {
+            NavigationLink {
+                destination
+            } label: {
+                label
+            }
+        }
+        
+        var navigationStackLink: some View {
             NavigationLink(value: DietaryEnergyRoute.form) {
-                HStack {
-                    Text("Dietary Energy")
-                    Spacer()
-                    Text("3,456 kcal / day")
-                }
+                label
             }
             .navigationDestination(for: DietaryEnergyRoute.self) { _ in
-                DietaryEnergyForm(pastDate: pastDate, isPresented: $isPresented)
+                destination
             }
-            .disabled(isPast && isEditing)
+        }
+        
+        return Section {
+//            navigationStackLink
+            navigationViewLink
+                .disabled(isPast && isEditing)
         }
     }
 

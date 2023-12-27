@@ -7,7 +7,6 @@ struct RestingEnergyEquationsInfo: View {
     var body: some View {
         NavigationStack {
             form
-                .padding(.top, 0.3) /// Navigation Bar Fix
                 .navigationTitle("Equations")
                 .navigationBarTitleDisplayMode(.large)
                 .toolbar { toolbarContent }

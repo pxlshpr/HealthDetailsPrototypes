@@ -21,19 +21,24 @@ struct HealthDetails: View {
     }
     
     var body: some View {
-        NavigationStack {
-            Form {
-                dateSection
-                ForEach(HealthDetail.allCases) { healthDetail in
-                    Button(healthDetail.name) {
-                        presentedHealthDetail = healthDetail
-                    }
-                }
-            }
-            .navigationTitle("Health Details")
+        NavigationView {
+            form
+                .navigationTitle("Health Details")
+                .navigationBarTitleDisplayMode(.large)
         }
         .sheet(item: $presentedHealthDetail) { route in
             sheet(for: route)
+        }
+    }
+    
+    var form: some View {
+        Form {
+            dateSection
+            ForEach(HealthDetail.allCases) { healthDetail in
+                Button(healthDetail.name) {
+                    presentedHealthDetail = healthDetail
+                }
+            }
         }
     }
     

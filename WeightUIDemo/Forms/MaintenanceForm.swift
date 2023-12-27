@@ -24,6 +24,24 @@ struct MaintenanceForm: View {
         _isEditing = State(initialValue: pastDate == nil)
     }
     
+    var body: some View {
+        NavigationView {
+            List {
+                notice
+                valuePicker
+                adaptiveLink
+                estimatedLink
+                explanation
+            }
+            .navigationTitle("Maintenance Energy")
+            .toolbar { toolbarContent }
+            .navigationBarBackButtonHidden(isEditing && isPast)
+        }
+        .sheet(isPresented: $showingMaintenanceInfo) {
+            MaintenanceInfo()
+        }
+    }
+    
     var isPast: Bool {
         pastDate != nil
     }
@@ -64,25 +82,6 @@ struct MaintenanceForm: View {
         value = adaptiveValue
     }
 
-    var body: some View {
-        NavigationStack {
-            List {
-                notice
-                valuePicker
-                adaptiveLink
-                estimatedLink
-                explanation
-            }
-            .padding(.top, 0.3) /// Navigation Bar Fix
-            .navigationTitle("Maintenance Energy")
-            .toolbar { toolbarContent }
-            .navigationBarBackButtonHidden(isEditing && isPast)
-        }
-        .sheet(isPresented: $showingMaintenanceInfo) {
-            MaintenanceInfo()
-        }
-    }
-    
     enum AdaptiveRoute {
         case form
     }
@@ -92,34 +91,76 @@ struct MaintenanceForm: View {
     }
     
     var adaptiveLink: some View {
-        Section {
+        var label: some View {
+            HStack {
+                Text("Adaptive")
+                Spacer()
+                Text("\(adaptiveValue.formattedEnergy) kcal")
+            }
+        }
+        
+        var destination: some View {
+            AdaptiveMaintenanceForm(pastDate: pastDate, isPresented: $isPresented)
+        }
+        
+        var navigationStackLink: some View {
             NavigationLink(value: AdaptiveRoute.form) {
-                HStack {
-                    Text("Adaptive")
-                    Spacer()
-                    Text("\(adaptiveValue.formattedEnergy) kcal")
-                }
+                label
             }
             .navigationDestination(for: AdaptiveRoute.self) { _ in
-                AdaptiveMaintenanceForm(pastDate: pastDate, isPresented: $isPresented)
+                destination
             }
-            .disabled(isPast && isEditing)
+        }
+        
+        var navigationViewLink: some View {
+            NavigationLink {
+                destination
+            } label: {
+                label
+            }
+
+        }
+        return Section {
+//            navigationStackLink
+            navigationViewLink
+                .disabled(isPast && isEditing)
         }
     }
 
     var estimatedLink: some View {
-        Section {
+        var label: some View {
+            HStack {
+                Text("Estimated")
+                Spacer()
+                Text("\(estimatedValue.formattedEnergy) kcal")
+            }
+        }
+        
+        var destination: some View {
+            EstimatedMaintenanceForm()
+        }
+        
+        var navigationStackLink: some View {
             NavigationLink(value: EstimatedRoute.form) {
-                HStack {
-                    Text("Estimated")
-                    Spacer()
-                    Text("\(estimatedValue.formattedEnergy) kcal")
-                }
+                label
             }
             .navigationDestination(for: AdaptiveRoute.self) { _ in
-                EstimatedMaintenanceForm()
+                label
             }
-            .disabled(isPast && isEditing)
+        }
+        
+        var navigationViewLink: some View {
+            NavigationLink {
+                destination
+            } label: {
+                label
+            }
+
+        }
+        return Section {
+//            navigationStackLink
+            navigationViewLink
+                .disabled(isPast && isEditing)
         }
     }
 

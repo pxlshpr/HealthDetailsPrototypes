@@ -31,7 +31,7 @@ struct DietaryEnergyPointForm: View {
     }
 
     var body: some View {
-        NavigationStack {
+        NavigationView {
             Form {
                 notice
                 picker
@@ -40,7 +40,6 @@ struct DietaryEnergyPointForm: View {
                 }
                 explanation
             }
-            .padding(.top, 0.3) /// Navigation Bar Fix
             .navigationTitle(dateString)
             .toolbar { toolbarContent }
             .alert("Enter your dietary energy", isPresented: $showingAlert) {
