@@ -73,7 +73,7 @@ extension RestingEnergyForm {
             @ViewBuilder
             var footer: some View {
                 if dateIsInPast {
-                    Text("Since no \(healthDetail.name.lowercased()) data is available for \(formDate.dateString), the most recent entry prior to that is being used.")
+                    Text("Since no \(healthDetail.name.lowercased()) data has been set for \(formDate.dateString), the most recent entry prior to that is being used.")
                 }
             }
             
@@ -131,7 +131,7 @@ extension RestingEnergyForm {
             
             @ViewBuilder
             var setMeasurementLink: some View {
-                if dateIsInPast {
+                if date == nil || dateIsInPast {
                     NavigationLink {
                         
                     } label: {
