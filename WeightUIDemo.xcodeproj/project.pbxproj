@@ -38,6 +38,12 @@
 		E23A25242B3B58C800BDAECE /* ActivityLevelInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = E23A25232B3B58C800BDAECE /* ActivityLevelInfo.swift */; };
 		E23A25262B3BF79D00BDAECE /* AdaptiveMaintenanceInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = E23A25252B3BF79D00BDAECE /* AdaptiveMaintenanceInfo.swift */; };
 		E23A25282B3C4A2F00BDAECE /* AdaptiveDietaryEnergyInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = E23A25272B3C4A2F00BDAECE /* AdaptiveDietaryEnergyInfo.swift */; };
+		E23A252A2B3CA4B300BDAECE /* RestingEnergyForm+Actions.swift in Sources */ = {isa = PBXBuildFile; fileRef = E23A25292B3CA4B300BDAECE /* RestingEnergyForm+Actions.swift */; };
+		E23A252C2B3CA4E400BDAECE /* RestingEnergyForm+Sections.swift in Sources */ = {isa = PBXBuildFile; fileRef = E23A252B2B3CA4E400BDAECE /* RestingEnergyForm+Sections.swift */; };
+		E23A252E2B3CA51B00BDAECE /* RestingEnergyForm+VariablesSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = E23A252D2B3CA51B00BDAECE /* RestingEnergyForm+VariablesSection.swift */; };
+		E23A25302B3CA53900BDAECE /* RestingEnergyForm+Convenience.swift in Sources */ = {isa = PBXBuildFile; fileRef = E23A252F2B3CA53900BDAECE /* RestingEnergyForm+Convenience.swift */; };
+		E23A25322B3CA55D00BDAECE /* RestingEnergyForm+Bindings.swift in Sources */ = {isa = PBXBuildFile; fileRef = E23A25312B3CA55D00BDAECE /* RestingEnergyForm+Bindings.swift */; };
+		E23A25342B3CA57E00BDAECE /* RestingEnergyForm+CorrectionSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = E23A25332B3CA57E00BDAECE /* RestingEnergyForm+CorrectionSection.swift */; };
 		E2A687082B337E3900163078 /* DailyWeightPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2A687072B337E3900163078 /* DailyWeightPicker.swift */; };
 		E2BAE3222B30B601003C5B7F /* WeightUIDemoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2BAE3212B30B601003C5B7F /* WeightUIDemoApp.swift */; };
 		E2BAE3242B30B601003C5B7F /* DemoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2BAE3232B30B601003C5B7F /* DemoView.swift */; };
@@ -107,6 +113,12 @@
 		E23A25232B3B58C800BDAECE /* ActivityLevelInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityLevelInfo.swift; sourceTree = "<group>"; };
 		E23A25252B3BF79D00BDAECE /* AdaptiveMaintenanceInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdaptiveMaintenanceInfo.swift; sourceTree = "<group>"; };
 		E23A25272B3C4A2F00BDAECE /* AdaptiveDietaryEnergyInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdaptiveDietaryEnergyInfo.swift; sourceTree = "<group>"; };
+		E23A25292B3CA4B300BDAECE /* RestingEnergyForm+Actions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RestingEnergyForm+Actions.swift"; sourceTree = "<group>"; };
+		E23A252B2B3CA4E400BDAECE /* RestingEnergyForm+Sections.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RestingEnergyForm+Sections.swift"; sourceTree = "<group>"; };
+		E23A252D2B3CA51B00BDAECE /* RestingEnergyForm+VariablesSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RestingEnergyForm+VariablesSection.swift"; sourceTree = "<group>"; };
+		E23A252F2B3CA53900BDAECE /* RestingEnergyForm+Convenience.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RestingEnergyForm+Convenience.swift"; sourceTree = "<group>"; };
+		E23A25312B3CA55D00BDAECE /* RestingEnergyForm+Bindings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RestingEnergyForm+Bindings.swift"; sourceTree = "<group>"; };
+		E23A25332B3CA57E00BDAECE /* RestingEnergyForm+CorrectionSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RestingEnergyForm+CorrectionSection.swift"; sourceTree = "<group>"; };
 		E2A687072B337E3900163078 /* DailyWeightPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyWeightPicker.swift; sourceTree = "<group>"; };
 		E2BAE31E2B30B601003C5B7F /* WeightUIDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WeightUIDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E2BAE3212B30B601003C5B7F /* WeightUIDemoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightUIDemoApp.swift; sourceTree = "<group>"; };
@@ -178,6 +190,12 @@
 			children = (
 				E2F79F592B348C4D00A09BDF /* AgeForm.swift */,
 				E2D47E322B3736340095B00C /* RestingEnergyForm.swift */,
+				E23A25332B3CA57E00BDAECE /* RestingEnergyForm+CorrectionSection.swift */,
+				E23A25312B3CA55D00BDAECE /* RestingEnergyForm+Bindings.swift */,
+				E23A252D2B3CA51B00BDAECE /* RestingEnergyForm+VariablesSection.swift */,
+				E23A252B2B3CA4E400BDAECE /* RestingEnergyForm+Sections.swift */,
+				E23A252F2B3CA53900BDAECE /* RestingEnergyForm+Convenience.swift */,
+				E23A25292B3CA4B300BDAECE /* RestingEnergyForm+Actions.swift */,
 				E2103AFE2B35B27C00B0C381 /* WeightChangeForm.swift */,
 				E2103B062B3608D000B0C381 /* DietaryEnergyForm.swift */,
 				E2F79F632B34A54B00A09BDF /* HeightForm.swift */,
@@ -407,13 +425,16 @@
 				E2D47E392B3744C00095B00C /* RestingEnergyEquationsInfo.swift in Sources */,
 				E2F79F502B347F6000A09BDF /* SexForm.swift in Sources */,
 				E2F16EB62B323041004AD1BA /* WeightSettings.swift in Sources */,
+				E23A252C2B3CA4E400BDAECE /* RestingEnergyForm+Sections.swift in Sources */,
 				E2103AF72B35A2E200B0C381 /* MaintenanceForm_Past.swift in Sources */,
 				E2103AF92B35A2FA00B0C381 /* DailyValueType.swift in Sources */,
 				E2261F7C2B3716B4007B7DDD /* ActiveEnergySource.swift in Sources */,
 				E2103AF32B3592DE00B0C381 /* MaintenanceForm.swift in Sources */,
 				E2D47E332B3736340095B00C /* RestingEnergyForm.swift in Sources */,
 				E2103AFD2B35B06500B0C381 /* AdaptiveMaintenanceForm_Past.swift in Sources */,
+				E23A25342B3CA57E00BDAECE /* RestingEnergyForm+CorrectionSection.swift in Sources */,
 				E2BAE3242B30B601003C5B7F /* DemoView.swift in Sources */,
+				E23A252A2B3CA4B300BDAECE /* RestingEnergyForm+Actions.swift in Sources */,
 				E2F79F682B34A68600A09BDF /* HeightForm_Past.swift in Sources */,
 				E2F79F762B34C4EA00A09BDF /* DailyValueTypePicker.swift in Sources */,
 				E2F16EAE2B31CA8D004AD1BA /* WeightChangePointForm.swift in Sources */,
@@ -428,10 +449,12 @@
 				E2F79F5E2B34A2CF00A09BDF /* LeanBodyMassForm.swift in Sources */,
 				E2F79F602B34A3AC00A09BDF /* LeanBodyMassSettings.swift in Sources */,
 				E2103B052B35BC4000B0C381 /* WeightChangeForm_Past.swift in Sources */,
+				E23A25322B3CA55D00BDAECE /* RestingEnergyForm+Bindings.swift in Sources */,
 				E23A251A2B3B1FFB00BDAECE /* HealthDetails.swift in Sources */,
 				E2103B092B360E9E00B0C381 /* DietaryEnergyPointForm.swift in Sources */,
 				E2D47E372B3738600095B00C /* RestingEnergyEquation.swift in Sources */,
 				E2F79F622B34A48F00A09BDF /* LeanBodyMassForm_Past.swift in Sources */,
+				E23A252E2B3CA51B00BDAECE /* RestingEnergyForm+VariablesSection.swift in Sources */,
 				E2F79F5C2B349E9500A09BDF /* AgeForm_Past.swift in Sources */,
 				E2F79F662B34A5BA00A09BDF /* HeightSettings.swift in Sources */,
 				E2A687082B337E3900163078 /* DailyWeightPicker.swift in Sources */,
@@ -455,6 +478,7 @@
 				E23A251C2B3B4AC900BDAECE /* TestForm.swift in Sources */,
 				E2103B072B3608D000B0C381 /* DietaryEnergyForm.swift in Sources */,
 				E2103B0D2B36145500B0C381 /* DietaryEnergyPointForm_Past.swift in Sources */,
+				E23A25302B3CA53900BDAECE /* RestingEnergyForm+Convenience.swift in Sources */,
 				E2F79F582B3485EB00A09BDF /* SexForm_Past.swift in Sources */,
 				E2F79F5A2B348C4D00A09BDF /* AgeForm.swift in Sources */,
 				E2F16EB22B31CABB004AD1BA /* WeightChangePointForm_Past.swift in Sources */,

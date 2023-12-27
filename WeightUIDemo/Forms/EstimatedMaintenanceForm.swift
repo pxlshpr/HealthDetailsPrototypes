@@ -72,7 +72,7 @@ struct EstimatedMaintenanceForm: View {
     @ViewBuilder
     var notice: some View {
         if let pastDate {
-            NoticeSection.legacy(pastDate, isEditing: $isEditing)
+            NoticeSection.legacy(pastDate, isEditing: .constant(false))
         }
     }
 
@@ -81,17 +81,15 @@ struct EstimatedMaintenanceForm: View {
             bottomToolbarContent(
                 value: value,
                 valueString: value.formattedEnergy,
-                isDisabled: true,
+                isDisabled: isEditing && isPast,
                 unitString: "kcal"
             )
-            topToolbarContent(
-                isEditing: $isEditing,
-                isDirty: $isDirty,
-                isPast: isPast,
-                dismissAction: { isPresented = false },
-                undoAction: { },
-                saveAction: { }
-            )
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("Done") {
+                    isPresented = false
+                }
+                .fontWeight(.semibold)
+            }
             ToolbarItem(placement: .principal) {
                 Text("Maintenance Energy")
                     .font(.headline)

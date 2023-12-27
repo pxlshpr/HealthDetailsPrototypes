@@ -48,6 +48,27 @@ public extension RestingEnergyEquation {
 
 extension RestingEnergyEquation {
     
+    var requiredHealthDetails: [HealthDetail] {
+        switch self {
+        case .katchMcardle:
+            [.leanBodyMass]
+        case .cunningham:
+            [.leanBodyMass]
+        case .rozaShizgal:
+            [.height, .weight, .age, .sex]
+        case .schofield:
+            [.weight, .age, .sex]
+        case .mifflinStJeor:
+            [.height, .weight, .age, .sex]
+        case .harrisBenedict:
+            [.height, .weight, .age, .sex]
+        case .henryOxford:
+            [.weight, .age, .sex]
+        }
+    }
+}
+extension RestingEnergyEquation {
+    
     var variablesDescription: String {
         switch self {
         case .katchMcardle:
