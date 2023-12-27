@@ -41,6 +41,7 @@ struct WeightChangePointForm: View {
             explanation
         }
         .navigationTitle(dateString)
+        .navigationBarBackButtonHidden(isEditing && isPast)
         .navigationBarTitleDisplayMode(.large)
         .toolbar { toolbarContent }
     }

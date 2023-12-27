@@ -45,7 +45,10 @@ struct AdaptiveMaintenanceForm: View {
 
     var weightChangeLink: some View {
         var destination: some View {
-            WeightChangeForm()
+            WeightChangeForm(
+                pastDate: pastDate,
+                isPresented: $isPresented
+            )
         }
         
         var label: some View {
