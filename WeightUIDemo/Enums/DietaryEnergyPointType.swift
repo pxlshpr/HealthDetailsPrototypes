@@ -4,8 +4,8 @@ enum DietaryEnergyPointType: CaseIterable {
     case log
     case healthKit
     case fasted
+    case useAverage
     case custom
-    case notIncluded
 
     var image: String {
         switch self {
@@ -13,7 +13,7 @@ enum DietaryEnergyPointType: CaseIterable {
         case .healthKit:    "pencil"
         case .fasted:       ""
         case .custom:       "pencil"
-        case .notIncluded:      "circle.slash"
+        case .useAverage:   "circle.slash"
         }
     }
 
@@ -23,7 +23,7 @@ enum DietaryEnergyPointType: CaseIterable {
         case .healthKit:    "Apple Health"
         case .fasted:       "Fasted"
         case .custom:       "Custom"
-        case .notIncluded:  "Not Included"
+        case .useAverage:   "Use Average"
         }
     }
 

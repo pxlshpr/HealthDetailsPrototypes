@@ -37,9 +37,15 @@ struct DietaryEnergyForm: View {
     var list: some View {
         Section {
             ForEach(listData, id: \.self) { data in
-                Button {
-                    presentedData = data
+                NavigationLink {
+                    DietaryEnergyPointForm(
+                        dateString: data.dateString,
+                        pastDate: pastDate
+                    )
                 } label: {
+//                Button {
+//                    presentedData = data
+//                } label: {
                     DietaryEnergyCell(listData: data)
                 }
             }
@@ -89,7 +95,7 @@ struct DietaryEnergyForm: View {
 
     var explanation: some View {
         Section {
-            Text("This is how much dietary energy you consumed over the period for which you are calculating your adaptive maintenance.")
+            Text("This is how much dietary energy you consumed over the period for which you are calculating your Adaptive Maintenance.")
         }
     }
     
@@ -112,9 +118,9 @@ struct DietaryEnergyForm: View {
         .init(.log, "22 Dec", "2,345 kcal"),
         .init(.log, "20 Dec", "3,012 kcal"),
         .init(.custom, "19 Dec", "0 kcal"),
-        .init(.notIncluded, "18 Dec", "1,983 kcal"),
+        .init(.useAverage, "18 Dec", "1,983 kcal"),
         .init(.healthKit, "17 Dec", "1,725 kcal"),
-        .init(.notIncluded, "16 Dec", "1,983 kcal"),
+        .init(.useAverage, "16 Dec", "1,983 kcal"),
         .init(.log, "15 Dec", "2,831 kcal"),
     ]
 }
@@ -142,8 +148,11 @@ struct DietaryEnergyCell: View {
                     RoundedRectangle(cornerRadius: 5)
                         .stroke(Color(.systemGray3), lineWidth: 0.5)
                 )
-        case .notIncluded:
+        case .useAverage:
             EmptyView()
+//            Color.clear
+//                .frame(width: 24, height: 24)
+//                .opacity(0)
         default:
             Image(systemName: listData.type.image)
                 .frame(width: 24, height: 24)
@@ -157,9 +166,10 @@ struct DietaryEnergyCell: View {
     
     @ViewBuilder
     var detail: some View {
-        if listData.type == .notIncluded {
+        if listData.type == .useAverage {
 //            Text("Not Included")
-            Text("Using Average")
+            Text("Use Average")
+//                .foregroundStyle(Color(.label))
                 .foregroundStyle(Color(.secondaryLabel))
         } else {
             Text(listData.valueString)

@@ -38,7 +38,7 @@ struct AdaptiveMaintenanceInfo: View {
     var section: some View {
         Group {
             Section {
-                Text("Your adaptive maintenance is being calculated by comparing your weight change to the energy you consumed over the past \(weeks) week\(weeks > 1 ? "s" : "").")
+                Text("Your Adaptive Maintenance Energy is being calculated by comparing your weight change to the energy you consumed over the past \(weeks) week\(weeks > 1 ? "s" : "").")
             }
             
             Section {

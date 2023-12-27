@@ -168,7 +168,6 @@
 				E2F79F732B34C00B00A09BDF /* PregnancyStatusForm_Past.swift */,
 				E2F79F572B3485EB00A09BDF /* SexForm_Past.swift */,
 				E2F79F6D2B34BE4100A09BDF /* SmokingStatusForm_Past.swift */,
-				E2103B042B35BC4000B0C381 /* WeightChangeForm_Past.swift */,
 				E2F16EB12B31CABB004AD1BA /* WeightChangePointForm_Past.swift */,
 				E2F79F4D2B34755700A09BDF /* WeightForm_Past.swift */,
 			);
@@ -264,6 +263,7 @@
 		E23A25152B39F1CA00BDAECE /* To Remove */ = {
 			isa = PBXGroup;
 			children = (
+				E2103B042B35BC4000B0C381 /* WeightChangeForm_Past.swift */,
 				E2103B0C2B36145500B0C381 /* DietaryEnergyPointForm_Past.swift */,
 				E2103AFC2B35B06500B0C381 /* AdaptiveMaintenanceForm_Past.swift */,
 				E2F79F672B34A68600A09BDF /* HeightForm_Past.swift */,

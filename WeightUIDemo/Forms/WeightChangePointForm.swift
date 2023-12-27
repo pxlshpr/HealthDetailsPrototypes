@@ -3,104 +3,153 @@ import SwiftSugar
 
 struct WeightChangePointForm: View {
     
-    @Environment(\.dismiss) var dismiss
-    
     @State var dailyValueType: DailyValueType = .average
     @State var value: Double = 93.6
     
     @State var useMovingAverage = true
     @State var days: Int = 7
     
-    @State var isSynced: Bool = true
-    @State var showingSyncOffConfirmation: Bool = false
-
     @ScaledMetric var scale: CGFloat = 1
     let imageScale: CGFloat = 24
 
+    let pastDate: Date?
+    @State var isEditing: Bool
+    @State var isDirty: Bool = false
+    @Binding var isPresented: Bool
+
+    let dateString: String
+    let isCurrent: Bool
+    
+    init(
+        pastDate: Date? = nil,
+        isPresented: Binding<Bool> = .constant(true),
+        dateString: String = MockPastDate.dateString,
+        isCurrent: Bool = false
+    ) {
+        self.pastDate = pastDate
+        self.dateString = dateString
+        self.isCurrent = isCurrent
+        _isPresented = isPresented
+        _isEditing = State(initialValue: pastDate == nil)
+    }
+
     var body: some View {
         Form {
-            explanation
+            notice
             movingAverageToggle
-            dailyValuePicker
-            lists
-            syncToggle
+            weights
+            explanation
         }
-        .navigationTitle("Current Weight")
+        .navigationTitle(dateString)
         .navigationBarTitleDisplayMode(.large)
         .toolbar { toolbarContent }
-        .confirmationDialog("Turn Off Sync", isPresented: $showingSyncOffConfirmation, titleVisibility: .visible) {
-            Button("Turn Off", role: .destructive) {
+    }
+    
+    var weights: some View {
+        func link(date: Date, weight: Double?) -> some View {
+            NavigationLink {
                 
+            } label: {
+                HStack {
+                    Text(date.dateString)
+                    Spacer()
+                    if let weight {
+                        Text("\(weight.clean) kg")
+                    } else {
+                        Text("Not Set")
+                            .foregroundStyle(.secondary)
+                    }
+                }
             }
-        } message: {
-            Text("Weight data will no longer be read from or written to Apple Health.")
+            .disabled(isPast && isEditing)
+        }
+        
+        func weight(for date: Date) -> Double? {
+            switch date.dateString {
+            case "24 Dec": 93.6
+            case "23 Dec": nil
+            case "22 Dec": 94.7
+            case "21 Dec": 94.2
+            case "20 Dec": nil
+            case "19 Dec": 95.1
+            case "18 Dec": 95.4
+            default: nil
+            }
+        }
+        
+        func link(at index: Int) -> some View {
+            let date = MockPastDate.moveDayBy(-index)
+            return link(
+                date: date,
+                weight: weight(for: date)
+            )
+        }
+        
+        return Section {
+            link(at: 0)
+//            link(date: MockPastDate, weight: 93.6)
+            if useMovingAverage {
+                ForEach(1..<days, id: \.self) { i in
+                    link(at: i)
+                }
+            }
         }
     }
     
-    var syncToggle: some View {
-        let binding = Binding<Bool>(
-            get: { isSynced },
-            set: {
-                if !$0 {
-                    showingSyncOffConfirmation = true
-                }
-            }
-        )
-
-        return Section(footer: Text("Automatically reads weight data from Apple Health. Data you enter here will also be exported back to Apple Health.")) {
-            HStack {
-                Image("AppleHealthIcon")
-                    .resizable()
-                    .frame(width: imageScale * scale, height: imageScale * scale)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 5)
-                            .stroke(Color(.systemGray3), lineWidth: 0.5)
-                    )
-                Text("Sync with Apple Health")
-                    .layoutPriority(1)
-                Spacer()
-                Toggle("", isOn: binding)
-            }
-        }
+    
+    var isPast: Bool {
+        pastDate != nil
     }
-
-    var dailyValuePicker: some View {
-        Section("Use") {
-            Picker("", selection: $dailyValueType) {
-                ForEach(DailyValueType.allCases, id: \.self) {
-                    Text($0.name).tag($0)
-                }
-            }
-            .pickerStyle(.segmented)
+    
+    @ViewBuilder
+    var notice: some View {
+        if let pastDate {
+            NoticeSection.legacy(pastDate, isEditing: $isEditing)
         }
     }
     
     var toolbarContent: some ToolbarContent {
         Group {
-            ToolbarItem(placement: .bottomBar) {
-                HStack(alignment: .firstTextBaseline, spacing: 5) {
-                    Spacer()
-                    Text("\(value.clean)")
-                        .contentTransition(.numericText(value: value))
-                        .font(LargeNumberFont)
-                    Text("kg")
-                        .font(LargeUnitFont)
-                        .foregroundStyle(.secondary)
-                }
-            }
-            ToolbarItem(placement: .topBarTrailing) {
-                Button("Done") {
-                    dismiss()
-                }
-                .fontWeight(.semibold)
+            bottomToolbarContent(
+                value: value,
+                valueString: value.clean,
+                isDisabled: !isEditing,
+                unitString: "kg"
+            )
+            topToolbarContent(
+                isEditing: $isEditing,
+                isDirty: $isDirty,
+                isPast: isPast,
+                dismissAction: { isPresented = false },
+                undoAction: undo,
+                saveAction: save
+            )
+            ToolbarItem(placement: .principal) {
+                Text("\(isCurrent ? "Current" : "Previous") Weight")
+                    .font(.headline)
             }
         }
+    }
+    
+    func save() {
+        
+    }
+    
+    func undo() {
+        isDirty = false
+        useMovingAverage = true
+        days = 7
+    }
+    
+    func setIsDirty() {
+        isDirty = useMovingAverage != true
+        || days != 7
     }
     
     var explanation: some View {
         Section {
             VStack(alignment: .leading) {
-                Text("This is used to calculate the change in your weight.")
+                Text("This is used to determine your weight change, which is then used to calculate your Adaptive Maintenance Energy.\n\nYou can choose to use a moving average of multiple prior days to smooth out any short-term fluctuations.")
             }
         }
     }
@@ -111,6 +160,7 @@ struct WeightChangePointForm: View {
             set: { newValue in
                 withAnimation {
                     useMovingAverage = newValue
+                    setIsDirty()
                 }
             }
         )
@@ -119,16 +169,20 @@ struct WeightChangePointForm: View {
             set: { newValue in
                 withAnimation {
                     days = newValue
+                    setIsDirty()
                 }
             }
         )
-        return Section(footer: Text("Use a moving average of multiple days to smooth out short-term fluctuations.")) {
+        
+        return Section {
             HStack {
                 Text("Use a Moving Average")
                     .layoutPriority(1)
                 Spacer()
                 Toggle("", isOn: binding)
             }
+            .disabled(!isEditing)
+            .foregroundStyle(isEditing ? .primary : .secondary)
             if useMovingAverage {
                 HStack(spacing: 3) {
                     Stepper(
@@ -136,103 +190,27 @@ struct WeightChangePointForm: View {
                         value: daysBinding,
                         in: 2...7
                     )
+                    .disabled(!isEditing)
                     .fixedSize()
                     Spacer()
                     Text("\(days)")
                         .contentTransition(.numericText(value: Double(days)))
                     Text("days")
                 }
+                .foregroundStyle(isEditing ? .primary : .secondary)
             }
         }
-    }
-    
-    struct ListData: Hashable {
-        let isHealth: Bool
-        let dateString: String
-        let valueString: String
-        
-        init(_ isHealth: Bool, _ dateString: String, _ valueString: String) {
-            self.isHealth = isHealth
-            self.dateString = dateString
-            self.valueString = valueString
-        }
-    }
-    
-    let listData: [ListData] = [
-        .init(false, "9:42 am", "93.7 kg"),
-        .init(true, "12:07 pm", "94.6 kg"),
-        .init(false, "5:35 pm", "92.5 kg"),
-    ]
-    
-    func cell(for listData: ListData) -> some View {
-        HStack {
-            if listData.isHealth {
-                Image("AppleHealthIcon")
-                    .resizable()
-                    .frame(width: 24, height: 24)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 5)
-                            .stroke(Color(.systemGray3), lineWidth: 0.5)
-                    )
-            } else {
-                Image(systemName: "pencil")
-                    .frame(width: 24, height: 24)
-                    .background(
-                        RoundedRectangle(cornerRadius: 5)
-                            .foregroundStyle(Color(.systemGray4))
-                    )
-            }
-            Text(listData.dateString)
-            Spacer()
-            Text(listData.valueString)
-        }
-    }
-    
-    let emptyListData: [ListData] = []
-    
-    var lists: some View {
-        @ViewBuilder
-        func header(_ i: Int) -> some View {
-            if useMovingAverage {
-                Text(Date.now.moveDayBy(-i).dateString)
-            } else {
-                EmptyView()
-            }
-        }
-        var range: Range<Int> {
-            useMovingAverage ? 0..<days : 0..<1
-        }
-        
-        @ViewBuilder
-        func footer(_ i: Int) -> some View {
-            if [0, 5, 6].contains(i) {
-                Text(dailyValueType.description)
-            }
-        }
-        
-        return ForEach(range, id: \.self) { i in
-            Section(header: header(i), footer: footer(i)) {
-                if [0, 5, 6].contains(i) {
-                    ForEach(listData, id: \.self) {
-                        cell(for: $0)
-                            .deleteDisabled($0.isHealth)
-                    }
-                    .onDelete(perform: delete)
-                }
-                Button {
-                    
-                } label: {
-                    Text("Add Measurement")
-                }
-            }
-        }
-    }
-    
-    func delete(at offsets: IndexSet) {
-
     }
 }
 
-#Preview {
-    WeightChangePointForm()
+#Preview("Current") {
+    NavigationView {
+        WeightChangePointForm()
+    }
+}
+
+#Preview("Past") {
+    NavigationView {
+        WeightChangePointForm(pastDate: MockPastDate)
+    }
 }

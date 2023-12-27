@@ -43,14 +43,6 @@ struct AdaptiveMaintenanceForm: View {
         }
     }
 
-    enum WeightChangeRoute {
-        case form
-    }
-
-    enum DietaryEnergyRoute {
-        case form
-    }
-
     var weightChangeLink: some View {
         var destination: some View {
             WeightChangeForm()
@@ -64,15 +56,6 @@ struct AdaptiveMaintenanceForm: View {
             }
         }
         
-        var NavigationViewLink: some View {
-            NavigationLink(value: WeightChangeRoute.form) {
-                label
-            }
-            .navigationDestination(for: WeightChangeRoute.self) { _ in
-                destination
-            }
-        }
-        
         var navigationViewLink: some View {
             NavigationLink {
                 destination
@@ -82,7 +65,6 @@ struct AdaptiveMaintenanceForm: View {
         }
         
         return Section {
-//            NavigationViewLink
             navigationViewLink
                 .disabled(isPast && isEditing)
         }
@@ -107,17 +89,7 @@ struct AdaptiveMaintenanceForm: View {
             }
         }
         
-        var NavigationViewLink: some View {
-            NavigationLink(value: DietaryEnergyRoute.form) {
-                label
-            }
-            .navigationDestination(for: DietaryEnergyRoute.self) { _ in
-                destination
-            }
-        }
-        
         return Section {
-//            NavigationViewLink
             navigationViewLink
                 .disabled(isPast && isEditing)
         }
@@ -227,7 +199,7 @@ struct AdaptiveMaintenanceForm: View {
         
         return Section(footer: footer) {
             VStack(alignment: .leading) {
-                Text("Your adaptive maintenance is a calculation of your maintenance energy using the energy balance equation.\n\nThe dietary energy you had consumed over a specified period and the resulting change in your weight is used to determine the average daily energy consumption that would have resulted in a net zero change in weight, ie. your maintenance.")
+                Text("Your Adaptive Maintenance is a calculation of your maintenance energy using the energy balance equation.\n\nThe dietary energy you had consumed over a specified period and the resulting change in your weight is used to determine the average daily energy consumption that would have resulted in a net zero change in weight, ie. your maintenance.")
             }
         }
     }

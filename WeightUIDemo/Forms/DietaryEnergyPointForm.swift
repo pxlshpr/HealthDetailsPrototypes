@@ -2,8 +2,6 @@ import SwiftUI
 
 struct DietaryEnergyPointForm: View {
     
-    @Environment(\.dismiss) var dismiss
-    
     let dateString: String
     
     @State var type: DietaryEnergyPointType = .log
@@ -18,20 +16,22 @@ struct DietaryEnergyPointForm: View {
     @State var includeTrailingZero: Bool = false
     @State var numberOfTrailingZeros: Int = 0
 
+    @State var showingInfo = false
+    
     let pastDate: Date?
     @State var isEditing: Bool
     @State var isDirty: Bool = false
-    
-    @State var showingInfo = false
-    
-    init(dateString: String, pastDate: Date? = nil) {
+    @Binding var isPresented: Bool
+
+    init(dateString: String, pastDate: Date? = nil, isPresented: Binding<Bool> = .constant(true)) {
         self.pastDate = pastDate
         _isEditing = State(initialValue: pastDate == nil)
         self.dateString = dateString
+        _isPresented = isPresented
     }
 
     var body: some View {
-        NavigationView {
+//        NavigationView {
             Form {
                 notice
                 picker
@@ -42,13 +42,14 @@ struct DietaryEnergyPointForm: View {
             }
             .navigationTitle(dateString)
             .toolbar { toolbarContent }
+            .navigationBarBackButtonHidden(isEditing && isPast)
             .alert("Enter your dietary energy", isPresented: $showingAlert) {
                 TextField("kcal", text: customValueTextBinding)
                     .keyboardType(.decimalPad)
                 Button("OK", action: submitCustomValue)
                 Button("Cancel") { }
             }
-        }
+//        }
         .sheet(isPresented: $showingInfo) {
             AdaptiveDietaryEnergyInfo()
         }
@@ -91,7 +92,7 @@ struct DietaryEnergyPointForm: View {
                 isEditing: $isEditing,
                 isDirty: $isDirty,
                 isPast: isPast,
-                dismissAction: { dismiss() },
+                dismissAction: { isPresented = false },
                 undoAction: undo,
                 saveAction: save
             )
@@ -166,7 +167,7 @@ struct DietaryEnergyPointForm: View {
         case .healthKit:    2223
         case .fasted:       0
         case .custom:       nil
-        case .notIncluded:  nil
+        case .useAverage:  nil
         }
     }
     
@@ -214,15 +215,19 @@ struct DietaryEnergyPointForm: View {
         }
 
         return Section(footer: footer) {
-                Text("This is the dietary energy being used for this date when calculating your adaptive maintenance energy. You can set it in multiple ways.")
+                Text("This is the dietary energy being used for this date when calculating your Adaptive Maintenance Energy. You can set it in multiple ways.")
         }
     }
 }
 
 #Preview("Current") {
-    DietaryEnergyPointForm(dateString: "22 Dec")
+    NavigationView {
+        DietaryEnergyPointForm(dateString: "22 Dec")
+    }
 }
 
 #Preview("Past") {
-    DietaryEnergyPointForm(dateString: "22 Dec", pastDate: MockPastDate)
+    NavigationView {
+        DietaryEnergyPointForm(dateString: "22 Dec", pastDate: MockPastDate)
+    }
 }

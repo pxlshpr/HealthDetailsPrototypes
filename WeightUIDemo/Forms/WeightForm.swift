@@ -99,7 +99,7 @@ struct WeightForm: View {
             VStack(alignment: .leading) {
                 Text("Your weight may be used when:")
                 dotPoint("Creating goals. For example, you could create a protein goal relative to your weight.")
-                dotPoint("Calculating your adaptive maintenance energy, estimated resting energy, or lean body mass.")
+                dotPoint("Calculating your Adaptive Maintenance Energy, estimated Resting Energy, or Lean Body Mass.")
             }
         }
     }

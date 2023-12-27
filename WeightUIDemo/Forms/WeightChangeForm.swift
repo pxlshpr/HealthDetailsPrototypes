@@ -3,8 +3,6 @@ import SwiftSugar
 
 struct WeightChangeForm: View {
     
-    @Environment(\.dismiss) var dismiss
-
     @ScaledMetric var scale: CGFloat = 1
     let imageScale: CGFloat = 24
 
@@ -24,19 +22,32 @@ struct WeightChangeForm: View {
     @State var includeTrailingZero: Bool = false
     @State var numberOfTrailingZeros: Int = 0
 
+    let pastDate: Date?
+    @State var isEditing: Bool
+    @State var isDirty: Bool = false
+    @Binding var isPresented: Bool
+
+    init(pastDate: Date? = nil, isPresented: Binding<Bool> = .constant(true)) {
+        self.pastDate = pastDate
+        _isPresented = isPresented
+        _isEditing = State(initialValue: pastDate == nil)
+    }
 
     var body: some View {
         Form {
-            explanation
+            notice
+            typePicker
             if isCustom {
                 enterSection
             } else {
                 weightSections
             }
+            explanation
         }
         .navigationTitle("Weight Change")
         .navigationBarTitleDisplayMode(.large)
         .toolbar { toolbarContent }
+        .navigationBarBackButtonHidden(isEditing && isPast)
         .alert("Enter your weight \(isGain ? "gain" : "loss")", isPresented: $showingAlert) {
             TextField("kg", text: customValueTextBinding)
                 .keyboardType(.decimalPad)
@@ -45,39 +56,91 @@ struct WeightChangeForm: View {
         }
     }
     
-    enum PreviousPointRoute {
-        case form
+    var isPast: Bool {
+        pastDate != nil
     }
-
-    enum CurrentPointRoute {
-        case form
+    
+    @ViewBuilder
+    var notice: some View {
+        if let pastDate {
+            NoticeSection.legacy(pastDate, isEditing: $isEditing)
+        }
     }
-
+    
+    var toolbarContent: some ToolbarContent {
+        Group {
+            bottomToolbarContent(
+                value: value,
+                valueString: value?.formattedEnergy,
+                isDisabled: !isEditing,
+                unitString: "kcal"
+            )
+            topToolbarContent(
+                isEditing: $isEditing,
+                isDirty: $isDirty,
+                isPast: isPast,
+                dismissAction: { isPresented = false },
+                undoAction: undo,
+                saveAction: save
+            )
+        }
+    }
+    
+    func save() {
+        
+    }
+    
+    func undo() {
+        isDirty = false
+        isCustom = true
+        value = nil
+        customValue = nil
+        customValueTextAsDouble = nil
+        customValueText = ""
+    }
+    
+    func setIsDirty() {
+        isDirty = self.isGain != true
+        || self.customValue != nil
+        || self.value != nil
+        || self.isCustom != true
+    }
+    
     var weightSections: some View {
         Group {
             Section {
-                NavigationLink(value: PreviousPointRoute.form) {
+                NavigationLink {
+                    WeightChangePointForm(
+                        pastDate: pastDate,
+                        isPresented: $isPresented,
+                        dateString: "24 Dec",
+                        isCurrent: true
+                    )
+                } label: {
                     HStack {
-                        Text("22 Dec")
+                        Text("24 Dec")
                         Spacer()
                         Text("93.4 kg")
                     }
                 }
-                .navigationDestination(for: PreviousPointRoute.self) { _ in
-                    WeightChangePointForm()
-                }
+                .disabled(isEditing && isPast)
             }
             Section {
-                NavigationLink(value: CurrentPointRoute.form) {
+                NavigationLink {
+                    WeightChangePointForm(
+                        pastDate: pastDate,
+                        isPresented: $isPresented,
+                        dateString: "17 Dec",
+                        isCurrent: false
+                    )
+                } label: {
                     HStack {
-                        Text("15 Dec")
+                        Text("17 Dec")
                         Spacer()
                         Text("94.2 kg")
                     }
                 }
-                .navigationDestination(for: PreviousPointRoute.self) { _ in
-                    WeightChangePointForm()
-                }
+                .disabled(isEditing && isPast)
             }
         }
     }
@@ -122,6 +185,7 @@ struct WeightChangeForm: View {
             if let customValue {
                 value = isGain ? customValue : -customValue
             }
+            setIsDirty()
         }
     }
     
@@ -137,61 +201,75 @@ struct WeightChangeForm: View {
                         case false: self.value = abs(value) * -1
                         }
                     }
+                    setIsDirty()
                 }
             }
         )
-        return Section("15 – 22 Dec") {
-            Picker("", selection: binding) {
-                Text("Gain").tag(true)
-                Text("Loss").tag(false)
+        var section: some View {
+            Section("Weight Change") {
+                Picker("", selection: binding) {
+                    Text("Weight Gain").tag(true)
+                    Text("Weight Loss").tag(false)
+                }
+                .pickerStyle(.segmented)
+                Button {
+                    showingAlert = true
+                } label: {
+                    Text("\(customValue == nil ? "Set" : "Edit") Weight \(isGain ? "Gain" : "Loss")")
+                }
             }
-            .pickerStyle(.segmented)
-            .listRowSeparator(.hidden)
-            Button {
-                showingAlert = true
-            } label: {
-                Text("\(customValue == nil ? "Set" : "Change") Weight \(isGain ? "Gain" : "Loss")")
+        }
+        
+        return Group {
+            if isEditing {
+                section
             }
         }
     }
     
-    var toolbarContent: some ToolbarContent {
-        Group {
-            ToolbarItem(placement: .bottomBar) {
-                HStack {
-                    Spacer()
-                    if let value {
-                        HStack(alignment: .firstTextBaseline, spacing: 5) {
-                            Text("\(value.clean)")
-                                .contentTransition(.numericText(value: value))
-                                .font(LargeNumberFont)
-                            Text("kg")
-                                .font(LargeUnitFont)
-                                .foregroundStyle(.secondary)
-                        }
-                    } else {
-                        Text("Not Set")
-                            .foregroundStyle(.secondary)
-                            .font(LargeUnitFont)
-                    }
-                }
-            }
-            ToolbarItem(placement: .topBarTrailing) {
-                Button("Done") {
-                    dismiss()
-                }
-                .fontWeight(.semibold)
-            }
+//    var toolbarContent: some ToolbarContent {
+//        Group {
+//            ToolbarItem(placement: .bottomBar) {
+//                HStack {
+//                    Spacer()
+//                    if let value {
+//                        HStack(alignment: .firstTextBaseline, spacing: 5) {
+//                            Text("\(value.clean)")
+//                                .contentTransition(.numericText(value: value))
+//                                .font(LargeNumberFont)
+//                            Text("kg")
+//                                .font(LargeUnitFont)
+//                                .foregroundStyle(.secondary)
+//                        }
+//                    } else {
+//                        Text("Not Set")
+//                            .foregroundStyle(.secondary)
+//                            .font(LargeUnitFont)
+//                    }
+//                }
+//            }
+//            ToolbarItem(placement: .topBarTrailing) {
+//                Button("Done") {
+//                    dismiss()
+//                }
+//                .fontWeight(.semibold)
+//            }
+//        }
+//    }
+    
+    var explanation: some View {
+        Section {
+            Text("This represents the change in your weight from 17-24 December, which is used to calculate your Adaptive Maintenance Energy.")
         }
     }
 
-    var explanation: some View {
+    var typePicker: some View {
         Section {
-            VStack(alignment: .leading) {
-                Text("Your weight change can be set by either:")
-                dotPoint("Using current and previous weights to calculate it.")
-                dotPoint("Entering it in manually.")
-            }
+//            VStack(alignment: .leading) {
+//                Text("Your weight change can be set by either:")
+//                dotPoint("Using current and previous weights to calculate it.")
+//                dotPoint("Entering it in manually.")
+//            }
             Picker("", selection: Binding<Bool>(
                 get: { isCustom },
                 set: { newValue in
@@ -200,6 +278,7 @@ struct WeightChangeForm: View {
                         customValue = 0.8
                         value = -0.8
                         isGain = false
+                        setIsDirty()
                     }
                 }
             )) {
@@ -208,11 +287,21 @@ struct WeightChangeForm: View {
                 Text("Enter Manually").tag(true)
             }
             .pickerStyle(.segmented)
-            .listRowSeparator(.hidden)
+            .disabled(!isEditing)
+//            .listRowSeparator(.hidden)
+//            .listRowBackground(EmptyView())
         }
     }
 }
 
-#Preview {
-    WeightChangeForm()
+#Preview("Current") {
+    NavigationView {
+        WeightChangeForm()
+    }
+}
+
+#Preview("Past") {
+    NavigationView {
+        WeightChangeForm(pastDate: MockPastDate)
+    }
 }

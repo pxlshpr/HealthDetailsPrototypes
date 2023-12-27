@@ -1,6 +1,18 @@
 import Foundation
 
 extension Date {
+    init?(fromDateString string: String) {
+        let dateFormatter = DateFormatter()
+        dateFormatter.locale = Locale(identifier: "en_US_POSIX")
+        dateFormatter.dateFormat = "yyyy_MM_dd"
+        guard let date = dateFormatter.date(from: string) else {
+            return nil
+        }
+        self = date
+    }
+}
+
+extension Date {
     func moveYearBy(_ yearIncrement: Int) -> Date {
         var components = DateComponents()
         components.year = yearIncrement
