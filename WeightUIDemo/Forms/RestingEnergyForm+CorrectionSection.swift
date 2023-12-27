@@ -9,7 +9,7 @@ extension RestingEnergyForm {
                 if applyCorrection, let correction {
                     switch correctionType {
                     case .divide:
-                        "Your Resting Energy from Apple Health  being divided by \(correction.clean) before being used."
+                        "Your Resting Energy from Apple Health is being divided by \(correction.clean) before being used."
                     case .multiply:
                         "Your Resting Energy from Apple Health is being multiplied by \(correction.clean) before being used."
                     case .add:

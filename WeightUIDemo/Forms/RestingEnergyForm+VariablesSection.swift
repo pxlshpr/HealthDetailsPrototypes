@@ -126,16 +126,21 @@ extension RestingEnergyForm {
             
             var setMeasurementLink: some View {
                 
-                var dateString: String {
-                    if let pastDate {
-                        " on \(pastDate.dateString)"
-                    } else {
-                        " for Today"
-                    }
-                }
-                
                 var label: String {
-                    "Set \(healthDetail.name)\(date == nil ? "" : dateString)"
+                    
+                    var dateString: String {
+                        if let pastDate {
+                            " on \(pastDate.dateString)"
+                        } else {
+                            " for Today"
+                        }
+                    }
+                    
+                    var conjunctionString: String {
+                        valueString == nil ? "" : "and Use "
+                    }
+
+                    return "Set \(conjunctionString)\(healthDetail.name)\(date == nil ? "" : dateString)"
                 }
                 
                 return Group {
