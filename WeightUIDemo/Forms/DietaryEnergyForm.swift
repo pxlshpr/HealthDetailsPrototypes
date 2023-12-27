@@ -65,7 +65,8 @@ struct DietaryEnergyForm: View {
             bottomToolbarContent(
                 value: value,
                 valueString: value.formattedEnergy,
-                isDisabled: !isEditing,
+//                isDisabled: !isEditing,
+                isDisabled: true,
                 unitString: "kcal / day"
             )
             ToolbarItem(placement: .topBarTrailing) {
@@ -88,9 +89,7 @@ struct DietaryEnergyForm: View {
 
     var explanation: some View {
         Section {
-            VStack(alignment: .leading) {
-                Text("The daily dietary energy for at least one of these days is required. Your daily energy totals from your log will be used by default. \n\nFor days that have inaccurate or incomplete logs, you an choose to not include them, so that your calculation isn't affected.\n\nAny days not included will be assigned the average dietary energy. If you did a full day fast on any of these days, make sure they are marked, so that they aren't assigned the average.")
-            }
+            Text("This is how much dietary energy you consumed over the period for which you are calculating your adaptive maintenance.")
         }
     }
     
@@ -159,7 +158,8 @@ struct DietaryEnergyCell: View {
     @ViewBuilder
     var detail: some View {
         if listData.type == .notIncluded {
-            Text("Not Included")
+//            Text("Not Included")
+            Text("Using Average")
                 .foregroundStyle(Color(.secondaryLabel))
         } else {
             Text(listData.valueString)
