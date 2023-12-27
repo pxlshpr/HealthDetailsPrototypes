@@ -68,7 +68,7 @@ extension RestingEnergyForm {
             
             @ViewBuilder
             var footer: some View {
-                if dateIsInPast, valueString != nil {
+                if dateIsInPast {
                     Text("Your latest available height data is being used.")
                 }
             }
@@ -83,10 +83,11 @@ extension RestingEnergyForm {
             }
             
             var dateIsInPast: Bool {
-                if let pastDate {
-                    date?.startOfDay != pastDate.startOfDay
+                guard let date else { return false }
+                return if let pastDate {
+                    date.startOfDay != pastDate.startOfDay
                 } else {
-                    date?.startOfDay != Date.now.startOfDay
+                    date.startOfDay != Date.now.startOfDay
                 }
             }
 
@@ -125,31 +126,36 @@ extension RestingEnergyForm {
             }
             
             var setMeasurementLink: some View {
-                
-                var label: String {
-                    
-                    var dateString: String {
-                        if let pastDate {
-                            " on \(pastDate.dateString)"
-                        } else {
-                            " for Today"
-                        }
-                    }
-                    
-                    var conjunctionString: String {
-                        valueString == nil ? "" : "and Use "
-                    }
 
-                    return "Set \(conjunctionString)\(healthDetail.name)\(date == nil ? "" : dateString)"
+                var dateString: String {
+                    if let pastDate {
+                        " on \(pastDate.dateString)"
+                    } else {
+                        " for Today"
+                    }
                 }
                 
                 return Group {
-                    if dateIsInPast, isEditing {
-                        NavigationLink {
-                            
-                        } label: {
-                            Text(label)
-                                .foregroundStyle(Color.accentColor)
+                    if date != nil {
+                        if dateIsInPast, isEditing {
+                            NavigationLink {
+                                
+                            } label: {
+                                Text("Set and Use \(healthDetail.name)\(dateString)")
+                                    .foregroundStyle(Color.accentColor)
+                            }
+                        }
+                    } else {
+                        if isEditing {
+                            NavigationLink {
+                                
+                            } label: {
+                                Text("Set \(healthDetail.name)")
+                                    .foregroundStyle(Color.accentColor)
+                            }
+                        } else {
+                            Text("Not Set")
+                                .foregroundStyle(.secondary)
                         }
                     }
                 }
