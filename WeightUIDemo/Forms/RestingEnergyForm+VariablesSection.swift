@@ -66,10 +66,14 @@ extension RestingEnergyForm {
                 }
             }
             
+            var formDate: Date {
+                pastDate ?? Date.now
+            }
+            
             @ViewBuilder
             var footer: some View {
                 if dateIsInPast {
-                    Text("Your latest available height data is being used.")
+                    Text("Since no \(healthDetail.name.lowercased()) data is available for \(formDate.dateString), the most recent entry prior to that is being used.")
                 }
             }
             
@@ -125,41 +129,22 @@ extension RestingEnergyForm {
                 }
             }
             
+            @ViewBuilder
             var setMeasurementLink: some View {
-
-                var dateString: String {
-                    if let pastDate {
-                        " on \(pastDate.dateString)"
-                    } else {
-                        " for Today"
-                    }
-                }
-                
-                return Group {
-                    if date != nil {
-                        if dateIsInPast, isEditing {
-                            NavigationLink {
-                                
-                            } label: {
-                                Text("Set and Use \(healthDetail.name)\(dateString)")
-                                    .foregroundStyle(Color.accentColor)
-                            }
-                        }
-                    } else {
-                        if isEditing {
-                            NavigationLink {
-                                
-                            } label: {
-                                Text("Set \(healthDetail.name)")
-                                    .foregroundStyle(Color.accentColor)
-                            }
-                        } else {
+                if dateIsInPast {
+                    NavigationLink {
+                        
+                    } label: {
+                        HStack {
+                            Text(formDate.dateString)
+                            Spacer()
                             Text("Not Set")
                                 .foregroundStyle(.secondary)
                         }
                     }
                 }
             }
+            
             return Section(header: header, footer: footer) {
                 measurementLink
                 setMeasurementLink
