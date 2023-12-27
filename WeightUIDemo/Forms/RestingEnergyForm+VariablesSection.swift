@@ -32,7 +32,7 @@ extension RestingEnergyForm {
                     }
                 }
             }
-            .disabled(isEditing)
+            .disabled(isEditing && isPast)
         }
         
         @ViewBuilder
@@ -120,7 +120,7 @@ extension RestingEnergyForm {
                             Text(valueString)
                         }
                     }
-                    .disabled(isEditing)
+                    .disabled(isEditing && isPast)
                 }
             }
             
