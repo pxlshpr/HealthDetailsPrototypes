@@ -9,7 +9,7 @@ struct PregnancyStatusForm: View {
     @State var pregnancyStatus: PregnancyStatus = .notSet
     
     var body: some View {
-        NavigationStack {
+        NavigationView {
             Group {
                 if hasAppeared {
                     Form {

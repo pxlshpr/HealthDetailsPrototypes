@@ -16,7 +16,7 @@ struct LeanBodyMassForm: View {
     @State var showingSyncOffConfirmation: Bool = false
 
     var body: some View {
-        NavigationStack {
+        NavigationView {
             Group {
                 if hasAppeared {
                     Form {

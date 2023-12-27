@@ -5,7 +5,7 @@ struct MaintenanceInfo: View {
     @Environment(\.dismiss) var dismiss
     
     var body: some View {
-        NavigationStack {
+        NavigationView {
             form
                 .navigationTitle("Calculation")
                 .toolbar { toolbarContent }
@@ -13,11 +13,17 @@ struct MaintenanceInfo: View {
     }
     
     var toolbarContent: some ToolbarContent {
-        ToolbarItem(placement: .topBarTrailing) {
-            Button("Done") {
-                dismiss()
+        Group {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("Done") {
+                    dismiss()
+                }
+                .fontWeight(.semibold)
             }
-            .fontWeight(.semibold)
+            ToolbarItem(placement: .principal) {
+                Text("Maintenance Energy")
+                    .font(.headline)
+            }
         }
     }
     

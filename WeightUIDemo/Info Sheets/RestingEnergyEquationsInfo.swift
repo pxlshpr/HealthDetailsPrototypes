@@ -5,7 +5,7 @@ struct RestingEnergyEquationsInfo: View {
     @Environment(\.dismiss) var dismiss
     
     var body: some View {
-        NavigationStack {
+        NavigationView {
             form
                 .navigationTitle("Equations")
                 .navigationBarTitleDisplayMode(.large)

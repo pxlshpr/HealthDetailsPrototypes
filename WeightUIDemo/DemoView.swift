@@ -23,7 +23,7 @@ struct DemoView: View {
     @State var type: WeightFormType? = nil
     
     var body: some View {
-        NavigationStack {
+        NavigationView {
             List {
                 ForEach(WeightFormType.allCases) { type in
                     Button {

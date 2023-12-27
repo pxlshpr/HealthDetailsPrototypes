@@ -103,7 +103,7 @@ struct MaintenanceForm: View {
             AdaptiveMaintenanceForm(pastDate: pastDate, isPresented: $isPresented)
         }
         
-        var navigationStackLink: some View {
+        var NavigationViewLink: some View {
             NavigationLink(value: AdaptiveRoute.form) {
                 label
             }
@@ -121,7 +121,7 @@ struct MaintenanceForm: View {
 
         }
         return Section {
-//            navigationStackLink
+//            NavigationViewLink
             navigationViewLink
                 .disabled(isPast && isEditing)
         }
@@ -140,7 +140,7 @@ struct MaintenanceForm: View {
             EstimatedMaintenanceForm()
         }
         
-        var navigationStackLink: some View {
+        var NavigationViewLink: some View {
             NavigationLink(value: EstimatedRoute.form) {
                 label
             }
@@ -158,7 +158,7 @@ struct MaintenanceForm: View {
 
         }
         return Section {
-//            navigationStackLink
+//            NavigationViewLink
             navigationViewLink
                 .disabled(isPast && isEditing)
         }
@@ -198,7 +198,7 @@ struct MaintenanceForm: View {
             }
         }
         return Section(footer: footer) {
-            Text("Your Maintenance Energy (also known as your Total Daily Energy Expenditure or TDEE) is the dietary energy you would need to consume daily to maintain your weight.\n\nIt may be used when creating energy goals that target a desired change in your weight.")
+            Text("Your Maintenance Energy (also known as your Total Daily Energy Expenditure or TDEE) is the dietary energy you would need to consume daily to maintain your weight.\n\nIt can be used to create energy goals that target a desired change in your weight.\n\nThere are two ways you can calculate it.")
         }
     }
 }
@@ -215,7 +215,7 @@ let MockPastDate = Date.now.moveDayBy(-3)
 
 struct TestForm: View {
     var body: some View {
-        NavigationStack {
+        NavigationView {
             List {
                 ForEach(0...100, id: \.self) { i in
                     NavigationLink(value: i) {

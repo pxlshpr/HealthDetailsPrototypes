@@ -19,7 +19,7 @@
 //    @State var isEditing = false
 //
 //    var body: some View {
-//        NavigationStack {
+//        NavigationView {
 //            Form {
 //                if !isEditing {
 //                    notice

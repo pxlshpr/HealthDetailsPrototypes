@@ -14,7 +14,7 @@
 //    @State var isEditing = false
 //
 //    var body: some View {
-//        NavigationStack {
+//        NavigationView {
 //            Group {
 //                if hasAppeared {
 //                    Form {

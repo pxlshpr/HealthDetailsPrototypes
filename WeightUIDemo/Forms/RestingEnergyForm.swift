@@ -550,13 +550,13 @@ struct RestingEnergyForm: View {
 }
 
 #Preview("Current") {
-    NavigationStack {
+    NavigationView {
         RestingEnergyForm()
     }
 }
 
 #Preview("Past") {
-    NavigationStack {
+    NavigationView {
         RestingEnergyForm(isPast: true)
     }
 }

@@ -53,7 +53,7 @@ struct AgeForm: View {
             Button("Cancel") { }
         }
         .sheet(isPresented: $showingDateOfBirthAlert) {
-            NavigationStack {
+            NavigationView {
                 DatePicker(
                     "Date of Birth",
                     selection: $chosenDateOfBirth,
@@ -253,12 +253,12 @@ struct AgeForm: View {
 }
 
 #Preview {
-    NavigationStack {
+    NavigationView {
         AgeForm()
     }
 }
 #Preview {
-    NavigationStack {
+    NavigationView {
         AgeForm(isPast: true)
     }
 }

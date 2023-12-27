@@ -9,7 +9,7 @@ struct SmokingStatusForm: View {
     @State var smokingStatus: SmokingStatus = .notSet
     
     var body: some View {
-        NavigationStack {
+        NavigationView {
             Group {
                 if hasAppeared {
                     Form {

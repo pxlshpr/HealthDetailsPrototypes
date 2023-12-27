@@ -20,7 +20,7 @@ struct AgeForm_Past: View {
     @State var isEditing = false
 
     var body: some View {
-        NavigationStack {
+        NavigationView {
             Group {
                 if hasAppeared {
                     Form {
@@ -51,7 +51,7 @@ struct AgeForm_Past: View {
             Button("Cancel") { }
         }
         .sheet(isPresented: $showingDateOfBirthAlert) {
-            NavigationStack {
+            NavigationView {
                 DatePicker(
                     "Date of Birth",
                     selection: $chosenDateOfBirth,

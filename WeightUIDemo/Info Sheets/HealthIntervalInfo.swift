@@ -7,7 +7,7 @@ struct HealthIntervalInfo: View {
     let isRestingEnergy: Bool
 
     var body: some View {
-        NavigationStack {
+        NavigationView {
             form
                 .navigationTitle("Health App Data")
                 .navigationBarTitleDisplayMode(.large)

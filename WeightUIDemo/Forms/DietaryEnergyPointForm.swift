@@ -224,7 +224,7 @@ struct AdaptiveDietaryEnergyInfo: View {
     @Environment(\.dismiss) var dismiss
 
     var body: some View {
-        NavigationStack {
+        NavigationView {
             form
                 .navigationTitle("Setting Dietary Energy")
                 .navigationBarTitleDisplayMode(.inline)

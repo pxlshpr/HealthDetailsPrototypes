@@ -320,37 +320,37 @@ struct HeightForm: View {
 }
 
 #Preview("Health Details") {
-    NavigationStack {
+    NavigationView {
         HeightForm(mode: .healthDetails(nil))
     }
 }
 
 #Preview("Past Health Details") {
-    NavigationStack {
+    NavigationView {
         HeightForm(mode: .healthDetails(MockPastDate))
     }
 }
 
 #Preview("Lean Body Mass Variable") {
-    NavigationStack {
+    NavigationView {
         HeightForm(mode: .leanBodyMassVariable(nil))
     }
 }
 
 #Preview("Past Lean Body Mass Variable") {
-    NavigationStack {
+    NavigationView {
         HeightForm(mode: .leanBodyMassVariable(MockPastDate))
     }
 }
 
 #Preview("Resting Energy Variable") {
-    NavigationStack {
+    NavigationView {
         HeightForm(mode: .restingEnergyVariable(nil))
     }
 }
 
 #Preview("Past Resting energy Variable") {
-    NavigationStack {
+    NavigationView {
         HeightForm(mode: .restingEnergyVariable(MockPastDate))
     }
 }

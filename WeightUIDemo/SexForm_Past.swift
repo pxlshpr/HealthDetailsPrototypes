@@ -11,7 +11,7 @@ struct SexForm_Past: View {
     @State var showingWeightSettings = false
 
     var body: some View {
-        NavigationStack {
+        NavigationView {
             Group {
                 if hasAppeared {
                     Form {

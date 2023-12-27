@@ -175,13 +175,13 @@ struct DietaryEnergyCell: View {
 
 
 #Preview("Current") {
-    NavigationStack {
+    NavigationView {
         DietaryEnergyForm()
     }
 }
 
 #Preview("Past") {
-    NavigationStack {
+    NavigationView {
         DietaryEnergyForm(pastDate: MockPastDate)
     }
 }

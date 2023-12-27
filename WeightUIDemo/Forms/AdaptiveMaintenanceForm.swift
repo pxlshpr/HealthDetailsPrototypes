@@ -11,6 +11,7 @@ struct AdaptiveMaintenanceForm: View {
     @State var isDirty: Bool = false
     
     @Binding var isPresented: Bool
+    @State var showingInfo = false
     
     init(pastDate: Date? = nil, isPresented: Binding<Bool> = .constant(true)) {
         self.pastDate = pastDate
@@ -30,6 +31,9 @@ struct AdaptiveMaintenanceForm: View {
         .navigationBarTitleDisplayMode(.large)
         .navigationBarBackButtonHidden(isEditing && isPast)
         .toolbar { toolbarContent }
+        .sheet(isPresented: $showingInfo) {
+            AdaptiveMaintenanceInfo(weeks: $weeks)
+        }
     }
     
     @ViewBuilder
@@ -60,7 +64,7 @@ struct AdaptiveMaintenanceForm: View {
             }
         }
         
-        var navigationStackLink: some View {
+        var NavigationViewLink: some View {
             NavigationLink(value: WeightChangeRoute.form) {
                 label
             }
@@ -78,7 +82,7 @@ struct AdaptiveMaintenanceForm: View {
         }
         
         return Section {
-//            navigationStackLink
+//            NavigationViewLink
             navigationViewLink
                 .disabled(isPast && isEditing)
         }
@@ -103,7 +107,7 @@ struct AdaptiveMaintenanceForm: View {
             }
         }
         
-        var navigationStackLink: some View {
+        var NavigationViewLink: some View {
             NavigationLink(value: DietaryEnergyRoute.form) {
                 label
             }
@@ -113,7 +117,7 @@ struct AdaptiveMaintenanceForm: View {
         }
         
         return Section {
-//            navigationStackLink
+//            NavigationViewLink
             navigationViewLink
                 .disabled(isPast && isEditing)
         }
@@ -204,55 +208,39 @@ struct AdaptiveMaintenanceForm: View {
         weeks = 1
     }
     
-    var explanation: some View {
-        Section {
-            VStack(alignment: .leading) {
-                Text("Your adaptive maintenance is a calculation of your maintenance energy using the energy balance equation. The dietary energy you consumed and change in your weight over a specified period is used.")
-            }
-        }
+    var isDisabled: Bool {
+        isPast && !isEditing
     }
     
-    var explanation_old: some View {
-        Section {
+    var explanation: some View {
+        @ViewBuilder
+        var footer: some View {
+            if !isDisabled {
+                Button {
+                    showingInfo = true
+                } label: {
+                    Text("Learn more…")
+                        .font(.footnote)
+                }
+            }
+        }
+        
+        return Section(footer: footer) {
             VStack(alignment: .leading) {
-                Text("Your adaptive maintenance is being calculated by comparing your weight change to the energy you consumed over the past \(weeks) week\(weeks > 1 ? "s" : "").\n\nThis utilises the energy balance equation which states that:")
-                Text("Energy In – Energy Out = Energy Balance")
-                    .font(.footnote)
-                    .padding(5)
-                    .background(
-                        RoundedRectangle(cornerRadius: 5)
-                            .foregroundStyle(Color(.systemGray5))
-                    )
-                Text("\nThis can be thought of as:")
-                Text("Dietary Energy – Expenditure = Weight Change")
-                    .font(.footnote)
-                    .padding(5)
-                    .background(
-                        RoundedRectangle(cornerRadius: 5)
-                            .foregroundStyle(Color(.systemGray5))
-                    )
-                Text("\nRearranging this, we get:")
-                Text("Expenditure = Dietary Energy - Weight Change")
-                    .font(.footnote)
-                    .padding(5)
-                    .background(
-                        RoundedRectangle(cornerRadius: 5)
-                            .foregroundStyle(Color(.systemGray5))
-                    )
-                Text("\nThis calculates the energy expenditure that–had you consumed instead of what you recorded–would have resulted in no weight change, or in other words your Maintenance Energy.")
+                Text("Your adaptive maintenance is a calculation of your maintenance energy using the energy balance equation.\n\nThe dietary energy you had consumed over a specified period and the resulting change in your weight is used to determine the average daily energy consumption that would have resulted in a net zero change in weight, ie. your maintenance.")
             }
         }
     }
 }
 
 #Preview("Current") {
-    NavigationStack {
+    NavigationView {
         AdaptiveMaintenanceForm()
     }
 }
 
 #Preview("Past") {
-    NavigationStack {
+    NavigationView {
         AdaptiveMaintenanceForm(pastDate: MockPastDate)
     }
 }

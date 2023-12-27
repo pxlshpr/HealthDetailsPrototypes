@@ -10,7 +10,7 @@
 //    @State var showingSyncOffConfirmation: Bool = false
 //    
 //    var body: some View {
-//        NavigationStack {
+//        NavigationView {
 //            Form {
 ////                explanation
 //                syncToggle
