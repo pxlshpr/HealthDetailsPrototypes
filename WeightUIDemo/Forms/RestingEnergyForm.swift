@@ -63,6 +63,7 @@ struct RestingEnergyForm: View {
             explanation
         }
         .navigationTitle("Resting Energy")
+        .navigationBarBackButtonHidden(isEditing && isPast)
         .toolbar { toolbarContent }
         .alert("Enter your Resting", isPresented: $showingAlert) {
             TextField("kcal", text: customValueTextBinding)

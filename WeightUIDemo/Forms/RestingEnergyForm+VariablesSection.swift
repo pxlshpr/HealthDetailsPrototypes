@@ -142,6 +142,7 @@ extension RestingEnergyForm {
                                 .foregroundStyle(.secondary)
                         }
                     }
+                    .disabled(isEditing && isPast)
                 }
             }
             
