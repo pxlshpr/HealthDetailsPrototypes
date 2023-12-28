@@ -42,7 +42,8 @@ struct Notice {
 //            message: "This data has been preserved to ensure any goals set on this day remain unchanged.",
 //            message: "This data has been preserved to ensure that any goals dependent on it remain unchanged.",
 //            message: "This data has been preserved to ensure that any goals dependent on it on this date remain unchanged.",
-            message: "This data has been preserved to ensure that any goals dependent on it on this date remain unchanged.",
+//            message: isEditing.wrappedValue ? "You are editing this data for this date specifically." : "This data has been preserved to ensure that any goals dependent on it on this date remain unchanged.",
+            message: "You are viewing legacy data for the following date, which has been preserved to ensure any dependent goals remain unchanged.\n\nChanges will not affect your current data.",
 //            message: "This data has been kept unchanged to secure any goals dependent on it as of this date.",
             date: date,
             imageName: "calendar.badge.clock",
@@ -104,9 +105,9 @@ struct NoticeSection: View {
     
     var body: some View {
         Section {
-            if !isEditing.wrappedValue {
+//            if !isEditing.wrappedValue {
                 noticeRow
-            }
+//            }
             dateRow
         }
         .listRowBackground(background)

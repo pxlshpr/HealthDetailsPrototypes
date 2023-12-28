@@ -222,7 +222,6 @@ struct ActiveEnergyForm: View {
                 Text("This is the energy burnt over and above your Resting Energy use. You can set it in three ways.")
             }
         }
-        .listSectionSpacing(.compact)
     }
     
     var customSection: some View {

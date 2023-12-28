@@ -187,7 +187,6 @@ extension RestingEnergyForm {
                 Text("Your Resting Energy, or your Basal Metabolic Rate (BMR), is the energy your body uses each day while minimally active. You can set it in three ways.")
             }
         }
-        .listSectionSpacing(.compact)
     }
     
     var customSection: some View {
