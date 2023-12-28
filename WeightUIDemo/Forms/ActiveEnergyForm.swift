@@ -9,17 +9,17 @@ struct ActiveEnergyForm: View {
     @State var activityLevel: ActivityLevel = .lightlyActive
     @State var intervalType: HealthIntervalType = .average
     @State var interval: HealthInterval = .init(3, .day)
-    @State var applyCorrection: Bool = false
-    @State var correctionType: CorrectionType = .divide
-    @State var correction: Double? = nil
 
     @State var showingAlert = false
-    @State var customValue: Double? = nil
-    @State var customValueTextAsDouble: Double? = nil
-    @State var customValueText: String = ""
+    @State var customValue: Double? = valueForActivityLevel(.lightlyActive)
+    @State var customValueTextAsDouble: Double? = valueForActivityLevel(.lightlyActive)
+    @State var customValueText: String = "\(valueForActivityLevel(.lightlyActive))"
     
-    @State var correctionTextAsDouble: Double? = nil
-    @State var correctionText: String = ""
+    @State var applyCorrection: Bool = false
+    @State var correctionType: CorrectionType = .divide
+    @State var correction: Double? = 2
+    @State var correctionTextAsDouble: Double? = 2
+    @State var correctionText: String = "2"
 
     @State var showingActivityLevelInfo = false
     @State var showingActiveEnergyInfo = false
@@ -38,6 +38,7 @@ struct ActiveEnergyForm: View {
     var body: some View {
         Form {
             notice
+            explanation
             sourceSection
             switch source {
             case .userEntered:
@@ -47,7 +48,6 @@ struct ActiveEnergyForm: View {
             case .healthKit:
                 healthSections
             }
-            explanation
         }
         .navigationTitle("Active Energy")
         .navigationBarBackButtonHidden(isEditing && isPast)
@@ -146,32 +146,59 @@ struct ActiveEnergyForm: View {
     }
     
     var sourceSection: some View {
-        let binding = Binding<ActiveEnergySource>(
-            get: { source },
-            set: { newValue in
-                withAnimation {
-                    source = newValue
-                    setIsDirty()
+        
+        var pickerSection: some View {
+            
+            let binding = Binding<ActiveEnergySource>(
+                get: { source },
+                set: { newValue in
+                    withAnimation {
+                        source = newValue
+                        setIsDirty()
+                    }
+                    if source == .userEntered {
+                        showingAlert = true
+                    }
                 }
-                if source == .userEntered {
-                    showingAlert = true
+            )
+            
+            return Section {
+                Picker("Active Energy", selection: binding) {
+                    ForEach(ActiveEnergySource.allCases, id: \.self) {
+                        Text($0.name).tag($0)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .listRowBackground(EmptyView())
+            }
+            .listSectionSpacing(.compact)
+        }
+        
+        var descriptionSection: some View {
+            var description: String {
+                switch source {
+                case .healthKit:
+                    "Use the Active Energy data recorded in the Apple Health app."
+                case .activityLevel:
+                    "Apply a multiplier on your Resting Energy based on how active you are."
+                case .userEntered:
+                    "Enter the Active Energy manually."
                 }
             }
-        )
-        return Section {
-            Picker("Active Energy", selection: binding) {
-                ForEach(ActiveEnergySource.allCases, id: \.self) {
-                    Text($0.name).tag($0)
-                }
+            return Section {
+                Text(description)
             }
-            .pickerStyle(.segmented)
-            .listRowBackground(EmptyView())
+        }
+        
+        return Group {
+            pickerSection
+            descriptionSection
         }
     }
     
     var explanation: some View {
         var header: some View {
-            Text("About Resting Energy")
+            Text("About Active Energy")
                 .textCase(.none)
                 .font(.system(.title2, design: .rounded, weight: .semibold))
                 .foregroundStyle(Color(.label))
@@ -186,11 +213,12 @@ struct ActiveEnergyForm: View {
             }
         }
         
-        return Section(header: header, footer: footer) {
+        return Section {
             VStack(alignment: .leading) {
                 Text("This is the energy burnt over and above your Resting Energy use. You can set it in three ways.")
             }
         }
+        .listSectionSpacing(.compact)
     }
     
     var customSection: some View {

@@ -41,6 +41,7 @@ struct RestingEnergyForm: View {
     var body: some View {
         Form {
             notice
+            explanation
             sourceSection
             switch source {
             case .userEntered:
@@ -51,7 +52,6 @@ struct RestingEnergyForm: View {
             case .healthKit:
                 healthSections
             }
-            explanation
         }
         .navigationTitle("Resting Energy")
         .navigationBarBackButtonHidden(isEditing && isPast)
@@ -111,18 +111,42 @@ extension RestingEnergyForm {
             }
         )
         
-        return Section {
-            Picker("Resting Energy", selection: binding) {
-                ForEach(RestingEnergySource.allCases, id: \.self) {
-                    Text($0.name).tag($0)
+        var pickerSection: some View {
+            Section {
+                Picker("Resting Energy", selection: binding) {
+                    ForEach(RestingEnergySource.allCases, id: \.self) {
+                        Text($0.name).tag($0)
+                    }
+                }
+                .foregroundStyle(controlColor)
+                .pickerStyle(.segmented)
+                .listRowBackground(EmptyView())
+            }
+            .disabled(isDisabled)
+            .listSectionSpacing(.compact)
+        }
+        
+        var descriptionSection: some View {
+            var description: String {
+                switch source {
+                case .healthKit:
+                    "Use the Resting Energy data recorded in the Apple Health app."
+                case .equation:
+                    "Use an equation to calculate your Resting Energy."
+                case .userEntered:
+                    "Enter the Resting Energy manually."
                 }
             }
-            .foregroundStyle(controlColor)
-            //            .pickerStyle(.menu)
-            .pickerStyle(.segmented)
-            .listRowBackground(EmptyView())
+            
+            return Section {
+                Text(description)
+            }
         }
-        .disabled(isDisabled)
+        
+        return Group {
+            pickerSection
+            descriptionSection
+        }
     }
     
     var healthSections: some View {
@@ -158,11 +182,12 @@ extension RestingEnergyForm {
             }
         }
         
-        return Section(header: header, footer: footer) {
+        return Section {
             VStack(alignment: .leading) {
                 Text("Your Resting Energy, or your Basal Metabolic Rate (BMR), is the energy your body uses each day while minimally active. You can set it in three ways.")
             }
         }
+        .listSectionSpacing(.compact)
     }
     
     var customSection: some View {
