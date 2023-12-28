@@ -49,7 +49,7 @@ struct EstimatedMaintenanceForm: View {
     var activeEnergyLink: some View {
         Section {
             NavigationLink {
-                ActiveEnergyForm()
+                ActiveEnergyForm(pastDate: pastDate, isPresented: $isPresented)
             } label: {
                 HStack {
                     Text("Active Energy")
