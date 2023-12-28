@@ -126,6 +126,7 @@ struct ActiveEnergyForm: View {
             }
         )
         
+        @ViewBuilder
         var footer: some View {
             Button {
                 showingActivityLevelInfo = true
@@ -142,6 +143,8 @@ struct ActiveEnergyForm: View {
                 }
             }
             .pickerStyle(.menu)
+            .foregroundStyle(controlColor)
+            .disabled(isDisabled)
         }
     }
     
@@ -169,6 +172,7 @@ struct ActiveEnergyForm: View {
                     }
                 }
                 .pickerStyle(.segmented)
+                .disabled(isDisabled)
                 .listRowBackground(EmptyView())
             }
             .listSectionSpacing(.compact)
