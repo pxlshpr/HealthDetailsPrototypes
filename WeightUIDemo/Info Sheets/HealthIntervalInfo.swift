@@ -30,8 +30,8 @@ struct HealthIntervalInfo: View {
                 Text("Your \(isRestingEnergy ? "Resting" : "Active") Energy data can be read from Apple Health in three ways.")
             }
             InfoSection("Daily Average", "Uses the daily average of of the specified number of days leading up to the date.")
-            InfoSection("Same Day", "Uses the data for the current day. Use this if you want your goals to reflect how active you are throughout the day. Keep in mind that this value will keep increasing until the day is over.")
-            InfoSection("Previous Day", "Uses the data for the previous day. Use this if you want your goals to reflect how active you were the day before.")
+            InfoSection("Today's Data", "Uses the data for the current day. Use this if you want your goals to reflect how active you are throughout the day. Keep in mind that this value will keep increasing until the day is over.")
+            InfoSection("Yesterday's Data", "Uses the data for the previous day. Use this if you want your goals to reflect how active you were the day before.")
         }
     }
 }

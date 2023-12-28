@@ -8,8 +8,29 @@ public enum HealthIntervalType: Int16, Codable, CaseIterable {
     var name: String {
         switch self {
         case .average:      "Daily Average"
-        case .sameDay:      "Same Day"
-        case .previousDay:  "Previous Day"
+//        case .sameDay:      "Same Day"
+//        case .previousDay:  "Previous Day"
+        case .sameDay:      "Today's Data"
+        case .previousDay:  "Yesterday's Data"
+        }
+    }
+    
+    func footerDescription(_ pastDate: Date?, interval: HealthInterval) -> String {
+        switch self {
+        case .average:
+            "Using the average Resting Energy of the past \(interval.description)."
+        case .sameDay:
+            if let pastDate {
+                "Using the Resting Energy recorded for \(pastDate.dateString)."
+            } else {
+                "Using the Resting Energy recorded for today."
+            }
+        case .previousDay:
+            if let pastDate {
+                "Using the Resting Energy recorded for \(pastDate.moveDayBy(-1).dateString)."
+            } else {
+                "Using the Resting Energy recorded for yesterday."
+            }
         }
     }
 }

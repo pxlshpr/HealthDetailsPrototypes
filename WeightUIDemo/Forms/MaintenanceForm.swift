@@ -180,13 +180,14 @@ struct MaintenanceForm: View {
             }
         )
         
-        return Section("Use") {
+        return Section {
             Picker("", selection: binding) {
                 ForEach(MaintenanceType.allCases, id: \.self) {
                     Text($0.name).tag($0)
                 }
             }
             .pickerStyle(.segmented)
+            .listRowBackground(EmptyView())
             .disabled(!isEditing)
         }
     }
@@ -212,34 +213,4 @@ struct MaintenanceForm: View {
 
 #Preview("Past") {
     MaintenanceForm(pastDate: MockPastDate)
-}
-
-let MockPastDate = Date.now.moveDayBy(-3)
-
-struct TestForm: View {
-    var body: some View {
-        NavigationView {
-            List {
-                ForEach(0...100, id: \.self) { i in
-                    NavigationLink(value: i) {
-                        Text("\(i)")
-                    }
-                    .navigationDestination(for: Int.self) { i in
-                        Text("Hi")
-                    }
-//                    NavigationLink {
-//                        Text("\(i)")
-//                    } label: {
-//                        Text("\(i)")
-//                    }
-                }
-            }
-            .navigationTitle("Hi")
-//            .navigationBarTitleDisplayMode(.inline)
-        }
-    }
-}
-
-#Preview("Navigation Test") {
-    TestForm()
 }

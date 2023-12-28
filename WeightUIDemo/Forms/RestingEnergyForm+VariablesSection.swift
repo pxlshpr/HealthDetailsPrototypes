@@ -9,9 +9,7 @@ extension RestingEnergyForm {
 
         var mainHeader: some View {
             Text("Equation Variables")
-                .textCase(.none)
-                .font(.system(.title2, design: .rounded, weight: .semibold))
-                .foregroundStyle(Color(.label))
+                .formTitleStyle()
         }
         
         func link(for characteristic: HealthDetail) -> some View {
@@ -157,5 +155,4 @@ extension RestingEnergyForm {
             measurementSections
         }
     }
-    
 }

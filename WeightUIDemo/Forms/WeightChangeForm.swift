@@ -265,11 +265,6 @@ struct WeightChangeForm: View {
 
     var typePicker: some View {
         Section {
-//            VStack(alignment: .leading) {
-//                Text("Your weight change can be set by either:")
-//                dotPoint("Using current and previous weights to calculate it.")
-//                dotPoint("Entering it in manually.")
-//            }
             Picker("", selection: Binding<Bool>(
                 get: { isCustom },
                 set: { newValue in
@@ -289,7 +284,7 @@ struct WeightChangeForm: View {
             .pickerStyle(.segmented)
             .disabled(!isEditing)
 //            .listRowSeparator(.hidden)
-//            .listRowBackground(EmptyView())
+            .listRowBackground(EmptyView())
         }
     }
 }

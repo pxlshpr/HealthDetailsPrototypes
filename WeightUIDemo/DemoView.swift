@@ -68,3 +68,43 @@ public extension Date {
 //    WeightForm()
 //    SampleWeightForm()
 }
+
+let MockPastDate = Date.now.moveDayBy(-3)
+
+func valueForActivityLevel(_ activityLevel: ActivityLevel) -> Double {
+    switch activityLevel {
+    case .sedentary:            2442
+    case .lightlyActive:        2798.125
+    case .moderatelyActive:     3154.25
+    case .active:               3510.375
+    case .veryActive:           3866.5
+    }
+}
+
+struct TestForm: View {
+    var body: some View {
+        NavigationView {
+            List {
+                ForEach(0...100, id: \.self) { i in
+                    NavigationLink(value: i) {
+                        Text("\(i)")
+                    }
+                    .navigationDestination(for: Int.self) { i in
+                        Text("Hi")
+                    }
+//                    NavigationLink {
+//                        Text("\(i)")
+//                    } label: {
+//                        Text("\(i)")
+//                    }
+                }
+            }
+            .navigationTitle("Hi")
+//            .navigationBarTitleDisplayMode(.inline)
+        }
+    }
+}
+
+#Preview("Navigation Test") {
+    TestForm()
+}

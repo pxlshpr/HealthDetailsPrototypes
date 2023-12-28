@@ -22,15 +22,24 @@ struct IntervalPicker: View {
         _isDisabled = isDisabled
     }
     
+    @ViewBuilder
+    var label: some View {
+        if let title {
+            Text(title)
+                .foregroundStyle(isDisabled ? .secondary : .primary)
+        }
+    }
+    
     var body: some View {
-        Section(header: header) {
+//        Section(header: header) {
             HStack(spacing: 3) {
+                label
                 stepper
                 Spacer()
                 value
                 periodPicker
             }
-        }
+//        }
     }
     
     var value: some View {
@@ -239,7 +248,7 @@ public extension HealthInterval {
 
 extension HealthInterval: CustomStringConvertible {
     public var description: String {
-        "\(value) \(period.name)"
+        "\(value) \(period.name)\(value > 1 ? "s" : "")"
     }
 }
 
