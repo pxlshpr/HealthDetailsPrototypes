@@ -225,7 +225,7 @@ struct ActiveEnergyForm: View {
     }
     
     var customSection: some View {
-        EnergyCustomSection(
+        CustomValueSection(
             isDisabled: Binding<Bool>(
                 get: { isDisabled },
                 set: { _ in }
@@ -234,7 +234,8 @@ struct ActiveEnergyForm: View {
             customValue: $customValue,
             customValueTextAsDouble: $customValueTextAsDouble,
             customValueText: $customValueText,
-            isRestingEnergy: true,
+            name: "Resting Energy",
+            unit: "kcal",
             setIsDirty: setIsDirty,
             showingAlert: $showingAlert
         )

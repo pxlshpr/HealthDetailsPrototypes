@@ -13,23 +13,23 @@ struct HeightForm: View {
     @State var isSynced: Bool = true
     @State var showingSyncOffConfirmation: Bool = false
 
+    let pastDate: Date?
     @State var isEditing: Bool
     @State var isDirty: Bool = false
+    @Binding var isPresented: Bool
 
-    let mode: Mode
-    
-    init(mode: Mode = .healthDetails(nil)) {
-        self.mode = mode
-        _isEditing = State(initialValue: !mode.isPast)
+    init(pastDate: Date? = nil, isPresented: Binding<Bool> = .constant(true)) {
+        self.pastDate = pastDate
+        _isPresented = isPresented
+        _isEditing = State(initialValue: pastDate == nil)
     }
 
     var body: some View {
         Form {
-            explanation
             notice
-            legacyNotice
             list
             syncToggle
+//            explanation
         }
         .navigationTitle("Height")
         .navigationBarTitleDisplayMode(.large)
@@ -41,15 +41,7 @@ struct HeightForm: View {
         } message: {
             Text("Height data will no longer be read from or written to Apple Health.")
         }
-        .navigationBarBackButtonHidden(isEditing && mode.isPast)
-    }
-    
-    var controlColor: Color {
-        isEditing ? Color(.label) : Color(.secondaryLabel)
-    }
-    
-    var isDisabled: Bool {
-        !isEditing
+        .navigationBarBackButtonHidden(isEditing && isPast)
     }
 
     var syncToggle: some View {
@@ -81,7 +73,7 @@ struct HeightForm: View {
         }
         
         return Group {
-            if !mode.isPast {
+            if !isPast {
                 section
             }
         }
@@ -96,8 +88,8 @@ struct HeightForm: View {
             topToolbarContent(
                 isEditing: $isEditing,
                 isDirty: $isDirty,
-                isPast: mode.isPast,
-                dismissAction: { dismiss() },
+                isPast: isPast,
+                dismissAction: { isPresented = false },
                 undoAction: undo,
                 saveAction: save
             )
@@ -112,33 +104,23 @@ struct HeightForm: View {
         
     }
 
-    @ViewBuilder
     var explanation: some View {
-        if mode.showsExplanation {
-            Section {
-                VStack(alignment: .leading) {
-                    Text("Your height may be used when:")
-                    dotPoint("Calculating your estimated resting energy.")
-                    dotPoint("Calculating your lean body mass.")
-                }
+        Section {
+            VStack(alignment: .leading) {
+                Text("Your height is used in certain equations when calculating your:")
+                dotPoint("Resting Energy")
+                dotPoint("Lean Body Mass")
             }
         }
     }
 
     @ViewBuilder
     var notice: some View {
-        if let notice = mode.notice {
-            NoticeSection(style: .plain, notice: notice)
+        if let pastDate {
+            NoticeSection.legacy(pastDate, isEditing: $isEditing)
         }
     }
 
-    @ViewBuilder
-    var legacyNotice: some View {
-        if mode.isPast, !isEditing, let notice = mode.legacyNotice {
-            NoticeSection(style: .plain, notice: notice)
-        }
-    }
-    
     struct ListData: Hashable {
         let isHealth: Bool
         let dateString: String
@@ -239,118 +221,32 @@ struct HeightForm: View {
     func delete(at offsets: IndexSet) {
 
     }
+}
+
+//MARK: - Convenience
+
+extension HeightForm {
+    var isDisabled: Bool {
+        isPast && !isEditing
+    }
     
-    enum Mode {
-        case healthDetails(Date?)
-        case restingEnergyVariable(Date?)
-        case leanBodyMassVariable(Date?)
-        
-        var showsExplanation: Bool {
-            switch self {
-            case .healthDetails:    true
-            default:                false
-            }
-        }
-        
-        var pastDate: Date? {
-            switch self {
-            case .healthDetails(let date):
-                date
-            case .restingEnergyVariable(let date):
-                date
-            case .leanBodyMassVariable(let date):
-                date
-            }
-        }
-        
-        var isPast: Bool {
-            pastDate != nil
-        }
-        
-        var legacyNotice: Notice? {
-            switch self {
-            case .healthDetails(let pastDate):
-                if let pastDate {
-                    Notice.legacy(pastDate)
-                } else {
-                    nil
-                }
-            case .restingEnergyVariable(let pastDate):
-                if pastDate != nil {
-                    Notice(
-                        title: "Legacy Data",
-                        message: "This data has been preserved to ensure that your Resting Energy calculation remains unchanged.",
-                        imageName: "calendar.badge.clock"
-                    )
-                } else {
-                    nil
-                }
-            case .leanBodyMassVariable(let pastDate):
-                if pastDate != nil {
-                    Notice(
-                        title: "Legacy Data",
-                        message: "This data has been preserved to ensure any goals set on this day remain unchanged.",
-                        imageName: "calendar.badge.clock"
-                    )
-                } else {
-                    nil
-                }
-            }
-        }
-        
-        var notice: Notice? {
-            switch self {
-            case .restingEnergyVariable:
-                Notice(
-                    title: "Equation Variable",
-                    message: "This is used as a variable for the equation calculating your Resting Energy.",
-                    imageName: "function"
-                )
-            case .leanBodyMassVariable:
-                Notice(
-                    title: "Equation Variable",
-                    message: "This is used as a variable for the equation calculating your Lean Body Mass.",
-                    imageName: "function"
-                )
-            default:
-                nil
-            }
-        }
+    var controlColor: Color {
+        isDisabled ? .secondary : .primary
+    }
+    
+    var isPast: Bool {
+        pastDate != nil
     }
 }
 
-#Preview("Health Details") {
+#Preview("Current") {
     NavigationView {
-        HeightForm(mode: .healthDetails(nil))
+        HeightForm()
     }
 }
 
-#Preview("Past Health Details") {
+#Preview("Past") {
     NavigationView {
-        HeightForm(mode: .healthDetails(MockPastDate))
-    }
-}
-
-#Preview("Lean Body Mass Variable") {
-    NavigationView {
-        HeightForm(mode: .leanBodyMassVariable(nil))
-    }
-}
-
-#Preview("Past Lean Body Mass Variable") {
-    NavigationView {
-        HeightForm(mode: .leanBodyMassVariable(MockPastDate))
-    }
-}
-
-#Preview("Resting Energy Variable") {
-    NavigationView {
-        HeightForm(mode: .restingEnergyVariable(nil))
-    }
-}
-
-#Preview("Past Resting energy Variable") {
-    NavigationView {
-        HeightForm(mode: .restingEnergyVariable(MockPastDate))
+        HeightForm(pastDate: MockPastDate)
     }
 }

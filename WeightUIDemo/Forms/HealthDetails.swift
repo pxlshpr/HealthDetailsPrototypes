@@ -101,6 +101,8 @@ struct HealthDetails: View {
         switch route {
         case .maintenance:
             MaintenanceForm(pastDate: pastDate, isPresented: isPresentedBinding(for: route))
+        case .leanBodyMass:
+            LeanBodyMassForm()
         default:
             EmptyView()
         }

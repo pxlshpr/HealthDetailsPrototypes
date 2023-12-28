@@ -190,7 +190,7 @@ extension RestingEnergyForm {
     }
     
     var customSection: some View {
-        EnergyCustomSection(
+        CustomValueSection(
             isDisabled: Binding<Bool>(
                 get: { isDisabled },
                 set: { _ in }
@@ -199,7 +199,8 @@ extension RestingEnergyForm {
             customValue: $customValue,
             customValueTextAsDouble: $customValueTextAsDouble,
             customValueText: $customValueText,
-            isRestingEnergy: true,
+            name: "Active Energy",
+            unit: "kcal",
             setIsDirty: setIsDirty,
             showingAlert: $showingAlert
         )

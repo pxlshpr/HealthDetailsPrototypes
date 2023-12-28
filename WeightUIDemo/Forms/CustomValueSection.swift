@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct EnergyCustomSection: View {
+struct CustomValueSection: View {
     
     @Binding var isDisabled: Bool
     @Binding var value: Double?
@@ -9,7 +9,8 @@ struct EnergyCustomSection: View {
     @Binding var customValueTextAsDouble: Double?
     @Binding var customValueText: String
 
-    let isRestingEnergy: Bool
+    let name: String
+    let unit: String
     let setIsDirty: () -> ()
 
     @Binding var  showingAlert: Bool
@@ -21,17 +22,13 @@ struct EnergyCustomSection: View {
     var body: some View {
         customSection
             .alert("Enter your \(name)", isPresented: $showingAlert) {
-                TextField("kcal", text: customValueTextBinding)
+                TextField(unit, text: customValueTextBinding)
                     .keyboardType(.decimalPad)
                 Button("OK", action: submitCustomValue)
                 Button("Cancel") { }
             }
     }
     
-    var name: String {
-        isRestingEnergy ? "Resting Energy" : "Active Energy"
-    }
-
     func submitCustomValue() {
         withAnimation {
             customValue = customValueTextAsDouble
