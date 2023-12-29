@@ -11,10 +11,9 @@ struct ActiveEnergyForm: View {
     @State var interval: HealthInterval = .init(3, .day)
 
     @State var showingAlert = false
-    @State var customValue: Double? = valueForActivityLevel(.lightlyActive)
-    @State var customValueTextAsDouble: Double? = valueForActivityLevel(.lightlyActive)
-    @State var customValueText: String = "\(valueForActivityLevel(.lightlyActive))"
     
+    @State var customInput = DoubleInput(double: valueForActivityLevel(.lightlyActive))
+
     @State var applyCorrection: Bool = false
     @State var correctionType: CorrectionType = .divide
     @State var correction: Double? = 2
@@ -57,6 +56,12 @@ struct ActiveEnergyForm: View {
         }
         .sheet(isPresented: $showingActiveEnergyInfo) {
             ActiveEnergyInfo()
+        }
+        .alert("Enter your Active Energy", isPresented: $showingAlert) {
+            TextField("kcal", text: customInput.binding)
+                .keyboardType(.decimalPad)
+            Button("OK", action: submitCustomValue)
+            Button("Cancel") { }
         }
     }
     
@@ -224,21 +229,17 @@ struct ActiveEnergyForm: View {
         }
     }
     
+    @ViewBuilder
     var customSection: some View {
-        CustomValueSection(
-            isDisabled: Binding<Bool>(
-                get: { isDisabled },
-                set: { _ in }
-            ),
-            value: $value,
-            customValue: $customValue,
-            customValueTextAsDouble: $customValueTextAsDouble,
-            customValueText: $customValueText,
-            name: "Resting Energy",
-            unit: "kcal",
-            setIsDirty: setIsDirty,
-            showingAlert: $showingAlert
-        )
+        if !isDisabled {
+            Section {
+                Button {
+                    showingAlert = true
+                } label: {
+                    Text("\(value != nil ? "Edit" : "Set") Active Energy")
+                }
+            }
+        }
     }
 }
 
@@ -255,9 +256,7 @@ extension ActiveEnergyForm {
         correctionType = .divide
         correction = 2
         value = valueForActivityLevel(.lightlyActive)
-        customValue = valueForActivityLevel(.lightlyActive)
-        customValueTextAsDouble = valueForActivityLevel(.lightlyActive)
-        customValueText = "\(valueForActivityLevel(.lightlyActive))"
+        customInput = DoubleInput(double: valueForActivityLevel(.lightlyActive))
         correctionTextAsDouble = 2
         correctionText = "2"
     }
@@ -271,17 +270,14 @@ extension ActiveEnergyForm {
         || correctionType != .divide
         || correction != 2
         || value != valueForActivityLevel(.lightlyActive)
-        || customValue != valueForActivityLevel(.lightlyActive)
-        || customValueTextAsDouble != valueForActivityLevel(.lightlyActive)
-        || customValueText != "\(valueForActivityLevel(.lightlyActive))"
         || correctionTextAsDouble != 2
         || correctionText != "2"
     }
     
     func submitCustomValue() {
         withAnimation {
-            customValue = customValueTextAsDouble
-            value = customValue
+            customInput.submitValue()
+            value = customInput.double
             setIsDirty()
         }
     }

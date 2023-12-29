@@ -17,9 +17,6 @@ struct RestingEnergyForm: View {
     @State var correction: Double? = 2
 
     @State var showingAlert = false
-    @State var customValue: Double? = 2798
-    @State var customValueTextAsDouble: Double? = 2798
-    @State var customValueText: String = "2798"
     
     @State var correctionTextAsDouble: Double? = 2
     @State var correctionText: String = "2"
@@ -27,6 +24,8 @@ struct RestingEnergyForm: View {
     @State var showingEquationsInfo = false
     @State var showingRestingEnergyInfo = false
 
+    @State var customInput = DoubleInput(double: 2798)
+    
     let pastDate: Date?
     @State var isEditing: Bool
     @State var isDirty: Bool = false
@@ -46,6 +45,7 @@ struct RestingEnergyForm: View {
             switch source {
             case .userEntered:
                 customSection
+//                EmptyView()
             case .equation:
                 equationSection
                 variablesSections
@@ -60,8 +60,65 @@ struct RestingEnergyForm: View {
         .sheet(isPresented: $showingRestingEnergyInfo) {
             RestingEnergyInfo()
         }
+        .alert("Enter your Resting Energy", isPresented: $showingAlert) {
+            TextField("kcal", text: customInput.binding)
+                .keyboardType(.decimalPad)
+            Button("OK", action: submitCustomValue)
+            Button("Cancel") { }
+        }
     }
     
+//    var customValueTextBinding: Binding<String> {
+//        Binding<String>(
+//            get: { customValueText },
+//            set: { newValue in
+//                /// Cleanup by removing any extra periods and non-numbers
+//                let newValue = newValue.sanitizedDouble
+//                customValueText = newValue
+//                
+//                /// If we haven't already set the flag for the trailing period, and the string has period as its last character, set it so that its displayed
+//                if !includeTrailingPeriod, newValue.last == "." {
+//                    includeTrailingPeriod = true
+//                }
+//                /// If we have set the flag for the trailing period and the last character isn't it—unset it
+//                else if includeTrailingPeriod, newValue.last != "." {
+//                    includeTrailingPeriod = false
+//                }
+//                
+//                if newValue == ".0" {
+//                    includeTrailingZero = true
+//                } else {
+//                    includeTrailingZero = false
+//                }
+//                
+//                let double = Double(newValue)
+//                customValueTextAsDouble = double
+//                
+////                customValueText = if let customValueTextAsDouble {
+////                    "\(customValueTextAsDouble)"
+////                } else {
+////                    ""
+////                }
+//            }
+//        )
+//    }
+    
+//    func submitCustomValue() {
+//        withAnimation {
+//            customValue = customValueTextAsDouble
+//            value = customValue
+//            setIsDirty()
+//        }
+//    }
+
+    func submitCustomValue() {
+        withAnimation {
+            customInput.submitValue()
+            value = customInput.double
+            setIsDirty()
+        }
+    }
+
     var toolbarContent: some ToolbarContent {
         Group {
             bottomToolbarContent(
@@ -189,21 +246,17 @@ extension RestingEnergyForm {
         }
     }
     
+    @ViewBuilder
     var customSection: some View {
-        CustomValueSection(
-            isDisabled: Binding<Bool>(
-                get: { isDisabled },
-                set: { _ in }
-            ),
-            value: $value,
-            customValue: $customValue,
-            customValueTextAsDouble: $customValueTextAsDouble,
-            customValueText: $customValueText,
-            name: "Active Energy",
-            unit: "kcal",
-            setIsDirty: setIsDirty,
-            showingAlert: $showingAlert
-        )
+        if !isDisabled {
+            Section {
+                Button {
+                    showingAlert = true
+                } label: {
+                    Text("\(value != nil ? "Edit" : "Set") Resting Energy")
+                }
+            }
+        }
     }
     
     var equationSection: some View {
@@ -271,9 +324,7 @@ extension RestingEnergyForm {
         correctionType = .divide
         correction = 2
         value = 2798
-        customValue = 2798
-        customValueTextAsDouble = 2798
-        customValueText = "2798"
+        customInput = DoubleInput(double: 2798)
         correctionTextAsDouble = 2
         correctionText = "2"
     }
@@ -287,9 +338,6 @@ extension RestingEnergyForm {
         || correctionType != .divide
         || correction != 2
         || value != 2798
-        || customValue != 2798
-        || customValueTextAsDouble != 2798
-        || customValueText != "2798"
         || correctionTextAsDouble != 2
         || correctionText != "2"
     }

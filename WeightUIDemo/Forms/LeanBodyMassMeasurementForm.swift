@@ -65,36 +65,66 @@ struct LeanBodyMassMeasurementForm: View {
                 default:
                     EmptyView()
                 }
+                if isPast {
+                    removeSection
+                }
             }
             .navigationTitle("Lean Body Mass")
             .toolbar { toolbarContent }
         }
     }
     
-    var customSection: some View {
-        CustomValueSection(
-            isDisabled: Binding<Bool>(
-                get: { isDisabled },
-                set: { _ in }
-            ),
-            value: Binding<Double?>(
-                get: { value },
-                set: { newValue in
-                    withAnimation {
-                        value = newValue
-                        calculateFatPercentage(forLeanBodyMass: newValue)
-                    }
+    var removeSection: some View {
+        Section {
+            Button {
+                dismiss()
+            } label: {
+                HStack {
+                    Text("Remove this Measurement")
+                    Spacer()
+                    Image(systemName: "trash")
                 }
-            ),
-            customValue: $customValue,
-            customValueTextAsDouble: $customValueTextAsDouble,
-            customValueText: $customValueText,
-            name: "Lean Body Mass",
-            unit: "kg",
-            setIsDirty: setIsDirty,
-            showingAlert: $showingAlert
-        )
+            }
+        }
     }
+    
+    @ViewBuilder
+    var customSection: some View {
+        if !isDisabled {
+            Section {
+                Button {
+                    showingAlert = true
+                } label: {
+                    Text("\(value != nil ? "Edit" : "Set") Lean Body Mass")
+                }
+            }
+        }
+    }
+    
+//    var customSection: some View {
+//        CustomValueSection(
+//            isDisabled: Binding<Bool>(
+//                get: { isDisabled },
+//                set: { _ in }
+//            ),
+//            value: Binding<Double?>(
+//                get: { value },
+//                set: { newValue in
+//                    withAnimation {
+//                        value = newValue
+//                        calculateFatPercentage(forLeanBodyMass: newValue)
+//                    }
+//                }
+//            ),
+//            customValue: $customValue,
+//            customValueTextAsDouble: $customValueTextAsDouble,
+//            customValueText: $customValueText,
+//            name: "Lean Body Mass",
+//            unit: "kg",
+//            setIsDirty: setIsDirty,
+//            showingAlert: $showingAlert
+//        )
+//    }
     
     func calculateFatPercentage(forLeanBodyMass lbm: Double? = nil) {
         guard let lbm = lbm ?? self.value else {
@@ -142,30 +172,43 @@ struct LeanBodyMassMeasurementForm: View {
         customValueText = lbm.roundedToOnePlace
     }
     
+    @ViewBuilder
     var fatPercentageEnterSection: some View {
-        CustomValueSection(
-            isDisabled: Binding<Bool>(
-                get: { isDisabled },
-                set: { _ in }
-            ),
-            value: Binding<Double?>(
-                get: { fatPercentage },
-                set: { newValue in
-                    withAnimation {
-                        fatPercentage = newValue
-                        calculateLeanBodyMass(forFatPercentage: newValue)
-                    }
+        if !isDisabled {
+            Section {
+                Button {
+                    showingFatPercentageAlert = true
+                } label: {
+                    Text("\(value != nil ? "Edit" : "Set") Fat Percentage")
                 }
-            ),
-            customValue: $fatPercentage,
-            customValueTextAsDouble: $fatPercentageTextAsDouble,
-            customValueText: $fatPercentageText,
-            name: "Fat Percentage",
-            unit: "%",
-            setIsDirty: setIsDirty,
-            showingAlert: $showingFatPercentageAlert
-        )
+            }
+        }
     }
+    
+//    var fatPercentageEnterSection: some View {
+//        CustomValueSection(
+//            isDisabled: Binding<Bool>(
+//                get: { isDisabled },
+//                set: { _ in }
+//            ),
+//            value: Binding<Double?>(
+//                get: { fatPercentage },
+//                set: { newValue in
+//                    withAnimation {
+//                        fatPercentage = newValue
+//                        calculateLeanBodyMass(forFatPercentage: newValue)
+//                    }
+//                }
+//            ),
+//            customValue: $fatPercentage,
+//            customValueTextAsDouble: $fatPercentageTextAsDouble,
+//            customValueText: $fatPercentageText,
+//            name: "Fat Percentage",
+//            unit: "%",
+//            setIsDirty: setIsDirty,
+//            showingAlert: $showingFatPercentageAlert
+//        )
+//    }
     
     var weightSection: some View {
         EquationVariablesSections(
@@ -193,7 +236,12 @@ struct LeanBodyMassMeasurementForm: View {
     }
     
     func setIsDirty() {
-        
+        isDirty = if let value {
+            value != 72
+            || fatPercentage != 24.8
+        } else {
+            false
+        }
     }
     
     var isDisabled: Bool {
@@ -261,7 +309,8 @@ struct LeanBodyMassMeasurementForm: View {
     
     func calculateEquation() {
         let weightInKg: Double? = 95.7
-        let heightInCm: Double? = 177
+//        let heightInCm: Double? = 177
+        let heightInCm: Double? = nil
         let sexIsFemale: Bool? = false
         
         let lbm: Double? = if let weightInKg, let heightInCm, let sexIsFemale {
@@ -287,8 +336,13 @@ struct LeanBodyMassMeasurementForm: View {
                     calculateEquation()
                     setIsDirty()
                 }
-                if source == .userEntered {
+                switch source {
+                case .userEntered:
                     showingAlert = true
+                case .fatPercentage:
+                    showingFatPercentageAlert = true
+                default:
+                    break
                 }
             }
         )
@@ -321,7 +375,7 @@ struct LeanBodyMassMeasurementForm: View {
                     
                 }
                 .fontWeight(.bold)
-                .disabled(true)
+                .disabled(!isDirty)
             }
             ToolbarItem(placement: .topBarLeading) {
                 Button("Cancel") {
