@@ -6,7 +6,7 @@ struct DietaryEnergyForm: View {
     @State var isEditing: Bool
     @State var isDirty: Bool = false
     
-    @State var value: Double = 2893
+    @State var value: Double? = 2893
 
     @Binding var isPresented: Bool
 
@@ -32,6 +32,19 @@ struct DietaryEnergyForm: View {
                 pastDate: pastDate
             )
         }
+        .safeAreaInset(edge: .bottom) { bottomValue }
+    }
+    
+    var bottomValue: some View {
+        BottomValue(
+            value: $value,
+            valueString: Binding<String?>(
+                get: { value?.formattedEnergy },
+                set: { _ in }
+            ),
+            isDisabled: .constant(true),
+            unitString: "kcal/day"
+        )
     }
     
     var list: some View {
@@ -67,20 +80,11 @@ struct DietaryEnergyForm: View {
     }
     
     var toolbarContent: some ToolbarContent {
-        Group {
-            bottomToolbarContent(
-                value: value,
-                valueString: value.formattedEnergy,
-//                isDisabled: !isEditing,
-                isDisabled: true,
-                unitString: "kcal / day"
-            )
-            ToolbarItem(placement: .topBarTrailing) {
-                Button("Done") {
-                    isPresented = false
-                }
-                .fontWeight(.semibold)
+        ToolbarItem(placement: .topBarTrailing) {
+            Button("Done") {
+                isPresented = false
             }
+            .fontWeight(.semibold)
         }
     }
     

@@ -49,6 +49,23 @@ struct WeightChangeForm: View {
             Button("OK", action: submitCustomValue)
             Button("Cancel") { customInput.cancel() }
         }
+        .safeAreaInset(edge: .bottom) { bottomValue }
+        .interactiveDismissDisabled(isPast && isEditing && isDirty)
+    }
+    
+    var bottomValue: some View {
+        BottomValue(
+            value: $value,
+            valueString: Binding<String?>(
+                get: { valueAsString },
+                set: { _ in }
+            ),
+            isDisabled: Binding<Bool>(
+                get: { !isEditing },
+                set: { _ in }
+            ),
+            unitString: "kg"
+        )
     }
     
     var isPast: Bool {
@@ -72,22 +89,14 @@ struct WeightChangeForm: View {
     }
     
     var toolbarContent: some ToolbarContent {
-        Group {
-            bottomToolbarContent(
-                value: value,
-                valueString: valueAsString,
-                isDisabled: !isEditing,
-                unitString: "kg"
-            )
-            topToolbarContent(
-                isEditing: $isEditing,
-                isDirty: $isDirty,
-                isPast: isPast,
-                dismissAction: { isPresented = false },
-                undoAction: undo,
-                saveAction: save
-            )
-        }
+        topToolbarContent(
+            isEditing: $isEditing,
+            isDirty: $isDirty,
+            isPast: isPast,
+            dismissAction: { isPresented = false },
+            undoAction: undo,
+            saveAction: save
+        )
     }
     
     func save() {
@@ -305,4 +314,8 @@ struct WeightChangeForm: View {
     NavigationView {
         WeightChangeForm(pastDate: MockPastDate)
     }
+}
+
+#Preview("DemoView") {
+    DemoView()
 }

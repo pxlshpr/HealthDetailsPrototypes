@@ -61,46 +61,49 @@ struct LeanBodyMassForm: View {
         }
         .sheet(isPresented: $showingForm) { measurementForm }
         .navigationBarBackButtonHidden(isEditing && isPast)
+        .safeAreaInset(edge: .bottom) { bottomValue }
     }
     
-    var toolbarContent: some ToolbarContent {
-        Group {
-            ToolbarItem(placement: .bottomBar) {
-                HStack(alignment: .firstTextBaseline, spacing: 5) {
-                    if let fatPercentage {
-                        Text("\(fatPercentage.roundedToOnePlace)")
-                            .contentTransition(.numericText(value: fatPercentage))
-                            .font(LargeNumberFont)
-                            .foregroundStyle(isDisabled ? .secondary : .primary)
-                        Text("% fat")
-                            .font(LargeUnitFont)
-                            .foregroundStyle(isDisabled ? .tertiary : .secondary)
-                    }
-                    Spacer()
-                    if let value {
-                        Text("\(value.roundedToOnePlace)")
-                            .contentTransition(.numericText(value: value))
-                            .font(LargeNumberFont)
-                            .foregroundStyle(isDisabled ? .secondary : .primary)
-                        Text("kg")
-                            .font(LargeUnitFont)
-                            .foregroundStyle(isDisabled ? .tertiary : .secondary)
-                    } else {
-                        Text("Not Set")
-                            .font(LargeUnitFont)
-                            .foregroundStyle(isDisabled ? .tertiary : .secondary)
-                    }
-                }
+    var bottomValue: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 5) {
+            if let fatPercentage {
+                Text("\(fatPercentage.roundedToOnePlace)")
+                    .contentTransition(.numericText(value: fatPercentage))
+                    .font(LargeNumberFont)
+                    .foregroundStyle(isDisabled ? .secondary : .primary)
+                Text("% fat")
+                    .font(LargeUnitFont)
+                    .foregroundStyle(isDisabled ? .tertiary : .secondary)
             }
-            topToolbarContent(
-                isEditing: $isEditing,
-                isDirty: $isDirty,
-                isPast: isPast,
-                dismissAction: { isPresented = false },
-                undoAction: undo,
-                saveAction: save
-            )
+            Spacer()
+            if let value {
+                Text("\(value.roundedToOnePlace)")
+                    .contentTransition(.numericText(value: value))
+                    .font(LargeNumberFont)
+                    .foregroundStyle(isDisabled ? .secondary : .primary)
+                Text("kg")
+                    .font(LargeUnitFont)
+                    .foregroundStyle(isDisabled ? .tertiary : .secondary)
+            } else {
+                Text("Not Set")
+                    .font(LargeUnitFont)
+                    .foregroundStyle(isDisabled ? .tertiary : .secondary)
+            }
         }
+        .padding(.horizontal, BottomValueHorizontalPadding)
+        .padding(.vertical, BottomValueVerticalPadding)
+        .background(.bar)
+    }
+
+    var toolbarContent: some ToolbarContent {
+        topToolbarContent(
+            isEditing: $isEditing,
+            isDirty: $isDirty,
+            isPast: isPast,
+            dismissAction: { isPresented = false },
+            undoAction: undo,
+            saveAction: save
+        )
     }
     
     func undo() {

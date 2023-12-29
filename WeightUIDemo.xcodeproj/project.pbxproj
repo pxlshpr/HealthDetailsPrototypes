@@ -28,7 +28,7 @@
 		E2261F802B371AEF007B7DDD /* HealthIntervalType.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2261F7F2B371AEF007B7DDD /* HealthIntervalType.swift */; };
 		E2261F822B371B9A007B7DDD /* IntervalPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2261F812B371B9A007B7DDD /* IntervalPicker.swift */; };
 		E23A25122B39EF2C00BDAECE /* TopToolbarContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = E23A25112B39EF2C00BDAECE /* TopToolbarContent.swift */; };
-		E23A25142B39F09100BDAECE /* BottomToolbarContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = E23A25132B39F09100BDAECE /* BottomToolbarContent.swift */; };
+		E23A25142B39F09100BDAECE /* BottomValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = E23A25132B39F09100BDAECE /* BottomValue.swift */; };
 		E23A25182B39F58F00BDAECE /* SwiftHaptics in Frameworks */ = {isa = PBXBuildFile; productRef = E23A25172B39F58F00BDAECE /* SwiftHaptics */; };
 		E23A251A2B3B1FFB00BDAECE /* HealthDetails.swift in Sources */ = {isa = PBXBuildFile; fileRef = E23A25192B3B1FFB00BDAECE /* HealthDetails.swift */; };
 		E23A251C2B3B4AC900BDAECE /* TestForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = E23A251B2B3B4AC900BDAECE /* TestForm.swift */; };
@@ -114,7 +114,7 @@
 		E2261F7F2B371AEF007B7DDD /* HealthIntervalType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthIntervalType.swift; sourceTree = "<group>"; };
 		E2261F812B371B9A007B7DDD /* IntervalPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntervalPicker.swift; sourceTree = "<group>"; };
 		E23A25112B39EF2C00BDAECE /* TopToolbarContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopToolbarContent.swift; sourceTree = "<group>"; };
-		E23A25132B39F09100BDAECE /* BottomToolbarContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BottomToolbarContent.swift; sourceTree = "<group>"; };
+		E23A25132B39F09100BDAECE /* BottomValue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BottomValue.swift; sourceTree = "<group>"; };
 		E23A25192B3B1FFB00BDAECE /* HealthDetails.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthDetails.swift; sourceTree = "<group>"; };
 		E23A251B2B3B4AC900BDAECE /* TestForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestForm.swift; sourceTree = "<group>"; };
 		E23A251D2B3B52ED00BDAECE /* HealthIntervalInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthIntervalInfo.swift; sourceTree = "<group>"; };
@@ -273,7 +273,7 @@
 				E2BCCC062B3DC30300616E9A /* DotPoint.swift */,
 				E23A25212B3B530E00BDAECE /* InfoSection.swift */,
 				E23A25112B39EF2C00BDAECE /* TopToolbarContent.swift */,
-				E23A25132B39F09100BDAECE /* BottomToolbarContent.swift */,
+				E23A25132B39F09100BDAECE /* BottomValue.swift */,
 				E2F16EB32B32302A004AD1BA /* NoticeSection.swift */,
 				E2F79F512B3484B900A09BDF /* MenuPicker.swift */,
 				E2A687072B337E3900163078 /* DailyWeightPicker.swift */,
@@ -540,7 +540,7 @@
 				E2F16EB22B31CABB004AD1BA /* WeightChangePointForm_Past.swift in Sources */,
 				E2F16EB02B31CAA8004AD1BA /* WeightForm.swift in Sources */,
 				E2103AFF2B35B27C00B0C381 /* WeightChangeForm.swift in Sources */,
-				E23A25142B39F09100BDAECE /* BottomToolbarContent.swift in Sources */,
+				E23A25142B39F09100BDAECE /* BottomValue.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -35,10 +35,10 @@ struct MaintenanceForm: View {
         .navigationTitle("Maintenance Energy")
         .toolbar { toolbarContent }
         .navigationBarBackButtonHidden(isEditing && isPast)
-        .safeAreaInset(edge: .bottom) { bottomValue }
         .sheet(isPresented: $showingMaintenanceInfo) {
             MaintenanceInfo()
         }
+        .safeAreaInset(edge: .bottom) { bottomValue }
     }
     
     var bottomValue: some View {
@@ -53,9 +53,6 @@ struct MaintenanceForm: View {
                 set: { _ in }
             ),
             unitString: "kcal"
-        )
-        .background(
-            .bar
         )
     }
     
@@ -80,22 +77,14 @@ struct MaintenanceForm: View {
     }
     
     var toolbarContent: some ToolbarContent {
-        Group {
-//            bottomToolbarContent(
-//                value: value,
-//                valueString: value.formattedEnergy,
-//                isDisabled: !isEditing,
-//                unitString: "kcal"
-//            )
-            topToolbarContent(
-                isEditing: $isEditing,
-                isDirty: $isDirty,
-                isPast: isPast,
-                dismissAction: { isPresented = false },
-                undoAction: undo,
-                saveAction: save
-            )
-        }
+        topToolbarContent(
+            isEditing: $isEditing,
+            isDirty: $isDirty,
+            isPast: isPast,
+            dismissAction: { isPresented = false },
+            undoAction: undo,
+            saveAction: save
+        )
     }
     
     func save() {
@@ -261,8 +250,4 @@ struct MaintenanceForm: View {
     NavigationView {
         MaintenanceForm(pastDate: MockPastDate)
     }
-}
-
-#Preview("HealthDetails") {
-    HealthDetails()
 }

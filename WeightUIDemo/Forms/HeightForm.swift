@@ -8,7 +8,7 @@ struct HeightForm: View {
     @ScaledMetric var scale: CGFloat = 1
     let imageScale: CGFloat = 24
 
-    @State var value: Double = 177.4
+    @State var value: Double? = 177.4
 
     @State var isSynced: Bool = true
     @State var showingSyncOffConfirmation: Bool = false
@@ -42,8 +42,24 @@ struct HeightForm: View {
             Text("Height data will no longer be read from or written to Apple Health.")
         }
         .navigationBarBackButtonHidden(isEditing && isPast)
+        .safeAreaInset(edge: .bottom) { bottomValue }
     }
-
+    
+    var bottomValue: some View {
+        BottomValue(
+            value: $value,
+            valueString: Binding<String?>(
+                get: { value?.clean },
+                set: { _ in }
+            ),
+            isDisabled: Binding<Bool>(
+                get: { isDisabled },
+                set: { _ in }
+            ),
+            unitString: "cm"
+        )
+    }
+    
     var syncToggle: some View {
         let binding = Binding<Bool>(
             get: { isSynced },
@@ -78,22 +94,16 @@ struct HeightForm: View {
             }
         }
     }
+    
     var toolbarContent: some ToolbarContent {
-        Group {
-            bottomToolbarContent(
-                value: value,
-                isDisabled: isDisabled,
-                unitString: "cm"
-            )
-            topToolbarContent(
-                isEditing: $isEditing,
-                isDirty: $isDirty,
-                isPast: isPast,
-                dismissAction: { isPresented = false },
-                undoAction: undo,
-                saveAction: save
-            )
-        }
+        topToolbarContent(
+            isEditing: $isEditing,
+            isDirty: $isDirty,
+            isPast: isPast,
+            dismissAction: { isPresented = false },
+            undoAction: undo,
+            saveAction: save
+        )
     }
     
     func save() {

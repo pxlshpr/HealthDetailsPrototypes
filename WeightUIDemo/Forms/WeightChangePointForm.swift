@@ -4,7 +4,7 @@ import SwiftSugar
 struct WeightChangePointForm: View {
     
     @State var dailyValueType: DailyValueType = .average
-    @State var value: Double = 93.6
+    @State var value: Double? = 93.6
     
     @State var useMovingAverage = true
     @State var days: Int = 7
@@ -44,6 +44,22 @@ struct WeightChangePointForm: View {
         .navigationBarBackButtonHidden(isEditing && isPast)
         .navigationBarTitleDisplayMode(.large)
         .toolbar { toolbarContent }
+        .safeAreaInset(edge: .bottom) { bottomValue }
+    }
+    
+    var bottomValue: some View {
+        BottomValue(
+            value: $value,
+            valueString: Binding<String?>(
+                get: { value?.clean },
+                set: { _ in }
+            ),
+            isDisabled: Binding<Bool>(
+                get: { !isEditing },
+                set: { _ in }
+            ),
+            unitString: "kg"
+        )
     }
     
     var weights: some View {
@@ -111,12 +127,6 @@ struct WeightChangePointForm: View {
     
     var toolbarContent: some ToolbarContent {
         Group {
-            bottomToolbarContent(
-                value: value,
-                valueString: value.clean,
-                isDisabled: !isEditing,
-                unitString: "kg"
-            )
             topToolbarContent(
                 isEditing: $isEditing,
                 isDirty: $isDirty,

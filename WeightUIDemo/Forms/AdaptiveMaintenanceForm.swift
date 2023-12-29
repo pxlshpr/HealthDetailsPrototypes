@@ -3,7 +3,7 @@ import SwiftSugar
 
 struct AdaptiveMaintenanceForm: View {
     
-    @State var value: Double = 3225
+    @State var value: Double? = 3225
     @State var weeks: Int = 1
 
     let pastDate: Date?
@@ -34,6 +34,22 @@ struct AdaptiveMaintenanceForm: View {
         .sheet(isPresented: $showingInfo) {
             AdaptiveMaintenanceInfo(weeks: $weeks)
         }
+        .safeAreaInset(edge: .bottom) { bottomValue }
+    }
+    
+    var bottomValue: some View {
+        BottomValue(
+            value: $value,
+            valueString: Binding<String?>(
+                get: { value?.formattedEnergy },
+                set: { _ in }
+            ),
+            isDisabled: Binding<Bool>(
+                get: { !isEditing },
+                set: { _ in }
+            ),
+            unitString: "kcal"
+        )
     }
     
     @ViewBuilder
@@ -134,12 +150,6 @@ struct AdaptiveMaintenanceForm: View {
 
     var toolbarContent: some ToolbarContent {
         Group {
-            bottomToolbarContent(
-                value: value,
-                valueString: value.formattedEnergy,
-                isDisabled: !isEditing,
-                unitString: "kcal"
-            )
             topToolbarContent(
                 isEditing: $isEditing,
                 isDirty: $isDirty,
@@ -148,24 +158,6 @@ struct AdaptiveMaintenanceForm: View {
                 undoAction: undo,
                 saveAction: save
             )
-
-//            ToolbarItem(placement: .bottomBar) {
-//                HStack(alignment: .firstTextBaseline, spacing: 5) {
-//                    Spacer()
-//                    Text("\(value.formattedEnergy)")
-//                        .contentTransition(.numericText(value: value))
-//                        .font(LargeNumberFont)
-//                    Text("kcal")
-//                        .font(LargeUnitFont)
-//                        .foregroundStyle(.secondary)
-//                }
-//            }
-//            ToolbarItem(placement: .topBarTrailing) {
-//                Button("Done") {
-//                    dismiss()
-//                }
-//                .fontWeight(.semibold)
-//            }
             ToolbarItem(placement: .principal) {
                 Text("Maintenance Energy")
                     .font(.headline)

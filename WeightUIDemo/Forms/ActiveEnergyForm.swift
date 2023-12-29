@@ -68,8 +68,24 @@ struct ActiveEnergyForm: View {
             Button("OK", action: submitCorrection)
             Button("Cancel") { correctionInput.cancel() }
         }
+        .safeAreaInset(edge: .bottom) { bottomValue }
     }
     
+    var bottomValue: some View {
+        BottomValue(
+            value: $value,
+            valueString: Binding<String?>(
+                get: { value?.formattedEnergy },
+                set: { _ in }
+            ),
+            isDisabled: Binding<Bool>(
+                get: { !isEditing },
+                set: { _ in }
+            ),
+            unitString: "kcal"
+        )
+    }
+
     @ViewBuilder
     var notice: some View {
         if let pastDate {
@@ -93,22 +109,14 @@ struct ActiveEnergyForm: View {
     }
     
     var toolbarContent: some ToolbarContent {
-        Group {
-            bottomToolbarContent(
-                value: value,
-                valueString: value?.formattedEnergy,
-                isDisabled: !isEditing,
-                unitString: "kcal"
-            )
-            topToolbarContent(
-                isEditing: $isEditing,
-                isDirty: $isDirty,
-                isPast: isPast,
-                dismissAction: { isPresented = false },
-                undoAction: undo,
-                saveAction: save
-            )
-        }
+        topToolbarContent(
+            isEditing: $isEditing,
+            isDirty: $isDirty,
+            isPast: isPast,
+            dismissAction: { isPresented = false },
+            undoAction: undo,
+            saveAction: save
+        )
     }
     
     var isDisabled: Bool {

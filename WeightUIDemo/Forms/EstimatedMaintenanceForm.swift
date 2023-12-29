@@ -2,7 +2,7 @@ import SwiftUI
 
 struct EstimatedMaintenanceForm: View {
 
-    @State var value: Double = 2782
+    @State var value: Double? = 2782
     
     let pastDate: Date?
     @State var isEditing: Bool
@@ -27,6 +27,22 @@ struct EstimatedMaintenanceForm: View {
         }
         .navigationTitle("Estimated")
         .toolbar { toolbarContent }
+        .safeAreaInset(edge: .bottom) { bottomValue }
+    }
+    
+    var bottomValue: some View {
+        BottomValue(
+            value: $value,
+            valueString: Binding<String?>(
+                get: { value?.formattedEnergy },
+                set: { _ in }
+            ),
+            isDisabled: Binding<Bool>(
+                get: { isEditing && isPast },
+                set: { _ in }
+            ),
+            unitString: "kcal"
+        )
     }
     
     var restingEnergyLink: some View {
@@ -81,12 +97,6 @@ struct EstimatedMaintenanceForm: View {
 
     var toolbarContent: some ToolbarContent {
         Group {
-            bottomToolbarContent(
-                value: value,
-                valueString: value.formattedEnergy,
-                isDisabled: isEditing && isPast,
-                unitString: "kcal"
-            )
             ToolbarItem(placement: .topBarTrailing) {
                 Button("Done") {
                     isPresented = false

@@ -71,8 +71,24 @@ struct RestingEnergyForm: View {
             Button("OK", action: submitCorrection)
             Button("Cancel") { correctionInput.cancel() }
         }
+        .safeAreaInset(edge: .bottom) { bottomValue }
     }
-
+    
+    var bottomValue: some View {
+        BottomValue(
+            value: $value,
+            valueString: Binding<String?>(
+                get: { value?.formattedEnergy },
+                set: { _ in }
+            ),
+            isDisabled: Binding<Bool>(
+                get: { !isEditing },
+                set: { _ in }
+            ),
+            unitString: "kcal"
+        )
+    }
+    
     func submitCorrection() {
         withAnimation {
             correctionInput.submitValue()
@@ -89,22 +105,14 @@ struct RestingEnergyForm: View {
     }
 
     var toolbarContent: some ToolbarContent {
-        Group {
-            bottomToolbarContent(
-                value: value,
-                valueString: value?.formattedEnergy,
-                isDisabled: !isEditing,
-                unitString: "kcal"
-            )
-            topToolbarContent(
-                isEditing: $isEditing,
-                isDirty: $isDirty,
-                isPast: isPast,
-                dismissAction: { isPresented = false },
-                undoAction: undo,
-                saveAction: save
-            )
-        }
+        topToolbarContent(
+            isEditing: $isEditing,
+            isDirty: $isDirty,
+            isPast: isPast,
+            dismissAction: { isPresented = false },
+            undoAction: undo,
+            saveAction: save
+        )
     }
     
     var equationExplanations: some View {
