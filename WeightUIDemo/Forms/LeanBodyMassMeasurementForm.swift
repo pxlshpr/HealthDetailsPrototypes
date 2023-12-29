@@ -308,6 +308,7 @@ struct LeanBodyMassMeasurementForm: View {
                 selection: $date,
                 displayedComponents: .date
             )
+            .disabled(true)
             DatePicker(
                 "Time",
                 selection: $time,
