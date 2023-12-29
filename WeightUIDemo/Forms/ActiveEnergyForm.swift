@@ -59,7 +59,9 @@ struct ActiveEnergyForm: View {
             TextField("kcal", text: customInput.binding)
                 .keyboardType(.decimalPad)
             Button("OK", action: submitCustomValue)
-            Button("Cancel") { }
+            Button("Cancel") { 
+                customInput.cancel()
+            }
         }
     }
     

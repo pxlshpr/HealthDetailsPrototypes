@@ -280,6 +280,19 @@ struct LeanBodyMassForm: View {
             }
         }
         
+        var header: some View {
+            HStack {
+                Spacer()
+                Button {
+                    
+                } label: {
+                    Text("Edit")
+                        .textCase(.none)
+                        .fontWeight(.semibold)
+                }
+            }
+        }
+        
         return Section {
             cells
             addButton

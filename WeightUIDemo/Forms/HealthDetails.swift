@@ -108,9 +108,15 @@ struct HealthDetails: View {
     func sheet(for route: HealthDetail) -> some View {
         switch route {
         case .maintenance:
-            MaintenanceForm(pastDate: pastDate, isPresented: $isPresented)
+            MaintenanceForm(
+                pastDate: pastDate,
+                isPresented: $isPresented
+            )
         case .leanBodyMass:
-            LeanBodyMassForm(pastDate: pastDate, isPresented: $isPresented)
+            LeanBodyMassForm(
+                pastDate: pastDate,
+                isPresented: $isPresented
+            )
         default:
             EmptyView()
         }

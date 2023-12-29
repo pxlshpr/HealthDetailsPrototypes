@@ -53,13 +53,17 @@ struct LeanBodyMassMeasurementForm: View {
             TextField("kg", text: customInput.binding)
                 .keyboardType(.decimalPad)
             Button("OK", action: submitCustomValue)
-            Button("Cancel") { }
+            Button("Cancel") {
+                customInput.cancel()
+            }
         }
         .alert("Enter your Fat Percentage", isPresented: $showingFatPercentageAlert) {
             TextField("%", text: fatPercentageInput.binding)
                 .keyboardType(.decimalPad)
             Button("OK", action: submitFatPercentage)
-            Button("Cancel") { }
+            Button("Cancel") { 
+                fatPercentageInput.cancel()
+            }
         }
     }
     

@@ -53,4 +53,14 @@ class DoubleInput {
     func submitValue() {
         double = stringAsDouble
     }
+    
+    func cancel() {
+        guard let double else {
+            string = ""
+            stringAsDouble = nil
+            return
+        }
+        string = double.clean
+        stringAsDouble = double
+    }
 }
