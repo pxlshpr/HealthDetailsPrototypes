@@ -233,7 +233,7 @@ struct WeightChangeForm: View {
             }
         }
         var section: some View {
-            Section("Weight Change") {
+            Section {
                 picker
                 button
             }

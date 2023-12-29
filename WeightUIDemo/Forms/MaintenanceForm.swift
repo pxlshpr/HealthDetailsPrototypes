@@ -69,11 +69,17 @@ struct MaintenanceForm: View {
         )
     }
     
-    @ViewBuilder
     var fallbackToggle: some View {
-        if maintenancetype == .adaptive {
-            Section {
-                Toggle("Use Estimate when Adaptive cannot be calculated", isOn: $useEstimatedAsFallback)
+        
+        var footer: some View {
+            Text("This may occur when there is not enough Weight or Dietary Energy data to make the calculation.")
+        }
+        
+        return Group {
+            if maintenancetype == .adaptive {
+                Section(footer: footer) {
+                    Toggle("Use Estimate when Adaptive calculation cannot be made", isOn: $useEstimatedAsFallback)
+                }
             }
         }
     }

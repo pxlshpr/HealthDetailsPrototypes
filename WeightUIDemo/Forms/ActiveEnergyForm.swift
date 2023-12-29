@@ -188,8 +188,14 @@ struct ActiveEnergyForm: View {
                         source = newValue
                         setIsDirty()
                     }
-                    if source == .userEntered {
+                    switch source {
+                    case .userEntered:
                         showingAlert = true
+                    case .activityLevel:
+                        
+                        break
+                    default:
+                        break
                     }
                 }
             )
