@@ -60,8 +60,9 @@ struct LeanBodyMassForm: View {
             Text("Lean body mass data will no longer be read from or written to Apple Health.")
         }
         .sheet(isPresented: $showingForm) { measurementForm }
-        .navigationBarBackButtonHidden(isEditing && isPast)
         .safeAreaInset(edge: .bottom) { bottomValue }
+        .navigationBarBackButtonHidden(isPast && isEditing)
+        .interactiveDismissDisabled(isPast && isEditing && isDirty)
     }
     
     var bottomValue: some View {

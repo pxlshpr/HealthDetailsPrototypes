@@ -26,28 +26,27 @@ struct DietaryEnergyPointForm: View {
     }
 
     var body: some View {
-//        NavigationView {
-            Form {
-                notice
-                picker
-                if type == .custom {
-                    customSection
-                }
-                explanation
+        Form {
+            notice
+            picker
+            if type == .custom {
+                customSection
             }
-            .navigationTitle(dateString)
-            .toolbar { toolbarContent }
-            .navigationBarBackButtonHidden(isEditing && isPast)
-            .alert("Enter your dietary energy", isPresented: $showingAlert) {
-                TextField("kcal", text: customInput.binding)
-                    .keyboardType(.decimalPad)
-                Button("OK", action: submitCustomValue)
-                Button("Cancel") { customInput.cancel() }
-            }
-//        }
+            explanation
+        }
+        .navigationTitle(dateString)
+        .toolbar { toolbarContent }
+        .alert("Enter your dietary energy", isPresented: $showingAlert) {
+            TextField("kcal", text: customInput.binding)
+                .keyboardType(.decimalPad)
+            Button("OK", action: submitCustomValue)
+            Button("Cancel") { customInput.cancel() }
+        }
         .sheet(isPresented: $showingInfo) {
             AdaptiveDietaryEnergyInfo()
         }
+        .navigationBarBackButtonHidden(isPast && isEditing)
+        .interactiveDismissDisabled(isPast && isEditing && isDirty)
     }
     
     var isPast: Bool {

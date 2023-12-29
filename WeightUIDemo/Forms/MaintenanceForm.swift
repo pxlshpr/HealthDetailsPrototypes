@@ -34,11 +34,12 @@ struct MaintenanceForm: View {
         }
         .navigationTitle("Maintenance Energy")
         .toolbar { toolbarContent }
-        .navigationBarBackButtonHidden(isEditing && isPast)
         .sheet(isPresented: $showingMaintenanceInfo) {
             MaintenanceInfo()
         }
         .safeAreaInset(edge: .bottom) { bottomValue }
+        .navigationBarBackButtonHidden(isPast && isEditing)
+        .interactiveDismissDisabled(isPast && isEditing && isDirty)
     }
     
     var bottomValue: some View {

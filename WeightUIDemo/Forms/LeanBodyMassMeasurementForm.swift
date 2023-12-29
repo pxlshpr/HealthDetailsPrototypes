@@ -65,6 +65,7 @@ struct LeanBodyMassMeasurementForm: View {
                 fatPercentageInput.cancel()
             }
         }
+        .interactiveDismissDisabled(isDirty)
     }
     
     func submitCustomValue() {

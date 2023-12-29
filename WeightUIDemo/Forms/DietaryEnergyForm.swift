@@ -4,7 +4,6 @@ struct DietaryEnergyForm: View {
     
     let pastDate: Date?
     @State var isEditing: Bool
-    @State var isDirty: Bool = false
     
     @State var value: Double? = 2893
 
@@ -93,7 +92,6 @@ struct DietaryEnergyForm: View {
     }
     
     func undo() {
-        isDirty = false
         value = 2893
     }
 

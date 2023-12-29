@@ -41,10 +41,11 @@ struct WeightChangePointForm: View {
             explanation
         }
         .navigationTitle(dateString)
-        .navigationBarBackButtonHidden(isEditing && isPast)
         .navigationBarTitleDisplayMode(.large)
         .toolbar { toolbarContent }
         .safeAreaInset(edge: .bottom) { bottomValue }
+        .navigationBarBackButtonHidden(isPast && isEditing)
+        .interactiveDismissDisabled(isPast && isEditing && isDirty)
     }
     
     var bottomValue: some View {

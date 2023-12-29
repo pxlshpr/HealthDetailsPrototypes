@@ -29,12 +29,13 @@ struct AdaptiveMaintenanceForm: View {
         }
         .navigationTitle("Adaptive")
         .navigationBarTitleDisplayMode(.large)
-        .navigationBarBackButtonHidden(isEditing && isPast)
         .toolbar { toolbarContent }
         .sheet(isPresented: $showingInfo) {
             AdaptiveMaintenanceInfo(weeks: $weeks)
         }
         .safeAreaInset(edge: .bottom) { bottomValue }
+        .navigationBarBackButtonHidden(isPast && isEditing)
+        .interactiveDismissDisabled(isPast && isEditing && isDirty)
     }
     
     var bottomValue: some View {

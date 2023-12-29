@@ -42,7 +42,6 @@ struct WeightChangeForm: View {
         .navigationTitle("Weight Change")
         .navigationBarTitleDisplayMode(.large)
         .toolbar { toolbarContent }
-        .navigationBarBackButtonHidden(isEditing && isPast)
         .alert("Enter your weight \(isGain ? "gain" : "loss")", isPresented: $showingAlert) {
             TextField("kg", text: customInput.binding)
                 .keyboardType(.decimalPad)
@@ -50,6 +49,7 @@ struct WeightChangeForm: View {
             Button("Cancel") { customInput.cancel() }
         }
         .safeAreaInset(edge: .bottom) { bottomValue }
+        .navigationBarBackButtonHidden(isPast && isEditing)
         .interactiveDismissDisabled(isPast && isEditing && isDirty)
     }
     

@@ -46,7 +46,6 @@ struct ActiveEnergyForm: View {
             }
         }
         .navigationTitle("Active Energy")
-        .navigationBarBackButtonHidden(isEditing && isPast)
         .toolbar { toolbarContent }
         .sheet(isPresented: $showingActivityLevelInfo) {
             ActivityLevelInfo()
@@ -69,6 +68,8 @@ struct ActiveEnergyForm: View {
             Button("Cancel") { correctionInput.cancel() }
         }
         .safeAreaInset(edge: .bottom) { bottomValue }
+        .navigationBarBackButtonHidden(isPast && isEditing)
+        .interactiveDismissDisabled(isPast && isEditing && isDirty)
     }
     
     var bottomValue: some View {

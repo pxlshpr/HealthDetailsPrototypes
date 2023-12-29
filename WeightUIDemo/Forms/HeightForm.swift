@@ -41,8 +41,9 @@ struct HeightForm: View {
         } message: {
             Text("Height data will no longer be read from or written to Apple Health.")
         }
-        .navigationBarBackButtonHidden(isEditing && isPast)
         .safeAreaInset(edge: .bottom) { bottomValue }
+        .navigationBarBackButtonHidden(isPast && isEditing)
+        .interactiveDismissDisabled(isPast && isEditing && isDirty)
     }
     
     var bottomValue: some View {

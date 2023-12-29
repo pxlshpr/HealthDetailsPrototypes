@@ -6,7 +6,6 @@ struct EstimatedMaintenanceForm: View {
     
     let pastDate: Date?
     @State var isEditing: Bool
-    @State var isDirty: Bool = false
     @Binding var isPresented: Bool
 
     init(
