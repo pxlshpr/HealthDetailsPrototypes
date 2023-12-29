@@ -21,11 +21,13 @@ struct LeanBodyMassMeasurementForm: View {
     let pastDate: Date?
     @State var isEditing: Bool
     @State var isDirty: Bool = false
-    @Binding var isPresented: Bool
 
-    init(pastDate: Date? = nil, isPresented: Binding<Bool> = .constant(true)) {
+    @State var dismissDisabled: Bool = false
+    
+    init(
+        pastDate: Date? = nil
+    ) {
         self.pastDate = pastDate
-        _isPresented = isPresented
         _isEditing = State(initialValue: pastDate == nil)
     }
 
@@ -52,7 +54,12 @@ struct LeanBodyMassMeasurementForm: View {
                 fatPercentageInput.cancel()
             }
         }
-        .interactiveDismissDisabled(isDirty)
+        .interactiveDismissDisabled(dismissDisabled)
+        .onChange(of: isDirty) { _, _ in setDismissDisabled() }
+    }
+    
+    func setDismissDisabled() {
+        dismissDisabled = isDirty
     }
     
     var form: some View {
@@ -168,7 +175,15 @@ struct LeanBodyMassMeasurementForm: View {
             ),
             pastDate: pastDate,
             isEditing: $isEditing,
-            isPresented: $isPresented,
+            isPresented: Binding<Bool>(
+                get: { true },
+                set: { newValue in
+                    if !newValue {
+                        dismiss()
+                    }
+                }
+            ),
+            dismissDisabled: $dismissDisabled,
             showHeader: false
         )
     }
@@ -181,7 +196,15 @@ struct LeanBodyMassMeasurementForm: View {
             ),
             pastDate: pastDate,
             isEditing: $isEditing,
-            isPresented: $isPresented
+            isPresented: Binding<Bool>(
+                get: { true },
+                set: { newValue in
+                    if !newValue {
+                        dismiss()
+                    }
+                }
+            ),
+            dismissDisabled: $dismissDisabled
         )
     }
     

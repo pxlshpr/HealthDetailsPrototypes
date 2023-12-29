@@ -6,6 +6,7 @@ struct EquationVariablesSections: View {
     let pastDate: Date?
     @Binding var isEditing: Bool
     @Binding var isPresented: Bool
+    @Binding var dismissDisabled: Bool
     let showHeader: Bool
     
     init(
@@ -13,12 +14,14 @@ struct EquationVariablesSections: View {
         pastDate: Date?,
         isEditing: Binding<Bool>,
         isPresented: Binding<Bool>,
+        dismissDisabled: Binding<Bool>,
         showHeader: Bool = true
     ) {
         _healthDetails = healthDetails
         self.pastDate = pastDate
         _isEditing = isEditing
         _isPresented = isPresented
+        _dismissDisabled = dismissDisabled
         self.showHeader = showHeader
     }
     
@@ -131,11 +134,18 @@ struct EquationVariablesSections: View {
                 NavigationLink {
                     switch healthDetail {
                     case .height:
-                        HeightForm(pastDate: pastDate, isPresented: $isPresented)
+                        HeightForm(
+                            pastDate: pastDate,
+                            isPresented: $isPresented
+                        )
                     case .weight:
                         WeightForm()
                     case .leanBodyMass:
-                        LeanBodyMassForm()
+                        LeanBodyMassForm(
+                            pastDate: pastDate,
+                            isPresented: $isPresented,
+                            dismissDisabled: $dismissDisabled
+                        )
                     default:
                         EmptyView()
                     }

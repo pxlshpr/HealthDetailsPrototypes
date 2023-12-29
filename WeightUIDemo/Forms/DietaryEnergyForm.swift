@@ -8,12 +8,16 @@ struct DietaryEnergyForm: View {
     @State var value: Double? = 2893
 
     @Binding var isPresented: Bool
+    @Binding var dismissDisabled: Bool
 
-    @State var presentedData: ListData? = nil
-    
-    init(pastDate: Date? = nil, isPresented: Binding<Bool> = .constant(true)) {
+    init(
+        pastDate: Date? = nil,
+        isPresented: Binding<Bool> = .constant(true),
+        dismissDisabled: Binding<Bool> = .constant(false)
+    ) {
         self.pastDate = pastDate
         _isPresented = isPresented
+        _dismissDisabled = dismissDisabled
         _isEditing = State(initialValue: true)
     }
 
@@ -25,12 +29,6 @@ struct DietaryEnergyForm: View {
         }
         .navigationTitle("Dietary Energy")
         .toolbar { toolbarContent }
-        .sheet(item: $presentedData) { data in
-            DietaryEnergyPointForm(
-                dateString: data.dateString,
-                pastDate: pastDate
-            )
-        }
         .safeAreaInset(edge: .bottom) { bottomValue }
     }
     
@@ -52,12 +50,11 @@ struct DietaryEnergyForm: View {
                 NavigationLink {
                     DietaryEnergyPointForm(
                         dateString: data.dateString,
-                        pastDate: pastDate
+                        pastDate: pastDate,
+                        isPresented: $isPresented,
+                        dismissDisabled: $dismissDisabled
                     )
                 } label: {
-//                Button {
-//                    presentedData = data
-//                } label: {
                     DietaryEnergyCell(listData: data)
                 }
             }
@@ -170,7 +167,7 @@ struct DietaryEnergyCell: View {
     var detail: some View {
         if listData.type == .useAverage {
 //            Text("Not Included")
-            Text("Use Average")
+            Text("Exclude and Use Average")
 //                .foregroundStyle(Color(.label))
                 .foregroundStyle(Color(.secondaryLabel))
         } else {

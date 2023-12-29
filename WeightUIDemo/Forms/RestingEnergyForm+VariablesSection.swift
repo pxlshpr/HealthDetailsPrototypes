@@ -10,7 +10,8 @@ extension RestingEnergyForm {
             ),
             pastDate: pastDate,
             isEditing: $isEditing,
-            isPresented: $isPresented
+            isPresented: $isPresented,
+            dismissDisabled: $dismissDisabled
         )
     }
 

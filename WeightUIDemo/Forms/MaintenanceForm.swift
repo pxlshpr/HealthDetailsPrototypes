@@ -8,6 +8,8 @@ struct MaintenanceForm: View {
     @State var adaptiveValue: Double = 3225
     @State var estimatedValue: Double = 2856
 
+    @State var useEstimatedAsFallback = true
+
     @State var showingMaintenanceInfo = false
     
     let pastDate: Date?
@@ -15,11 +17,16 @@ struct MaintenanceForm: View {
     @State var isDirty: Bool = false
     
     @Binding var isPresented: Bool
-    @State var useEstimatedAsFallback = true
+    @Binding var dismissDisabled: Bool
 
-    init(pastDate: Date? = nil, isPresented: Binding<Bool> = .constant(true)) {
+    init(
+        pastDate: Date? = nil,
+        isPresented: Binding<Bool> = .constant(true),
+        dismissDisabled: Binding<Bool> = .constant(false)
+    ) {
         self.pastDate = pastDate
         _isPresented = isPresented
+        _dismissDisabled = dismissDisabled
         _isEditing = State(initialValue: pastDate == nil)
     }
     
@@ -39,7 +46,12 @@ struct MaintenanceForm: View {
         }
         .safeAreaInset(edge: .bottom) { bottomValue }
         .navigationBarBackButtonHidden(isPast && isEditing)
-        .interactiveDismissDisabled(isPast && isEditing && isDirty)
+        .onChange(of: isEditing) { _, _ in setDismissDisabled() }
+        .onChange(of: isDirty) { _, _ in setDismissDisabled() }
+    }
+    
+    func setDismissDisabled() {
+        dismissDisabled = isPast && isEditing && isDirty
     }
     
     var bottomValue: some View {
@@ -116,7 +128,11 @@ struct MaintenanceForm: View {
         }
         
         var destination: some View {
-            AdaptiveMaintenanceForm(pastDate: pastDate, isPresented: $isPresented)
+            AdaptiveMaintenanceForm(
+                pastDate: pastDate,
+                isPresented: $isPresented,
+                dismissDisabled: $dismissDisabled
+            )
         }
         
         var NavigationViewLink: some View {
@@ -155,7 +171,8 @@ struct MaintenanceForm: View {
         var destination: some View {
             EstimatedMaintenanceForm(
                 pastDate: pastDate,
-                isPresented: $isPresented
+                isPresented: $isPresented,
+                dismissDisabled: $dismissDisabled
             )
         }
         

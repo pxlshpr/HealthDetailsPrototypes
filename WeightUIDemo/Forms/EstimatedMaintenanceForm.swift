@@ -7,13 +7,16 @@ struct EstimatedMaintenanceForm: View {
     let pastDate: Date?
     @State var isEditing: Bool
     @Binding var isPresented: Bool
+    @Binding var dismissDisabled: Bool
 
     init(
         pastDate: Date? = nil,
-        isPresented: Binding<Bool> = .constant(true)
+        isPresented: Binding<Bool> = .constant(true),
+        dismissDisabled: Binding<Bool> = .constant(false)
     ) {
         self.pastDate = pastDate
         _isPresented = isPresented
+        _dismissDisabled = dismissDisabled
         _isEditing = State(initialValue: true)
     }
 
@@ -49,7 +52,8 @@ struct EstimatedMaintenanceForm: View {
             NavigationLink {
                 RestingEnergyForm(
                     pastDate: pastDate,
-                    isPresented: $isPresented
+                    isPresented: $isPresented,
+                    dismissDisabled: $dismissDisabled
                 )
             } label: {
                 HStack {
@@ -64,7 +68,11 @@ struct EstimatedMaintenanceForm: View {
     var activeEnergyLink: some View {
         Section {
             NavigationLink {
-                ActiveEnergyForm(pastDate: pastDate, isPresented: $isPresented)
+                ActiveEnergyForm(
+                    pastDate: pastDate,
+                    isPresented: $isPresented,
+                    dismissDisabled: $dismissDisabled
+                )
             } label: {
                 HStack {
                     Text("Active Energy")

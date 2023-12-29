@@ -1,63 +1,13 @@
 import SwiftUI
 
-enum HealthDetail: Int, Identifiable, CaseIterable {
-    case maintenance = 1
-    
-    case age
-    case sex
-    case weight
-    case leanBodyMass
-    case height
-    
-    var id: Int { rawValue }
-    var name: String {
-        switch self {
-        case .maintenance:  "Maintenance Energy"
-        case .age: "Age"
-        case .sex: "Sex"
-        case .height: "Height"
-        case .weight: "Weight"
-        case .leanBodyMass: "Lean Body Mass"
-        }
-    }
-    
-    var isCharacteristic: Bool {
-        switch self {
-        case .age, .sex: true
-        default: false
-        }
-    }
-    
-    var isMeasurement: Bool {
-        switch self {
-        case .height, .weight, .leanBodyMass: true
-        default: false
-        }
-    }
-}
-
-extension HealthDetail: Comparable {
-    static func < (lhs: HealthDetail, rhs: HealthDetail) -> Bool {
-        lhs.rawValue < rhs.rawValue
-    }
-}
-
-extension Array where Element == HealthDetail {
-    var characteristics: [HealthDetail] {
-        filter{ $0.isCharacteristic }.sorted()
-    }
-    
-    var measurements: [HealthDetail] {
-        filter{ $0.isMeasurement }.sorted()
-    }
-}
-
 struct HealthDetails: View {
     
     let pastDate: Date?
     @State var presentedHealthDetail: HealthDetail? = nil
     
     @Binding var isPresented: Bool
+    
+    @State var dismissDisabled: Bool = false
     
     init(pastDate: Date? = nil, isPresented: Binding<Bool> = .constant(false)) {
         self.pastDate = pastDate
@@ -73,6 +23,7 @@ struct HealthDetails: View {
         .sheet(item: $presentedHealthDetail) { route in
             sheet(for: route)
         }
+        .interactiveDismissDisabled(dismissDisabled)
     }
     
     var form: some View {
@@ -110,12 +61,14 @@ struct HealthDetails: View {
         case .maintenance:
             MaintenanceForm(
                 pastDate: pastDate,
-                isPresented: $isPresented
+                isPresented: $isPresented,
+                dismissDisabled: $dismissDisabled
             )
         case .leanBodyMass:
             LeanBodyMassForm(
                 pastDate: pastDate,
-                isPresented: $isPresented
+                isPresented: $isPresented,
+                dismissDisabled: $dismissDisabled
             )
         default:
             EmptyView()

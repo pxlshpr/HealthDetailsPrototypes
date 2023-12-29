@@ -5,17 +5,23 @@ struct AdaptiveMaintenanceForm: View {
     
     @State var value: Double? = 3225
     @State var weeks: Int = 1
+    @State var showingInfo = false
 
     let pastDate: Date?
     @State var isEditing: Bool
     @State var isDirty: Bool = false
     
     @Binding var isPresented: Bool
-    @State var showingInfo = false
+    @Binding var dismissDisabled: Bool
     
-    init(pastDate: Date? = nil, isPresented: Binding<Bool> = .constant(true)) {
+    init(
+        pastDate: Date? = nil,
+        isPresented: Binding<Bool> = .constant(true),
+        dismissDisabled: Binding<Bool> = .constant(false)
+    ) {
         self.pastDate = pastDate
         _isPresented = isPresented
+        _dismissDisabled = dismissDisabled
         _isEditing = State(initialValue: pastDate == nil)
     }
 
@@ -35,9 +41,14 @@ struct AdaptiveMaintenanceForm: View {
         }
         .safeAreaInset(edge: .bottom) { bottomValue }
         .navigationBarBackButtonHidden(isPast && isEditing)
-        .interactiveDismissDisabled(isPast && isEditing && isDirty)
+        .onChange(of: isEditing) { _, _ in setDismissDisabled() }
+        .onChange(of: isDirty) { _, _ in setDismissDisabled() }
     }
     
+    func setDismissDisabled() {
+        dismissDisabled = isPast && isEditing && isDirty
+    }
+
     var bottomValue: some View {
         BottomValue(
             value: $value,
@@ -64,7 +75,8 @@ struct AdaptiveMaintenanceForm: View {
         var destination: some View {
             WeightChangeForm(
                 pastDate: pastDate,
-                isPresented: $isPresented
+                isPresented: $isPresented,
+                dismissDisabled: $dismissDisabled
             )
         }
         
@@ -92,7 +104,11 @@ struct AdaptiveMaintenanceForm: View {
 
     var dietaryEnergyLink: some View {
         var destination: some View {
-            DietaryEnergyForm(pastDate: pastDate, isPresented: $isPresented)
+            DietaryEnergyForm(
+                pastDate: pastDate,
+                isPresented: $isPresented,
+                dismissDisabled: $dismissDisabled
+            )
         }
         var label: some View {
             HStack {
@@ -211,4 +227,32 @@ struct AdaptiveMaintenanceForm: View {
     NavigationView {
         AdaptiveMaintenanceForm(pastDate: MockPastDate)
     }
+}
+struct DismissTest: View {
+    @State var presented: Bool = false
+    var body: some View {
+        NavigationView {
+            Form {
+                Button("Present") {
+                    presented = true
+                }
+            }
+            .sheet(isPresented: $presented) {
+                NavigationView {
+                    AdaptiveMaintenanceForm(
+                        pastDate: MockPastDate,
+                        isPresented: $presented
+                    )
+                }
+            }
+        }
+    }
+}
+
+#Preview("Dismiss Test") {
+    DismissTest()
+}
+
+#Preview("DemoView") {
+    DemoView()
 }

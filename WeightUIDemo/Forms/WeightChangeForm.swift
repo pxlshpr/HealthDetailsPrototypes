@@ -21,10 +21,16 @@ struct WeightChangeForm: View {
     @State var isEditing: Bool
     @State var isDirty: Bool = false
     @Binding var isPresented: Bool
+    @Binding var dismissDisabled: Bool
 
-    init(pastDate: Date? = nil, isPresented: Binding<Bool> = .constant(true)) {
+    init(
+        pastDate: Date? = nil,
+        isPresented: Binding<Bool> = .constant(true),
+        dismissDisabled: Binding<Bool> = .constant(false)
+    ) {
         self.pastDate = pastDate
         _isPresented = isPresented
+        _dismissDisabled = dismissDisabled
         _isEditing = State(initialValue: pastDate == nil)
     }
 
@@ -50,9 +56,14 @@ struct WeightChangeForm: View {
         }
         .safeAreaInset(edge: .bottom) { bottomValue }
         .navigationBarBackButtonHidden(isPast && isEditing)
-        .interactiveDismissDisabled(isPast && isEditing && isDirty)
+        .onChange(of: isEditing) { _, _ in setDismissDisabled() }
+        .onChange(of: isDirty) { _, _ in setDismissDisabled() }
     }
     
+    func setDismissDisabled() {
+        dismissDisabled = isPast && isEditing && isDirty
+    }
+
     var bottomValue: some View {
         BottomValue(
             value: $value,
@@ -124,6 +135,7 @@ struct WeightChangeForm: View {
                     WeightChangePointForm(
                         pastDate: pastDate,
                         isPresented: $isPresented,
+                        dismissDisabled: $dismissDisabled,
                         dateString: "24 Dec",
                         isCurrent: true
                     )
@@ -141,6 +153,7 @@ struct WeightChangeForm: View {
                     WeightChangePointForm(
                         pastDate: pastDate,
                         isPresented: $isPresented,
+                        dismissDisabled: $dismissDisabled,
                         dateString: "17 Dec",
                         isCurrent: false
                     )
