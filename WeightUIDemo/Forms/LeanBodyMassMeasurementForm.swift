@@ -166,7 +166,7 @@ struct LeanBodyMassMeasurementForm: View {
                 set: { _ in }
             ),
             pastDate: date,
-            isEditing: .constant(true),
+            isEditing: .constant(false),
             isPresented: Binding<Bool>(
                 get: { true },
                 set: { newValue in
@@ -187,7 +187,7 @@ struct LeanBodyMassMeasurementForm: View {
                 set: { _ in }
             ),
             pastDate: date,
-            isEditing: .constant(true),
+            isEditing: .constant(false),
             isPresented: Binding<Bool>(
                 get: { true },
                 set: { newValue in

@@ -105,6 +105,7 @@ struct EquationVariablesSections: View {
             switch healthDetail {
             case .height: Date(fromDateString: "2017_01_13")!
             case .weight: (pastDate ?? Date.now).moveDayBy(-1)
+//            case .weight: (pastDate ?? Date.now).moveDayBy(0)
             case .leanBodyMass: nil
             default:            nil
             }
