@@ -390,22 +390,18 @@ struct LeanBodyMassMeasurementForm: View {
 
     var toolbarContent: some ToolbarContent {
         Group {
-//            ToolbarItem(placement: .principal) {
-//                Text("Measurement")
-//                    .font(.headline)
-//            }
-//            ToolbarItem(placement: .topBarTrailing) {
-//                Button("Add") {
-//                    
-//                }
-//                .fontWeight(.bold)
-//                .disabled(!isDirty)
-//            }
-//            ToolbarItem(placement: .topBarLeading) {
-//                Button("Cancel") {
-//                    dismiss()
-//                }
-//            }
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("Add") {
+                    dismiss()
+                }
+                .fontWeight(.bold)
+                .disabled(!isDirty)
+            }
+            ToolbarItem(placement: .topBarLeading) {
+                Button("Cancel") {
+                    dismiss()
+                }
+            }
             ToolbarItem(placement: .bottomBar) {
                 HStack(alignment: .firstTextBaseline, spacing: 5) {
                     if let fatPercentage = fatPercentageInput.double {
