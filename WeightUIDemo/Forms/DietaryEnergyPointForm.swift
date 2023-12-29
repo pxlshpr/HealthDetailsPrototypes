@@ -28,13 +28,15 @@ struct DietaryEnergyPointForm: View {
     var body: some View {
         Form {
             notice
+            dateSection
             picker
             if type == .custom {
                 customSection
             }
             explanation
         }
-        .navigationTitle(dateString)
+        .navigationTitle("Dietary Energy")
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar { toolbarContent }
         .alert("Enter your dietary energy", isPresented: $showingAlert) {
             TextField("kcal", text: customInput.binding)
@@ -45,8 +47,19 @@ struct DietaryEnergyPointForm: View {
         .sheet(isPresented: $showingInfo) {
             AdaptiveDietaryEnergyInfo()
         }
+        .safeAreaInset(edge: .bottom) { bottomValue }
         .navigationBarBackButtonHidden(isPast && isEditing)
         .interactiveDismissDisabled(isPast && isEditing && isDirty)
+    }
+    
+    var dateSection: some View {
+        Section {
+            HStack {
+                Text("Date")
+                Spacer()
+                Text(dateString)
+            }
+        }
     }
     
     var isPast: Bool {
@@ -63,25 +76,37 @@ struct DietaryEnergyPointForm: View {
         }
     }
     
-    var toolbarContent: some ToolbarContent {
-        Group {
-            ToolbarItem(placement: .bottomBar) {
-                HStack(alignment: .firstTextBaseline, spacing: 5) {
-                    Spacer()
-                    if let value {
-                        Text("\(value.formattedEnergy)")
-                            .contentTransition(.numericText(value: value))
-                            .font(LargeNumberFont)
-                        Text("kcal")
-                            .font(LargeUnitFont)
-                            .foregroundStyle(.secondary)
-                    } else {
-                        Text(type == .custom ? "Not Set" : "Not Included")
-                            .font(LargeUnitFont)
-                            .foregroundStyle(.secondary)
-                    }
+    var bottomValue: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 5) {
+            Spacer()
+            if let value {
+                Text("\(value.formattedEnergy)")
+                    .contentTransition(.numericText(value: value))
+                    .font(LargeNumberFont)
+                Text("kcal")
+                    .font(LargeUnitFont)
+                    .foregroundStyle(.secondary)
+            } else {
+                ZStack {
+                    
+                    /// dummy text placed to ensure height stays consistent
+                    Text("0")
+                        .font(LargeNumberFont)
+                        .opacity(0)
+
+                    Text(type == .custom ? "Not Set" : "Not Included")
+                        .font(LargeUnitFont)
+                        .foregroundStyle(.secondary)
                 }
             }
+        }
+        .padding(.horizontal, BottomValueHorizontalPadding)
+        .padding(.vertical, BottomValueVerticalPadding)
+        .background(.bar)
+    }
+    
+    var toolbarContent: some ToolbarContent {
+        Group {
             topToolbarContent(
                 isEditing: $isEditing,
                 isDirty: $isDirty,
@@ -115,15 +140,31 @@ struct DietaryEnergyPointForm: View {
     }
     
     var customSection: some View {
-        Section {
-            Button {
-                showingAlert = true
-            } label: {
-                Text("\(value != nil ? "Edit" : "Set") Dietary Energy")
-            }
-            .disabled(!isEditing)
-        }
+        InputSection(
+            name: "Dietary Energy",
+            valueString: Binding<String?>(
+                get: { value?.formattedEnergy },
+                set: { _ in }
+            ),
+            showingAlert: $showingAlert,
+            isDisabled: Binding<Bool>(
+                get: { !isEditing },
+                set: { _ in }
+            ),
+            unitString: "kcal"
+        )
     }
+//    var customSection: some View {
+//        
+//        Section {
+//            Button {
+//                showingAlert = true
+//            } label: {
+//                Text("\(value != nil ? "Edit" : "Set") Dietary Energy")
+//            }
+//            .disabled(!isEditing)
+//        }
+//    }
     
     func value(for type: DietaryEnergyPointType) -> Double? {
         switch type {
@@ -139,25 +180,100 @@ struct DietaryEnergyPointForm: View {
         let binding = Binding<DietaryEnergyPointType>(
             get: { type },
             set: { newValue in
-                withAnimation {
-                    type = newValue
-                    self.value = value(for: newValue)
-                }
-                if newValue == .custom {
-                    showingAlert = true
-                }
-                setIsDirty()
+                setType(to: newValue)
             }
         )
-        return Section {
-            Picker("Dietary Energy", selection: binding) {
-                ForEach(DietaryEnergyPointType.allCases, id: \.self) {
+        
+        func setType(to newValue: DietaryEnergyPointType) {
+            withAnimation {
+                type = newValue
+                self.value = value(for: newValue)
+            }
+            if newValue == .custom {
+                showingAlert = true
+            }
+            setIsDirty()
+        }
+        
+        var picker: some View {
+            Picker(selection: binding) {
+                ForEach(DietaryEnergyPointType.allCases) {
                     Text($0.name).tag($0)
                 }
+            } label: {
+                EmptyView()
             }
-            .pickerStyle(.menu)
+            .pickerStyle(.inline)
             .foregroundStyle(isEditing ? .primary : .secondary)
             .disabled(!isEditing)
+        }
+
+        var list: some View {
+            func cell(for type: DietaryEnergyPointType) -> some View {
+                @ViewBuilder
+                var image: some View {
+                    switch type {
+                    case .healthKit:
+                        Image("AppleHealthIcon")
+                            .resizable()
+                            .frame(width: 24, height: 24)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 5)
+                                    .stroke(Color(.systemGray3), lineWidth: 0.5)
+                            )
+                    case .fasted:
+                        Text("0")
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundStyle(Color(.label))
+                            .monospaced()
+                            .frame(width: 24, height: 24)
+                            .background(
+                                RoundedRectangle(cornerRadius: 5)
+                                    .foregroundStyle(Color(.systemGray4))
+                            )
+                    default:
+                        Image(systemName: type.image)
+                            .scaleEffect(type.imageScale)
+                            .foregroundStyle(Color(.label))
+                            .frame(width: 24, height: 24)
+                            .background(
+                                RoundedRectangle(cornerRadius: 5)
+                                    .foregroundStyle(Color(.systemGray4))
+                            )
+                    }
+                }
+                
+                var checkmark: some View {
+                    Image(systemName: "checkmark")
+                        .foregroundStyle(Color.accentColor)
+                        .opacity(self.type == type ? 1 : 0)
+                        .animation(.none, value: self.type)
+                }
+                
+                var name: some View {
+                    Text(type.name)
+                        .foregroundStyle(isDisabled ? Color(.secondaryLabel) : Color(.label))
+                }
+                
+                return HStack {
+                    image
+                    name
+                    Spacer()
+                    checkmark
+                }
+
+            }
+            return ForEach(DietaryEnergyPointType.allCases) { type in
+                Button {
+                    setType(to: type)
+                } label: {
+                    cell(for: type)
+                }
+            }
+        }
+        return Section {
+//            picker
+            list
         }
     }
     

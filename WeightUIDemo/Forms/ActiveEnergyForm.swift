@@ -3,7 +3,7 @@ import SwiftUI
 struct ActiveEnergyForm: View {
 
     @State var value: Double? = valueForActivityLevel(.lightlyActive)
-    @State var source: ActiveEnergySource = .activityLevel
+    @State var source: ActiveEnergySource = .userEntered
     @State var activityLevel: ActivityLevel = .lightlyActive
     @State var intervalType: HealthIntervalType = .average
     @State var interval: HealthInterval = .init(3, .day)
@@ -237,17 +237,20 @@ struct ActiveEnergyForm: View {
         }
     }
     
-    @ViewBuilder
     var customSection: some View {
-        if !isDisabled {
-            Section {
-                Button {
-                    showingAlert = true
-                } label: {
-                    Text("\(value != nil ? "Edit" : "Set") Active Energy")
-                }
-            }
-        }
+        InputSection(
+            name: "Active Energy",
+            valueString: Binding<String?>(
+                get: { value?.formattedEnergy },
+                set: { _ in }
+            ),
+            showingAlert: $showingAlert,
+            isDisabled: Binding<Bool>(
+                get: { !isEditing },
+                set: { _ in }
+            ),
+            unitString: "kcal"
+        )
     }
 }
 

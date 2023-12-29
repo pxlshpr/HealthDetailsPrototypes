@@ -1,12 +1,16 @@
 import SwiftUI
 
-enum DietaryEnergyPointType: CaseIterable {
-    case log
+enum DietaryEnergyPointType: Int, CaseIterable, Identifiable {
+    case log = 1
     case healthKit
     case fasted
     case useAverage
     case custom
 
+    var id: Int {
+        rawValue
+    }
+    
     var image: String {
         switch self {
         case .log:          "book.closed"
@@ -19,11 +23,18 @@ enum DietaryEnergyPointType: CaseIterable {
 
     var name: String {
         switch self {
-        case .log:          "Log"
-        case .healthKit:    "Apple Health"
-        case .fasted:       "Fasted"
-        case .custom:       "Custom"
-        case .useAverage:   "Use Average"
+        case .log:          "Use Log"
+        case .healthKit:    "Use Apple Health"
+        case .fasted:       "Set as Fasted"
+        case .custom:       "Enter Manually"
+        case .useAverage:   "Exclude and Use Average"
+        }
+    }
+    
+    var imageScale: CGFloat {
+        switch self {
+        case .useAverage:   0.85
+        default:            1.0
         }
     }
 

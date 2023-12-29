@@ -1,18 +1,5 @@
 import SwiftUI
 
-public extension Double {
-    
-    var roundedToOnePlace: String {
-        /// round it off to a reasonable number first to avoid numbers like `7.00000000000009` resulting in `7.0`
-        let value = self.rounded(toPlaces: 6).truncatingRemainder(dividingBy: 1)
-        if value == 0 {
-            return String(format: "%.0f", self.rounded(toPlaces: 1))
-        } else {
-            return String(self.rounded(toPlaces: 1))
-        }
-    }
-}
-
 struct LeanBodyMassMeasurementForm: View {
     
     @Environment(\.dismiss) var dismiss
@@ -68,23 +55,6 @@ struct LeanBodyMassMeasurementForm: View {
         .interactiveDismissDisabled(isDirty)
     }
     
-    func submitCustomValue() {
-        withAnimation {
-            customInput.submitValue()
-            value = customInput.double
-            calculateFatPercentage(forLeanBodyMass: customInput.double)
-            setIsDirty()
-        }
-    }
-
-    func submitFatPercentage() {
-        withAnimation {
-            fatPercentageInput.submitValue()
-            calculateLeanBodyMass(forFatPercentage: fatPercentageInput.double)
-            setIsDirty()
-        }
-    }
-
     var form: some View {
         Form {
             notice
@@ -106,287 +76,6 @@ struct LeanBodyMassMeasurementForm: View {
         }
     }
     
-    @ViewBuilder
-    var customSection: some View {
-        if !isDisabled {
-            Section {
-                Button {
-                    showingAlert = true
-                } label: {
-                    Text("\(value != nil ? "Edit" : "Set") Lean Body Mass")
-                }
-            }
-        }
-    }
-    
-//    var customSection: some View {
-//        CustomValueSection(
-//            isDisabled: Binding<Bool>(
-//                get: { isDisabled },
-//                set: { _ in }
-//            ),
-//            value: Binding<Double?>(
-//                get: { value },
-//                set: { newValue in
-//                    withAnimation {
-//                        value = newValue
-//                        calculateFatPercentage(forLeanBodyMass: newValue)
-//                    }
-//                }
-//            ),
-//            customValue: $customValue,
-//            customValueTextAsDouble: $customValueTextAsDouble,
-//            customValueText: $customValueText,
-//            name: "Lean Body Mass",
-//            unit: "kg",
-//            setIsDirty: setIsDirty,
-//            showingAlert: $showingAlert
-//        )
-//    }
-    
-    func calculateFatPercentage(forLeanBodyMass lbm: Double? = nil) {
-        guard let lbm = lbm ?? self.value else {
-            setFatPercentage(nil)
-            return
-        }
-        let weight = 95.7
-        let p = ((max(0, (weight - lbm)) / weight) * 100)
-        setFatPercentage(p)
-    }
-    
-    func calculateLeanBodyMass(forFatPercentage p: Double? = nil) {
-        guard let p = p ?? self.fatPercentageInput.double else {
-            setLeanBodyMass(nil)
-            return
-        }
-        let weight = 95.7
-        let lbm = weight - ((p / 100.0) * weight)
-        setLeanBodyMass(lbm)
-    }
-    
-    func setFatPercentage(_ p: Double?) {
-        guard let p = p?.rounded(toPlaces: 1) else {
-            fatPercentageInput = DoubleInput()
-            return
-        }
-        fatPercentageInput = DoubleInput(double: p)
-    }
-    
-    func setLeanBodyMass(_ lbm: Double?) {
-        guard let lbm = lbm?.rounded(toPlaces: 1) else {
-            value = nil
-            customInput = DoubleInput()
-            return
-        }
-        value = lbm
-        customInput = DoubleInput(double: lbm)
-    }
-    
-    @ViewBuilder
-    var fatPercentageEnterSection: some View {
-        if !isDisabled {
-            Section {
-                Button {
-                    showingFatPercentageAlert = true
-                } label: {
-                    Text("\(value != nil ? "Edit" : "Set") Fat Percentage")
-                }
-            }
-        }
-    }
-    
-//    var fatPercentageEnterSection: some View {
-//        CustomValueSection(
-//            isDisabled: Binding<Bool>(
-//                get: { isDisabled },
-//                set: { _ in }
-//            ),
-//            value: Binding<Double?>(
-//                get: { fatPercentage },
-//                set: { newValue in
-//                    withAnimation {
-//                        fatPercentage = newValue
-//                        calculateLeanBodyMass(forFatPercentage: newValue)
-//                    }
-//                }
-//            ),
-//            customValue: $fatPercentage,
-//            customValueTextAsDouble: $fatPercentageTextAsDouble,
-//            customValueText: $fatPercentageText,
-//            name: "Fat Percentage",
-//            unit: "%",
-//            setIsDirty: setIsDirty,
-//            showingAlert: $showingFatPercentageAlert
-//        )
-//    }
-    
-    var weightSection: some View {
-        EquationVariablesSections(
-            healthDetails: Binding<[HealthDetail]>(
-                get: { [.weight] },
-                set: { _ in }
-            ),
-            pastDate: pastDate,
-            isEditing: $isEditing,
-            isPresented: $isPresented,
-            showHeader: false
-        )
-    }
-
-    var equationVariablesSections: some View {
-        EquationVariablesSections(
-            healthDetails: Binding<[HealthDetail]>(
-                get: { equation.requiredHealthDetails },
-                set: { _ in }
-            ),
-            pastDate: pastDate,
-            isEditing: $isEditing,
-            isPresented: $isPresented
-        )
-    }
-    
-    func setIsDirty() {
-        isDirty = if let value {
-            value != 72
-            || fatPercentageInput.double != 24.8
-        } else {
-            false
-        }
-    }
-    
-    var isDisabled: Bool {
-        isPast && !isEditing
-    }
-    
-    var controlColor: Color {
-        isDisabled ? .secondary : .primary
-    }
-    
-    var isPast: Bool {
-        pastDate != nil
-    }
-    
-    var equationSection: some View {
-        let binding = Binding<LeanBodyMassEquation>(
-            get: { equation },
-            set: { newValue in
-                withAnimation {
-                    equation = newValue
-                    calculateEquation()
-                    setIsDirty()
-                }
-            }
-        )
-        
-        @ViewBuilder
-        var footer: some View {
-            if !isDisabled {
-                Button {
-                    showingEquationsInfo = true
-                } label: {
-                    Text("Learn more…")
-                        .font(.footnote)
-                }
-            }
-        }
-        
-        return Section(footer: footer) {
-            Picker("Equation", selection: binding) {
-                ForEach(LeanBodyMassEquation.allCases, id: \.self) {
-                    Text($0.name).tag($0)
-                }
-            }
-            .pickerStyle(.menu)
-            .disabled(isDisabled)
-            .foregroundStyle(controlColor)
-        }
-    }
-    
-    var dateTimeSection: some View {
-        Section {
-            DatePicker(
-                "Date",
-                selection: $date,
-                displayedComponents: .date
-            )
-            .disabled(true)
-            DatePicker(
-                "Time",
-                selection: $time,
-                displayedComponents: .hourAndMinute
-            )
-        }
-    }
-    
-    func calculateEquation() {
-        let weightInKg: Double? = 95.7
-//        let heightInCm: Double? = 177
-        let heightInCm: Double? = nil
-        let sexIsFemale: Bool? = false
-        
-        let lbm: Double? = if let weightInKg, let heightInCm, let sexIsFemale {
-            equation.calculateInKg(
-                sexIsFemale: sexIsFemale,
-                weightInKg: weightInKg,
-                heightInCm: heightInCm
-            )
-        } else {
-            nil
-        }
-        withAnimation {
-            setLeanBodyMass(lbm)
-            calculateFatPercentage()
-        }
-    }
-    var sourceSection: some View {
-        let binding = Binding<LeanBodyMassSource>(
-            get: { source },
-            set: { newValue in
-                withAnimation {
-                    source = newValue
-//                    calculateEquation()
-                    setIsDirty()
-                }
-                switch source {
-                case .userEntered:
-                    showingAlert = true
-                case .fatPercentage:
-                    showingFatPercentageAlert = true
-                case .equation:
-                    calculateEquation()
-                default:
-                    break
-                }
-            }
-        )
-        var picker: some View {
-            Picker("Source", selection: binding) {
-                ForEach(LeanBodyMassSource.formCases) { source in
-                    Text(source.name).tag(source)
-                }
-            }
-            .pickerStyle(.segmented)
-            .listRowSeparator(.hidden)
-        }
-        
-        var description: String {
-            switch source {
-            case .healthKit:
-                ""
-            case .equation:
-                "Use an equation to calculate your Lean Body Mass."
-            case .fatPercentage:
-                "Use your fat percentage to calculate your Lean Body Mass."
-            case .userEntered:
-                "Enter your Lean Body Mass manually."
-            }
-        }
-        return Section {
-            picker
-            Text(description)
-        }
-    }
-
     @ViewBuilder
     var notice: some View {
         if let pastDate {
@@ -444,6 +133,258 @@ struct LeanBodyMassMeasurementForm: View {
 //                saveAction: save
 //            )
         }
+    }
+    
+    //MARK: - Sections
+    var customSection: some View {
+        InputSection(
+            name: "Lean Body Mass",
+            valueString: Binding<String?>(
+                get: { customInput.double?.clean },
+                set: { _ in }
+            ),
+            showingAlert: $showingAlert,
+            unitString: "kcal"
+        )
+    }
+    
+    var fatPercentageEnterSection: some View {
+        InputSection(
+            name: "Fat Percentage",
+            valueString: Binding<String?>(
+                get: { fatPercentageInput.double?.clean },
+                set: { _ in }
+            ),
+            showingAlert: $showingFatPercentageAlert,
+            unitString: "%"
+        )
+    }
+    
+    var weightSection: some View {
+        EquationVariablesSections(
+            healthDetails: Binding<[HealthDetail]>(
+                get: { [.weight] },
+                set: { _ in }
+            ),
+            pastDate: pastDate,
+            isEditing: $isEditing,
+            isPresented: $isPresented,
+            showHeader: false
+        )
+    }
+
+    var equationVariablesSections: some View {
+        EquationVariablesSections(
+            healthDetails: Binding<[HealthDetail]>(
+                get: { equation.requiredHealthDetails },
+                set: { _ in }
+            ),
+            pastDate: pastDate,
+            isEditing: $isEditing,
+            isPresented: $isPresented
+        )
+    }
+    
+    var equationSection: some View {
+        let binding = Binding<LeanBodyMassEquation>(
+            get: { equation },
+            set: { newValue in
+                withAnimation {
+                    equation = newValue
+                    calculateEquation()
+                    setIsDirty()
+                }
+            }
+        )
+        
+        @ViewBuilder
+        var footer: some View {
+            if !isDisabled {
+                Button {
+                    showingEquationsInfo = true
+                } label: {
+                    Text("Learn more…")
+                        .font(.footnote)
+                }
+            }
+        }
+        
+        return Section(footer: footer) {
+            Picker("Equation", selection: binding) {
+                ForEach(LeanBodyMassEquation.allCases, id: \.self) {
+                    Text($0.name).tag($0)
+                }
+            }
+            .pickerStyle(.menu)
+            .disabled(isDisabled)
+            .foregroundStyle(controlColor)
+        }
+    }
+    
+    var dateTimeSection: some View {
+        Section {
+            DatePicker(
+                "Date",
+                selection: $date,
+                displayedComponents: .date
+            )
+            .disabled(true)
+            DatePicker(
+                "Time",
+                selection: $time,
+                displayedComponents: .hourAndMinute
+            )
+        }
+    }
+    
+    var sourceSection: some View {
+        let binding = Binding<LeanBodyMassSource>(
+            get: { source },
+            set: { newValue in
+                withAnimation {
+                    source = newValue
+//                    calculateEquation()
+                    setIsDirty()
+                }
+                switch source {
+                case .userEntered:
+                    showingAlert = true
+                case .fatPercentage:
+                    showingFatPercentageAlert = true
+                case .equation:
+                    calculateEquation()
+                default:
+                    break
+                }
+            }
+        )
+        var picker: some View {
+            Picker("Source", selection: binding) {
+                ForEach(LeanBodyMassSource.formCases) { source in
+                    Text(source.name).tag(source)
+                }
+            }
+            .pickerStyle(.segmented)
+            .listRowSeparator(.hidden)
+        }
+        
+        var description: String {
+            switch source {
+            case .healthKit:
+                ""
+            case .equation:
+                "Use an equation to calculate your Lean Body Mass."
+            case .fatPercentage:
+                "Use your fat percentage to calculate your Lean Body Mass."
+            case .userEntered:
+                "Enter your Lean Body Mass manually."
+            }
+        }
+        return Section {
+            picker
+            Text(description)
+        }
+    }
+    
+    //MARK: - Actions
+    
+    func submitCustomValue() {
+        withAnimation {
+            customInput.submitValue()
+            value = customInput.double
+            calculateFatPercentage(forLeanBodyMass: customInput.double)
+            setIsDirty()
+        }
+    }
+
+    func submitFatPercentage() {
+        withAnimation {
+            fatPercentageInput.submitValue()
+            calculateLeanBodyMass(forFatPercentage: fatPercentageInput.double)
+            setIsDirty()
+        }
+    }
+    
+    func calculateEquation() {
+        let weightInKg: Double? = 95.7
+//        let heightInCm: Double? = 177
+        let heightInCm: Double? = nil
+        let sexIsFemale: Bool? = false
+        
+        let lbm: Double? = if let weightInKg, let heightInCm, let sexIsFemale {
+            equation.calculateInKg(
+                sexIsFemale: sexIsFemale,
+                weightInKg: weightInKg,
+                heightInCm: heightInCm
+            )
+        } else {
+            nil
+        }
+        withAnimation {
+            setLeanBodyMass(lbm)
+            calculateFatPercentage()
+        }
+    }
+    
+    func calculateFatPercentage(forLeanBodyMass lbm: Double? = nil) {
+        guard let lbm = lbm ?? self.value else {
+            setFatPercentage(nil)
+            return
+        }
+        let weight = 95.7
+        let p = ((max(0, (weight - lbm)) / weight) * 100)
+        setFatPercentage(p)
+    }
+    
+    func calculateLeanBodyMass(forFatPercentage p: Double? = nil) {
+        guard let p = p ?? self.fatPercentageInput.double else {
+            setLeanBodyMass(nil)
+            return
+        }
+        let weight = 95.7
+        let lbm = weight - ((p / 100.0) * weight)
+        setLeanBodyMass(lbm)
+    }
+    
+    func setFatPercentage(_ p: Double?) {
+        guard let p = p?.rounded(toPlaces: 1) else {
+            fatPercentageInput = DoubleInput()
+            return
+        }
+        fatPercentageInput = DoubleInput(double: p)
+    }
+    
+    func setLeanBodyMass(_ lbm: Double?) {
+        guard let lbm = lbm?.rounded(toPlaces: 1) else {
+            value = nil
+            customInput = DoubleInput()
+            return
+        }
+        value = lbm
+        customInput = DoubleInput(double: lbm)
+    }
+
+    func setIsDirty() {
+        isDirty = if let value {
+            value != 72
+            || fatPercentageInput.double != 24.8
+        } else {
+            false
+        }
+    }
+    
+    //MARK: - Convenience
+    
+    var isDisabled: Bool {
+        isPast && !isEditing
+    }
+    
+    var controlColor: Color {
+        isDisabled ? .secondary : .primary
+    }
+    
+    var isPast: Bool {
+        pastDate != nil
     }
 }
 

@@ -29,7 +29,7 @@ struct InfoSection: View {
             case .largeTitle:
                 Text(title)
                     .textCase(.none)
-                    .font(.system(.title2, design: .rounded, weight: .semibold))
+                    .font(.system(.title3, design: .rounded, weight: .semibold))
                     .foregroundStyle(Color(.label))
             case .standardTitle:
                 Text(title)

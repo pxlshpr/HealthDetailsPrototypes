@@ -86,9 +86,17 @@ struct LeanBodyMassForm: View {
                     .font(LargeUnitFont)
                     .foregroundStyle(isDisabled ? .tertiary : .secondary)
             } else {
-                Text("Not Set")
-                    .font(LargeUnitFont)
-                    .foregroundStyle(isDisabled ? .tertiary : .secondary)
+                ZStack {
+
+                    /// dummy text placed to ensure height stays consistent
+                    Text("0")
+                        .font(LargeNumberFont)
+                        .opacity(0)
+                    
+                    Text("Not Set")
+                        .font(LargeUnitFont)
+                        .foregroundStyle(isDisabled ? .tertiary : .secondary)
+                }
             }
         }
         .padding(.horizontal, BottomValueHorizontalPadding)
