@@ -8,13 +8,8 @@ struct DietaryEnergyPointForm: View {
     @State var value: Double? = 2356
 
     @State var showingAlert = false
-    @State var customValue: Double? = nil
-    @State var customValueTextAsDouble: Double? = nil
-    @State var customValueText: String = ""
-
-    @State var includeTrailingPeriod: Bool = false
-    @State var includeTrailingZero: Bool = false
-    @State var numberOfTrailingZeros: Int = 0
+    
+    @State var customInput = DoubleInput()
 
     @State var showingInfo = false
     
@@ -44,10 +39,10 @@ struct DietaryEnergyPointForm: View {
             .toolbar { toolbarContent }
             .navigationBarBackButtonHidden(isEditing && isPast)
             .alert("Enter your dietary energy", isPresented: $showingAlert) {
-                TextField("kcal", text: customValueTextBinding)
+                TextField("kcal", text: customInput.binding)
                     .keyboardType(.decimalPad)
                 Button("OK", action: submitCustomValue)
-                Button("Cancel") { }
+                Button("Cancel") { customInput.cancel() }
             }
 //        }
         .sheet(isPresented: $showingInfo) {
@@ -108,46 +103,16 @@ struct DietaryEnergyPointForm: View {
         value = 2893
     }
     
-    var customValueTextBinding: Binding<String> {
-        Binding<String>(
-            get: { customValueText },
-            set: { newValue in
-                /// Cleanup by removing any extra periods and non-numbers
-                let newValue = newValue.sanitizedDouble
-                customValueText = newValue
-                
-                /// If we haven't already set the flag for the trailing period, and the string has period as its last character, set it so that its displayed
-                if !includeTrailingPeriod, newValue.last == "." {
-                    includeTrailingPeriod = true
-                }
-                /// If we have set the flag for the trailing period and the last character isn't it—unset it
-                else if includeTrailingPeriod, newValue.last != "." {
-                    includeTrailingPeriod = false
-                }
-                
-                if newValue == ".0" {
-                    includeTrailingZero = true
-                } else {
-                    includeTrailingZero = false
-                }
-                
-                let double = Double(newValue)
-                customValueTextAsDouble = double
-                
-//                customValueText = if let customValueTextAsDouble {
-//                    "\(customValueTextAsDouble)"
-//                } else {
-//                    ""
-//                }
-            }
-        )
-    }
-    
     func submitCustomValue() {
         withAnimation {
-            customValue = customValueTextAsDouble
-            value = customValue
+            customInput.submitValue()
+            value = customInput.double
+            setIsDirty()
         }
+    }
+    
+    func setIsDirty() {
+        isDirty = type != .log
     }
     
     var customSection: some View {
@@ -182,7 +147,7 @@ struct DietaryEnergyPointForm: View {
                 if newValue == .custom {
                     showingAlert = true
                 }
-                isDirty = type != .log
+                setIsDirty()
             }
         )
         return Section {

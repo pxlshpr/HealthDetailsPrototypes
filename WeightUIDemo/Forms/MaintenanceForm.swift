@@ -4,7 +4,7 @@ import SwiftSugar
 struct MaintenanceForm: View {
     
     @State var maintenancetype: MaintenanceType = .adaptive
-    @State var value: Double = 3225
+    @State var value: Double? = 3225
     @State var adaptiveValue: Double = 3225
     @State var estimatedValue: Double = 2856
 
@@ -15,7 +15,8 @@ struct MaintenanceForm: View {
     @State var isDirty: Bool = false
     
     @Binding var isPresented: Bool
-    
+    @State var useEstimatedAsFallback = true
+
     init(pastDate: Date? = nil, isPresented: Binding<Bool> = .constant(true)) {
         self.pastDate = pastDate
         _isPresented = isPresented
@@ -23,25 +24,40 @@ struct MaintenanceForm: View {
     }
     
     var body: some View {
-//        NavigationView {
-            List {
-                notice
-                valuePicker
-                adaptiveLink
-                estimatedLink
-                fallbackToggle
-                explanation
-            }
-            .navigationTitle("Maintenance Energy")
-            .toolbar { toolbarContent }
-            .navigationBarBackButtonHidden(isEditing && isPast)
-//        }
+        List {
+            notice
+            valuePicker
+            adaptiveLink
+            estimatedLink
+            fallbackToggle
+            explanation
+        }
+        .navigationTitle("Maintenance Energy")
+        .toolbar { toolbarContent }
+        .navigationBarBackButtonHidden(isEditing && isPast)
+        .safeAreaInset(edge: .bottom) { bottomValue }
         .sheet(isPresented: $showingMaintenanceInfo) {
             MaintenanceInfo()
         }
     }
     
-    @State var useEstimatedAsFallback = true
+    var bottomValue: some View {
+        BottomValue(
+            value: $value,
+            valueString: Binding<String?>(
+                get: { value?.formattedEnergy },
+                set: { _ in }
+            ),
+            isDisabled: Binding<Bool>(
+                get: { !isEditing },
+                set: { _ in }
+            ),
+            unitString: "kcal"
+        )
+        .background(
+            .bar
+        )
+    }
     
     @ViewBuilder
     var fallbackToggle: some View {
@@ -65,12 +81,12 @@ struct MaintenanceForm: View {
     
     var toolbarContent: some ToolbarContent {
         Group {
-            bottomToolbarContent(
-                value: value,
-                valueString: value.formattedEnergy,
-                isDisabled: !isEditing,
-                unitString: "kcal"
-            )
+//            bottomToolbarContent(
+//                value: value,
+//                valueString: value.formattedEnergy,
+//                isDisabled: !isEditing,
+//                unitString: "kcal"
+//            )
             topToolbarContent(
                 isEditing: $isEditing,
                 isDirty: $isDirty,
@@ -236,9 +252,17 @@ struct MaintenanceForm: View {
 }
 
 #Preview("Current") {
-    MaintenanceForm()
+    NavigationView {
+        MaintenanceForm()
+    }
 }
 
 #Preview("Past") {
-    MaintenanceForm(pastDate: MockPastDate)
+    NavigationView {
+        MaintenanceForm(pastDate: MockPastDate)
+    }
+}
+
+#Preview("HealthDetails") {
+    HealthDetails()
 }

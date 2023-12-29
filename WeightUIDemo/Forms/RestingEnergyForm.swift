@@ -12,15 +12,14 @@ struct RestingEnergyForm: View {
 
     @State var applyCorrection: Bool = true
     @State var correctionType: CorrectionType = .divide
-    @State var correction: Double? = 2
 
     @State var showingAlert = false
     
-    @State var correctionTextAsDouble: Double? = 2
-    @State var correctionText: String = "2"
+    @State var correctionInput = DoubleInput(double: 2)
 
     @State var showingEquationsInfo = false
     @State var showingRestingEnergyInfo = false
+    @State var showingCorrectionAlert = false
 
     @State var customInput = DoubleInput(double: 2798)
     
@@ -66,50 +65,20 @@ struct RestingEnergyForm: View {
                 customInput.cancel()
             }
         }
+        .alert("Enter a correction", isPresented: $showingCorrectionAlert) {
+            TextField(correctionType.textFieldPlaceholder, text: correctionInput.binding)
+                .keyboardType(.decimalPad)
+            Button("OK", action: submitCorrection)
+            Button("Cancel") { correctionInput.cancel() }
+        }
     }
-    
-//    var customValueTextBinding: Binding<String> {
-//        Binding<String>(
-//            get: { customValueText },
-//            set: { newValue in
-//                /// Cleanup by removing any extra periods and non-numbers
-//                let newValue = newValue.sanitizedDouble
-//                customValueText = newValue
-//                
-//                /// If we haven't already set the flag for the trailing period, and the string has period as its last character, set it so that its displayed
-//                if !includeTrailingPeriod, newValue.last == "." {
-//                    includeTrailingPeriod = true
-//                }
-//                /// If we have set the flag for the trailing period and the last character isn't it—unset it
-//                else if includeTrailingPeriod, newValue.last != "." {
-//                    includeTrailingPeriod = false
-//                }
-//                
-//                if newValue == ".0" {
-//                    includeTrailingZero = true
-//                } else {
-//                    includeTrailingZero = false
-//                }
-//                
-//                let double = Double(newValue)
-//                customValueTextAsDouble = double
-//                
-////                customValueText = if let customValueTextAsDouble {
-////                    "\(customValueTextAsDouble)"
-////                } else {
-////                    ""
-////                }
-//            }
-//        )
-//    }
-    
-//    func submitCustomValue() {
-//        withAnimation {
-//            customValue = customValueTextAsDouble
-//            value = customValue
-//            setIsDirty()
-//        }
-//    }
+
+    func submitCorrection() {
+        withAnimation {
+            correctionInput.submitValue()
+            setIsDirty()
+        }
+    }
 
     func submitCustomValue() {
         withAnimation {
@@ -209,11 +178,10 @@ extension RestingEnergyForm {
             isEditing: $isEditing,
             applyCorrection: $applyCorrection,
             correctionType: $correctionType,
-            correction: $correction,
-            correctionTextAsDouble: $correctionTextAsDouble,
-            correctionText: $correctionText,
+            correctionInput: $correctionInput,
             setIsDirty: setIsDirty,
-            isRestingEnergy: true
+            isRestingEnergy: true,
+            showingCorrectionAlert: $showingCorrectionAlert
         )
     }
 
@@ -317,11 +285,9 @@ extension RestingEnergyForm {
         interval = .init(3, .day)
         applyCorrection = true
         correctionType = .divide
-        correction = 2
+        correctionInput = DoubleInput(double: 2)
         value = 2798
         customInput = DoubleInput(double: 2798)
-        correctionTextAsDouble = 2
-        correctionText = "2"
     }
     
     func setIsDirty() {
@@ -331,10 +297,8 @@ extension RestingEnergyForm {
         || interval != .init(3, .day)
         || applyCorrection != true
         || correctionType != .divide
-        || correction != 2
         || value != 2798
-        || correctionTextAsDouble != 2
-        || correctionText != "2"
+        || correctionInput.double != 2
     }
     
     func save() {

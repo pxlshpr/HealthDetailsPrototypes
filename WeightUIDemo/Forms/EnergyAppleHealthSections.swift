@@ -9,21 +9,14 @@ struct EnergyAppleHealthSections: View {
 
     @Binding var applyCorrection: Bool
     @Binding var correctionType: CorrectionType
-    @Binding var correction: Double?
-
-    @Binding var correctionTextAsDouble: Double?
-    @Binding var correctionText: String
+    @Binding var correctionInput: DoubleInput
 
     let setIsDirty: () -> ()
     let isRestingEnergy: Bool
-    
-    @State var includeTrailingPeriod: Bool = false
-    @State var includeTrailingZero: Bool = false
-    @State var numberOfTrailingZeros: Int = 0
 
     @State var showingHealthIntervalInfo = false
     @State var showingCorrectionInfo = false
-    @State var showingCorrectionAlert = false
+    @Binding var showingCorrectionAlert: Bool
 
     var body: some View {
         Group {
@@ -138,6 +131,10 @@ struct EnergyAppleHealthSections: View {
 
 extension EnergyAppleHealthSections {
     
+    var correction: Double? {
+        correctionInput.double
+    }
+    
     var correctionSection: some View {
         
         var footer: some View {
@@ -250,53 +247,6 @@ extension EnergyAppleHealthSections {
         .sheet(isPresented: $showingCorrectionInfo) {
             AppleHealthCorrectionInfo()
         }
-        .alert("Enter a correction", isPresented: $showingCorrectionAlert) {
-            TextField(correctionType.textFieldPlaceholder, text: correctionTextBinding)
-                .keyboardType(.decimalPad)
-            Button("OK", action: submitCorrection)
-            Button("Cancel") { }
-        }
     }
     
-    func submitCorrection() {
-        withAnimation {
-            correction = correctionTextAsDouble
-            setIsDirty()
-        }
-    }
-
-    var correctionTextBinding: Binding<String> {
-        Binding<String>(
-            get: { correctionText },
-            set: { newValue in
-                /// Cleanup by removing any extra periods and non-numbers
-                let newValue = newValue.sanitizedDouble
-                correctionText = newValue
-                
-                /// If we haven't already set the flag for the trailing period, and the string has period as its last character, set it so that its displayed
-                if !includeTrailingPeriod, newValue.last == "." {
-                    includeTrailingPeriod = true
-                }
-                /// If we have set the flag for the trailing period and the last character isn't it—unset it
-                else if includeTrailingPeriod, newValue.last != "." {
-                    includeTrailingPeriod = false
-                }
-                
-                if newValue == ".0" {
-                    includeTrailingZero = true
-                } else {
-                    includeTrailingZero = false
-                }
-                
-                let double = Double(newValue)
-                correctionTextAsDouble = double
-
-//                customValueText = if let customValueTextAsDouble {
-//                    "\(customValueTextAsDouble)"
-//                } else {
-//                    ""
-//                }
-            }
-        )
-    }
 }

@@ -14,13 +14,12 @@ struct ActiveEnergyForm: View {
 
     @State var applyCorrection: Bool = false
     @State var correctionType: CorrectionType = .divide
-    @State var correction: Double? = 2
-    @State var correctionTextAsDouble: Double? = 2
-    @State var correctionText: String = "2"
+    @State var correctionInput = DoubleInput(double: 2)
 
     @State var showingActivityLevelInfo = false
     @State var showingActiveEnergyInfo = false
-    
+    @State var showingCorrectionAlert = false
+
     let pastDate: Date?
     @State var isEditing: Bool
     @State var isDirty: Bool = false
@@ -63,6 +62,12 @@ struct ActiveEnergyForm: View {
                 customInput.cancel()
             }
         }
+        .alert("Enter a correction", isPresented: $showingCorrectionAlert) {
+            TextField(correctionType.textFieldPlaceholder, text: correctionInput.binding)
+                .keyboardType(.decimalPad)
+            Button("OK", action: submitCorrection)
+            Button("Cancel") { correctionInput.cancel() }
+        }
     }
     
     @ViewBuilder
@@ -80,11 +85,10 @@ struct ActiveEnergyForm: View {
             isEditing: $isEditing,
             applyCorrection: $applyCorrection,
             correctionType: $correctionType,
-            correction: $correction,
-            correctionTextAsDouble: $correctionTextAsDouble,
-            correctionText: $correctionText,
+            correctionInput: $correctionInput,
             setIsDirty: setIsDirty,
-            isRestingEnergy: true
+            isRestingEnergy: true,
+            showingCorrectionAlert: $showingCorrectionAlert
         )
     }
     
@@ -249,11 +253,9 @@ extension ActiveEnergyForm {
         interval = .init(3, .day)
         applyCorrection = true
         correctionType = .divide
-        correction = 2
         value = valueForActivityLevel(.lightlyActive)
         customInput = DoubleInput(double: valueForActivityLevel(.lightlyActive))
-        correctionTextAsDouble = 2
-        correctionText = "2"
+        correctionInput = DoubleInput(double: 2)
     }
     
     func setIsDirty() {
@@ -263,10 +265,8 @@ extension ActiveEnergyForm {
         || interval != .init(3, .day)
         || applyCorrection != true
         || correctionType != .divide
-        || correction != 2
         || value != valueForActivityLevel(.lightlyActive)
-        || correctionTextAsDouble != 2
-        || correctionText != "2"
+        || correctionInput.double != 2
     }
     
     func submitCustomValue() {
@@ -279,7 +279,7 @@ extension ActiveEnergyForm {
 
     func submitCorrection() {
         withAnimation {
-            correction = correctionTextAsDouble
+            correctionInput.submitValue()
             setIsDirty()
         }
     }

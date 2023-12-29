@@ -14,13 +14,8 @@ struct WeightChangeForm: View {
 
     @State var showingAlert = false
     @State var isGain = true
-    @State var customValue: Double? = nil
-    @State var customValueTextAsDouble: Double? = nil
-    @State var customValueText: String = ""
-
-    @State var includeTrailingPeriod: Bool = false
-    @State var includeTrailingZero: Bool = false
-    @State var numberOfTrailingZeros: Int = 0
+    
+    @State var customInput = DoubleInput()
 
     let pastDate: Date?
     @State var isEditing: Bool
@@ -49,10 +44,10 @@ struct WeightChangeForm: View {
         .toolbar { toolbarContent }
         .navigationBarBackButtonHidden(isEditing && isPast)
         .alert("Enter your weight \(isGain ? "gain" : "loss")", isPresented: $showingAlert) {
-            TextField("kg", text: customValueTextBinding)
+            TextField("kg", text: customInput.binding)
                 .keyboardType(.decimalPad)
             Button("OK", action: submitCustomValue)
-            Button("Cancel") { }
+            Button("Cancel") { customInput.cancel() }
         }
     }
     
@@ -103,14 +98,12 @@ struct WeightChangeForm: View {
         isDirty = false
         isCustom = true
         value = nil
-        customValue = nil
-        customValueTextAsDouble = nil
-        customValueText = ""
+        customInput = DoubleInput()
     }
     
     func setIsDirty() {
         isDirty = self.isGain != true
-        || self.customValue != nil
+        || self.customInput.double != nil
         || self.value != nil
         || self.isCustom != true
     }
@@ -153,44 +146,14 @@ struct WeightChangeForm: View {
             }
         }
     }
-    var customValueTextBinding: Binding<String> {
-        Binding<String>(
-            get: { customValueText },
-            set: { newValue in
-                /// Cleanup by removing any extra periods and non-numbers
-                let newValue = newValue.sanitizedDouble
-                customValueText = newValue
-                
-                /// If we haven't already set the flag for the trailing period, and the string has period as its last character, set it so that its displayed
-                if !includeTrailingPeriod, newValue.last == "." {
-                    includeTrailingPeriod = true
-                }
-                /// If we have set the flag for the trailing period and the last character isn't it—unset it
-                else if includeTrailingPeriod, newValue.last != "." {
-                    includeTrailingPeriod = false
-                }
-                
-                if newValue == ".0" {
-                    includeTrailingZero = true
-                } else {
-                    includeTrailingZero = false
-                }
-                
-                let double = Double(newValue)
-                customValueTextAsDouble = double
-                
-//                customValueText = if let customValueTextAsDouble {
-//                    "\(customValueTextAsDouble)"
-//                } else {
-//                    ""
-//                }
-            }
-        )
+    
+    var customValue: Double? {
+        customInput.double
     }
     
     func submitCustomValue() {
         withAnimation {
-            customValue = customValueTextAsDouble
+            customInput.submitValue()
             if let customValue {
                 value = isGain ? customValue : -customValue
             }
@@ -304,7 +267,7 @@ struct WeightChangeForm: View {
                 set: { newValue in
                     withAnimation {
                         isCustom = newValue
-                        customValue = 0.8
+                        customInput = DoubleInput(double: 0.8)
                         value = -0.8
                         isGain = false
                         setIsDirty()
