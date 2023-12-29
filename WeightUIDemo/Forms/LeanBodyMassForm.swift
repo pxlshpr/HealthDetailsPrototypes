@@ -274,7 +274,9 @@ struct LeanBodyMassForm: View {
         var deleteButton: some View {
             if isEditing, isPast {
                 Button {
-                    delete(data)
+                    withAnimation {
+                        delete(data)
+                    }
                 } label: {
                     Image(systemName: "minus.circle.fill")
                         .imageScale(.large)
@@ -363,6 +365,7 @@ struct LeanBodyMassForm: View {
             deletedHealthData.sort()
         }
         listData.removeAll(where: { $0.id == data.id })
+        setIsDirty()
     }
     
     func delete(at offsets: IndexSet) {
