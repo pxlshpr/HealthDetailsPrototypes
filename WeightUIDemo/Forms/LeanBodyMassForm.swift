@@ -49,11 +49,11 @@ struct LeanBodyMassForm: View {
     
     var body: some View {
         Form {
-            notice
+            noticeOrDateSection
 //            explanation
             list
             deletedList
-            dailyValuePicker
+//            dailyValuePickerSection
             syncSection
         }
         .navigationTitle("Lean Body Mass")
@@ -76,40 +76,51 @@ struct LeanBodyMassForm: View {
     func setDismissDisabled() {
         dismissDisabled = isPast && isEditing && isDirty
     }
-
+    
     var bottomValue: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 5) {
-            if let fatPercentage {
-                Text("\(fatPercentage.roundedToOnePlace)")
-                    .contentTransition(.numericText(value: fatPercentage))
-                    .font(LargeNumberFont)
-                    .foregroundStyle(isDisabled ? .secondary : .primary)
-                Text("% fat")
-                    .font(LargeUnitFont)
-                    .foregroundStyle(isDisabled ? .tertiary : .secondary)
-            }
-            Spacer()
-            if let value {
-                Text("\(value.roundedToOnePlace)")
-                    .contentTransition(.numericText(value: value))
-                    .font(LargeNumberFont)
-                    .foregroundStyle(isDisabled ? .secondary : .primary)
-                Text("kg")
-                    .font(LargeUnitFont)
-                    .foregroundStyle(isDisabled ? .tertiary : .secondary)
-            } else {
-                ZStack {
-
-                    /// dummy text placed to ensure height stays consistent
-                    Text("0")
+        var bottomRow: some View {
+            HStack(alignment: .firstTextBaseline, spacing: 5) {
+                if let fatPercentage {
+                    Text("\(fatPercentage.roundedToOnePlace)")
+                        .contentTransition(.numericText(value: fatPercentage))
                         .font(LargeNumberFont)
-                        .opacity(0)
-                    
-                    Text("Not Set")
+                        .foregroundStyle(isDisabled ? .secondary : .primary)
+                    Text("% fat")
                         .font(LargeUnitFont)
                         .foregroundStyle(isDisabled ? .tertiary : .secondary)
                 }
+                Spacer()
+                if let value {
+                    Text("\(value.roundedToOnePlace)")
+                        .contentTransition(.numericText(value: value))
+                        .font(LargeNumberFont)
+                        .foregroundStyle(isDisabled ? .secondary : .primary)
+                    Text("kg")
+                        .font(LargeUnitFont)
+                        .foregroundStyle(isDisabled ? .tertiary : .secondary)
+                } else {
+                    ZStack {
+
+                        /// dummy text placed to ensure height stays consistent
+                        Text("0")
+                            .font(LargeNumberFont)
+                            .opacity(0)
+                        
+                        Text("Not Set")
+                            .font(LargeUnitFont)
+                            .foregroundStyle(isDisabled ? .tertiary : .secondary)
+                    }
+                }
             }
+        }
+        
+        var topRow: some View {
+            dailyValuePicker
+        }
+        
+        return VStack {
+            topRow
+            bottomRow
         }
         .padding(.horizontal, BottomValueHorizontalPadding)
         .padding(.vertical, BottomValueVerticalPadding)
@@ -141,14 +152,22 @@ struct LeanBodyMassForm: View {
     }
 
     @ViewBuilder
-    var notice: some View {
+    var noticeOrDateSection: some View {
         if let pastDate {
             NoticeSection.legacy(pastDate, isEditing: $isEditing)
+        } else {
+            Section {
+                HStack {
+                    Text("Date")
+                    Spacer()
+                    Text(Date.now.shortDateString)
+                }
+            }
         }
     }
 
     var measurementForm: some View {
-        LeanBodyMassMeasurementForm()
+        LeanBodyMassMeasurementForm(date: pastDate)
     }
     
     var isDisabled: Bool {
@@ -173,18 +192,18 @@ struct LeanBodyMassForm: View {
                 }
             }
         )
-        
-        var picker: some View {
-            Picker("", selection: binding) {
-                ForEach(DailyValueType.allCases, id: \.self) {
-                    Text($0.name).tag($0)
-                }
+
+        return Picker("", selection: binding) {
+            ForEach(DailyValueType.allCases, id: \.self) {
+                Text($0.name).tag($0)
             }
-            .pickerStyle(.segmented)
-            .listRowSeparator(.hidden)
-            .disabled(isDisabled)
         }
-        
+        .pickerStyle(.segmented)
+        .listRowSeparator(.hidden)
+        .disabled(isDisabled)
+    }
+    
+    var dailyValuePickerSection: some View {
         var description: String {
             let name = switch dailyValueType {
             case .average:  "average"
@@ -196,7 +215,7 @@ struct LeanBodyMassForm: View {
 
         }
         return Section("Daily Value") {
-            picker
+            dailyValuePicker
             Text(description)
         }
     }

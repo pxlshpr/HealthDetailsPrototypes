@@ -6,7 +6,6 @@ struct LeanBodyMassMeasurementForm: View {
     @State var source: LeanBodyMassSource = .fatPercentage
         
     @State var time = Date.now
-    @State var date = Date.now
 
     @State var equation: LeanBodyMassEquation = .boer
     @State var showingEquationsInfo = false
@@ -18,17 +17,13 @@ struct LeanBodyMassMeasurementForm: View {
     @State var showingAlert = false
     @State var showingFatPercentageAlert = false
 
-    let pastDate: Date?
-    @State var isEditing: Bool
+    let date: Date
     @State var isDirty: Bool = false
 
     @State var dismissDisabled: Bool = false
     
-    init(
-        pastDate: Date? = nil
-    ) {
-        self.pastDate = pastDate
-        _isEditing = State(initialValue: pastDate == nil)
+    init(date: Date? = nil) {
+        self.date = (date ?? Date.now).startOfDay
     }
 
     var body: some View {
@@ -37,6 +32,7 @@ struct LeanBodyMassMeasurementForm: View {
                 .navigationTitle("Lean Body Mass")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar { toolbarContent }
+                .safeAreaInset(edge: .bottom) { bottomValue }
         }
         .alert("Enter your Lean Body Mass", isPresented: $showingAlert) {
             TextField("kg", text: customInput.binding)
@@ -58,13 +54,8 @@ struct LeanBodyMassMeasurementForm: View {
         .onChange(of: isDirty) { _, _ in setDismissDisabled() }
     }
     
-    func setDismissDisabled() {
-        dismissDisabled = isDirty
-    }
-    
     var form: some View {
         Form {
-            notice
             dateTimeSection
             sourceSection
             switch source {
@@ -83,13 +74,49 @@ struct LeanBodyMassMeasurementForm: View {
         }
     }
     
-    @ViewBuilder
-    var notice: some View {
-        if let pastDate {
-            NoticeSection.legacy(pastDate, isEditing: $isEditing)
-        }
+    func setDismissDisabled() {
+        dismissDisabled = isDirty
     }
+    
+    var bottomValue: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 5) {
+            if let fatPercentage = fatPercentageInput.double {
+                Text("\(fatPercentage.roundedToOnePlace)")
+                    .contentTransition(.numericText(value: fatPercentage))
+                    .font(LargeNumberFont)
+                    .foregroundStyle(.primary)
+                Text("% fat")
+                    .font(LargeUnitFont)
+                    .foregroundStyle(.secondary)
+            }
+            Spacer()
+            if let value {
+                Text("\(value.roundedToOnePlace)")
+                    .contentTransition(.numericText(value: value))
+                    .font(LargeNumberFont)
+                    .foregroundStyle(.primary)
+                Text("kg")
+                    .font(LargeUnitFont)
+                    .foregroundStyle(.secondary)
+            } else {
+                ZStack {
+                    
+                    /// dummy text placed to ensure height stays consistent
+                    Text("0")
+                        .font(LargeNumberFont)
+                        .opacity(0)
 
+                    Text("Not Set")
+                        .font(LargeUnitFont)
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+        .padding(.horizontal, BottomValueHorizontalPadding)
+        .padding(.vertical, BottomValueVerticalPadding)
+        .background(.bar)
+    }
+    
     var toolbarContent: some ToolbarContent {
         Group {
             ToolbarItem(placement: .topBarTrailing) {
@@ -104,41 +131,6 @@ struct LeanBodyMassMeasurementForm: View {
                     dismiss()
                 }
             }
-            ToolbarItem(placement: .bottomBar) {
-                HStack(alignment: .firstTextBaseline, spacing: 5) {
-                    if let fatPercentage = fatPercentageInput.double {
-                        Text("\(fatPercentage.roundedToOnePlace)")
-                            .contentTransition(.numericText(value: fatPercentage))
-                            .font(LargeNumberFont)
-                            .foregroundStyle(isDisabled ? .secondary : .primary)
-                        Text("% fat")
-                            .font(LargeUnitFont)
-                            .foregroundStyle(isDisabled ? .tertiary : .secondary)
-                    }
-                    Spacer()
-                    if let value {
-                        Text("\(value.roundedToOnePlace)")
-                            .contentTransition(.numericText(value: value))
-                            .font(LargeNumberFont)
-                            .foregroundStyle(isDisabled ? .secondary : .primary)
-                        Text("kg")
-                            .font(LargeUnitFont)
-                            .foregroundStyle(isDisabled ? .tertiary : .secondary)
-                    } else {
-                        Text("Not Set")
-                            .font(LargeUnitFont)
-                            .foregroundStyle(isDisabled ? .tertiary : .secondary)
-                    }
-                }
-            }
-//            topToolbarContent(
-//                isEditing: $isEditing,
-//                isDirty: $isDirty,
-//                isPast: isPast,
-//                dismissAction: { isPresented = false },
-//                undoAction: undo,
-//                saveAction: save
-//            )
         }
     }
     
@@ -173,8 +165,8 @@ struct LeanBodyMassMeasurementForm: View {
                 get: { [.weight] },
                 set: { _ in }
             ),
-            pastDate: pastDate,
-            isEditing: $isEditing,
+            pastDate: date,
+            isEditing: .constant(true),
             isPresented: Binding<Bool>(
                 get: { true },
                 set: { newValue in
@@ -194,8 +186,8 @@ struct LeanBodyMassMeasurementForm: View {
                 get: { equation.requiredHealthDetails },
                 set: { _ in }
             ),
-            pastDate: pastDate,
-            isEditing: $isEditing,
+            pastDate: date,
+            isEditing: .constant(true),
             isPresented: Binding<Bool>(
                 get: { true },
                 set: { newValue in
@@ -220,15 +212,12 @@ struct LeanBodyMassMeasurementForm: View {
             }
         )
         
-        @ViewBuilder
         var footer: some View {
-            if !isDisabled {
-                Button {
-                    showingEquationsInfo = true
-                } label: {
-                    Text("Learn more…")
-                        .font(.footnote)
-                }
+            Button {
+                showingEquationsInfo = true
+            } label: {
+                Text("Learn more…")
+                    .font(.footnote)
             }
         }
         
@@ -239,8 +228,6 @@ struct LeanBodyMassMeasurementForm: View {
                 }
             }
             .pickerStyle(.menu)
-            .disabled(isDisabled)
-            .foregroundStyle(controlColor)
         }
     }
     
@@ -248,7 +235,7 @@ struct LeanBodyMassMeasurementForm: View {
         Section {
             DatePicker(
                 "Date",
-                selection: $date,
+                selection: .constant(date),
                 displayedComponents: .date
             )
             .disabled(true)
@@ -395,27 +382,9 @@ struct LeanBodyMassMeasurementForm: View {
             false
         }
     }
-    
-    //MARK: - Convenience
-    
-    var isDisabled: Bool {
-        isPast && !isEditing
-    }
-    
-    var controlColor: Color {
-        isDisabled ? .secondary : .primary
-    }
-    
-    var isPast: Bool {
-        pastDate != nil
-    }
 }
 
 
-#Preview("Measurement (Current)") {
+#Preview("Measurement") {
     LeanBodyMassMeasurementForm()
-}
-
-#Preview("Measurement (Past)") {
-    LeanBodyMassMeasurementForm(pastDate: MockPastDate)
 }
