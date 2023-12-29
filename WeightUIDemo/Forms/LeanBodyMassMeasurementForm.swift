@@ -143,7 +143,8 @@ struct LeanBodyMassMeasurementForm: View {
                 set: { _ in }
             ),
             showingAlert: $showingAlert,
-            unitString: "kcal"
+            unitString: "kcal",
+            footerString: "The weight below will be used to calculate your Fat Percentage."
         )
     }
     
@@ -155,7 +156,8 @@ struct LeanBodyMassMeasurementForm: View {
                 set: { _ in }
             ),
             showingAlert: $showingFatPercentageAlert,
-            unitString: "%"
+            unitString: "%",
+            footerString: "The weight below will be used to calculate your Lean Body Mass."
         )
     }
     

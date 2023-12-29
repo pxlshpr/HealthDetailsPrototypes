@@ -7,15 +7,18 @@ struct InputSection: View {
     @Binding var showingAlert: Bool
     @Binding var isDisabled: Bool
     let unitString: String
+    let footerString: String?
 
     init(
         name: String,
         valueString: Binding<String?>,
         showingAlert: Binding<Bool>,
         isDisabled: Binding<Bool> = .constant(false),
-        unitString: String
+        unitString: String,
+        footerString: String? = nil
     ) {
         self.name = name
+        self.footerString = footerString
         _valueString = valueString
         _showingAlert = showingAlert
         _isDisabled = isDisabled
@@ -23,7 +26,7 @@ struct InputSection: View {
     }
     
     var body: some View {
-        Section {
+        Section(footer: footer) {
             if let valueString {
                 HStack {
                     Text(name)
@@ -41,6 +44,13 @@ struct InputSection: View {
             } else {
                 addButton
             }
+        }
+    }
+    
+    @ViewBuilder
+    var footer: some View {
+        if let footerString {
+            Text(footerString)
         }
     }
     
