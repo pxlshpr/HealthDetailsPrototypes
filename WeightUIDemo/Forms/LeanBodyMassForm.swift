@@ -1,6 +1,15 @@
 import SwiftUI
 import SwiftSugar
 
+let MockLeanBodyMassData: [LeanBodyMassData] = [
+    .init(1, .userEntered, Date(fromTimeString: "09_42")!, 73.7),
+    .init(2, .healthKit, Date(fromTimeString: "12_07")!, 74.6),
+    .init(3, .fatPercentage, Date(fromTimeString: "13_23")!, 72.3),
+    .init(4, .equation, Date(fromTimeString: "15_01")!, 70.9),
+    .init(5, .userEntered, Date(fromTimeString: "17_35")!, 72.5),
+    .init(6, .healthKit, Date(fromTimeString: "19_54")!, 74.2),
+]
+
 struct LeanBodyMassForm: View {
     
     @ScaledMetric var scale: CGFloat = 1
@@ -17,14 +26,7 @@ struct LeanBodyMassForm: View {
     
     @State var source: LeanBodyMassSource = .userEntered
 
-    @State var listData: [LeanBodyMassData] = [
-        .init(1, .userEntered, Date(fromTimeString: "09_42")!, 73.7),
-        .init(2, .healthKit, Date(fromTimeString: "12_07")!, 74.6),
-        .init(3, .fatPercentage, Date(fromTimeString: "13_23")!, 72.3),
-        .init(4, .equation, Date(fromTimeString: "15_01")!, 70.9),
-        .init(5, .userEntered, Date(fromTimeString: "17_35")!, 72.5),
-        .init(6, .healthKit, Date(fromTimeString: "19_54")!, 74.2),
-    ]
+    @State var listData: [LeanBodyMassData] = MockLeanBodyMassData
     
     @State var deletedHealthData: [LeanBodyMassData] = []
     
@@ -131,6 +133,12 @@ struct LeanBodyMassForm: View {
     func save() {
         
     }
+    
+    func setIsDirty() {
+        isDirty = listData != MockLeanBodyMassData
+        || !deletedHealthData.isEmpty
+        || dailyValueType != .average
+    }
 
     @ViewBuilder
     var notice: some View {
@@ -156,8 +164,18 @@ struct LeanBodyMassForm: View {
     }
 
     var dailyValuePicker: some View {
+        let binding = Binding<DailyValueType>(
+            get: { dailyValueType },
+            set: { newValue in
+                withAnimation {
+                    dailyValueType = newValue
+                    setIsDirty()
+                }
+            }
+        )
+        
         var picker: some View {
-            Picker("", selection: $dailyValueType) {
+            Picker("", selection: binding) {
                 ForEach(DailyValueType.allCases, id: \.self) {
                     Text($0.name).tag($0)
                 }
@@ -228,11 +246,11 @@ struct LeanBodyMassForm: View {
         }
     }
     
-    func cell(for listData: LeanBodyMassData, disabled: Bool = false) -> some View {
+    func cell(for data: LeanBodyMassData, disabled: Bool = false) -> some View {
         
         @ViewBuilder
         var image: some View {
-            switch listData.source {
+            switch data.source {
             case .healthKit:
                 Image("AppleHealthIcon")
                     .resizable()
@@ -242,8 +260,8 @@ struct LeanBodyMassForm: View {
                             .stroke(Color(.systemGray3), lineWidth: 0.5)
                     )
             default:
-                Image(systemName: listData.source.image)
-                    .scaleEffect(listData.source.scale)
+                Image(systemName: data.source.image)
+                    .scaleEffect(data.source.scale)
                     .frame(width: 24, height: 24)
                     .background(
                         RoundedRectangle(cornerRadius: 5)
@@ -256,7 +274,7 @@ struct LeanBodyMassForm: View {
         var deleteButton: some View {
             if isEditing, isPast {
                 Button {
-                    
+                    delete(data)
                 } label: {
                     Image(systemName: "minus.circle.fill")
                         .imageScale(.large)
@@ -270,12 +288,12 @@ struct LeanBodyMassForm: View {
             deleteButton
                 .opacity(disabled ? 0.6 : 1)
             image
-            Text(listData.dateString)
+            Text(data.dateString)
                 .foregroundStyle(disabled ? .secondary : .primary)
             Spacer()
             Text("23%")
                 .foregroundStyle(disabled ? .tertiary : .secondary)
-            Text(listData.valueString)
+            Text(data.valueString)
                 .foregroundStyle(disabled ? .secondary : .primary)
         }
     }
@@ -339,15 +357,19 @@ struct LeanBodyMassForm: View {
         }
     }
     
+    func delete(_ data: LeanBodyMassData) {
+        if data.source == .healthKit {
+            deletedHealthData.append(data)
+            deletedHealthData.sort()
+        }
+        listData.removeAll(where: { $0.id == data.id })
+    }
+    
     func delete(at offsets: IndexSet) {
         let dataToDelete = offsets.map { self.listData[$0] }
         withAnimation {
             for data in dataToDelete {
-                if data.source == .healthKit {
-                    deletedHealthData.append(data)
-                    deletedHealthData.sort()
-                }
-                listData.removeAll(where: { $0.id == data.id })
+                delete(data)
             }
         }
     }
