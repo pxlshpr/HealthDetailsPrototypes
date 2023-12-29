@@ -1,47 +1,15 @@
 import SwiftUI
 import SwiftSugar
 
-struct LeanBodyMassData: Hashable {
-    let id: Int
-    let source: LeanBodyMassSource
-    let date: Date
-    let value: Double
-    
-    init(
-        _ id: Int,
-        _ source: LeanBodyMassSource,
-        _ date: Date,
-        _ value: Double
-    ) {
-        self.id = id
-        self.source = source
-        self.date = date
-        self.value = value
-    }
-    
-    var valueString: String {
-        "\(value.clean) kg"
-    }
-    
-    var dateString: String {
-        date.shortTime
-    }
-    
-    func fatPercentage(forWeight weight: Double) -> Double {
-        (((weight - value) / weight) * 100.0).rounded(toPlaces: 1)
-    }
-}
-
 struct LeanBodyMassForm: View {
     
-//    @Environment(\.dismiss) var dismiss
-
     @ScaledMetric var scale: CGFloat = 1
     let imageScale: CGFloat = 24
 
     @State var dailyValueType: DailyValueType = .average
     @State var value: Double? = 73.6
-
+    @State var fatPercentage: Double? = 22.4
+    
     @State var isSynced: Bool = true
     @State var showingSyncOffConfirmation: Bool = false
 
@@ -60,7 +28,10 @@ struct LeanBodyMassForm: View {
         .init(3, .fatPercentage, Date(fromTimeString: "13_23")!, 72.3),
         .init(4, .equation, Date(fromTimeString: "15_01")!, 70.9),
         .init(5, .userEntered, Date(fromTimeString: "17_35")!, 72.5),
+        .init(6, .healthKit, Date(fromTimeString: "19_54")!, 74.2),
     ]
+    
+    @State var deletedHealthData: [LeanBodyMassData] = []
     
     init(pastDate: Date? = nil, isPresented: Binding<Bool> = .constant(true)) {
         self.pastDate = pastDate
@@ -74,6 +45,7 @@ struct LeanBodyMassForm: View {
             notice
 //            explanation
             list
+            deletedList
             dailyValuePicker
             syncSection
         }
@@ -93,12 +65,33 @@ struct LeanBodyMassForm: View {
     
     var toolbarContent: some ToolbarContent {
         Group {
-            bottomToolbarContent(
-                value: value,
-                valueString: value?.clean,
-                isDisabled: !isEditing,
-                unitString: "kg"
-            )
+            ToolbarItem(placement: .bottomBar) {
+                HStack(alignment: .firstTextBaseline, spacing: 5) {
+                    if let fatPercentage {
+                        Text("\(fatPercentage.roundedToOnePlace)")
+                            .contentTransition(.numericText(value: fatPercentage))
+                            .font(LargeNumberFont)
+                            .foregroundStyle(isDisabled ? .secondary : .primary)
+                        Text("% fat")
+                            .font(LargeUnitFont)
+                            .foregroundStyle(isDisabled ? .tertiary : .secondary)
+                    }
+                    Spacer()
+                    if let value {
+                        Text("\(value.roundedToOnePlace)")
+                            .contentTransition(.numericText(value: value))
+                            .font(LargeNumberFont)
+                            .foregroundStyle(isDisabled ? .secondary : .primary)
+                        Text("kg")
+                            .font(LargeUnitFont)
+                            .foregroundStyle(isDisabled ? .tertiary : .secondary)
+                    } else {
+                        Text("Not Set")
+                            .font(LargeUnitFont)
+                            .foregroundStyle(isDisabled ? .tertiary : .secondary)
+                    }
+                }
+            }
             topToolbarContent(
                 isEditing: $isEditing,
                 isDirty: $isDirty,
@@ -159,7 +152,7 @@ struct LeanBodyMassForm: View {
             case .first:    "first value"
             }
             
-            return "When multiple values are present, the \(name) is used for the day."
+            return "When multiple values are present, use the \(name) of the day."
 
         }
         return Section("Daily Value") {
@@ -179,7 +172,7 @@ struct LeanBodyMassForm: View {
         )
 
         var section: some View {
-            Section(footer: Text("Automatically imports your Lean Body Mass data from Apple Health. Data you add here will also be exported back to Apple Health.")) {
+            Section(footer: Text("Automatically imports your Lean Body Mass and Body Fat Percentage data from Apple Health. Data you add here will also be exported back to Apple Health.")) {
                 HStack {
                     Image("AppleHealthIcon")
                         .resizable()
@@ -213,7 +206,7 @@ struct LeanBodyMassForm: View {
         }
     }
     
-    func cell(for listData: LeanBodyMassData) -> some View {
+    func cell(for listData: LeanBodyMassData, disabled: Bool = false) -> some View {
         
         @ViewBuilder
         var image: some View {
@@ -253,16 +246,51 @@ struct LeanBodyMassForm: View {
         
         return HStack {
             deleteButton
+                .opacity(disabled ? 0.6 : 1)
             image
             Text(listData.dateString)
+                .foregroundStyle(disabled ? .secondary : .primary)
             Spacer()
+            Text("23%")
+                .foregroundStyle(disabled ? .tertiary : .secondary)
             Text(listData.valueString)
+                .foregroundStyle(disabled ? .secondary : .primary)
+        }
+    }
+
+    var deletedList: some View {
+        var header: some View {
+            Text("Ignored Apple Health Data")
+        }
+        
+        func restore(_ data: LeanBodyMassData) {
+            withAnimation {
+                listData.append(data)
+                listData.sort()
+                deletedHealthData.removeAll(where: { $0.id == data.id })
+            }
+        }
+        return Group {
+            if !deletedHealthData.isEmpty {
+                Section(header: header) {
+                    ForEach(deletedHealthData) { data in
+                        HStack {
+                            cell(for: data, disabled: true)
+                            Button {
+                                restore(data)
+                            } label: {
+                                Image(systemName: "arrow.up.bin")
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
     
     var list: some View {
         var cells: some View {
-            ForEach(listData, id: \.self) { data in
+            ForEach(listData) { data in
                 cell(for: data)
                     .deleteDisabled(isPast)
             }
@@ -279,28 +307,27 @@ struct LeanBodyMassForm: View {
                 }
             }
         }
-        
-        var header: some View {
-            HStack {
-                Spacer()
-                Button {
-                    
-                } label: {
-                    Text("Edit")
-                        .textCase(.none)
-                        .fontWeight(.semibold)
-                }
-            }
+
+        var footer: some View {
+            Text("Percentages indicate your body fat.")
         }
-        
-        return Section {
+        return Section(footer: footer) {
             cells
             addButton
         }
     }
     
     func delete(at offsets: IndexSet) {
-
+        let dataToDelete = offsets.map { self.listData[$0] }
+        withAnimation {
+            for data in dataToDelete {
+                if data.source == .healthKit {
+                    deletedHealthData.append(data)
+                    deletedHealthData.sort()
+                }
+                listData.removeAll(where: { $0.id == data.id })
+            }
+        }
     }
 }
 
