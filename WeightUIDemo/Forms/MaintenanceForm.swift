@@ -3,8 +3,6 @@ import SwiftSugar
 
 struct MaintenanceForm: View {
     
-    @Environment(\.dismiss) var dismiss
-
     @State var maintenancetype: MaintenanceType = .adaptive
     @State var value: Double = 3225
     @State var adaptiveValue: Double = 3225
@@ -25,7 +23,7 @@ struct MaintenanceForm: View {
     }
     
     var body: some View {
-        NavigationView {
+//        NavigationView {
             List {
                 notice
                 valuePicker
@@ -37,7 +35,7 @@ struct MaintenanceForm: View {
             .navigationTitle("Maintenance Energy")
             .toolbar { toolbarContent }
             .navigationBarBackButtonHidden(isEditing && isPast)
-        }
+//        }
         .sheet(isPresented: $showingMaintenanceInfo) {
             MaintenanceInfo()
         }
@@ -77,7 +75,7 @@ struct MaintenanceForm: View {
                 isEditing: $isEditing,
                 isDirty: $isDirty,
                 isPast: isPast,
-                dismissAction: { dismiss() },
+                dismissAction: { isPresented = false },
                 undoAction: undo,
                 saveAction: save
             )

@@ -205,7 +205,7 @@
 //        
 //        init(_ isHealth: Bool, _ dateString: String, _ valueString: String) {
 //            self.isHealth = isHealth
-//            self.dateString = dateString
+//            self.shortDateString = dateString
 //            self.valueString = valueString
 //        }
 //    }
@@ -241,7 +241,7 @@
 //        return HStack {
 //            image
 //                .opacity(isEditing ? 1 : 0.6)
-//            Text(listData.dateString)
+//            Text(listData.shortDateString)
 //            Spacer()
 //            Text(listData.valueString)
 //        }
@@ -265,7 +265,7 @@
 //        @ViewBuilder
 //        func header(_ i: Int) -> some View {
 //            if useMovingAverage {
-//                Text(Date.now.moveDayBy(-i).dateString)
+//                Text(Date.now.moveDayBy(-i).shortDateString)
 //            } else {
 //                EmptyView()
 //            }

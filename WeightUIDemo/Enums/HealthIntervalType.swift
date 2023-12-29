@@ -21,13 +21,13 @@ public enum HealthIntervalType: Int16, Codable, CaseIterable {
             "Using the average Resting Energy of the past \(interval.description)."
         case .sameDay:
             if let pastDate {
-                "Using the Resting Energy recorded for \(pastDate.dateString)."
+                "Using the Resting Energy recorded for \(pastDate.shortDateString)."
             } else {
                 "Using the Resting Energy recorded for today."
             }
         case .previousDay:
             if let pastDate {
-                "Using the Resting Energy recorded for \(pastDate.moveDayBy(-1).dateString)."
+                "Using the Resting Energy recorded for \(pastDate.moveDayBy(-1).shortDateString)."
             } else {
                 "Using the Resting Energy recorded for yesterday."
             }

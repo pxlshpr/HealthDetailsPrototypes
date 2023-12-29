@@ -83,7 +83,7 @@ extension RestingEnergyForm {
 //            @ViewBuilder
 //            var footer: some View {
 //                if dateIsInPast {
-//                    Text("Since no \(healthDetail.name.lowercased()) data has been set for \(formDate.dateString), the most recent entry prior to that is being used.")
+//                    Text("Since no \(healthDetail.name.lowercased()) data has been set for \(formDate.shortDateString), the most recent entry prior to that is being used.")
 //                }
 //            }
 //            
@@ -130,7 +130,7 @@ extension RestingEnergyForm {
 //                        }
 //                    } label: {
 //                        HStack {
-//                            Text(date.dateString)
+//                            Text(date.shortDateString)
 //                            Spacer()
 //                            Text(valueString)
 //                        }
@@ -146,7 +146,7 @@ extension RestingEnergyForm {
 //                        
 //                    } label: {
 //                        HStack {
-//                            Text(formDate.dateString)
+//                            Text(formDate.shortDateString)
 //                            Spacer()
 //                            Text("Not Set")
 //                                .foregroundStyle(.secondary)

@@ -3,8 +3,6 @@ import SwiftSugar
 
 struct WeightForm: View {
     
-    @Environment(\.dismiss) var dismiss
-
     @ScaledMetric var scale: CGFloat = 1
     let imageScale: CGFloat = 24
 
@@ -87,7 +85,7 @@ struct WeightForm: View {
             }
             ToolbarItem(placement: .topBarTrailing) {
                 Button("Done") {
-                    dismiss()
+//                    dismiss()
                 }
                 .fontWeight(.semibold)
             }

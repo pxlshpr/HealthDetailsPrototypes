@@ -1,5 +1,23 @@
 import Foundation
 
+public extension Date {
+    var shortDateString: String {
+        let formatter = DateFormatter()
+        if self.year == Date().year {
+            formatter.dateFormat = "d MMM"
+        } else {
+            formatter.dateFormat = "d MMM yyyy"
+        }
+        return formatter.string(from: self)
+    }
+    
+    var dateString: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy_MM_dd"
+        return formatter.string(from: self)
+    }
+}
+
 extension Date {
     init?(fromDateString string: String) {
         let dateFormatter = DateFormatter()
@@ -9,6 +27,22 @@ extension Date {
             return nil
         }
         self = date
+    }
+    
+    init?(fromDateTimeString string: String) {
+        let dateFormatter = DateFormatter()
+        dateFormatter.locale = Locale(identifier: "en_US_POSIX")
+        dateFormatter.dateFormat = "yyyy_MM_dd-HH_mm"
+        guard let date = dateFormatter.date(from: string) else {
+            return nil
+        }
+        self = date
+    }
+    
+    init?(fromTimeString timeString: String, on date: Date = Date.now) {
+        let dateString = date.dateString
+        let dateTimeString = "\(dateString)-\(timeString)"
+        self.init(fromDateTimeString: dateTimeString)
     }
 }
 

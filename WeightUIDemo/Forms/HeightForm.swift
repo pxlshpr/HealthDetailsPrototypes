@@ -3,7 +3,7 @@ import SwiftSugar
 
 struct HeightForm: View {
     
-    @Environment(\.dismiss) var dismiss
+//    @Environment(\.dismiss) var dismiss
 
     @ScaledMetric var scale: CGFloat = 1
     let imageScale: CGFloat = 24

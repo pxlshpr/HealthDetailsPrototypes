@@ -2,8 +2,6 @@ import SwiftUI
 
 struct RestingEnergyForm: View {
 
-    @Environment(\.dismiss) var dismiss
-
     @State var value: Double? = 2798
 
     @State var source: RestingEnergySource = .healthKit

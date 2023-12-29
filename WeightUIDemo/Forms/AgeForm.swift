@@ -3,7 +3,7 @@ import SwiftSugar
 
 struct AgeForm: View {
     
-    @Environment(\.dismiss) var dismiss
+//    @Environment(\.dismiss) var dismiss
 
     @ScaledMetric var scale: CGFloat = 1
     let imageScale: CGFloat = 24
@@ -145,7 +145,7 @@ struct AgeForm: View {
             }
             ToolbarItem(placement: .topBarTrailing) {
                 Button("Done") {
-                    dismiss()
+//                    dismiss()
                 }
                 .fontWeight(.semibold)
             }

@@ -3,8 +3,6 @@ import SwiftSugar
 
 struct SmokingStatusForm: View {
     
-    @Environment(\.dismiss) var dismiss
-
     @State var hasAppeared = false
     @State var smokingStatus: SmokingStatus = .notSet
     
@@ -51,7 +49,7 @@ struct SmokingStatusForm: View {
             }
             ToolbarItem(placement: .topBarTrailing) {
                 Button("Done") {
-                    dismiss()
+//                    dismiss()
                 }
                 .fontWeight(.semibold)
             }

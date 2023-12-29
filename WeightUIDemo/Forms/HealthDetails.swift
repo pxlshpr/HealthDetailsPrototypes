@@ -57,8 +57,11 @@ struct HealthDetails: View {
     let pastDate: Date?
     @State var presentedHealthDetail: HealthDetail? = nil
     
-    init(pastDate: Date? = nil) {
+    @Binding var isPresented: Bool
+    
+    init(pastDate: Date? = nil, isPresented: Binding<Bool> = .constant(false)) {
         self.pastDate = pastDate
+        _isPresented = isPresented
     }
     
     var body: some View {
@@ -76,9 +79,14 @@ struct HealthDetails: View {
         Form {
             dateSection
             ForEach(HealthDetail.allCases) { healthDetail in
-                Button(healthDetail.name) {
-                    presentedHealthDetail = healthDetail
+                NavigationLink {
+                    sheet(for: healthDetail)
+                } label: {
+                    Text(healthDetail.name)
                 }
+//                Button(healthDetail.name) {
+//                    presentedHealthDetail = healthDetail
+//                }
             }
         }
     }
@@ -90,7 +98,7 @@ struct HealthDetails: View {
                 HStack {
                     Text("Date")
                     Spacer()
-                    Text(pastDate.dateString)
+                    Text(pastDate.shortDateString)
                 }
             }
         }
@@ -100,9 +108,9 @@ struct HealthDetails: View {
     func sheet(for route: HealthDetail) -> some View {
         switch route {
         case .maintenance:
-            MaintenanceForm(pastDate: pastDate, isPresented: isPresentedBinding(for: route))
+            MaintenanceForm(pastDate: pastDate, isPresented: $isPresented)
         case .leanBodyMass:
-            LeanBodyMassForm()
+            LeanBodyMassForm(pastDate: pastDate, isPresented: $isPresented)
         default:
             EmptyView()
         }

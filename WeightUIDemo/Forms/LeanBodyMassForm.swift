@@ -1,16 +1,46 @@
 import SwiftUI
 import SwiftSugar
 
+struct LeanBodyMassData: Hashable {
+    let id: Int
+    let source: LeanBodyMassSource
+    let date: Date
+    let value: Double
+    
+    init(
+        _ id: Int,
+        _ source: LeanBodyMassSource,
+        _ date: Date,
+        _ value: Double
+    ) {
+        self.id = id
+        self.source = source
+        self.date = date
+        self.value = value
+    }
+    
+    var valueString: String {
+        "\(value.clean) kg"
+    }
+    
+    var dateString: String {
+        date.shortTime
+    }
+    
+    func fatPercentage(forWeight weight: Double) -> Double {
+        (((weight - value) / weight) * 100.0).rounded(toPlaces: 1)
+    }
+}
+
 struct LeanBodyMassForm: View {
     
-    @Environment(\.dismiss) var dismiss
+//    @Environment(\.dismiss) var dismiss
 
     @ScaledMetric var scale: CGFloat = 1
     let imageScale: CGFloat = 24
 
-    @State var hasAppeared = false
     @State var dailyValueType: DailyValueType = .average
-    @State var value: Double = 73.6
+    @State var value: Double? = 73.6
 
     @State var isSynced: Bool = true
     @State var showingSyncOffConfirmation: Bool = false
@@ -19,29 +49,37 @@ struct LeanBodyMassForm: View {
     
     @State var source: LeanBodyMassSource = .userEntered
     
+    let pastDate: Date?
+    @State var isEditing: Bool
+    @State var isDirty: Bool = false
+    @Binding var isPresented: Bool
+
+    @State var listData: [LeanBodyMassData] = [
+        .init(1, .userEntered, Date(fromTimeString: "09_42")!, 73.7),
+        .init(2, .healthKit, Date(fromTimeString: "12_07")!, 74.6),
+        .init(3, .fatPercentage, Date(fromTimeString: "13_23")!, 72.3),
+        .init(4, .equation, Date(fromTimeString: "15_01")!, 70.9),
+        .init(5, .userEntered, Date(fromTimeString: "17_35")!, 72.5),
+    ]
+    
+    init(pastDate: Date? = nil, isPresented: Binding<Bool> = .constant(true)) {
+        self.pastDate = pastDate
+        _isPresented = isPresented
+        _isEditing = State(initialValue: pastDate == nil)
+    }
+    
+    @ViewBuilder
     var body: some View {
-        NavigationView {
-            Group {
-                if hasAppeared {
-                    Form {
-//                        explanation
-                        list
-                        dailyValuePicker
-                        syncToggle
-                    }
-                } else {
-                    Color.clear
-                }
-            }
-            .navigationTitle("Lean Body Mass")
-            .navigationBarTitleDisplayMode(.large)
-            .toolbar { toolbarContent }
+        Form {
+            notice
+//            explanation
+            list
+            dailyValuePicker
+            syncSection
         }
-        .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                hasAppeared = true
-            }
-        }
+        .navigationTitle("Lean Body Mass")
+        .navigationBarTitleDisplayMode(.large)
+        .toolbar { toolbarContent }
         .confirmationDialog("Turn Off Sync", isPresented: $showingSyncOffConfirmation, titleVisibility: .visible) {
             Button("Turn Off", role: .destructive) {
                 
@@ -49,13 +87,59 @@ struct LeanBodyMassForm: View {
         } message: {
             Text("Lean body mass data will no longer be read from or written to Apple Health.")
         }
-        .sheet(isPresented: $showingForm) { form }
+        .sheet(isPresented: $showingForm) { measurementForm }
+        .navigationBarBackButtonHidden(isEditing && isPast)
     }
     
-    var form: some View {
+    var toolbarContent: some ToolbarContent {
+        Group {
+            bottomToolbarContent(
+                value: value,
+                valueString: value?.clean,
+                isDisabled: !isEditing,
+                unitString: "kg"
+            )
+            topToolbarContent(
+                isEditing: $isEditing,
+                isDirty: $isDirty,
+                isPast: isPast,
+                dismissAction: { isPresented = false },
+                undoAction: undo,
+                saveAction: save
+            )
+        }
+    }
+    
+    func undo() {
+    }
+    
+    func save() {
+        
+    }
+
+    @ViewBuilder
+    var notice: some View {
+        if let pastDate {
+            NoticeSection.legacy(pastDate, isEditing: $isEditing)
+        }
+    }
+
+    var measurementForm: some View {
         LeanBodyMassMeasurementForm()
     }
     
+    var isDisabled: Bool {
+        isPast && !isEditing
+    }
+    
+    var controlColor: Color {
+        isDisabled ? .secondary : .primary
+    }
+    
+    var isPast: Bool {
+        pastDate != nil
+    }
+
     var dailyValuePicker: some View {
         var picker: some View {
             Picker("", selection: $dailyValueType) {
@@ -65,6 +149,7 @@ struct LeanBodyMassForm: View {
             }
             .pickerStyle(.segmented)
             .listRowSeparator(.hidden)
+            .disabled(isDisabled)
         }
         
         var description: String {
@@ -83,7 +168,7 @@ struct LeanBodyMassForm: View {
         }
     }
 
-    var syncToggle: some View {
+    var syncSection: some View {
         let binding = Binding<Bool>(
             get: { isSynced },
             set: {
@@ -93,45 +178,31 @@ struct LeanBodyMassForm: View {
             }
         )
 
-        return Section(footer: Text("Automatically reads lean body mass data from Apple Health. Data you enter here will also be exported back to Apple Health.")) {
-            HStack {
-                Image("AppleHealthIcon")
-                    .resizable()
-                    .frame(width: imageScale * scale, height: imageScale * scale)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 5)
-                            .stroke(Color(.systemGray3), lineWidth: 0.5)
-                    )
-                Text("Sync with Apple Health")
-                    .layoutPriority(1)
-                Spacer()
-                Toggle("", isOn: binding)
+        var section: some View {
+            Section(footer: Text("Automatically imports your Lean Body Mass data from Apple Health. Data you add here will also be exported back to Apple Health.")) {
+                HStack {
+                    Image("AppleHealthIcon")
+                        .resizable()
+                        .frame(width: imageScale * scale, height: imageScale * scale)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 5)
+                                .stroke(Color(.systemGray3), lineWidth: 0.5)
+                        )
+                    Text("Sync with Apple Health")
+                        .layoutPriority(1)
+                    Spacer()
+                    Toggle("", isOn: binding)
+                }
+            }
+        }
+        
+        return Group {
+            if !isPast {
+                section
             }
         }
     }
     
-    var toolbarContent: some ToolbarContent {
-        Group {
-            ToolbarItem(placement: .bottomBar) {
-                HStack(alignment: .firstTextBaseline, spacing: 5) {
-                    Spacer()
-                    Text("\(value.clean)")
-                        .contentTransition(.numericText(value: value))
-                        .font(LargeNumberFont)
-                    Text("kg")
-                        .font(LargeUnitFont)
-                        .foregroundStyle(.secondary)
-                }
-            }
-            ToolbarItem(placement: .topBarTrailing) {
-                Button("Done") {
-                    dismiss()
-                }
-                .fontWeight(.semibold)
-            }
-        }
-    }
-
     var explanation: some View {
         Section {
             VStack(alignment: .leading) {
@@ -142,28 +213,10 @@ struct LeanBodyMassForm: View {
         }
     }
     
-    struct ListData: Hashable {
-        let source: LeanBodyMassSource
-        let dateString: String
-        let valueString: String
+    func cell(for listData: LeanBodyMassData) -> some View {
         
-        init(_ source: LeanBodyMassSource, _ dateString: String, _ valueString: String) {
-            self.source = source
-            self.dateString = dateString
-            self.valueString = valueString
-        }
-    }
-    
-    let listData: [ListData] = [
-        .init(.userEntered, "9:42 am", "73.7 kg"),
-        .init(.healthKit, "12:07 pm", "74.6 kg"),
-        .init(.fatPercentage, "1:23 pm", "72.3 kg"),
-        .init(.equation, "3:01 pm", "70.9 kg"),
-        .init(.userEntered, "5:35 pm", "72.5 kg"),
-    ]
-    
-    func cell(for listData: ListData) -> some View {
-        HStack {
+        @ViewBuilder
+        var image: some View {
             switch listData.source {
             case .healthKit:
                 Image("AppleHealthIcon")
@@ -182,25 +235,54 @@ struct LeanBodyMassForm: View {
                             .foregroundStyle(Color(.systemGray4))
                     )
             }
+        }
+        
+        @ViewBuilder
+        var deleteButton: some View {
+            if isEditing, isPast {
+                Button {
+                    
+                } label: {
+                    Image(systemName: "minus.circle.fill")
+                        .imageScale(.large)
+                        .foregroundStyle(.red)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        
+        return HStack {
+            deleteButton
+            image
             Text(listData.dateString)
-            
             Spacer()
             Text(listData.valueString)
         }
     }
     
     var list: some View {
-        Section {
-            ForEach(listData, id: \.self) {
-                cell(for: $0)
-                    .deleteDisabled($0.source == .healthKit)
+        var cells: some View {
+            ForEach(listData, id: \.self) { data in
+                cell(for: data)
+                    .deleteDisabled(isPast)
             }
             .onDelete(perform: delete)
-            Button {
-                showingForm = true
-            } label: {
-                Text("Add Measurement")
+        }
+        
+        @ViewBuilder
+        var addButton: some View {
+            if !isDisabled {
+                Button {
+                    showingForm = true
+                } label: {
+                    Text("Add Measurement")
+                }
             }
+        }
+        
+        return Section {
+            cells
+            addButton
         }
     }
     
@@ -209,6 +291,14 @@ struct LeanBodyMassForm: View {
     }
 }
 
-#Preview("Lean Body Mass") {
-    LeanBodyMassForm()
+#Preview("Current") {
+    NavigationView {
+        LeanBodyMassForm()
+    }
+}
+
+#Preview("Past") {
+    NavigationView {
+        LeanBodyMassForm(pastDate: MockPastDate)
+    }
 }

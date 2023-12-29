@@ -43,7 +43,7 @@ struct Notice {
 //            message: "This data has been preserved to ensure that any goals dependent on it remain unchanged.",
 //            message: "This data has been preserved to ensure that any goals dependent on it on this date remain unchanged.",
 //            message: isEditing.wrappedValue ? "You are editing this data for this date specifically." : "This data has been preserved to ensure that any goals dependent on it on this date remain unchanged.",
-            message: "You are viewing legacy data for the following date, which has been preserved to ensure any dependent goals remain unchanged.\n\nChanges will not affect your current data.",
+            message: "You are viewing legacy data which has been preserved to ensure any dependent goals on this date remain unchanged.",
 //            message: "This data has been kept unchanged to secure any goals dependent on it as of this date.",
             date: date,
             imageName: "calendar.badge.clock",
@@ -140,7 +140,7 @@ struct NoticeSection: View {
             HStack {
                 Text("Date")
                 Spacer()
-                Text(date.dateString)
+                Text(date.shortDateString)
             }
         }
     }

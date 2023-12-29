@@ -2,8 +2,6 @@ import SwiftUI
 
 struct ActiveEnergyForm: View {
 
-    @Environment(\.dismiss) var dismiss
-
     @State var value: Double? = valueForActivityLevel(.lightlyActive)
     @State var source: ActiveEnergySource = .activityLevel
     @State var activityLevel: ActivityLevel = .lightlyActive

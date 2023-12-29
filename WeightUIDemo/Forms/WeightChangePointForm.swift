@@ -23,7 +23,7 @@ struct WeightChangePointForm: View {
     init(
         pastDate: Date? = nil,
         isPresented: Binding<Bool> = .constant(true),
-        dateString: String = MockPastDate.dateString,
+        dateString: String = MockPastDate.shortDateString,
         isCurrent: Bool = false
     ) {
         self.pastDate = pastDate
@@ -52,7 +52,7 @@ struct WeightChangePointForm: View {
                 
             } label: {
                 HStack {
-                    Text(date.dateString)
+                    Text(date.shortDateString)
                     Spacer()
                     if let weight {
                         Text("\(weight.clean) kg")
@@ -66,7 +66,7 @@ struct WeightChangePointForm: View {
         }
         
         func weight(for date: Date) -> Double? {
-            switch date.dateString {
+            switch date.shortDateString {
             case "24 Dec": 93.6
             case "23 Dec": nil
             case "22 Dec": 94.7

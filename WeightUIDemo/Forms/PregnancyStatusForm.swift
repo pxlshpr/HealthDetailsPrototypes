@@ -2,8 +2,6 @@ import SwiftUI
 import SwiftSugar
 
 struct PregnancyStatusForm: View {
-    
-    @Environment(\.dismiss) var dismiss
 
     @State var hasAppeared = false
     @State var pregnancyStatus: PregnancyStatus = .notSet
@@ -51,7 +49,7 @@ struct PregnancyStatusForm: View {
             }
             ToolbarItem(placement: .topBarTrailing) {
                 Button("Done") {
-                    dismiss()
+//                    dismiss()
                 }
                 .fontWeight(.semibold)
             }

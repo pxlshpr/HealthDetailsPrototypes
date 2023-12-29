@@ -44,29 +44,29 @@ struct DemoView: View {
     func sheet(for type: WeightFormType) -> some View {
         switch type {
         case .maintenance:
-            HealthDetails()
+            HealthDetails(isPresented: Binding<Bool>(
+                get: { self.type == .maintenance },
+                set: { newValue in
+                    if !newValue {
+                        self.type = nil
+                    }
+                }
+            ))
         case .pastMaintenance:
-            HealthDetails(pastDate: MockPastDate)
+            HealthDetails(pastDate: MockPastDate, isPresented: Binding<Bool>(
+                get: { self.type == .pastMaintenance },
+                set: { newValue in
+                    if !newValue {
+                        self.type = nil
+                    }
+                }
+            ))
         }
-    }
-}
-
-public extension Date {
-    var dateString: String {
-        let formatter = DateFormatter()
-        if self.year == Date().year {
-            formatter.dateFormat = "d MMM"
-        } else {
-            formatter.dateFormat = "d MMM yyyy"
-        }
-        return formatter.string(from: self)
     }
 }
 
 #Preview {
     DemoView()
-//    WeightForm()
-//    SampleWeightForm()
 }
 
 let MockPastDate = Date.now.moveDayBy(-3)
@@ -79,32 +79,4 @@ func valueForActivityLevel(_ activityLevel: ActivityLevel) -> Double {
     case .active:               3510.375
     case .veryActive:           3866.5
     }
-}
-
-struct TestForm: View {
-    var body: some View {
-        NavigationView {
-            List {
-                ForEach(0...100, id: \.self) { i in
-                    NavigationLink(value: i) {
-                        Text("\(i)")
-                    }
-                    .navigationDestination(for: Int.self) { i in
-                        Text("Hi")
-                    }
-//                    NavigationLink {
-//                        Text("\(i)")
-//                    } label: {
-//                        Text("\(i)")
-//                    }
-                }
-            }
-            .navigationTitle("Hi")
-//            .navigationBarTitleDisplayMode(.inline)
-        }
-    }
-}
-
-#Preview("Navigation Test") {
-    TestForm()
 }

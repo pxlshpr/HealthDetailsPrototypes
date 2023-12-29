@@ -46,6 +46,7 @@ struct LeanBodyMassMeasurementForm: View {
         NavigationView {
             form
                 .navigationTitle("Lean Body Mass")
+                .navigationBarTitleDisplayMode(.inline)
                 .toolbar { toolbarContent }
         }
         .alert("Enter your Lean Body Mass", isPresented: $showingAlert) {
@@ -96,23 +97,6 @@ struct LeanBodyMassMeasurementForm: View {
                 weightSection
             default:
                 EmptyView()
-            }
-            if isPast {
-                removeSection
-            }
-        }
-    }
-    
-    var removeSection: some View {
-        Section {
-            Button {
-                dismiss()
-            } label: {
-                HStack {
-                    Text("Remove this Measurement")
-                    Spacer()
-                    Image(systemName: "trash")
-                }
             }
         }
     }
@@ -406,22 +390,22 @@ struct LeanBodyMassMeasurementForm: View {
 
     var toolbarContent: some ToolbarContent {
         Group {
-            ToolbarItem(placement: .principal) {
-                Text("Measurement")
-                    .font(.headline)
-            }
-            ToolbarItem(placement: .topBarTrailing) {
-                Button("Add") {
-                    
-                }
-                .fontWeight(.bold)
-                .disabled(!isDirty)
-            }
-            ToolbarItem(placement: .topBarLeading) {
-                Button("Cancel") {
-                    dismiss()
-                }
-            }
+//            ToolbarItem(placement: .principal) {
+//                Text("Measurement")
+//                    .font(.headline)
+//            }
+//            ToolbarItem(placement: .topBarTrailing) {
+//                Button("Add") {
+//                    
+//                }
+//                .fontWeight(.bold)
+//                .disabled(!isDirty)
+//            }
+//            ToolbarItem(placement: .topBarLeading) {
+//                Button("Cancel") {
+//                    dismiss()
+//                }
+//            }
             ToolbarItem(placement: .bottomBar) {
                 HStack(alignment: .firstTextBaseline, spacing: 5) {
                     if let fatPercentage = fatPercentageInput.double {

@@ -3,8 +3,6 @@ import SwiftSugar
 
 struct SexForm: View {
     
-    @Environment(\.dismiss) var dismiss
-
     @State var value: Double = 93.6
     @State var showingWeightSettings = false
     @State var sex: Sex = .other
@@ -31,7 +29,7 @@ struct SexForm: View {
             }
             ToolbarItem(placement: .topBarTrailing) {
                 Button("Done") {
-                    dismiss()
+//                    dismiss()
                 }
                 .fontWeight(.semibold)
             }
