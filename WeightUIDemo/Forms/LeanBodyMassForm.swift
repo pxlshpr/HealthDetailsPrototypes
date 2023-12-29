@@ -25,7 +25,6 @@ struct LeanBodyMassForm: View {
                 if hasAppeared {
                     Form {
 //                        explanation
-//                        sourceSection
                         list
                         dailyValuePicker
                         syncToggle
@@ -57,27 +56,30 @@ struct LeanBodyMassForm: View {
         LeanBodyMassMeasurementForm()
     }
     
-    var sourceSection: some View {
-        Section {
-            Picker("Source", selection: $source) {
-                ForEach(LeanBodyMassSource.allCases) { source in
-                    Text(source.name).tag(source)
-                }
-            }
-            .pickerStyle(.segmented)
-            .listRowBackground(EmptyView())
-        }
-    }
-    
     var dailyValuePicker: some View {
-        Section {
+        var picker: some View {
             Picker("", selection: $dailyValueType) {
                 ForEach(DailyValueType.allCases, id: \.self) {
                     Text($0.name).tag($0)
                 }
             }
             .pickerStyle(.segmented)
-            .listRowBackground(EmptyView())
+            .listRowSeparator(.hidden)
+        }
+        
+        var description: String {
+            let name = switch dailyValueType {
+            case .average:  "average"
+            case .last:     "last value"
+            case .first:    "first value"
+            }
+            
+            return "When multiple values are present, the \(name) is used for the day."
+
+        }
+        return Section("Daily Value") {
+            picker
+            Text(description)
         }
     }
 
@@ -188,12 +190,7 @@ struct LeanBodyMassForm: View {
     }
     
     var list: some View {
-        
-        var footer: some View {
-            Text(dailyValueType.description)
-        }
-
-        return Section(footer: footer) {
+        Section {
             ForEach(listData, id: \.self) {
                 cell(for: $0)
                     .deleteDisabled($0.source == .healthKit)

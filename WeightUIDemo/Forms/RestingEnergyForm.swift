@@ -168,22 +168,19 @@ extension RestingEnergyForm {
             }
         )
         
-        var pickerSection: some View {
-            Section {
-                Picker("Resting Energy", selection: binding) {
-                    ForEach(RestingEnergySource.allCases, id: \.self) {
-                        Text($0.name).tag($0)
-                    }
+        var pickerRow: some View {
+            Picker("Resting Energy", selection: binding) {
+                ForEach(RestingEnergySource.allCases, id: \.self) {
+                    Text($0.name).tag($0)
                 }
-                .foregroundStyle(controlColor)
-                .pickerStyle(.segmented)
-                .listRowBackground(EmptyView())
             }
+            .foregroundStyle(controlColor)
+            .pickerStyle(.segmented)
             .disabled(isDisabled)
-            .listSectionSpacing(.compact)
+            .listRowSeparator(.hidden)
         }
         
-        var descriptionSection: some View {
+        var descriptionRow: some View {
             var description: String {
                 switch source {
                 case .healthKit:
@@ -195,14 +192,12 @@ extension RestingEnergyForm {
                 }
             }
             
-            return Section {
-                Text(description)
-            }
+            return Text(description)
         }
         
-        return Group {
-            pickerSection
-            descriptionSection
+        return Section {
+            pickerRow
+            descriptionRow
         }
     }
     

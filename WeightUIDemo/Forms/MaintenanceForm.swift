@@ -31,6 +31,7 @@ struct MaintenanceForm: View {
                 valuePicker
                 adaptiveLink
                 estimatedLink
+                fallbackToggle
                 explanation
             }
             .navigationTitle("Maintenance Energy")
@@ -39,6 +40,17 @@ struct MaintenanceForm: View {
         }
         .sheet(isPresented: $showingMaintenanceInfo) {
             MaintenanceInfo()
+        }
+    }
+    
+    @State var useEstimatedAsFallback = true
+    
+    @ViewBuilder
+    var fallbackToggle: some View {
+        if maintenancetype == .adaptive {
+            Section {
+                Toggle("Use Estimate when Adaptive cannot be calculated", isOn: $useEstimatedAsFallback)
+            }
         }
     }
     
@@ -174,21 +186,34 @@ struct MaintenanceForm: View {
                 withAnimation {
                     maintenancetype = newValue
                     value = maintenancetype == .adaptive ? adaptiveValue : estimatedValue
+                    isDirty = maintenancetype != .adaptive
                 }
-                
-                isDirty = maintenancetype != .adaptive
             }
         )
         
-        return Section {
+        var pickerRow: some View {
             Picker("", selection: binding) {
                 ForEach(MaintenanceType.allCases, id: \.self) {
                     Text($0.name).tag($0)
                 }
             }
             .pickerStyle(.segmented)
-            .listRowBackground(EmptyView())
+            .listRowSeparator(.hidden)
             .disabled(!isEditing)
+        }
+        
+        var description: String {
+            switch maintenancetype {
+            case .adaptive:
+                "Using the Adaptive calculation."
+            case .estimated:
+                "Using your Estimated calculation."
+            }
+        }
+
+        return Section {
+            pickerRow
+            Text(description)
         }
     }
     
@@ -201,7 +226,12 @@ struct MaintenanceForm: View {
                     .font(.footnote)
             }
         }
-        return Section(footer: footer) {
+        
+        var header: some View {
+            Text("About Maintenance Energy")
+                .formTitleStyle()
+        }
+        return Section(header: header, footer: footer) {
             Text("Your Maintenance Energy (also known as your Total Daily Energy Expenditure or TDEE) is the dietary energy you would need to consume daily to maintain your weight.\n\nIt can be used to create energy goals that target a desired change in your weight.\n\nThere are two ways you can calculate it.")
         }
     }

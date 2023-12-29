@@ -67,13 +67,22 @@ struct WeightChangeForm: View {
         }
     }
     
+    var valueAsString: String? {
+        guard let value else { return nil }
+        return if value > 0 {
+            "+\(value.clean)"
+        } else {
+            value.clean
+        }
+    }
+    
     var toolbarContent: some ToolbarContent {
         Group {
             bottomToolbarContent(
                 value: value,
-                valueString: value?.formattedEnergy,
+                valueString: valueAsString,
                 isDisabled: !isEditing,
-                unitString: "kcal"
+                unitString: "kg"
             )
             topToolbarContent(
                 isEditing: $isEditing,
@@ -205,18 +214,43 @@ struct WeightChangeForm: View {
                 }
             }
         )
+        
+        var picker: some View {
+            Picker("", selection: binding) {
+                Text("Weight Gain").tag(true)
+                Text("Weight Loss").tag(false)
+            }
+            .pickerStyle(.segmented)
+            .listRowSeparator(.hidden)
+        }
+        
+        var button: some View {
+            var name: String {
+                "Weight \(isGain ? "Gain" : "Loss")"
+            }
+            
+            return Button {
+                showingAlert = true
+            } label: {
+//                Text("\(customValue == nil ? "Set" : "Edit") Weight \(isGain ? "Gain" : "Loss")")
+                if let customValue {
+                    HStack {
+                        Text(name)
+                            .foregroundStyle(Color(.label))
+                        Spacer()
+                        Text("\(customValue.clean) kg")
+                            .foregroundStyle(Color(.label))
+                        Image(systemName: "pencil")
+                    }
+                } else {
+                    Text("Set \(name)")
+                }
+            }
+        }
         var section: some View {
             Section("Weight Change") {
-                Picker("", selection: binding) {
-                    Text("Weight Gain").tag(true)
-                    Text("Weight Loss").tag(false)
-                }
-                .pickerStyle(.segmented)
-                Button {
-                    showingAlert = true
-                } label: {
-                    Text("\(customValue == nil ? "Set" : "Edit") Weight \(isGain ? "Gain" : "Loss")")
-                }
+                picker
+                button
             }
         }
         
@@ -264,7 +298,7 @@ struct WeightChangeForm: View {
     }
 
     var typePicker: some View {
-        Section {
+        var picker: some View {
             Picker("", selection: Binding<Bool>(
                 get: { isCustom },
                 set: { newValue in
@@ -277,14 +311,23 @@ struct WeightChangeForm: View {
                     }
                 }
             )) {
-//                Text("Calculate").tag(false)
                 Text("Use Weights").tag(false)
                 Text("Enter Manually").tag(true)
             }
             .pickerStyle(.segmented)
             .disabled(!isEditing)
-//            .listRowSeparator(.hidden)
-            .listRowBackground(EmptyView())
+            .listRowSeparator(.hidden)
+        }
+        
+        var description: String {
+            switch isCustom {
+            case true: "Enter your weight change manually."
+            case false: "Use your current and previous weights to calculate your weight change."
+            }
+        }
+        return Section {
+            picker
+            Text(description)
         }
     }
 }

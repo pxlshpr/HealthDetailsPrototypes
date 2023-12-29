@@ -25,15 +25,11 @@ struct LeanBodyMassMeasurementForm: View {
     @State var showingEquationsInfo = false
     
     @State var value: Double? = 72.0
+    @State var customInput = DoubleInput(double: 72)
+    @State var fatPercentageInput = DoubleInput(double: 24.8)
+    
     @State var showingAlert = false
-    @State var customValue: Double? = 72.0
-    @State var customValueTextAsDouble: Double? = 72.0
-    @State var customValueText: String = "72.0"
-
-    @State var fatPercentage: Double? = 24.8
     @State var showingFatPercentageAlert = false
-    @State var fatPercentageTextAsDouble: Double? = 24.8
-    @State var fatPercentageText: String = "24.8"
 
     let pastDate: Date?
     @State var isEditing: Bool
@@ -48,29 +44,62 @@ struct LeanBodyMassMeasurementForm: View {
 
     var body: some View {
         NavigationView {
-            Form {
-                notice
-                dateTimeSection
-                sourceSection
-                switch source {
-                case .equation:
-                    equationSection
-                    equationVariablesSections
-                case .fatPercentage:
-                    fatPercentageEnterSection
-                    weightSection
-                case .userEntered:
-                    customSection
-                    weightSection
-                default:
-                    EmptyView()
-                }
-                if isPast {
-                    removeSection
-                }
+            form
+                .navigationTitle("Lean Body Mass")
+                .toolbar { toolbarContent }
+        }
+        .alert("Enter your Lean Body Mass", isPresented: $showingAlert) {
+            TextField("kg", text: customInput.binding)
+                .keyboardType(.decimalPad)
+            Button("OK", action: submitCustomValue)
+            Button("Cancel") { }
+        }
+        .alert("Enter your Fat Percentage", isPresented: $showingFatPercentageAlert) {
+            TextField("%", text: fatPercentageInput.binding)
+                .keyboardType(.decimalPad)
+            Button("OK", action: submitFatPercentage)
+            Button("Cancel") { }
+        }
+    }
+    
+    func submitCustomValue() {
+        withAnimation {
+            customInput.submitValue()
+            value = customInput.double
+            calculateFatPercentage(forLeanBodyMass: customInput.double)
+            setIsDirty()
+        }
+    }
+
+    func submitFatPercentage() {
+        withAnimation {
+            fatPercentageInput.submitValue()
+            calculateLeanBodyMass(forFatPercentage: fatPercentageInput.double)
+            setIsDirty()
+        }
+    }
+
+    var form: some View {
+        Form {
+            notice
+            dateTimeSection
+            sourceSection
+            switch source {
+            case .equation:
+                equationSection
+                equationVariablesSections
+            case .fatPercentage:
+                fatPercentageEnterSection
+                weightSection
+            case .userEntered:
+                customSection
+                weightSection
+            default:
+                EmptyView()
             }
-            .navigationTitle("Lean Body Mass")
-            .toolbar { toolbarContent }
+            if isPast {
+                removeSection
+            }
         }
     }
     
@@ -137,7 +166,7 @@ struct LeanBodyMassMeasurementForm: View {
     }
     
     func calculateLeanBodyMass(forFatPercentage p: Double? = nil) {
-        guard let p = p ?? self.fatPercentage else {
+        guard let p = p ?? self.fatPercentageInput.double else {
             setLeanBodyMass(nil)
             return
         }
@@ -148,28 +177,20 @@ struct LeanBodyMassMeasurementForm: View {
     
     func setFatPercentage(_ p: Double?) {
         guard let p = p?.rounded(toPlaces: 1) else {
-            fatPercentage = nil
-            fatPercentageTextAsDouble = nil
-            fatPercentageText = ""
+            fatPercentageInput = DoubleInput()
             return
         }
-        fatPercentage = p
-        fatPercentageTextAsDouble = p
-        fatPercentageText = p.roundedToOnePlace
+        fatPercentageInput = DoubleInput(double: p)
     }
     
     func setLeanBodyMass(_ lbm: Double?) {
         guard let lbm = lbm?.rounded(toPlaces: 1) else {
             value = nil
-            customValue = nil
-            customValueTextAsDouble = nil
-            customValueText = ""
+            customInput = DoubleInput()
             return
         }
         value = lbm
-        customValue = lbm
-        customValueTextAsDouble = lbm
-        customValueText = lbm.roundedToOnePlace
+        customInput = DoubleInput(double: lbm)
     }
     
     @ViewBuilder
@@ -238,7 +259,7 @@ struct LeanBodyMassMeasurementForm: View {
     func setIsDirty() {
         isDirty = if let value {
             value != 72
-            || fatPercentage != 24.8
+            || fatPercentageInput.double != 24.8
         } else {
             false
         }
@@ -333,7 +354,7 @@ struct LeanBodyMassMeasurementForm: View {
             set: { newValue in
                 withAnimation {
                     source = newValue
-                    calculateEquation()
+//                    calculateEquation()
                     setIsDirty()
                 }
                 switch source {
@@ -341,19 +362,38 @@ struct LeanBodyMassMeasurementForm: View {
                     showingAlert = true
                 case .fatPercentage:
                     showingFatPercentageAlert = true
+                case .equation:
+                    calculateEquation()
                 default:
                     break
                 }
             }
         )
-        return Section {
+        var picker: some View {
             Picker("Source", selection: binding) {
                 ForEach(LeanBodyMassSource.formCases) { source in
                     Text(source.name).tag(source)
                 }
             }
             .pickerStyle(.segmented)
-            .listRowBackground(EmptyView())
+            .listRowSeparator(.hidden)
+        }
+        
+        var description: String {
+            switch source {
+            case .healthKit:
+                ""
+            case .equation:
+                "Use an equation to calculate your Lean Body Mass."
+            case .fatPercentage:
+                "Use your fat percentage to calculate your Lean Body Mass."
+            case .userEntered:
+                "Enter your Lean Body Mass manually."
+            }
+        }
+        return Section {
+            picker
+            Text(description)
         }
     }
 
@@ -384,7 +424,7 @@ struct LeanBodyMassMeasurementForm: View {
             }
             ToolbarItem(placement: .bottomBar) {
                 HStack(alignment: .firstTextBaseline, spacing: 5) {
-                    if let fatPercentage {
+                    if let fatPercentage = fatPercentageInput.double {
                         Text("\(fatPercentage.roundedToOnePlace)")
                             .contentTransition(.numericText(value: fatPercentage))
                             .font(LargeNumberFont)

@@ -155,7 +155,7 @@ struct ActiveEnergyForm: View {
     
     var sourceSection: some View {
         
-        var pickerSection: some View {
+        var pickerRow: some View {
             
             let binding = Binding<ActiveEnergySource>(
                 get: { source },
@@ -170,20 +170,17 @@ struct ActiveEnergyForm: View {
                 }
             )
             
-            return Section {
-                Picker("Active Energy", selection: binding) {
-                    ForEach(ActiveEnergySource.allCases, id: \.self) {
-                        Text($0.name).tag($0)
-                    }
+            return Picker("Active Energy", selection: binding) {
+                ForEach(ActiveEnergySource.allCases, id: \.self) {
+                    Text($0.name).tag($0)
                 }
-                .pickerStyle(.segmented)
-                .disabled(isDisabled)
-                .listRowBackground(EmptyView())
             }
-            .listSectionSpacing(.compact)
+            .pickerStyle(.segmented)
+            .disabled(isDisabled)
+            .listRowSeparator(.hidden)
         }
         
-        var descriptionSection: some View {
+        var descriptionRow: some View {
             var description: String {
                 switch source {
                 case .healthKit:
@@ -191,17 +188,15 @@ struct ActiveEnergyForm: View {
                 case .activityLevel:
                     "Apply a multiplier on your Resting Energy based on how active you are."
                 case .userEntered:
-                    "Enter the Active Energy manually."
+                    "Enter your Active Energy manually."
                 }
             }
-            return Section {
-                Text(description)
-            }
+            return Text(description)
         }
         
-        return Group {
-            pickerSection
-            descriptionSection
+        return Section {
+            pickerRow
+            descriptionRow
         }
     }
     
