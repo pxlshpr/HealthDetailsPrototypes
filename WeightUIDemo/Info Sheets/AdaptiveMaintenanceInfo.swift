@@ -45,36 +45,21 @@ struct AdaptiveMaintenanceInfo: View {
                 VStack(alignment: .leading) {
                     Text("This utilises the energy balance equation which states that:")
                     Text("Energy In – Energy Out = Energy Balance")
-                        .font(.footnote)
-                        .padding(5)
-                        .background(
-                            RoundedRectangle(cornerRadius: 5)
-                                .foregroundStyle(Color(.systemGray5))
-                        )
+                        .infoEquationStyle()
                 }
             }
             Section {
                 VStack(alignment: .leading) {
                     Text("This can be thought of as:")
                     Text("Dietary Energy – Expenditure = Weight Change")
-                        .font(.footnote)
-                        .padding(5)
-                        .background(
-                            RoundedRectangle(cornerRadius: 5)
-                                .foregroundStyle(Color(.systemGray5))
-                        )
+                        .infoEquationStyle()
                 }
             }
             Section {
                 VStack(alignment: .leading) {
                     Text("Rearranging this, we get:")
                     Text("Expenditure = Dietary Energy - Weight Change")
-                        .font(.footnote)
-                        .padding(5)
-                        .background(
-                            RoundedRectangle(cornerRadius: 5)
-                                .foregroundStyle(Color(.systemGray5))
-                        )
+                        .infoEquationStyle()
                 }
             }
             Section {
