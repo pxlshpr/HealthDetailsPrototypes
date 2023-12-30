@@ -5,17 +5,20 @@ struct LeanBodyMassData: Hashable, Identifiable {
     let source: LeanBodyMassSource
     let date: Date
     let value: Double
+    let fatPercentage: Double?
     
     init(
         _ id: Int,
         _ source: LeanBodyMassSource,
         _ date: Date,
-        _ value: Double
+        _ value: Double,
+        _ fatPercentage: Double? = nil
     ) {
         self.id = id
         self.source = source
         self.date = date
         self.value = value
+        self.fatPercentage = fatPercentage
     }
     
     var valueString: String {

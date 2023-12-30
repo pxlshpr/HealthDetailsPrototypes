@@ -2,10 +2,10 @@ import SwiftUI
 import SwiftSugar
 
 let MockLeanBodyMassData: [LeanBodyMassData] = [
-    .init(1, .userEntered, Date(fromTimeString: "09_42")!, 73.7),
-    .init(2, .healthKit, Date(fromTimeString: "12_07")!, 74.6),
-    .init(3, .fatPercentage, Date(fromTimeString: "13_23")!, 72.3),
-    .init(4, .equation, Date(fromTimeString: "15_01")!, 70.9),
+    .init(1, .userEntered, Date(fromTimeString: "09_42")!, 73.7, 23),
+    .init(2, .healthKit, Date(fromTimeString: "12_07")!, 74.6, 22.8),
+    .init(3, .fatPercentage, Date(fromTimeString: "13_23")!, 72.3, 23.9),
+    .init(4, .equation, Date(fromTimeString: "15_01")!, 70.9, 24.7),
     .init(5, .userEntered, Date(fromTimeString: "17_35")!, 72.5),
     .init(6, .healthKit, Date(fromTimeString: "19_54")!, 74.2),
 ]
@@ -312,8 +312,10 @@ struct LeanBodyMassForm: View {
             Text(data.dateString)
                 .foregroundStyle(disabled ? .secondary : .primary)
             Spacer()
-            Text("23%")
-                .foregroundStyle(disabled ? .tertiary : .secondary)
+            if let fatPercentage = data.fatPercentage {
+                Text("\(fatPercentage.roundedToOnePlace)%")
+                    .foregroundStyle(disabled ? .tertiary : .secondary)
+            }
             Text(data.valueString)
                 .foregroundStyle(disabled ? .secondary : .primary)
         }

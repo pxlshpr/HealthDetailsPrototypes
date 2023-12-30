@@ -23,10 +23,15 @@ struct AdaptiveMaintenanceInfo: View {
     var toolbarContent: some ToolbarContent {
         Group {
             ToolbarItem(placement: .topBarTrailing) {
-                Button("Done") {
+                Button {
                     dismiss()
+                } label: {
+                    CloseButtonLabel()
                 }
-                .fontWeight(.semibold)
+//                Button("Done") {
+//                    dismiss()
+//                }
+//                .fontWeight(.semibold)
             }
             ToolbarItem(placement: .principal) {
                 Text("Maintenance Calculation")

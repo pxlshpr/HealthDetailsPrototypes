@@ -77,10 +77,15 @@ struct DietaryEnergyForm: View {
     
     var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .topBarTrailing) {
-            Button("Done") {
+            Button {
                 isPresented = false
+            } label: {
+                CloseButtonLabel()
             }
-            .fontWeight(.semibold)
+//            Button("Done") {
+//                isPresented = false
+//            }
+//            .fontWeight(.semibold)
         }
     }
     

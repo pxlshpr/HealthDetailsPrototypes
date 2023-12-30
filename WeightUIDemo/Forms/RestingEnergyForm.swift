@@ -4,8 +4,8 @@ struct RestingEnergyForm: View {
 
     @State var value: Double? = 2798
 
-    @State var source: RestingEnergySource = .healthKit
-    @State var equation: RestingEnergyEquation = .mifflinStJeor
+    @State var source: RestingEnergySource = .equation
+    @State var equation: RestingEnergyEquation = .katchMcardle
     
     @State var intervalType: HealthIntervalType = .average
     @State var interval: HealthInterval = .init(3, .day)
@@ -136,6 +136,19 @@ struct RestingEnergyForm: View {
 
 extension RestingEnergyForm {
     
+    var variablesSections: some View {
+        EquationVariablesSections(
+            healthDetails: Binding<[HealthDetail]>(
+                get: { equation.requiredHealthDetails },
+                set: { _ in }
+            ),
+            pastDate: pastDate,
+            isEditing: $isEditing,
+            isPresented: $isPresented,
+            dismissDisabled: $dismissDisabled
+        )
+    }
+
     @ViewBuilder
     var notice: some View {
         if let pastDate {
@@ -340,5 +353,117 @@ extension RestingEnergyForm {
 #Preview("Past") {
     NavigationView {
         RestingEnergyForm(pastDate: MockPastDate)
+    }
+}
+
+#Preview("Demo") {
+    DemoView()
+}
+
+public struct CloseButtonLabel: View {
+    
+    let backgroundStyle: TopButtonLabel.BackgroundStyle
+    let forUseOutsideOfNavigationBar: Bool
+    
+    public init(
+        forUseOutsideOfNavigationBar: Bool = false,
+        backgroundStyle: TopButtonLabel.BackgroundStyle = .standard
+    ) {
+        self.forUseOutsideOfNavigationBar = forUseOutsideOfNavigationBar
+        self.backgroundStyle = backgroundStyle
+    }
+    
+    public var body: some View {
+        TopButtonLabel(
+            systemImage: "xmark.circle.fill",
+            forUseOutsideOfNavigationBar: forUseOutsideOfNavigationBar,
+            backgroundStyle: backgroundStyle
+        )
+    }
+}
+
+import SwiftUI
+
+public struct TopButtonLabel: View {
+    
+    @Environment(\.colorScheme) var colorScheme
+    
+    let fontSize: CGFloat
+    let backgroundStyle: BackgroundStyle
+    let systemImage: String
+    
+    public init(
+        systemImage: String,
+        forUseOutsideOfNavigationBar: Bool = false,
+        backgroundStyle: BackgroundStyle = .standard
+    ) {
+        self.fontSize = forUseOutsideOfNavigationBar ? 30 : 24
+        self.backgroundStyle = backgroundStyle
+        self.systemImage = systemImage
+    }
+    
+    public var body: some View {
+        Image(systemName: systemImage)
+            .font(.system(size: fontSize))
+            .symbolRenderingMode(.palette)
+            .foregroundStyle(foregroundColor, backgroundColor)
+    }
+    
+    var foregroundColor: Color {
+        Color(hex: colorScheme == .light ? "838388" : "A0A0A8")
+    }
+    
+    var backgroundColor: Color {
+        switch backgroundStyle {
+        case .standard:
+#if os(iOS)
+            return Color(.quaternaryLabel).opacity(0.5)
+#else
+            return Color(.quaternaryLabelColor).opacity(0.5)
+#endif
+//            return Color(hex: colorScheme == .light ? "EEEEEF" : "313135")
+        case .forPlacingOverMaterials:
+#if os(iOS)
+            return colorScheme == .light
+            ? Color(hex: "EEEEEF").opacity(0.5)
+            : Color(.quaternaryLabel).opacity(0.5)
+#else
+            return colorScheme == .light
+            ? Color(hex: "EEEEEF").opacity(0.5)
+            : Color(.quaternaryLabelColor).opacity(0.5)
+#endif
+        }
+    }
+    
+    public enum BackgroundStyle {
+        case standard
+        case forPlacingOverMaterials
+    }
+}
+
+public extension Color {
+    init(hex: String) {
+        let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+        var int: UInt64 = 0
+        Scanner(string: hex).scanHexInt64(&int)
+        let a, r, g, b: UInt64
+        switch hex.count {
+        case 3: // RGB (12-bit)
+            (a, r, g, b) = (255, (int >> 8) * 17, (int >> 4 & 0xF) * 17, (int & 0xF) * 17)
+        case 6: // RGB (24-bit)
+            (a, r, g, b) = (255, int >> 16, int >> 8 & 0xFF, int & 0xFF)
+        case 8: // ARGB (32-bit)
+            (a, r, g, b) = (int >> 24, int >> 16 & 0xFF, int >> 8 & 0xFF, int & 0xFF)
+        default:
+            (a, r, g, b) = (1, 1, 1, 0)
+        }
+
+        self.init(
+            .sRGB,
+            red: Double(r) / 255,
+            green: Double(g) / 255,
+            blue:  Double(b) / 255,
+            opacity: Double(a) / 255
+        )
     }
 }

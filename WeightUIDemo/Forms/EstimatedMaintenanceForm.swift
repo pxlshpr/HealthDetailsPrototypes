@@ -105,10 +105,15 @@ struct EstimatedMaintenanceForm: View {
     var toolbarContent: some ToolbarContent {
         Group {
             ToolbarItem(placement: .topBarTrailing) {
-                Button("Done") {
+                Button {
                     isPresented = false
+                } label: {
+                    CloseButtonLabel()
                 }
-                .fontWeight(.semibold)
+//                Button("Done") {
+//                    isPresented = false
+//                }
+//                .fontWeight(.semibold)
             }
             ToolbarItem(placement: .principal) {
                 Text("Maintenance Energy")

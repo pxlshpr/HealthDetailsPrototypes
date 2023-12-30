@@ -15,10 +15,15 @@ struct ActivityLevelInfo: View {
     
     var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .topBarTrailing) {
-            Button("Done") {
+            Button {
                 dismiss()
+            } label: {
+                CloseButtonLabel()
             }
-            .fontWeight(.semibold)
+//            Button("Done") {
+//                dismiss()
+//            }
+//            .fontWeight(.semibold)
         }
     }
     

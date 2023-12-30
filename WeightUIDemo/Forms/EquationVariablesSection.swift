@@ -97,7 +97,11 @@ struct EquationVariablesSections: View {
         @ViewBuilder
         var footer: some View {
             if dateIsInPast {
-                Text("Since no \(healthDetail.name.lowercased()) data has been set for \(formDate.shortDateString), the most recent entry prior to that is being used.")
+                if let pastDate {
+                    Text("Since no \(healthDetail.name.lowercased()) data has been set for \(pastDate.shortDateString), the most recent entry prior to that is being used.")
+                } else {
+                    Text("Since no \(healthDetail.name.lowercased()) data has been set for today, the most recent entry is being used.")
+                }
             }
         }
         
@@ -165,7 +169,23 @@ struct EquationVariablesSections: View {
         var setMeasurementLink: some View {
             if date == nil || dateIsInPast {
                 NavigationLink {
-                    
+                    switch healthDetail {
+                    case .height:
+                        HeightForm(
+                            pastDate: pastDate,
+                            isPresented: $isPresented
+                        )
+                    case .weight:
+                        WeightForm()
+                    case .leanBodyMass:
+                        LeanBodyMassForm(
+                            pastDate: pastDate,
+                            isPresented: $isPresented,
+                            dismissDisabled: $dismissDisabled
+                        )
+                    default:
+                        EmptyView()
+                    }
                 } label: {
                     HStack {
                         Text(formDate.shortDateString)

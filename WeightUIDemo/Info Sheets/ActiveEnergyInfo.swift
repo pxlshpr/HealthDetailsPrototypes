@@ -26,10 +26,15 @@ struct ActiveEnergyInfo: View {
     
     var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .topBarTrailing) {
-            Button("Done") {
+//            Button("Done") {
+//                dismiss()
+//            }
+//            .fontWeight(.semibold)
+            Button {
                 dismiss()
+            } label: {
+                CloseButtonLabel()
             }
-            .fontWeight(.semibold)
         }
     }
 }

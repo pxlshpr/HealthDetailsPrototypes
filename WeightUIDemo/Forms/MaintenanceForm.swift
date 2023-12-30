@@ -79,6 +79,8 @@ struct MaintenanceForm: View {
             if maintenancetype == .adaptive {
                 Section(footer: footer) {
                     Toggle("Use Estimate when Adaptive calculation cannot be made", isOn: $useEstimatedAsFallback)
+                        .disabled(!isEditing)
+                        .foregroundColor(isEditing ? .primary : .secondary)
                 }
             }
         }

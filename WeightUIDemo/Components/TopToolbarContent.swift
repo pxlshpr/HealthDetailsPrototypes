@@ -43,35 +43,51 @@ struct EditDoneButton: View {
     @State var showingDirtyConfirmation: Bool = false
     
     var body: some View {
-        Button(isEditing ? "Done" : "Edit") {
-            if isEditing {
-                tappedDone()
-            } else {
-                tappedEdit()
+        buttons
+            .fontWeight(.semibold)
+            .confirmationDialog(
+                "Are you sure",
+                isPresented: $showingDirtyConfirmation
+            ) {
+                Button("Modify and Update Goals", role: .destructive) {
+                    Haptics.successFeedback()
+                    withAnimation {
+                        saveAction()
+                        isEditing = false
+                    }
+                }
+                Button("Cancel", role: .cancel) {
+                    Haptics.warningFeedback()
+                    withAnimation {
+                        undoAction()
+                        isEditing = false
+                    }
+                }
+            } message: {
+                Text("This will update any dependent goals.")
             }
-        }
-        .disabled(disableRightButton)
-        .fontWeight(.semibold)
-        .confirmationDialog(
-            "Are you sure",
-            isPresented: $showingDirtyConfirmation
-        ) {
-            Button("Modify and Update Goals", role: .destructive) {
-                Haptics.successFeedback()
-                withAnimation {
-                    saveAction()
-                    isEditing = false
+    }
+    
+    @ViewBuilder
+    var buttons: some View {
+        HStack {
+            if isPast {
+                Button(isEditing ? "Done" : "Edit") {
+                    if isEditing {
+                        tappedDone()
+                    } else {
+                        tappedEdit()
+                    }
+                }
+                .disabled(disableRightButton)
+            }
+            if !(isPast && isEditing) {
+                Button {
+                    dismissAction()
+                } label: {
+                    CloseButtonLabel()
                 }
             }
-            Button("Cancel", role: .cancel) {
-                Haptics.warningFeedback()
-                withAnimation {
-                    undoAction()
-                    isEditing = false
-                }
-            }
-        } message: {
-            Text("This will update any dependent goals.")
         }
     }
     
