@@ -60,7 +60,11 @@ struct WeightForm: View {
     }
     
     var explanation: some View {
-        Section {
+        var header: some View {
+            Text("Usage")
+                .formTitleStyle()
+        }
+        return Section(header: header) {
             VStack(alignment: .leading) {
                 Text("Your weight is used when:")
                 dotPoint("Creating goals. For example, you could create a protein goal relative to your weight.")
@@ -155,18 +159,30 @@ struct WeightForm: View {
 
     var bottomValue: some View {
         var bottomRow: some View {
-            BottomValue(
-                value: $value,
-                valueString: Binding<String?>(
-                    get: { value?.clean },
-                    set: { _ in }
-                ),
-                isDisabled: Binding<Bool>(
-                    get: { isDisabled },
-                    set: { _ in }
-                ),
-                unitString: "kg"
-            )
+            HStack(alignment: .firstTextBaseline, spacing: 5) {
+                Spacer()
+                if let value {
+                    Text("\(value.roundedToOnePlace)")
+                        .contentTransition(.numericText(value: value))
+                        .font(LargeNumberFont)
+                        .foregroundStyle(isDisabled ? .secondary : .primary)
+                    Text("kg")
+                        .font(LargeUnitFont)
+                        .foregroundStyle(isDisabled ? .tertiary : .secondary)
+                } else {
+                    ZStack {
+
+                        /// dummy text placed to ensure height stays consistent
+                        Text("0")
+                            .font(LargeNumberFont)
+                            .opacity(0)
+                        
+                        Text("Not Set")
+                            .font(LargeUnitFont)
+                            .foregroundStyle(isDisabled ? .tertiary : .secondary)
+                    }
+                }
+            }
         }
         
         var topRow: some View {

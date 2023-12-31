@@ -183,7 +183,12 @@ struct AgeForm: View {
     }
     
     var explanation: some View {
-        Section {
+        var header: some View {
+            Text("Usage")
+                .formTitleStyle()
+        }
+
+        return Section(header: header) {
             VStack(alignment: .leading) {
                 Text("Your age is used when:")
                 dotPoint("Calculating your Resting Energy.")

@@ -121,7 +121,12 @@ struct SmokingStatusForm: View {
     }
     
     var explanation: some View {
-        Section {
+        var header: some View {
+            Text("Usage")
+                .formTitleStyle()
+        }
+
+        return Section(header: header) {
             Text("Your smoking status may be used when picking daily values for micronutrients.\n\nFor example, if you are a smoker then the recommended daily allowance of Vitamin C will be slightly higher.")
         }
     }

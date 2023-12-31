@@ -154,7 +154,12 @@ struct HeightForm: View {
     }
     
     var explanation: some View {
-        Section {
+        var header: some View {
+            Text("Usage")
+                .formTitleStyle()
+        }
+
+        return Section(header: header) {
             VStack(alignment: .leading) {
                 Text("Your height is used in certain equations when calculating your:")
                 dotPoint("Resting Energy")

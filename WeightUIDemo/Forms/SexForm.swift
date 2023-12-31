@@ -104,7 +104,12 @@ struct SexForm: View {
     }
     
     var explanation: some View {
-        Section {
+        var header: some View {
+            Text("Usage")
+                .formTitleStyle()
+        }
+
+        return Section(header: header) {
             VStack(alignment: .leading) {
                 Text("Your biological sex is used when:")
                 dotPoint("Calculating your Resting Energy or Lean Body Mass.")

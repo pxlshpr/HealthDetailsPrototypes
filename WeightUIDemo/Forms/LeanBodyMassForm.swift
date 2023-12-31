@@ -226,7 +226,12 @@ struct LeanBodyMassForm: View {
     }
     
     var explanation: some View {
-        Section {
+        var header: some View {
+            Text("Usage")
+                .formTitleStyle()
+        }
+
+        return Section(header: header) {
             VStack(alignment: .leading) {
                 Text("Your lean body mass is the weight of your body minus your body fat (adipose tissue). It is used when:")
                 dotPoint("Creating goals. For example, you could create a protein goal relative to your lean body mass instead of your weight.")
