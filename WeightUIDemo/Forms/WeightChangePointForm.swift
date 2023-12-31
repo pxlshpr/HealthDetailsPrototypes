@@ -58,16 +58,16 @@ struct WeightChangePointForm: View {
 
     var bottomValue: some View {
         BottomValue(
-            value: $value,
-            valueString: Binding<String?>(
+            double: $value,
+            doubleString: Binding<String?>(
                 get: { value?.clean },
                 set: { _ in }
             ),
+            doubleUnitString: "kg",
             isDisabled: Binding<Bool>(
                 get: { !isEditing },
                 set: { _ in }
-            ),
-            unitString: "kg"
+            )
         )
     }
     

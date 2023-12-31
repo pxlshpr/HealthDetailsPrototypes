@@ -33,7 +33,6 @@ import SwiftUI
         /// Cleanup by removing any extra periods and non-numbers
         let newValue = newValue.sanitizedDouble
         string = newValue
-//        print("String is: \(string)")
         
         /// If we haven't already set the flag for the trailing period, and the string has period as its last character, set it so that its displayed
         if !includeTrailingPeriod, newValue.last == "." {
@@ -56,13 +55,6 @@ import SwiftUI
         if automaticallySubmitsValues {
             submitValue()
         }
-//        string = if let stringAsDouble {
-//            "\(stringAsDouble.cleanWithoutRounding)"
-//        } else {
-//            ""
-//        }
-//        print("String is now: \(string)")
-
     }
     
     func submitValue() {

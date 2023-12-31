@@ -41,9 +41,16 @@ extension HealthProvider {
         healthDetails.age = age
         save()
     }
-    
+
     func saveSmokingStatus(_ smokingStatus: SmokingStatus) {
         healthDetails.smokingStatus = smokingStatus
+        save()
+    }
+    
+    //TODO: Sync stuff
+    /// [ ] Handle sync being turned on and off for these here
+    func saveHeight(_ height: HealthDetails.Height?) {
+        healthDetails.height = height
         save()
     }
 }

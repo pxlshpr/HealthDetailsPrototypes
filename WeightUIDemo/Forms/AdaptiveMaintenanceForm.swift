@@ -51,16 +51,16 @@ struct AdaptiveMaintenanceForm: View {
 
     var bottomValue: some View {
         BottomValue(
-            value: $value,
-            valueString: Binding<String?>(
+            double: $value,
+            doubleString: Binding<String?>(
                 get: { value?.formattedEnergy },
                 set: { _ in }
             ),
+            doubleUnitString: "kcal",
             isDisabled: Binding<Bool>(
                 get: { !isEditing },
                 set: { _ in }
-            ),
-            unitString: "kcal"
+            )
         )
     }
     

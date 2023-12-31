@@ -72,12 +72,10 @@ func fetchHealthDetailsFromDocuments(_ date: Date) -> HealthDetails {
     let filename = "\(date.dateString).json"
     let url = getDocumentsDirectory().appendingPathComponent(filename)
     do {
-        print("Fetching HealthDetails from documents: \(filename)")
         let data = try Data(contentsOf: url)
         let healthDetails = try JSONDecoder().decode(HealthDetails.self, from: data)
         return healthDetails
     } catch {
-        print("Couldn't fetch, creating")
         let healthDetails = HealthDetails(date: date)
         saveHealthDetailsInDocuments(healthDetails)
         return healthDetails
@@ -87,12 +85,10 @@ func fetchHealthDetailsFromDocuments(_ date: Date) -> HealthDetails {
 func saveHealthDetailsInDocuments(_ healthDetails: HealthDetails) {
     do {
         let filename = "\(healthDetails.date.dateString).json"
-        print("Saving HealthDetails to documents: \(filename)")
         let url = getDocumentsDirectory().appendingPathComponent(filename)
         let json = try JSONEncoder().encode(healthDetails)
         try json.write(to: url)
     } catch {
-        print("Error Saving HealthDetails to documents")
         fatalError()
     }
 }
@@ -101,12 +97,10 @@ func fetchSettingsFromDocuments() -> Settings {
     let filename = "settings.json"
     let url = getDocumentsDirectory().appendingPathComponent(filename)
     do {
-        print("Fetching Settings from documents: \(filename)")
         let data = try Data(contentsOf: url)
         let settings = try JSONDecoder().decode(Settings.self, from: data)
         return settings
     } catch {
-        print("Couldn't fetch, creating")
         let settings = Settings()
         saveSettingsInDocuments(settings)
         return settings
@@ -116,12 +110,10 @@ func fetchSettingsFromDocuments() -> Settings {
 func saveSettingsInDocuments(_ settings: Settings) {
     do {
         let filename = "settings.json"
-        print("Saving Settings to documents: \(filename)")
         let url = getDocumentsDirectory().appendingPathComponent(filename)
         let json = try JSONEncoder().encode(settings)
         try json.write(to: url)
     } catch {
-        print("Error Saving Settings to documents")
         fatalError()
     }
 }

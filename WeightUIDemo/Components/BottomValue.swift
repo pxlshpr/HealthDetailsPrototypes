@@ -2,22 +2,57 @@ import SwiftUI
 
 struct BottomValue: View {
 
-    @Binding var value: Double?
-    @Binding var valueString: String?
-    @Binding var isDisabled: Bool
-    let unitString: String
+    var int: Binding<Int?>?
+    var intUnitString: String?
 
+    @Binding var double: Double?
+    @Binding var doubleString: String?
+    @Binding var isDisabled: Bool
+    
+    let doubleUnitString: String
+
+    init(
+        int: Binding<Int?>? = nil,
+        intUnitString: String? = nil,
+
+        double: Binding<Double?>,
+        doubleString: Binding<String?>,
+        doubleUnitString: String,
+
+        isDisabled: Binding<Bool>
+    ) {
+        self.int = int
+        self.intUnitString = intUnitString
+        _double = double
+        _doubleString = doubleString
+        _isDisabled = isDisabled
+        self.doubleUnitString = doubleUnitString
+    }
+    
     var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 5) {
+        HStack(alignment: .firstTextBaseline, spacing: 20) {
             Spacer()
-            if let value {
-                Text("\(valueString ?? value.clean)")
-                    .contentTransition(.numericText(value: value))
-                    .font(LargeNumberFont)
-                    .foregroundStyle(isDisabled ? .secondary : .primary)
-                Text(unitString)
-                    .font(LargeUnitFont)
-                    .foregroundStyle(isDisabled ? .tertiary : .secondary)
+            if let double {
+                if let int = int?.wrappedValue, let intUnitString {
+                    HStack(alignment: .firstTextBaseline, spacing: 5) {
+                        Text("\(int)")
+                            .contentTransition(.numericText(value: Double(int)))
+                            .font(LargeNumberFont)
+                            .foregroundStyle(isDisabled ? .secondary : .primary)
+                        Text(intUnitString)
+                            .font(LargeUnitFont)
+                            .foregroundStyle(isDisabled ? .tertiary : .secondary)
+                    }
+                }
+                HStack(alignment: .firstTextBaseline, spacing: 5) {
+                    Text("\(doubleString ?? double.clean)")
+                        .contentTransition(.numericText(value: double))
+                        .font(LargeNumberFont)
+                        .foregroundStyle(isDisabled ? .secondary : .primary)
+                    Text(doubleUnitString)
+                        .font(LargeUnitFont)
+                        .foregroundStyle(isDisabled ? .tertiary : .secondary)
+                }
             } else {
                 ZStack {
                     

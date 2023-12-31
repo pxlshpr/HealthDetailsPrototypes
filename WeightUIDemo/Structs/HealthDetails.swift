@@ -38,7 +38,19 @@ struct HeightMeasurement: Hashable, Identifiable, Codable {
         self.date = date
         self.heightInCm = heightInCm
     }
-    
+
+    init(
+        id: UUID = UUID(),
+        date: Date,
+        heightInCm: Double,
+        healthKitUUID: UUID? = nil
+    ) {
+        self.id = id
+        self.healthKitUUID = healthKitUUID
+        self.date = date
+        self.heightInCm = heightInCm
+    }
+
     func valueString(unit: String) -> String {
         "\(heightInCm.clean) \(unit)"
     }

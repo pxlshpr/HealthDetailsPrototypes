@@ -154,10 +154,9 @@ struct WeightForm: View {
     }
     
     var measurementForm: some View {
-        MeasurementForm(
-            type: .weight,
-            date: pastDate
-        )
+        MeasurementForm(type: .weight, date: pastDate) { int, double, time in
+            
+        }
     }
 
     var bottomValue: some View {

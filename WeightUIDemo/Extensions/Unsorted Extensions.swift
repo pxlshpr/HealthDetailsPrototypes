@@ -141,3 +141,71 @@ public extension String {
         return String(chars)
     }
 }
+
+import PrepShared
+
+extension HeightUnit {
+    func convert(_ int: Int, _ double: Double, to other: HeightUnit) -> Double {
+        let value = if self.hasTwoComponents {
+            Double(int) + (double / Self.upperSecondaryUnitValue)
+        } else {
+            double
+        }
+        return self.convert(value, to: other)
+    }
+    
+    func intComponent(_ value: Double, in other: HeightUnit) -> Int? {
+        guard other.hasTwoComponents else {
+            return nil
+        }
+        let converted = convert(value, to: other)
+        return Int(converted)
+    }
+    
+    func doubleComponent(_ value: Double, in other: HeightUnit) -> Double {
+        let converted = convert(value, to: other)
+        return if other.hasTwoComponents {
+            (converted - converted.whole) * Self.upperSecondaryUnitValue
+        } else {
+            converted
+        }
+    }
+    
+    var intUnitString: String? {
+        if self == .ft {
+            "ft"
+        } else {
+            nil
+        }
+    }
+    
+    var doubleUnitString: String {
+        if self == .ft {
+            "in"
+        } else {
+            abbreviation
+        }
+    }
+}
+
+extension HeightUnit {
+    var secondaryUnit: String? {
+        hasTwoComponents ? "in" : nil
+    }
+    
+    static var upperSecondaryUnitValue: Double {
+        /// 12 inches equal 1 feet
+        12
+    }
+}
+
+extension BodyMassUnit {
+    var secondaryUnit: String? {
+        hasTwoComponents ? "lb" : nil
+    }
+    
+    static var upperSecondaryUnitValue: Double {
+        /// 14 pounds equals 1 stone
+        14
+    }
+}

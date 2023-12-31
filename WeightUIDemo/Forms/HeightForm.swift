@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftSugar
+import PrepShared
 
 struct HeightForm: View {
 
@@ -12,6 +13,9 @@ struct HeightForm: View {
     @State var deletedHealthKitMeasurements: [HeightMeasurement] = []
     @State var isSynced: Bool = false
 
+    let initialMeasurements: [HeightMeasurement]
+    let initialDeletedHealthKitMeasurements: [HeightMeasurement]
+    
     @State var showingForm = false
     @State var showingSyncOffConfirmation: Bool = false
     @ScaledMetric var scale: CGFloat = 1
@@ -37,6 +41,12 @@ struct HeightForm: View {
             _measurements = State(initialValue: height.measurements)
             _deletedHealthKitMeasurements = State(initialValue: height.deletedHealthKitMeasurements)
             _isSynced = State(initialValue: height.isSynced)
+
+            self.initialMeasurements = height.measurements
+            self.initialDeletedHealthKitMeasurements = height.deletedHealthKitMeasurements
+        } else {
+            self.initialMeasurements = []
+            self.initialDeletedHealthKitMeasurements = []
         }
     }
 
@@ -69,23 +79,58 @@ struct HeightForm: View {
         .onChange(of: isDirty) { _, _ in setDismissDisabled() }
     }
     
+    var intUnitString: String? {
+        settingsProvider.heightUnit.intUnitString
+    }
+    
+    var doubleUnitString: String {
+        settingsProvider.heightUnit.doubleUnitString
+    }
+    
     var bottomValue: some View {
-        BottomValue(
-            value: $heightInCm,
-            valueString: Binding<String?>(
-                get: { heightInCm?.clean },
-                set: { _ in }
+        
+        var double: Double? {
+            guard let heightInCm else { return nil }
+            return HeightUnit.cm
+                .doubleComponent(heightInCm, in: settingsProvider.heightUnit)
+        }
+        
+        var int: Int? {
+            guard let heightInCm else { return nil }
+            return HeightUnit.cm
+                .intComponent(heightInCm, in: settingsProvider.heightUnit)
+        }
+        
+        return BottomValue(
+            int: Binding<Int?>(
+                get: { int }, set: { _ in }
             ),
+            intUnitString: intUnitString,
+            double: Binding<Double?>(
+                get: { double }, set: { _ in }
+            ),
+            doubleString: Binding<String?>(
+                get: { double?.clean }, set: { _ in }
+            ),
+            doubleUnitString: doubleUnitString,
             isDisabled: Binding<Bool>(
-                get: { isDisabled },
-                set: { _ in }
-            ),
-            unitString: "cm"
+                get: { isDisabled }, set: { _ in }
+            )
         )
     }
     
     var measurementForm: some View {
-        MeasurementForm(type: .height, date: pastDate)
+        MeasurementForm(type: .height, date: pastDate) { int, double, time in
+            let heightInCm = settingsProvider.heightUnit.convert(int, double, to: .cm)
+            let measurement = HeightMeasurement(date: time, heightInCm: heightInCm)
+            addMeasurement(measurement)
+            handleChanges()
+        }
+    }
+    
+    func addMeasurement(_ measurement: HeightMeasurement) {
+        measurements.append(measurement)
+        measurements.sort()
     }
     
     var deletedList: some View {
@@ -93,13 +138,14 @@ struct HeightForm: View {
             Text("Ignored Apple Health Data")
         }
         
-        func restore(_ data: HeightMeasurement) {
+        func restore(_ measurement: HeightMeasurement) {
             withAnimation {
-                measurements.append(data)
-                measurements.sort()
-                deletedHealthKitMeasurements.removeAll(where: { $0.id == data.id })
+                addMeasurement(measurement)
+                deletedHealthKitMeasurements.removeAll(where: { $0.id == measurement.id })
             }
+            handleChanges()
         }
+        
         return Group {
             if !deletedHealthKitMeasurements.isEmpty {
                 Section(header: header) {
@@ -121,10 +167,12 @@ struct HeightForm: View {
     var syncToggle: some View {
         let binding = Binding<Bool>(
             get: { isSynced },
-            set: {
-                if !$0 {
+            set: { newValue in
+                if !newValue {
                     showingSyncOffConfirmation = true
                 }
+                isSynced = newValue
+                handleChanges()
             }
         )
         
@@ -232,6 +280,25 @@ struct HeightForm: View {
             }
         }
         
+        var double: Double {
+            HeightUnit.cm
+                .doubleComponent(data.heightInCm, in: settingsProvider.heightUnit)
+        }
+        
+        var int: Int? {
+            HeightUnit.cm
+                .intComponent(data.heightInCm, in: settingsProvider.heightUnit)
+        }
+        
+        var string: String {
+            let double = "\(double.clean) \(doubleUnitString)"
+            return if let int, let intUnitString {
+                "\(int) \(intUnitString) \(double)"
+            } else {
+                double
+            }
+        }
+        
         return HStack {
             deleteButton
                 .opacity(disabled ? 0.6 : 1)
@@ -239,7 +306,7 @@ struct HeightForm: View {
             Text(data.dateString)
                 .foregroundStyle(disabled ? .secondary : .primary)
             Spacer()
-            Text(data.valueString(unit: "cm"))
+            Text(string)
                 .foregroundStyle(disabled ? .secondary : .primary)
         }
     }
@@ -252,23 +319,35 @@ struct HeightForm: View {
             }
         }
         
-        var addButton: some View {
-            HStack {
-                if isDisabled {
-                    if measurements.isEmpty {
-                        Text("No Measurements")
-                            .foregroundStyle(.secondary)
+        var lastRow: some View {
+            var shouldShow: Bool {
+                !(isDisabled && !measurements.isEmpty)
+            }
+            
+            var content: some View {
+                HStack {
+                    if isDisabled {
+                        if measurements.isEmpty {
+                            Text("No Measurements")
+                                .foregroundStyle(.secondary)
+                        }
+                    } else {
+                        Text("Add Measurement")
+                            .foregroundStyle(Color.accentColor)
                     }
-                } else {
-                    Text("Add Measurement")
-                        .foregroundStyle(Color.accentColor)
+                    Spacer()
+                    Button {
+                        showingForm = true
+                    } label: {
+                    }
+                    .disabled(isDisabled)
                 }
-                Spacer()
-                Button {
-                    showingForm = true
-                } label: {
+            }
+            
+            return Group {
+                if shouldShow {
+                    content
                 }
-                .disabled(isDisabled)
             }
         }
         
@@ -282,18 +361,36 @@ struct HeightForm: View {
         
         return Section(footer: footer) {
             cells
-            addButton
+            lastRow
         }
     }
     
     //MARK: - Actions
     
     func save() {
-        
+        healthProvider.saveHeight(height)
     }
     
     func undo() {
-        
+        let height = healthProvider.healthDetails.height
+        self.heightInCm = height?.heightInCm
+        self.measurements = height?.measurements ?? []
+        self.deletedHealthKitMeasurements = height?.deletedHealthKitMeasurements ?? []
+        self.isSynced = height?.isSynced ?? false
+    }
+
+    var lastMeasurementInCm: Double? {
+        measurements.last?.heightInCm
+    }
+    
+    var height: HealthDetails.Height? {
+        guard let lastMeasurementInCm else { return nil }
+        return HealthDetails.Height(
+            heightInCm: lastMeasurementInCm,
+            measurements: measurements,
+            deletedHealthKitMeasurements: deletedHealthKitMeasurements,
+            isSynced: isSynced
+        )
     }
 
     func delete(_ data: HeightMeasurement) {
@@ -302,7 +399,7 @@ struct HeightForm: View {
             deletedHealthKitMeasurements.sort()
         }
         measurements.removeAll(where: { $0.id == data.id })
-        setIsDirty()
+        handleChanges()
     }
     
     func delete(at offsets: IndexSet) {
@@ -317,9 +414,17 @@ struct HeightForm: View {
         dismissDisabled = isPast && isEditing && isDirty
     }
 
+    func handleChanges() {
+        heightInCm = lastMeasurementInCm
+        setIsDirty()
+        if !isPast {
+            save()
+        }
+    }
+
     func setIsDirty() {
-        isDirty = measurements != MockWeightData
-        || !deletedHealthKitMeasurements.isEmpty
+        isDirty = measurements != initialMeasurements
+        || deletedHealthKitMeasurements != initialDeletedHealthKitMeasurements
     }
 
     //MARK: - Convenience
@@ -343,14 +448,44 @@ let MockHeightData: [HeightMeasurement] = [
     .init(UUID(uuidString: "62440554-1DB5-4024-873A-82B4A63C7EA2")!, Date(fromShortTimeString: "13_23")!, 177.2),
 ]
 
-#Preview("Current") {
+#Preview("Current (ft)") {
     NavigationView {
         HeightForm(healthProvider: MockCurrentProvider)
+            .environment(SettingsProvider(settings: .init(heightUnit: .ft)))
     }
 }
 
-#Preview("Past") {
+#Preview("Past (ft)") {
     NavigationView {
         HeightForm(healthProvider: MockPastProvider)
+            .environment(SettingsProvider(settings: .init(heightUnit: .ft)))
+    }
+}
+
+#Preview("Current (cm)") {
+    NavigationView {
+        HeightForm(healthProvider: MockCurrentProvider)
+            .environment(SettingsProvider(settings: .init(heightUnit: .cm)))
+    }
+}
+
+#Preview("Past (cm)") {
+    NavigationView {
+        HeightForm(healthProvider: MockPastProvider)
+            .environment(SettingsProvider(settings: .init(heightUnit: .cm)))
+    }
+}
+
+#Preview("Current (m)") {
+    NavigationView {
+        HeightForm(healthProvider: MockCurrentProvider)
+            .environment(SettingsProvider(settings: .init(heightUnit: .m)))
+    }
+}
+
+#Preview("Past (m)") {
+    NavigationView {
+        HeightForm(healthProvider: MockPastProvider)
+            .environment(SettingsProvider(settings: .init(heightUnit: .m)))
     }
 }

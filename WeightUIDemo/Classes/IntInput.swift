@@ -24,11 +24,9 @@ class IntInput {
     var binding: Binding<String> {
         Binding<String>(
             get: {
-                print("Returning: \(self.string)")
                 return self.string
             },
             set: { newValue in
-                print("Setting: \(newValue)")
                 self.setNewValue(newValue)
             }
         )

@@ -30,10 +30,18 @@ struct MeasurementForm: View {
     @State var showingAlert = false
     @State var isDirty: Bool = false
     @State var dismissDisabled: Bool = false
+    @State var hasFocusedOnAppear: Bool = false
+
+    let add: (Int, Double, Date) -> ()
     
-    init(type: MeasurementType, date: Date? = nil) {
+    init(
+        type: MeasurementType,
+        date: Date? = nil,
+        add: @escaping (Int, Double, Date) -> ()
+    ) {
         self.date = (date ?? Date.now).startOfDay
         self.type = type
+        self.add = add
     }
     
     var body: some View {
@@ -42,15 +50,9 @@ struct MeasurementForm: View {
                 .navigationTitle(type.name)
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar { toolbarContent }
-            //                .safeAreaInset(edge: .bottom) { bottomValue }
         }
         .interactiveDismissDisabled(dismissDisabled)
         .onChange(of: isDirty) { _, _ in setDismissDisabled() }
-//        .onAppear {
-//            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-//                isFocused = true
-//            }
-//        }
     }
     
     var form: some View {
@@ -68,6 +70,7 @@ struct MeasurementForm: View {
         Group {
             ToolbarItem(placement: .topBarTrailing) {
                 Button("Add") {
+                    add(intInput.int ?? 0, doubleInput.double ?? 0, time)
                     dismiss()
                 }
                 .fontWeight(.bold)
@@ -87,23 +90,28 @@ struct MeasurementForm: View {
     
     //MARK: - Sections
     
-//    @FocusState var isFocused: Bool
-    
     var unitString: String {
         switch type {
         case .height:   settingsProvider.heightUnit.abbreviation
         case .weight:   settingsProvider.bodyMassUnit.abbreviation
         }
     }
-    
+
     var secondUnitString: String? {
         switch type {
         case .height:   settingsProvider.heightUnit.secondaryUnit
         case .weight:   settingsProvider.bodyMassUnit.secondaryUnit
         }
     }
+    
     var customSection: some View {
 
+        func introspect(_ textField: UITextField) {
+            guard !hasFocusedOnAppear else { return }
+            textField.becomeFirstResponder()
+            textField.selectedTextRange = textField.textRange(from: textField.beginningOfDocument, to: textField.endOfDocument)
+            hasFocusedOnAppear = true
+        }
         func dualUnit(_ secondUnitString: String) -> some View {
             let firstComponent = Binding<String>(
                 get: { intInput.binding.wrappedValue },
@@ -140,12 +148,9 @@ struct MeasurementForm: View {
                     Text(unitString)
                     Spacer()
                     TextField("", text: firstComponent)
-//                        .focused($isFocused)
                         .keyboardType(.numberPad)
                         .multilineTextAlignment(.trailing)
-                        .introspect(.textField, on: .iOS(.v17)) { textField in
-                            textField.becomeFirstResponder()
-                        }
+                        .introspect(.textField, on: .iOS(.v17)) { introspect($0) }
                 }
                 HStack {
                     Text(secondUnitString)
@@ -153,9 +158,6 @@ struct MeasurementForm: View {
                     TextField("", text: secondComponent)
                         .keyboardType(.decimalPad)
                         .multilineTextAlignment(.trailing)
-                        .introspect(.textField, on: .iOS(.v17)) { textField in
-                            textField.becomeFirstResponder()
-                        }
                 }
             }
         }
@@ -173,9 +175,9 @@ struct MeasurementForm: View {
                 Text(unitString)
                 Spacer()
                 TextField("", text: firstComponent)
-//                    .focused($isFocused)
                     .keyboardType(.decimalPad)
                     .multilineTextAlignment(.trailing)
+                    .introspect(.textField, on: .iOS(.v17)) { introspect($0) }
             }
         }
         return Section {
@@ -185,15 +187,6 @@ struct MeasurementForm: View {
                 singleUnit
             }
         }
-        //        InputSection(
-        //            name: settingsProvider.heightUnit.abbreviation,
-        //            valueString: Binding<String?>(
-        //                get: { customInput.double?.clean },
-        //                set: { _ in }
-        //            ),
-        //            showingAlert: $showingAlert,
-        //            unitString: unitString
-        //        )
     }
     
     var dateTimeSection: some View {
@@ -214,40 +207,22 @@ struct MeasurementForm: View {
 }
 
 #Preview("Height (cm)") {
-    MeasurementForm(type: .height)
-        .environment(SettingsProvider(settings: .init(heightUnit: .cm)))
+    MeasurementForm(type: .height) { int, double, time in
+        
+    }
+    .environment(SettingsProvider(settings: .init(heightUnit: .cm)))
 }
 
 #Preview("Height (ft)") {
-    MeasurementForm(type: .height)
-        .environment(SettingsProvider(settings: .init(heightUnit: .ft)))
+    MeasurementForm(type: .height) { int, double, time in
+        
+    }
+    .environment(SettingsProvider(settings: .init(heightUnit: .ft)))
 }
 
 #Preview("HeightForm") {
     NavigationView {
         HeightForm(healthProvider: MockCurrentProvider)
             .environment(SettingsProvider(settings: .init(heightUnit: .ft)))
-    }
-}
-
-extension HeightUnit {
-    var secondaryUnit: String? {
-        hasTwoComponents ? "in" : nil
-    }
-    
-    static var upperSecondaryUnitValue: Double {
-        /// 12 inches equal 1 feet
-        12
-    }
-}
-
-extension BodyMassUnit {
-    var secondaryUnit: String? {
-        hasTwoComponents ? "lb" : nil
-    }
-    
-    static var upperSecondaryUnitValue: Double {
-        /// 14 pounds equals 1 stone
-        14
     }
 }
