@@ -1,15 +1,6 @@
 import SwiftUI
 import SwiftSugar
 
-let MockWeightData: [WeightData] = [
-    .init(1, Date(fromTimeString: "09_42")!, 95.4),
-    .init(2, Date(fromTimeString: "12_07")!, 94.4, UUID(uuidString: "5F507BFC-6BCB-4BE6-88B2-3FD4BEFE4556")),
-    .init(3, Date(fromTimeString: "13_23")!, 94.3),
-    .init(4, Date(fromTimeString: "15_01")!, 94.7, UUID(uuidString: "9B12AB6D-69DA-4FAC-9D80-3D0BB6A67D50")),
-    .init(5, Date(fromTimeString: "17_35")!, 95.1),
-    .init(6, Date(fromTimeString: "19_54")!, 94.5),
-]
-
 struct WeightForm: View {
     
     @ScaledMetric var scale: CGFloat = 1
@@ -354,6 +345,15 @@ struct WeightForm: View {
         }
     }
 }
+
+let MockWeightData: [WeightData] = [
+    .init(1, Date(fromTimeString: "09_42")!, 95.4),
+    .init(2, Date(fromTimeString: "12_07")!, 94.4, UUID(uuidString: "5F507BFC-6BCB-4BE6-88B2-3FD4BEFE4556")!),
+    .init(3, Date(fromTimeString: "13_23")!, 94.3),
+    .init(4, Date(fromTimeString: "15_01")!, 94.7, UUID(uuidString: "9B12AB6D-69DA-4FAC-9D80-3D0BB6A67D50")!),
+    .init(5, Date(fromTimeString: "17_35")!, 95.1),
+    .init(6, Date(fromTimeString: "19_54")!, 94.5),
+]
 
 #Preview("Current") {
     NavigationView {

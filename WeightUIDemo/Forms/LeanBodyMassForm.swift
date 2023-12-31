@@ -1,15 +1,6 @@
 import SwiftUI
 import SwiftSugar
 
-let MockLeanBodyMassData: [LeanBodyMassData] = [
-    .init(1, .userEntered, Date(fromTimeString: "09_42")!, 73.7, 23),
-    .init(2, .healthKit(UUID(uuidString: "69BD6FDB-B6B3-4134-B31E-CDA217ACC1CA")!), Date(fromTimeString: "12_07")!, 74.6, 22.8),
-    .init(3, .fatPercentage, Date(fromTimeString: "13_23")!, 72.3, 23.9),
-    .init(4, .equation, Date(fromTimeString: "15_01")!, 70.9, 24.7),
-    .init(5, .userEntered, Date(fromTimeString: "17_35")!, 72.5),
-    .init(6, .healthKit(UUID(uuidString: "EE5EB41F-9491-4AC9-93F5-E82443D8C260")!), Date(fromTimeString: "19_54")!, 74.2),
-]
-
 struct LeanBodyMassForm: View {
     
     @ScaledMetric var scale: CGFloat = 1
@@ -377,6 +368,15 @@ struct LeanBodyMassForm: View {
         }
     }
 }
+
+let MockLeanBodyMassData: [LeanBodyMassData] = [
+    .init(1, .userEntered, Date(fromTimeString: "09_42")!, 73.7, 23),
+    .init(2, .healthKit(UUID(uuidString: "69BD6FDB-B6B3-4134-B31E-CDA217ACC1CA")!), Date(fromTimeString: "12_07")!, 74.6, 22.8),
+    .init(3, .fatPercentage, Date(fromTimeString: "13_23")!, 72.3, 23.9),
+    .init(4, .equation, Date(fromTimeString: "15_01")!, 70.9, 24.7),
+    .init(5, .userEntered, Date(fromTimeString: "17_35")!, 72.5),
+    .init(6, .healthKit(UUID(uuidString: "EE5EB41F-9491-4AC9-93F5-E82443D8C260")!), Date(fromTimeString: "19_54")!, 74.2),
+]
 
 #Preview("Current") {
     NavigationView {

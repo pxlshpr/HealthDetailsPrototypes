@@ -21,9 +21,9 @@ enum DailyValueType: CaseIterable, Hashable {
         case .average:
             "The average of the above measurements is being used."
         case .last:
-            "The last measurement above is being used."
+            "The last of the above measurements is being used."
         case .first:
-            "The first measurement above is being used."
+            "The first of the above measurements is being used."
         }
     }
 }
