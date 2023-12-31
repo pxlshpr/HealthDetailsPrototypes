@@ -38,6 +38,7 @@
 		E23A25242B3B58C800BDAECE /* ActivityLevelInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = E23A25232B3B58C800BDAECE /* ActivityLevelInfo.swift */; };
 		E23A25262B3BF79D00BDAECE /* AdaptiveMaintenanceInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = E23A25252B3BF79D00BDAECE /* AdaptiveMaintenanceInfo.swift */; };
 		E23A25282B3C4A2F00BDAECE /* AdaptiveDietaryEnergyInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = E23A25272B3C4A2F00BDAECE /* AdaptiveDietaryEnergyInfo.swift */; };
+		E25AC7F42B414BAA0063F6E2 /* WeightData.swift in Sources */ = {isa = PBXBuildFile; fileRef = E25AC7F32B414BAA0063F6E2 /* WeightData.swift */; };
 		E28C693B2B3EC414005E0096 /* DoubleInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = E28C693A2B3EC414005E0096 /* DoubleInput.swift */; };
 		E28C693E2B3F0A6C005E0096 /* LeanBodyMassData.swift in Sources */ = {isa = PBXBuildFile; fileRef = E28C693D2B3F0A6C005E0096 /* LeanBodyMassData.swift */; };
 		E28C69402B3F47AB005E0096 /* InputSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = E28C693F2B3F47AB005E0096 /* InputSection.swift */; };
@@ -124,6 +125,7 @@
 		E23A25232B3B58C800BDAECE /* ActivityLevelInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityLevelInfo.swift; sourceTree = "<group>"; };
 		E23A25252B3BF79D00BDAECE /* AdaptiveMaintenanceInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdaptiveMaintenanceInfo.swift; sourceTree = "<group>"; };
 		E23A25272B3C4A2F00BDAECE /* AdaptiveDietaryEnergyInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdaptiveDietaryEnergyInfo.swift; sourceTree = "<group>"; };
+		E25AC7F32B414BAA0063F6E2 /* WeightData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightData.swift; sourceTree = "<group>"; };
 		E28C693A2B3EC414005E0096 /* DoubleInput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DoubleInput.swift; sourceTree = "<group>"; };
 		E28C693D2B3F0A6C005E0096 /* LeanBodyMassData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeanBodyMassData.swift; sourceTree = "<group>"; };
 		E28C693F2B3F47AB005E0096 /* InputSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputSection.swift; sourceTree = "<group>"; };
@@ -202,7 +204,6 @@
 				E2F79F732B34C00B00A09BDF /* PregnancyStatusForm_Past.swift */,
 				E2F79F572B3485EB00A09BDF /* SexForm_Past.swift */,
 				E2F79F6D2B34BE4100A09BDF /* SmokingStatusForm_Past.swift */,
-				E2F79F4D2B34755700A09BDF /* WeightForm_Past.swift */,
 			);
 			name = Legacy;
 			sourceTree = "<group>";
@@ -311,6 +312,7 @@
 		E23A25152B39F1CA00BDAECE /* To Remove */ = {
 			isa = PBXGroup;
 			children = (
+				E2F79F4D2B34755700A09BDF /* WeightForm_Past.swift */,
 				E2F16EB12B31CABB004AD1BA /* WeightChangePointForm_Past.swift */,
 				E2103B042B35BC4000B0C381 /* WeightChangeForm_Past.swift */,
 				E2103B0C2B36145500B0C381 /* DietaryEnergyPointForm_Past.swift */,
@@ -337,6 +339,7 @@
 			isa = PBXGroup;
 			children = (
 				E28C693D2B3F0A6C005E0096 /* LeanBodyMassData.swift */,
+				E25AC7F32B414BAA0063F6E2 /* WeightData.swift */,
 			);
 			path = Structs;
 			sourceTree = "<group>";
@@ -513,6 +516,7 @@
 				E2F79F742B34C00B00A09BDF /* PregnancyStatusForm_Past.swift in Sources */,
 				E2F79F6C2B34BC1E00A09BDF /* SmokingStatus.swift in Sources */,
 				E28C693E2B3F0A6C005E0096 /* LeanBodyMassData.swift in Sources */,
+				E25AC7F42B414BAA0063F6E2 /* WeightData.swift in Sources */,
 				E23A25122B39EF2C00BDAECE /* TopToolbarContent.swift in Sources */,
 				E2261F7A2B37150E007B7DDD /* ActiveEnergyForm.swift in Sources */,
 				E2F79F722B34BEE300A09BDF /* PregnancyStatus.swift in Sources */,

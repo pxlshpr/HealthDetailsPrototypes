@@ -1,23 +1,54 @@
 import SwiftUI
 import SwiftSugar
 
+let MockWeightData: [WeightData] = [
+    .init(1, Date(fromTimeString: "09_42")!, 95.4),
+    .init(2, Date(fromTimeString: "12_07")!, 94.4, UUID(uuidString: "5F507BFC-6BCB-4BE6-88B2-3FD4BEFE4556")),
+    .init(3, Date(fromTimeString: "13_23")!, 94.3),
+    .init(4, Date(fromTimeString: "15_01")!, 94.7, UUID(uuidString: "9B12AB6D-69DA-4FAC-9D80-3D0BB6A67D50")),
+    .init(5, Date(fromTimeString: "17_35")!, 95.1),
+    .init(6, Date(fromTimeString: "19_54")!, 94.5),
+]
+
 struct WeightForm: View {
     
     @ScaledMetric var scale: CGFloat = 1
     let imageScale: CGFloat = 24
-
+    
     @State var dailyValueType: DailyValueType = .average
-    @State var value: Double = 93.6
-
+    @State var value: Double? = 93.6
+    
     @State var isSynced: Bool = true
     @State var showingSyncOffConfirmation: Bool = false
+    
+    @State var listData: [WeightData] = MockWeightData
+    @State var deletedHealthData: [WeightData] = []
+    
+    @State var showingForm = false
 
+    let pastDate: Date?
+    @State var isEditing: Bool
+    @State var isDirty: Bool = false
+    @Binding var isPresented: Bool
+    @Binding var dismissDisabled: Bool
+    
+    init(
+        pastDate: Date? = nil,
+        isPresented: Binding<Bool> = .constant(true),
+        dismissDisabled: Binding<Bool> = .constant(false)
+    ) {
+        self.pastDate = pastDate
+        _isPresented = isPresented
+        _dismissDisabled = dismissDisabled
+        _isEditing = State(initialValue: pastDate == nil)
+    }
+    
     var body: some View {
         Form {
-            explanation
-            dailyValuePicker
+            noticeOrDateSection
             list
-            syncToggle
+            deletedList
+            syncSection
         }
         .navigationTitle("Weight")
         .navigationBarTitleDisplayMode(.large)
@@ -29,69 +60,13 @@ struct WeightForm: View {
         } message: {
             Text("Weight data will no longer be read from or written to Apple Health.")
         }
-
+        .sheet(isPresented: $showingForm) { measurementForm }
+        .safeAreaInset(edge: .bottom) { bottomValue }
+        .navigationBarBackButtonHidden(isPast && isEditing)
+        .onChange(of: isEditing) { _, _ in setDismissDisabled() }
+        .onChange(of: isDirty) { _, _ in setDismissDisabled() }
     }
     
-    var dailyValuePicker: some View {
-        Section("Use") {
-            Picker("", selection: $dailyValueType) {
-                ForEach(DailyValueType.allCases, id: \.self) {
-                    Text($0.name).tag($0)
-                }
-            }
-            .pickerStyle(.segmented)
-        }
-    }
-
-    var syncToggle: some View {
-        let binding = Binding<Bool>(
-            get: { isSynced },
-            set: {
-                if !$0 {
-                    showingSyncOffConfirmation = true
-                }
-            }
-        )
-
-        return Section(footer: Text("Automatically reads weight data from Apple Health. Data you enter here will also be exported back to Apple Health.")) {
-            HStack {
-                Image("AppleHealthIcon")
-                    .resizable()
-                    .frame(width: imageScale * scale, height: imageScale * scale)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 5)
-                            .stroke(Color(.systemGray3), lineWidth: 0.5)
-                    )
-                Text("Sync with Apple Health")
-                    .layoutPriority(1)
-                Spacer()
-                Toggle("", isOn: binding)
-            }
-        }
-    }
-    
-    var toolbarContent: some ToolbarContent {
-        Group {
-            ToolbarItem(placement: .bottomBar) {
-                HStack(alignment: .firstTextBaseline, spacing: 5) {
-                    Spacer()
-                    Text("\(value.clean)")
-                        .contentTransition(.numericText(value: value))
-                        .font(LargeNumberFont)
-                    Text("kg")
-                        .font(LargeUnitFont)
-                        .foregroundStyle(.secondary)
-                }
-            }
-            ToolbarItem(placement: .topBarTrailing) {
-                Button("Done") {
-//                    dismiss()
-                }
-                .fontWeight(.semibold)
-            }
-        }
-    }
-
     var explanation: some View {
         Section {
             VStack(alignment: .leading) {
@@ -102,27 +77,11 @@ struct WeightForm: View {
         }
     }
     
-    struct ListData: Hashable {
-        let isHealth: Bool
-        let dateString: String
-        let valueString: String
-        
-        init(_ isHealth: Bool, _ dateString: String, _ valueString: String) {
-            self.isHealth = isHealth
-            self.dateString = dateString
-            self.valueString = valueString
-        }
-    }
-    
-    let listData: [ListData] = [
-        .init(false, "9:42 am", "93.7 kg"),
-        .init(true, "12:07 pm", "94.6 kg"),
-        .init(false, "5:35 pm", "92.5 kg"),
-    ]
-    
-    func cell(for listData: ListData) -> some View {
-        HStack {
-            if listData.isHealth {
+    func cell(for data: WeightData, disabled: Bool = false) -> some View {
+        @ViewBuilder
+        var image: some View {
+            switch data.isHealth {
+            case true:
                 Image("AppleHealthIcon")
                     .resizable()
                     .frame(width: 24, height: 24)
@@ -130,7 +89,7 @@ struct WeightForm: View {
                         RoundedRectangle(cornerRadius: 5)
                             .stroke(Color(.systemGray3), lineWidth: 0.5)
                     )
-            } else {
+            case false:
                 Image(systemName: "pencil")
                     .frame(width: 24, height: 24)
                     .background(
@@ -138,10 +97,33 @@ struct WeightForm: View {
                             .foregroundStyle(Color(.systemGray4))
                     )
             }
-            Text(listData.dateString)
-            
+        }
+        
+        @ViewBuilder
+        var deleteButton: some View {
+            if isEditing, isPast {
+                Button {
+                    withAnimation {
+                        delete(data)
+                    }
+                } label: {
+                    Image(systemName: "minus.circle.fill")
+                        .imageScale(.large)
+                        .foregroundStyle(.red)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        
+        return HStack {
+            deleteButton
+                .opacity(disabled ? 0.6 : 1)
+            image
+            Text(data.dateString)
+                .foregroundStyle(disabled ? .secondary : .primary)
             Spacer()
-            Text(listData.valueString)
+            Text(data.valueString)
+                .foregroundStyle(disabled ? .secondary : .primary)
         }
     }
     
@@ -149,26 +131,242 @@ struct WeightForm: View {
         var footer: some View {
             Text(dailyValueType.description)
         }
-
-        return Section(footer: footer) {
-            ForEach(listData, id: \.self) {
-                cell(for: $0)
-                    .deleteDisabled($0.isHealth)
+        
+        @ViewBuilder
+        var addButton: some View {
+            if !isDisabled {
+                Button {
+                    showingForm = true
+                } label: {
+                    Text("Add Measurement")
+                }
+            }
+        }
+        
+        var cells: some View {
+            ForEach(listData) { data in
+                cell(for: data)
+                    .deleteDisabled(isPast)
             }
             .onDelete(perform: delete)
-            Button {
-                
-            } label: {
-                Text("Add Measurement")
+        }
+
+        return Section(footer: footer) {
+            cells
+            addButton
+        }
+    }
+    
+    var measurementForm: some View {
+        EmptyView()
+//        LeanBodyMassMeasurementForm(date: pastDate)
+    }
+
+    var bottomValue: some View {
+        var bottomRow: some View {
+            BottomValue(
+                value: $value,
+                valueString: Binding<String?>(
+                    get: { value?.clean },
+                    set: { _ in }
+                ),
+                isDisabled: Binding<Bool>(
+                    get: { isDisabled },
+                    set: { _ in }
+                ),
+                unitString: "kg"
+            )
+        }
+        
+        var topRow: some View {
+            dailyValuePicker
+        }
+        
+        return VStack {
+            topRow
+            bottomRow
+        }
+        .padding(.horizontal, BottomValueHorizontalPadding)
+        .padding(.vertical, BottomValueVerticalPadding)
+        .background(.bar)
+    }
+    
+    var deletedList: some View {
+        var header: some View {
+            Text("Ignored Apple Health Data")
+        }
+        
+        func restore(_ data: WeightData) {
+            withAnimation {
+                listData.append(data)
+                listData.sort()
+                deletedHealthData.removeAll(where: { $0.id == data.id })
+            }
+        }
+        return Group {
+            if !deletedHealthData.isEmpty {
+                Section(header: header) {
+                    ForEach(deletedHealthData) { data in
+                        HStack {
+                            cell(for: data, disabled: true)
+                            Button {
+                                restore(data)
+                            } label: {
+                                Image(systemName: "arrow.up.bin")
+                            }
+                        }
+                    }
+                }
             }
         }
     }
     
-    func delete(at offsets: IndexSet) {
+    @ViewBuilder
+    var noticeOrDateSection: some View {
+        if let pastDate {
+            NoticeSection.legacy(pastDate, isEditing: $isEditing)
+        } else {
+            Section {
+                HStack {
+                    Text("Date")
+                    Spacer()
+                    Text(Date.now.shortDateString)
+                }
+            }
+        }
+    }
+    
+    var dailyValuePicker: some View {
+        let binding = Binding<DailyValueType>(
+            get: { dailyValueType },
+            set: { newValue in
+                withAnimation {
+                    dailyValueType = newValue
+                    setIsDirty()
+                }
+            }
+        )
+        
+        return Picker("", selection: binding) {
+            ForEach(DailyValueType.allCases, id: \.self) {
+                Text($0.name).tag($0)
+            }
+        }
+        .pickerStyle(.segmented)
+        .listRowSeparator(.hidden)
+        .disabled(isDisabled)
+    }
 
+    var syncSection: some View {
+        let binding = Binding<Bool>(
+            get: { isSynced },
+            set: {
+                if !$0 {
+                    showingSyncOffConfirmation = true
+                }
+            }
+        )
+        
+        var section: some View {
+            Section(footer: Text("Automatically imports your Weight data from Apple Health. Data you add here will also be exported back to Apple Health.")) {
+                HStack {
+                    Image("AppleHealthIcon")
+                        .resizable()
+                        .frame(width: imageScale * scale, height: imageScale * scale)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 5)
+                                .stroke(Color(.systemGray3), lineWidth: 0.5)
+                        )
+                    Text("Sync with Apple Health")
+                        .layoutPriority(1)
+                    Spacer()
+                    Toggle("", isOn: binding)
+                }
+            }
+        }
+        
+        return Group {
+            if !isPast {
+                section
+            }
+        }
+    }
+    
+    var toolbarContent: some ToolbarContent {
+        topToolbarContent(
+            isEditing: $isEditing,
+            isDirty: $isDirty,
+            isPast: isPast,
+            dismissAction: { isPresented = false },
+            undoAction: undo,
+            saveAction: save
+        )
+    }
+    
+    //MARK: - Convenience
+    
+    var isDisabled: Bool {
+        isPast && !isEditing
+    }
+    
+    var controlColor: Color {
+        isDisabled ? .secondary : .primary
+    }
+    
+    var isPast: Bool {
+        pastDate != nil
+    }
+    
+    //MARK: - Actions
+    
+    func setIsDirty() {
+        isDirty = listData != MockWeightData
+        || !deletedHealthData.isEmpty
+        || dailyValueType != .average
+    }
+    
+    func setDismissDisabled() {
+        dismissDisabled = isPast && isEditing && isDirty
+    }
+
+    func undo() {
+    }
+    
+    func save() {
+        
+    }
+
+    func delete(_ data: WeightData) {
+        if data.isHealth {
+            deletedHealthData.append(data)
+            deletedHealthData.sort()
+        }
+        listData.removeAll(where: { $0.id == data.id })
+        setIsDirty()
+    }
+    
+    func delete(at offsets: IndexSet) {
+        let dataToDelete = offsets.map { self.listData[$0] }
+        withAnimation {
+            for data in dataToDelete {
+                delete(data)
+            }
+        }
+    }
+}
+
+#Preview("Current") {
+    NavigationView {
+        WeightForm()
+    }
+}
+
+#Preview("Past") {
+    NavigationView {
+        WeightForm(pastDate: MockPastDate)
     }
 }
 
 #Preview {
-    WeightForm()
+    DemoView()
 }

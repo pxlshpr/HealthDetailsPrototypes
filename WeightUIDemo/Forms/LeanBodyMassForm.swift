@@ -24,10 +24,7 @@ struct LeanBodyMassForm: View {
 
     @State var showingForm = false
     
-    @State var source: LeanBodyMassSource = .userEntered
-
     @State var listData: [LeanBodyMassData] = MockLeanBodyMassData
-    
     @State var deletedHealthData: [LeanBodyMassData] = []
     
     let pastDate: Date?
@@ -50,10 +47,8 @@ struct LeanBodyMassForm: View {
     var body: some View {
         Form {
             noticeOrDateSection
-//            explanation
             list
             deletedList
-//            dailyValuePickerSection
             syncSection
         }
         .navigationTitle("Lean Body Mass")
@@ -203,23 +198,6 @@ struct LeanBodyMassForm: View {
         .disabled(isDisabled)
     }
     
-    var dailyValuePickerSection: some View {
-        var description: String {
-            let name = switch dailyValueType {
-            case .average:  "average"
-            case .last:     "last value"
-            case .first:    "first value"
-            }
-            
-            return "When multiple values are present, use the \(name) of the day."
-
-        }
-        return Section("Daily Value") {
-            dailyValuePicker
-            Text(description)
-        }
-    }
-
     var syncSection: some View {
         let binding = Binding<Bool>(
             get: { isSynced },
@@ -372,8 +350,9 @@ struct LeanBodyMassForm: View {
         }
 
         var footer: some View {
-            Text("Percentages indicate your body fat.")
+            Text("\(dailyValueType.description) Percentages indicate your body fat.")
         }
+        
         return Section(footer: footer) {
             cells
             addButton
