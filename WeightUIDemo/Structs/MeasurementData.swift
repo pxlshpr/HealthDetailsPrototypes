@@ -1,6 +1,6 @@
 import Foundation
 
-struct WeightData: Hashable, Identifiable {
+struct MeasurementData: Hashable, Identifiable {
     let id: Int
     let healthKitUUID: UUID?
     let date: Date
@@ -18,8 +18,8 @@ struct WeightData: Hashable, Identifiable {
         self.value = value
     }
     
-    var valueString: String {
-        "\(value.clean) kg"
+    func valueString(unit: String) -> String {
+        "\(value.clean) \(unit)"
     }
     
     var dateString: String {
@@ -31,8 +31,8 @@ struct WeightData: Hashable, Identifiable {
     }
 }
 
-extension WeightData: Comparable {
-    static func < (lhs: WeightData, rhs: WeightData) -> Bool {
+extension MeasurementData: Comparable {
+    static func < (lhs: MeasurementData, rhs: MeasurementData) -> Bool {
         lhs.date < rhs.date
     }
 }

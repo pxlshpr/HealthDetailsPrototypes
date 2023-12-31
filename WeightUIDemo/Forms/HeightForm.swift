@@ -3,33 +3,42 @@ import SwiftSugar
 
 struct HeightForm: View {
     
-//    @Environment(\.dismiss) var dismiss
-
     @ScaledMetric var scale: CGFloat = 1
     let imageScale: CGFloat = 24
-
+    
     @State var value: Double? = 177.4
-
+    
     @State var isSynced: Bool = true
     @State var showingSyncOffConfirmation: Bool = false
+    
+    @State var listData: [MeasurementData] = MockHeightData
+    @State var deletedHealthData: [MeasurementData] = []
+    
+    @State var showingForm = false
 
     let pastDate: Date?
     @State var isEditing: Bool
     @State var isDirty: Bool = false
     @Binding var isPresented: Bool
-
-    init(pastDate: Date? = nil, isPresented: Binding<Bool> = .constant(true)) {
+    @Binding var dismissDisabled: Bool
+    
+    init(
+        pastDate: Date? = nil,
+        isPresented: Binding<Bool> = .constant(true),
+        dismissDisabled: Binding<Bool> = .constant(false)
+    ) {
         self.pastDate = pastDate
         _isPresented = isPresented
+        _dismissDisabled = dismissDisabled
         _isEditing = State(initialValue: pastDate == nil)
     }
-
+    
     var body: some View {
         Form {
-            notice
+            noticeOrDateSection
             list
+            deletedList
             syncToggle
-//            explanation
         }
         .navigationTitle("Height")
         .navigationBarTitleDisplayMode(.large)
@@ -41,9 +50,11 @@ struct HeightForm: View {
         } message: {
             Text("Height data will no longer be read from or written to Apple Health.")
         }
+        .sheet(isPresented: $showingForm) { measurementForm }
         .safeAreaInset(edge: .bottom) { bottomValue }
         .navigationBarBackButtonHidden(isPast && isEditing)
-        .interactiveDismissDisabled(isPast && isEditing && isDirty)
+        .onChange(of: isEditing) { _, _ in setDismissDisabled() }
+        .onChange(of: isDirty) { _, _ in setDismissDisabled() }
     }
     
     var bottomValue: some View {
@@ -61,6 +72,41 @@ struct HeightForm: View {
         )
     }
     
+    var measurementForm: some View {
+        EmptyView()
+        //        LeanBodyMassMeasurementForm(date: pastDate)
+    }
+    
+    var deletedList: some View {
+        var header: some View {
+            Text("Ignored Apple Health Data")
+        }
+        
+        func restore(_ data: MeasurementData) {
+            withAnimation {
+                listData.append(data)
+                listData.sort()
+                deletedHealthData.removeAll(where: { $0.id == data.id })
+            }
+        }
+        return Group {
+            if !deletedHealthData.isEmpty {
+                Section(header: header) {
+                    ForEach(deletedHealthData) { data in
+                        HStack {
+                            cell(for: data, disabled: true)
+                            Button {
+                                restore(data)
+                            } label: {
+                                Image(systemName: "arrow.up.bin")
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
     var syncToggle: some View {
         let binding = Binding<Bool>(
             get: { isSynced },
@@ -70,7 +116,7 @@ struct HeightForm: View {
                 }
             }
         )
-
+        
         var section: some View {
             Section(footer: Text("Automatically reads height data from Apple Health. Data you enter here will also be exported back to Apple Health.")) {
                 HStack {
@@ -107,14 +153,6 @@ struct HeightForm: View {
         )
     }
     
-    func save() {
-        
-    }
-    
-    func undo() {
-        
-    }
-
     var explanation: some View {
         Section {
             VStack(alignment: .leading) {
@@ -124,36 +162,27 @@ struct HeightForm: View {
             }
         }
     }
-
+    
     @ViewBuilder
-    var notice: some View {
+    var noticeOrDateSection: some View {
         if let pastDate {
             NoticeSection.legacy(pastDate, isEditing: $isEditing)
-        }
-    }
-
-    struct ListData: Hashable {
-        let isHealth: Bool
-        let dateString: String
-        let valueString: String
-        
-        init(_ isHealth: Bool, _ dateString: String, _ valueString: String) {
-            self.isHealth = isHealth
-            self.dateString = dateString
-            self.valueString = valueString
+        } else {
+            Section {
+                HStack {
+                    Text("Date")
+                    Spacer()
+                    Text(Date.now.shortDateString)
+                }
+            }
         }
     }
     
-    let listData: [ListData] = [
-        .init(false, "9:42 am", "117.3 cm"),
-        .init(true, "12:07 pm", "117.6 cm"),
-        .init(false, "5:35 pm", "117.4 cm"),
-    ]
-
-    func cell(for listData: ListData) -> some View {
+    func cell(for data: MeasurementData, disabled: Bool = false) -> some View {
         @ViewBuilder
         var image: some View {
-            if listData.isHealth {
+            switch data.isFromHealthKit {
+            case true:
                 Image("AppleHealthIcon")
                     .resizable()
                     .frame(width: 24, height: 24)
@@ -161,7 +190,7 @@ struct HeightForm: View {
                         RoundedRectangle(cornerRadius: 5)
                             .stroke(Color(.systemGray3), lineWidth: 0.5)
                     )
-            } else {
+            case false:
                 Image(systemName: "pencil")
                     .frame(width: 24, height: 24)
                     .background(
@@ -171,72 +200,102 @@ struct HeightForm: View {
             }
         }
         
-        return HStack {
-            image
-                .opacity(isEditing ? 1 : 0.6)
-            Text(listData.dateString)
-            Spacer()
-            Text(listData.valueString)
+        @ViewBuilder
+        var deleteButton: some View {
+            if isEditing, isPast {
+                Button {
+                    withAnimation {
+                        delete(data)
+                    }
+                } label: {
+                    Image(systemName: "minus.circle.fill")
+                        .imageScale(.large)
+                        .foregroundStyle(.red)
+                }
+                .buttonStyle(.plain)
+            }
         }
-        .foregroundStyle(controlColor)
+        
+        return HStack {
+            deleteButton
+                .opacity(disabled ? 0.6 : 1)
+            image
+            Text(data.dateString)
+                .foregroundStyle(disabled ? .secondary : .primary)
+            Spacer()
+            Text(data.valueString(unit: "cm"))
+                .foregroundStyle(disabled ? .secondary : .primary)
+        }
     }
     
     var list: some View {
-        var bottomContent: some View {
-            
-            var isEmpty: Bool {
-                listData.isEmpty
-            }
-            
-            var label: String {
-                isEditing ? "Add Measurement" : "Not Set"
-            }
-            
-            var color: Color {
-                isEditing ? Color.accentColor : Color(.tertiaryLabel)
-            }
-            var button: some View {
-                Button {
-                    
-                } label: {
-                    Text(label)
-                        .foregroundStyle(color)
-                }
-                .disabled(!isEditing)
-            }
-            
-            return Group {
-                if isEditing || isEmpty {
-                    button
-                }
-            }
-        }
-        
         var footer: some View {
-            //TODO: Only show if multiple values are present
-            Text("The latest measurement is always used.")
+            Text(DailyValueType.last.description)
         }
         
-        return Group {
-            Section(footer: footer) {
-                ForEach(listData, id: \.self) {
-                    cell(for: $0)
-                        .deleteDisabled($0.isHealth)
+        @ViewBuilder
+        var addButton: some View {
+            if !isDisabled {
+                Button {
+                    showingForm = true
+                } label: {
+                    Text("Add Measurement")
                 }
-                .onDelete(perform: delete)
-                bottomContent
             }
+        }
+        
+        var cells: some View {
+            ForEach(listData) { data in
+                cell(for: data)
+                    .deleteDisabled(isPast)
+            }
+            .onDelete(perform: delete)
+        }
+
+        return Section(footer: footer) {
+            cells
+            addButton
         }
     }
     
-    func delete(at offsets: IndexSet) {
-
+    //MARK: - Actions
+    
+    func save() {
+        
     }
-}
+    
+    func undo() {
+        
+    }
 
-//MARK: - Convenience
+    func delete(_ data: MeasurementData) {
+        if data.isFromHealthKit {
+            deletedHealthData.append(data)
+            deletedHealthData.sort()
+        }
+        listData.removeAll(where: { $0.id == data.id })
+        setIsDirty()
+    }
+    
+    func delete(at offsets: IndexSet) {
+        let dataToDelete = offsets.map { self.listData[$0] }
+        withAnimation {
+            for data in dataToDelete {
+                delete(data)
+            }
+        }
+    }
+    func setDismissDisabled() {
+        dismissDisabled = isPast && isEditing && isDirty
+    }
 
-extension HeightForm {
+    func setIsDirty() {
+        isDirty = listData != MockWeightData
+        || !deletedHealthData.isEmpty
+    }
+
+    //MARK: - Convenience
+
     var isDisabled: Bool {
         isPast && !isEditing
     }
@@ -249,6 +308,12 @@ extension HeightForm {
         pastDate != nil
     }
 }
+
+let MockHeightData: [MeasurementData] = [
+    .init(1, Date(fromTimeString: "09_42")!, 177.7),
+    .init(2, Date(fromTimeString: "12_07")!, 177.2, UUID(uuidString: "5F507BFC-6BCB-4BE6-88B2-3FD4BEFE4556")!),
+    .init(3, Date(fromTimeString: "13_23")!, 177.2),
+]
 
 #Preview("Current") {
     NavigationView {
