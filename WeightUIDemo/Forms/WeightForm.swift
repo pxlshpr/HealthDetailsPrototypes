@@ -80,7 +80,7 @@ struct WeightForm: View {
     func cell(for data: WeightData, disabled: Bool = false) -> some View {
         @ViewBuilder
         var image: some View {
-            switch data.isHealth {
+            switch data.isFromHealthKit {
             case true:
                 Image("AppleHealthIcon")
                     .resizable()
@@ -337,7 +337,7 @@ struct WeightForm: View {
     }
 
     func delete(_ data: WeightData) {
-        if data.isHealth {
+        if data.isFromHealthKit {
             deletedHealthData.append(data)
             deletedHealthData.sort()
         }

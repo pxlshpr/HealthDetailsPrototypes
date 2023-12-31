@@ -26,7 +26,7 @@ struct WeightData: Hashable, Identifiable {
         date.shortTime
     }
     
-    var isHealth: Bool {
+    var isFromHealthKit: Bool {
         healthKitUUID != nil
     }
 }

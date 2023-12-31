@@ -1,6 +1,6 @@
 import Foundation
 
-struct LeanBodyMassData: Hashable, Identifiable {
+struct LeanBodyMassData: Codable, Hashable, Identifiable {
     let id: Int
     let source: LeanBodyMassSource
     let date: Date

@@ -272,7 +272,7 @@ struct LeanBodyMassMeasurementForm: View {
         )
         var picker: some View {
             Picker("Source", selection: binding) {
-                ForEach(LeanBodyMassSource.formCases) { source in
+                ForEach(LeanBodyMassSource.formCases, id: \.self) { source in
                     Text(source.name).tag(source)
                 }
             }

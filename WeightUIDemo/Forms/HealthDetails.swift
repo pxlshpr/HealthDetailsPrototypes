@@ -70,6 +70,12 @@ struct HealthDetails: View {
                 isPresented: $isPresented,
                 dismissDisabled: $dismissDisabled
             )
+        case .weight:
+            WeightForm(
+                pastDate: pastDate,
+                isPresented: $isPresented,
+                dismissDisabled: $dismissDisabled
+            )
         default:
             EmptyView()
         }

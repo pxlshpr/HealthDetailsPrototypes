@@ -1,13 +1,27 @@
 import Foundation
 
-enum LeanBodyMassSource: Int, Identifiable, Codable, CaseIterable {
-    case healthKit = 1
+enum LeanBodyMassSource: Codable, Hashable {
+    case healthKit(UUID)
     case equation
     case fatPercentage
     case userEntered
     
     static var formCases: [LeanBodyMassSource] {
         [.fatPercentage, .equation, .userEntered]
+    }
+    
+    var isFromHealthKit: Bool {
+        switch self {
+        case .healthKit:    true
+        default:            false
+        }
+    }
+    
+    var healthKitUUID: UUID? {
+        switch self {
+        case .healthKit(let uuid):  uuid
+        default:                    nil
+        }
     }
     
     var name: String {
@@ -19,9 +33,9 @@ enum LeanBodyMassSource: Int, Identifiable, Codable, CaseIterable {
         }
     }
     
-    var id: Int {
-        rawValue
-    }
+//    var id: Int {
+//        self
+//    }
     
     var scale: Double {
         switch self {
