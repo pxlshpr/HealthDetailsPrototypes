@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct LeanBodyMassMeasurementForm: View {
+struct WeightMeasurementForm: View {
     
     @Environment(\.dismiss) var dismiss
     @State var source: LeanBodyMassSource = .fatPercentage
@@ -29,12 +29,12 @@ struct LeanBodyMassMeasurementForm: View {
     var body: some View {
         NavigationView {
             form
-                .navigationTitle("Lean Body Mass")
+                .navigationTitle("Weight")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar { toolbarContent }
                 .safeAreaInset(edge: .bottom) { bottomValue }
         }
-        .alert("Enter your Lean Body Mass", isPresented: $showingAlert) {
+        .alert("Enter your Weight", isPresented: $showingAlert) {
             TextField("kg", text: customInput.binding)
                 .keyboardType(.decimalPad)
             Button("OK", action: submitCustomValue)
@@ -46,7 +46,7 @@ struct LeanBodyMassMeasurementForm: View {
             TextField("%", text: fatPercentageInput.binding)
                 .keyboardType(.decimalPad)
             Button("OK", action: submitFatPercentage)
-            Button("Cancel") { 
+            Button("Cancel") {
                 fatPercentageInput.cancel()
             }
         }
@@ -57,20 +57,7 @@ struct LeanBodyMassMeasurementForm: View {
     var form: some View {
         Form {
             dateTimeSection
-            sourceSection
-            switch source {
-            case .equation:
-                equationSection
-                equationVariablesSections
-            case .fatPercentage:
-                fatPercentageEnterSection
-                weightSection
-            case .userEntered:
-                customSection
-                weightSection
-            default:
-                EmptyView()
-            }
+            customSection
         }
     }
     
@@ -79,42 +66,15 @@ struct LeanBodyMassMeasurementForm: View {
     }
     
     var bottomValue: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 5) {
-            if let fatPercentage = fatPercentageInput.double {
-                Text("\(fatPercentage.roundedToOnePlace)")
-                    .contentTransition(.numericText(value: fatPercentage))
-                    .font(LargeNumberFont)
-                    .foregroundStyle(.primary)
-                Text("% fat")
-                    .font(LargeUnitFont)
-                    .foregroundStyle(.secondary)
-            }
-            Spacer()
-            if let value {
-                Text("\(value.roundedToOnePlace)")
-                    .contentTransition(.numericText(value: value))
-                    .font(LargeNumberFont)
-                    .foregroundStyle(.primary)
-                Text("kg")
-                    .font(LargeUnitFont)
-                    .foregroundStyle(.secondary)
-            } else {
-                ZStack {
-                    
-                    /// dummy text placed to ensure height stays consistent
-                    Text("0")
-                        .font(LargeNumberFont)
-                        .opacity(0)
-
-                    Text("Not Set")
-                        .font(LargeUnitFont)
-                        .foregroundStyle(.secondary)
-                }
-            }
-        }
-        .padding(.horizontal, BottomValueHorizontalPadding)
-        .padding(.vertical, BottomValueVerticalPadding)
-        .background(.bar)
+        BottomValue(
+            value: $value,
+            valueString: Binding<String?>(
+                get: { value?.clean },
+                set: { _ in }
+            ),
+            isDisabled: .constant(false),
+            unitString: "kg"
+        )
     }
     
     var toolbarContent: some ToolbarContent {
@@ -137,14 +97,13 @@ struct LeanBodyMassMeasurementForm: View {
     //MARK: - Sections
     var customSection: some View {
         InputSection(
-            name: "Lean Body Mass",
+            name: "Weight",
             valueString: Binding<String?>(
                 get: { customInput.double?.clean },
                 set: { _ in }
             ),
             showingAlert: $showingAlert,
-            unitString: "kg",
-            footerString: "The weight below will be used to calculate your Fat Percentage."
+            unitString: "kg"
         )
     }
     
@@ -388,5 +347,5 @@ struct LeanBodyMassMeasurementForm: View {
 
 
 #Preview("Measurement") {
-    LeanBodyMassMeasurementForm()
+    WeightMeasurementForm()
 }
