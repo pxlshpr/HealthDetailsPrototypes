@@ -49,7 +49,6 @@ struct AgeForm: View {
                 dateOfBirthSection
                 customSection
             }
-            .disabled(isDisabled)
             explanation
         }
         .navigationTitle("Age")
@@ -168,7 +167,7 @@ struct AgeForm: View {
     }
     
     var controlColor: Color {
-        isDisabled ? .secondary : .primary
+        isDisabled ? Color(.secondaryLabel) : Color(.label)
     }
     
     var isPast: Bool {
@@ -210,13 +209,14 @@ struct AgeForm: View {
         
     var healthSection: some View {
         Section {
-            Button {
-                setDateOfBirth(DefaultDateOfBirth)
-                handleChanges()
-            } label: {
-                HStack {
-                    Text("Read from Apple Health")
-                    Spacer()
+            HStack {
+                Text("Read from Apple Health")
+                    .foregroundStyle(isDisabled ? Color(.secondaryLabel) : Color.accentColor)
+                Spacer()
+                Button {
+                    setDateOfBirth(DefaultDateOfBirth)
+                    handleChanges()
+                } label: {
                     Image("AppleHealthIcon")
                         .resizable()
                         .frame(width: imageScale * scale, height: imageScale * scale)
@@ -224,55 +224,59 @@ struct AgeForm: View {
                             RoundedRectangle(cornerRadius: 5)
                                 .stroke(Color(.systemGray3), lineWidth: 0.5)
                         )
+                        .grayscale(isDisabled ? 1 : 0)
                 }
+                .disabled(isDisabled)
             }
         }
     }
     
     var dateOfBirthSection: some View {
         Section {
-            Button {
-                showingDateOfBirthAlert = true
-            } label: {
-                HStack {
-                    if years == nil {
-                        Text("Choose Date of Birth")
-                    } else {
-                        Text("Date of Birth")
-                            .foregroundStyle(Color(.label))
-                    }
-                    Spacer()
-                    if years != nil {
-                        Text(dateOfBirth.shortDateString)
-                            .foregroundStyle(Color(.label))
-                    }
+            HStack {
+                if years == nil {
+                    Text("Choose Date of Birth")
+                } else {
+                    Text("Date of Birth")
+                        .foregroundStyle(controlColor)
+                }
+                Spacer()
+                if years != nil {
+                    Text(dateOfBirth.shortDateString)
+                        .foregroundStyle(controlColor)
+                }
+                Button {
+                    showingDateOfBirthAlert = true
+                } label: {
                     Image(systemName: "calendar")
                         .frame(width: imageScale * scale, height: imageScale * scale)
                 }
+                .disabled(isDisabled)
             }
         }
     }
     
     var customSection: some View {
         Section {
-            Button {
-                showingAgeAlert = true
-            } label: {
-                HStack {
-                    if years == nil {
-                        Text("Set Age")
-                    } else {
-                        Text("Age")
-                            .foregroundStyle(Color(.label))
-                    }
-                    Spacer()
-                    if let years {
-                        Text("\(years)")
-                            .foregroundStyle(Color(.label))
-                    }
+            HStack {
+                if years == nil {
+                    Text("Set Age")
+                } else {
+                    Text("Age")
+                        .foregroundStyle(controlColor)
+                }
+                Spacer()
+                if let years {
+                    Text("\(years)")
+                        .foregroundStyle(controlColor)
+                }
+                Button {
+                    showingAgeAlert = true
+                } label: {
                     Image(systemName: "pencil")
                         .frame(width: imageScale * scale, height: imageScale * scale)
                 }
+                .disabled(isDisabled)
             }
         }
     }

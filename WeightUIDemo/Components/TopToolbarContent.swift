@@ -24,6 +24,7 @@ func topToolbarContent(
             if isPast, isEditing.wrappedValue {
                 Button("Cancel") {
                     withAnimation {
+                        undoAction()
                         isEditing.wrappedValue = false
                     }
                 }
@@ -59,7 +60,6 @@ struct EditDoneButton: View {
                 Button("Cancel", role: .cancel) {
                     Haptics.warningFeedback()
                     withAnimation {
-                        undoAction()
                         isEditing = false
                     }
                 }
