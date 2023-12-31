@@ -68,10 +68,8 @@ struct SmokingStatusForm: View {
         let binding = Binding<SmokingStatus>(
             get: { smokingStatus },
             set: { newValue in
-                withAnimation {
-                    self.smokingStatus = newValue
-                    setIsDirty()
-                }
+                self.smokingStatus = newValue
+                setIsDirty()
             }
         )
         return PickerSection(

@@ -117,10 +117,8 @@ struct SexForm: View {
         let binding = Binding<Sex>(
             get: { sex },
             set: { newValue in
-                withAnimation {
-                    self.sex = newValue
-                    setIsDirty()
-                }
+                self.sex = newValue
+                setIsDirty()
             }
         )
         return PickerSection(

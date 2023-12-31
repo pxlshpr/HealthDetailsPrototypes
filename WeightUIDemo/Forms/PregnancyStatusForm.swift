@@ -48,10 +48,8 @@ struct PregnancyStatusForm: View {
         let binding = Binding<PregnancyStatus>(
             get: { pregnancyStatus },
             set: { newValue in
-                withAnimation {
-                    self.pregnancyStatus = newValue
-                    setIsDirty()
-                }
+                self.pregnancyStatus = newValue
+                setIsDirty()
             }
         )
         return PickerSection(

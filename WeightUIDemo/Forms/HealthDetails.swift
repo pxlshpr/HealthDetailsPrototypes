@@ -104,8 +104,24 @@ struct HealthDetails: View {
                 isPresented: $isPresented,
                 dismissDisabled: $dismissDisabled
             )
-        default:
-            EmptyView()
+        case .sex:
+            SexForm(
+                pastDate: pastDate,
+                isPresented: $isPresented,
+                dismissDisabled: $dismissDisabled
+            )
+        case .preganancyStatus:
+            PregnancyStatusForm(
+                pastDate: pastDate,
+                isPresented: $isPresented,
+                dismissDisabled: $dismissDisabled
+            )
+        case .smokingStatus:
+            SmokingStatusForm(
+                pastDate: pastDate,
+                isPresented: $isPresented,
+                dismissDisabled: $dismissDisabled
+            )
         }
     }
     
