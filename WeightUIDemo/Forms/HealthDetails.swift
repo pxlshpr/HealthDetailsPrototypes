@@ -35,15 +35,11 @@ struct HealthDetails: View {
             Section {
                 link(for: .weight)
                 link(for: .leanBodyMass)
-            }
-            Section {
                 link(for: .height)
             }
             Section {
                 link(for: .age)
                 link(for: .sex)
-            }
-            Section {
                 link(for: .smokingStatus)
                 link(for: .preganancyStatus)
             }
