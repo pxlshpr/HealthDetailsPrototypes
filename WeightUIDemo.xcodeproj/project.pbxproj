@@ -48,6 +48,7 @@
 		E28ED8032B41A2990076BA50 /* HealthDetails.swift in Sources */ = {isa = PBXBuildFile; fileRef = E28ED8022B41A2990076BA50 /* HealthDetails.swift */; };
 		E28ED8062B41B76E0076BA50 /* HealthProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = E28ED8052B41B76E0076BA50 /* HealthProvider.swift */; };
 		E28ED8082B41B7930076BA50 /* Mock.swift in Sources */ = {isa = PBXBuildFile; fileRef = E28ED8072B41B7930076BA50 /* Mock.swift */; };
+		E28ED80A2B41BD440076BA50 /* DatePickerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = E28ED8092B41BD440076BA50 /* DatePickerSheet.swift */; };
 		E2BAE3222B30B601003C5B7F /* WeightUIDemoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2BAE3212B30B601003C5B7F /* WeightUIDemoApp.swift */; };
 		E2BAE3242B30B601003C5B7F /* DemoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2BAE3232B30B601003C5B7F /* DemoView.swift */; };
 		E2BAE3262B30B602003C5B7F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E2BAE3252B30B602003C5B7F /* Assets.xcassets */; };
@@ -120,6 +121,7 @@
 		E28ED8022B41A2990076BA50 /* HealthDetails.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthDetails.swift; sourceTree = "<group>"; };
 		E28ED8052B41B76E0076BA50 /* HealthProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthProvider.swift; sourceTree = "<group>"; };
 		E28ED8072B41B7930076BA50 /* Mock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mock.swift; sourceTree = "<group>"; };
+		E28ED8092B41BD440076BA50 /* DatePickerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatePickerSheet.swift; sourceTree = "<group>"; };
 		E2BAE31E2B30B601003C5B7F /* WeightUIDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WeightUIDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E2BAE3212B30B601003C5B7F /* WeightUIDemoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightUIDemoApp.swift; sourceTree = "<group>"; };
 		E2BAE3232B30B601003C5B7F /* DemoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoView.swift; sourceTree = "<group>"; };
@@ -228,6 +230,7 @@
 			isa = PBXGroup;
 			children = (
 				E2261F812B371B9A007B7DDD /* IntervalPicker.swift */,
+				E28ED8092B41BD440076BA50 /* DatePickerSheet.swift */,
 				E28C693F2B3F47AB005E0096 /* InputSection.swift */,
 				E2BCCC062B3DC30300616E9A /* DotPoint.swift */,
 				E23A25212B3B530E00BDAECE /* InfoSection.swift */,
@@ -415,6 +418,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E28ED80A2B41BD440076BA50 /* DatePickerSheet.swift in Sources */,
 				E23A25282B3C4A2F00BDAECE /* AdaptiveDietaryEnergyInfo.swift in Sources */,
 				E23A25202B3B52FC00BDAECE /* MaintenanceInfo.swift in Sources */,
 				E2261F822B371B9A007B7DDD /* IntervalPicker.swift in Sources */,

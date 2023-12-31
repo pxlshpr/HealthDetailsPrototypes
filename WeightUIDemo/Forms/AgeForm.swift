@@ -7,7 +7,6 @@ struct AgeForm: View {
     
     @State var years: Int?
     @State var dateOfBirth: Date
-    @State var chosenDateOfBirth: Date
     @State var customInput: IntInput
 
     @State var showingAgeAlert = false
@@ -36,7 +35,6 @@ struct AgeForm: View {
         
         let dateOfBirth = provider.healthDetails.age?.dateOfBirth
         _dateOfBirth = State(initialValue: dateOfBirth ?? DefaultDateOfBirth)
-        _chosenDateOfBirth = State(initialValue: dateOfBirth ?? DefaultDateOfBirth)
     }
     
     var pastDate: Date? {
@@ -67,35 +65,17 @@ struct AgeForm: View {
         .navigationBarBackButtonHidden(isPast && isEditing)
         .onChange(of: isEditing) { _, _ in setDismissDisabled() }
         .onChange(of: isDirty) { _, _ in setDismissDisabled() }
-        .sheet(isPresented: $showingDateOfBirthAlert) {
-            NavigationView {
-                DatePicker(
-                    "Date of Birth",
-                    selection: $chosenDateOfBirth,
-                    displayedComponents: [.date]
-                )
-                .datePickerStyle(.graphical)
-                .navigationTitle("Date of Birth")
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button("Done") {
-                            setDateOfBirth(chosenDateOfBirth)
-                            handleChanges()
-                            showingDateOfBirthAlert = false
-                        }
-                        .fontWeight(.semibold)
-                    }
-                    ToolbarItem(placement: .topBarLeading) {
-                        Button("Cancel") {
-                            chosenDateOfBirth = dateOfBirth
-                            showingDateOfBirthAlert = false
-                        }
-                    }
-                }
+        .sheet(isPresented: $showingDateOfBirthAlert) { datePickerSheet }
+    }
+    
+    var datePickerSheet: some View {
+        DatePickerSheet("Date of Birth", Binding<Date>(
+            get: { self.dateOfBirth },
+            set: { newValue in
+                setDateOfBirth(newValue)
+                handleChanges()
             }
-            .presentationDetents([.medium])
-        }
+        ))
     }
     
     func setDateOfBirth(_ dateOfBirth: Date) {
@@ -163,7 +143,6 @@ struct AgeForm: View {
         
         let dateOfBirth = provider.healthDetails.age?.dateOfBirth
         self.dateOfBirth = dateOfBirth ?? DefaultDateOfBirth
-        chosenDateOfBirth = dateOfBirth ?? DefaultDateOfBirth
     }
     
     func handleChanges() {
@@ -209,7 +188,6 @@ struct AgeForm: View {
             years = customInput.int
             if let years {
                 dateOfBirth = years.dateOfBirth
-                chosenDateOfBirth = years.dateOfBirth
             }
             handleChanges()
         }
