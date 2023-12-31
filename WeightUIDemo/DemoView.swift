@@ -44,23 +44,27 @@ struct DemoView: View {
     func sheet(for type: WeightFormType) -> some View {
         switch type {
         case .maintenance:
-            HealthDetails(isPresented: Binding<Bool>(
-                get: { self.type == .maintenance },
-                set: { newValue in
-                    if !newValue {
-                        self.type = nil
+            MockCurrentHealthDetailsForm(
+                isPresented: Binding<Bool>(
+                    get: { self.type == .maintenance },
+                    set: { newValue in
+                        if !newValue {
+                            self.type = nil
+                        }
                     }
-                }
-            ))
+                )
+            )
         case .pastMaintenance:
-            HealthDetails(pastDate: MockPastDate, isPresented: Binding<Bool>(
-                get: { self.type == .pastMaintenance },
-                set: { newValue in
-                    if !newValue {
-                        self.type = nil
+            MockPastHealthDetailsForm(
+                isPresented: Binding<Bool>(
+                    get: { self.type == .pastMaintenance },
+                    set: { newValue in
+                        if !newValue {
+                            self.type = nil
+                        }
                     }
-                }
-            ))
+                )
+            )
         }
     }
 }

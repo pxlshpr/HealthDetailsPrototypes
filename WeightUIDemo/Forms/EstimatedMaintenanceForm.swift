@@ -2,22 +2,26 @@ import SwiftUI
 
 struct EstimatedMaintenanceForm: View {
 
+    @Bindable var provider: HealthProvider
     @State var value: Double? = 2782
     
-    let pastDate: Date?
     @State var isEditing: Bool
     @Binding var isPresented: Bool
     @Binding var dismissDisabled: Bool
 
     init(
-        pastDate: Date? = nil,
+        provider: HealthProvider,
         isPresented: Binding<Bool> = .constant(true),
         dismissDisabled: Binding<Bool> = .constant(false)
     ) {
-        self.pastDate = pastDate
+        self.provider = provider
         _isPresented = isPresented
         _dismissDisabled = dismissDisabled
         _isEditing = State(initialValue: true)
+    }
+
+    var pastDate: Date? {
+        provider.pastDate
     }
 
     var body: some View {
@@ -51,7 +55,7 @@ struct EstimatedMaintenanceForm: View {
         Section {
             NavigationLink {
                 RestingEnergyForm(
-                    pastDate: pastDate,
+                    provider: provider,
                     isPresented: $isPresented,
                     dismissDisabled: $dismissDisabled
                 )
@@ -126,12 +130,12 @@ struct EstimatedMaintenanceForm: View {
 
 #Preview("Current") {
     NavigationView {
-        EstimatedMaintenanceForm()
+        EstimatedMaintenanceForm(provider: MockCurrentProvider)
     }
 }
 
 #Preview("Past") {
     NavigationView {
-        EstimatedMaintenanceForm(pastDate: MockPastDate)
+        EstimatedMaintenanceForm(provider: MockPastProvider)
     }
 }

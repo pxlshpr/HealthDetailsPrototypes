@@ -3,6 +3,8 @@ import SwiftSugar
 
 struct LeanBodyMassForm: View {
     
+    @Bindable var provider: HealthProvider
+    
     @ScaledMetric var scale: CGFloat = 1
     let imageScale: CGFloat = 24
 
@@ -18,21 +20,24 @@ struct LeanBodyMassForm: View {
     @State var listData: [LeanBodyMassData] = MockLeanBodyMassData
     @State var deletedHealthData: [LeanBodyMassData] = []
     
-    let pastDate: Date?
     @State var isEditing: Bool
     @State var isDirty: Bool = false
     @Binding var isPresented: Bool
     @Binding var dismissDisabled: Bool
 
     init(
-        pastDate: Date? = nil,
+        provider: HealthProvider,
         isPresented: Binding<Bool> = .constant(true),
         dismissDisabled: Binding<Bool> = .constant(false)
     ) {
-        self.pastDate = pastDate
+        self.provider = provider
         _isPresented = isPresented
         _dismissDisabled = dismissDisabled
-        _isEditing = State(initialValue: pastDate == nil)
+        _isEditing = State(initialValue: provider.isCurrent)
+    }
+    
+    var pastDate: Date? {
+        provider.pastDate
     }
     
     var body: some View {
@@ -154,7 +159,7 @@ struct LeanBodyMassForm: View {
     }
 
     var measurementForm: some View {
-        LeanBodyMassMeasurementForm(date: pastDate)
+        LeanBodyMassMeasurementForm(provider: provider)
     }
     
     var isDisabled: Bool {
@@ -386,12 +391,12 @@ let MockLeanBodyMassData: [LeanBodyMassData] = [
 
 #Preview("Current") {
     NavigationView {
-        LeanBodyMassForm()
+        LeanBodyMassForm(provider: MockCurrentProvider)
     }
 }
 
 #Preview("Past") {
     NavigationView {
-        LeanBodyMassForm(pastDate: MockPastDate)
+        LeanBodyMassForm(provider: MockPastProvider)
     }
 }

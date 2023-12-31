@@ -3,33 +3,44 @@ import SwiftSugar
 
 struct AgeForm: View {
     
-    @ScaledMetric var scale: CGFloat = 1
-    let imageScale: CGFloat = 24
+    @Bindable var provider: HealthProvider
     
+    @State var years: Int?
+    @State var dateOfBirth: Date
+    @State var chosenDateOfBirth: Date
+    @State var customInput: IntInput
+
     @State var showingAgeAlert = false
     @State var showingDateOfBirthAlert = false
+    @ScaledMetric var scale: CGFloat = 1
+    let imageScale: CGFloat = 24
 
-    @State var age: Int? = nil
-    
-    @State var dateOfBirth = DefaultDateOfBirth
-    @State var chosenDateOfBirth = DefaultDateOfBirth
-    @State var customInput = IntInput()
-
-    let pastDate: Date?
     @State var isEditing: Bool
     @State var isDirty: Bool = false
     @Binding var isPresented: Bool
     @Binding var dismissDisabled: Bool
     
     init(
-        pastDate: Date? = nil,
+        provider: HealthProvider,
         isPresented: Binding<Bool> = .constant(true),
         dismissDisabled: Binding<Bool> = .constant(false)
     ) {
-        self.pastDate = pastDate
+        self.provider = provider
         _isPresented = isPresented
         _dismissDisabled = dismissDisabled
-        _isEditing = State(initialValue: pastDate == nil)
+        _isEditing = State(initialValue: provider.isCurrent)
+        
+        let years = provider.healthDetails.age?.years
+        _years = State(initialValue: years)
+        _customInput = State(initialValue: IntInput(int: years))
+        
+        let dateOfBirth = provider.healthDetails.age?.dateOfBirth
+        _dateOfBirth = State(initialValue: dateOfBirth ?? DefaultDateOfBirth)
+        _chosenDateOfBirth = State(initialValue: dateOfBirth ?? DefaultDateOfBirth)
+    }
+    
+    var pastDate: Date? {
+        provider.pastDate
     }
     
     var body: some View {
@@ -70,6 +81,7 @@ struct AgeForm: View {
                     ToolbarItem(placement: .topBarTrailing) {
                         Button("Done") {
                             setDateOfBirth(chosenDateOfBirth)
+                            handleChanges()
                             showingDateOfBirthAlert = false
                         }
                         .fontWeight(.semibold)
@@ -90,7 +102,7 @@ struct AgeForm: View {
         self.dateOfBirth = dateOfBirth
         withAnimation {
             let age = dateOfBirth.age
-            self.age = age
+            self.years = age
             customInput.setNewValue(age)
         }
     }
@@ -98,9 +110,9 @@ struct AgeForm: View {
     var bottomValue: some View {
         HStack(alignment: .firstTextBaseline, spacing: 5) {
             Spacer()
-            if let age {
-                Text("\(age)")
-                    .contentTransition(.numericText(value: Double(age)))
+            if let years {
+                Text("\(years)")
+                    .contentTransition(.numericText(value: Double(years)))
                     .font(LargeNumberFont)
                 Text("years")
                     .font(LargeUnitFont)
@@ -136,7 +148,7 @@ struct AgeForm: View {
     }
     
     func setIsDirty() {
-        isDirty = age != nil
+        isDirty = years != nil
         || dateOfBirth != DefaultDateOfBirth
     }
     
@@ -145,10 +157,31 @@ struct AgeForm: View {
     }
 
     func undo() {
+        let years = provider.healthDetails.age?.years
+        self.years = years
+        customInput = IntInput(int: years)
+        
+        let dateOfBirth = provider.healthDetails.age?.dateOfBirth
+        self.dateOfBirth = dateOfBirth ?? DefaultDateOfBirth
+        chosenDateOfBirth = dateOfBirth ?? DefaultDateOfBirth
+    }
+    
+    func handleChanges() {
+        setIsDirty()
+        if !isPast {
+            save()
+        }
+    }
+    
+    var age: HealthDetails.Age? {
+        guard let years else { return nil }
+        return HealthDetails.Age(
+            value: years, dateOfBirth: dateOfBirth
+        )
     }
     
     func save() {
-        
+        provider.saveAge(age)
     }
 
     var isDisabled: Bool {
@@ -173,12 +206,12 @@ struct AgeForm: View {
     func submitAge() {
         withAnimation {
             customInput.submitValue()
-            age = customInput.int
-            if let age {
-                dateOfBirth = age.dateOfBirth
-                chosenDateOfBirth = age.dateOfBirth
+            years = customInput.int
+            if let years {
+                dateOfBirth = years.dateOfBirth
+                chosenDateOfBirth = years.dateOfBirth
             }
-            setIsDirty()
+            handleChanges()
         }
     }
     
@@ -196,54 +229,12 @@ struct AgeForm: View {
             }
         }
     }
-    
-    struct ListData: Hashable {
-        let isHealth: Bool
-        let dateString: String
-        let valueString: String
-        
-        init(_ isHealth: Bool, _ dateString: String, _ valueString: String) {
-            self.isHealth = isHealth
-            self.dateString = dateString
-            self.valueString = valueString
-        }
-    }
-    
-    let listData: [ListData] = [
-        .init(false, "9:42 am", "93.7 kg"),
-        .init(true, "12:07 pm", "94.6 kg"),
-        .init(false, "5:35 pm", "92.5 kg"),
-    ]
-    
-    func cell(for listData: ListData) -> some View {
-        HStack {
-            if listData.isHealth {
-                Image("AppleHealthIcon")
-                    .resizable()
-                    .frame(width: 24, height: 24)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 5)
-                            .stroke(Color(.systemGray3), lineWidth: 0.5)
-                    )
-            } else {
-                Image(systemName: "pencil")
-                    .frame(width: 24, height: 24)
-                    .background(
-                        RoundedRectangle(cornerRadius: 5)
-                            .foregroundStyle(Color(.systemGray4))
-                    )
-            }
-            Text(listData.dateString)
-            
-            Spacer()
-            Text(listData.valueString)
-        }
-    }
         
     var healthSection: some View {
         Section {
             Button {
-                self.setDateOfBirth(DefaultDateOfBirth)
+                setDateOfBirth(DefaultDateOfBirth)
+                handleChanges()
             } label: {
                 HStack {
                     Text("Read from Apple Health")
@@ -266,8 +257,17 @@ struct AgeForm: View {
                 showingDateOfBirthAlert = true
             } label: {
                 HStack {
-                    Text("Choose Date of Birth")
+                    if years == nil {
+                        Text("Choose Date of Birth")
+                    } else {
+                        Text("Date of Birth")
+                            .foregroundStyle(Color(.label))
+                    }
                     Spacer()
+                    if years != nil {
+                        Text(dateOfBirth.shortDateString)
+                            .foregroundStyle(Color(.label))
+                    }
                     Image(systemName: "calendar")
                         .frame(width: imageScale * scale, height: imageScale * scale)
                 }
@@ -281,9 +281,18 @@ struct AgeForm: View {
                 showingAgeAlert = true
             } label: {
                 HStack {
-                    Text("Enter Age")
+                    if years == nil {
+                        Text("Set Age")
+                    } else {
+                        Text("Age")
+                            .foregroundStyle(Color(.label))
+                    }
                     Spacer()
-                    Image(systemName: "keyboard")
+                    if let years {
+                        Text("\(years)")
+                            .foregroundStyle(Color(.label))
+                    }
+                    Image(systemName: "pencil")
                         .frame(width: imageScale * scale, height: imageScale * scale)
                 }
             }
@@ -293,12 +302,16 @@ struct AgeForm: View {
 
 #Preview("Current") {
     NavigationView {
-        AgeForm()
+        AgeForm(provider: MockCurrentProvider)
     }
 }
 
 #Preview("Past") {
     NavigationView {
-        AgeForm(pastDate: MockPastDate)
+        AgeForm(provider: MockPastProvider)
     }
+}
+
+#Preview("DemoView") {
+    DemoView()
 }

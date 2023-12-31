@@ -1,17 +1,24 @@
 import SwiftUI
 
-struct HealthDetails: View {
+struct HealthDetailsForm: View {
     
-    let pastDate: Date?
     @State var presentedHealthDetail: HealthDetail? = nil
     
     @Binding var isPresented: Bool
     
     @State var dismissDisabled: Bool = false
     
-    init(pastDate: Date? = nil, isPresented: Binding<Bool> = .constant(false)) {
-        self.pastDate = pastDate
+    @Bindable var provider: HealthProvider
+    init(
+        provider: HealthProvider,
+        isPresented: Binding<Bool> = .constant(false)
+    ) {
+        self.provider = provider
         _isPresented = isPresented
+    }
+    
+    var pastDate: Date? {
+        provider.pastDate
     }
     
     var body: some View {
@@ -72,13 +79,13 @@ struct HealthDetails: View {
         switch route {
         case .maintenance:
             MaintenanceForm(
-                pastDate: pastDate,
+                provider: provider,
                 isPresented: $isPresented,
                 dismissDisabled: $dismissDisabled
             )
         case .leanBodyMass:
             LeanBodyMassForm(
-                pastDate: pastDate,
+                provider: provider,
                 isPresented: $isPresented,
                 dismissDisabled: $dismissDisabled
             )
@@ -96,13 +103,13 @@ struct HealthDetails: View {
             )
         case .age:
             AgeForm(
-                pastDate: pastDate,
+                provider: provider,
                 isPresented: $isPresented,
                 dismissDisabled: $dismissDisabled
             )
         case .sex:
             SexForm(
-                pastDate: pastDate,
+                provider: provider,
                 isPresented: $isPresented,
                 dismissDisabled: $dismissDisabled
             )
@@ -137,9 +144,9 @@ struct HealthDetails: View {
 }
 
 #Preview("Current") {
-    HealthDetails()
+    MockCurrentHealthDetailsForm()
 }
 
 #Preview("Past") {
-    HealthDetails(pastDate: MockPastDate)
+    MockPastHealthDetailsForm()
 }

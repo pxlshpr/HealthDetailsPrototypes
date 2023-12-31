@@ -3,6 +3,8 @@ import SwiftSugar
 
 struct MaintenanceForm: View {
     
+    @Bindable var provider: HealthProvider
+    
     @State var maintenancetype: MaintenanceType = .adaptive
     @State var value: Double? = 3225
     @State var adaptiveValue: Double = 3225
@@ -12,7 +14,6 @@ struct MaintenanceForm: View {
 
     @State var showingMaintenanceInfo = false
     
-    let pastDate: Date?
     @State var isEditing: Bool
     @State var isDirty: Bool = false
     
@@ -20,19 +21,24 @@ struct MaintenanceForm: View {
     @Binding var dismissDisabled: Bool
 
     init(
-        pastDate: Date? = nil,
+        provider: HealthProvider,
         isPresented: Binding<Bool> = .constant(true),
         dismissDisabled: Binding<Bool> = .constant(false)
     ) {
-        self.pastDate = pastDate
+        self.provider = provider
         _isPresented = isPresented
         _dismissDisabled = dismissDisabled
-        _isEditing = State(initialValue: pastDate == nil)
+        _isEditing = State(initialValue: provider.isCurrent)
     }
     
+    var pastDate: Date? {
+        provider.pastDate
+    }
+
     var body: some View {
         List {
             notice
+            about
             valuePicker
             adaptiveLink
             estimatedLink
@@ -178,7 +184,7 @@ struct MaintenanceForm: View {
         
         var destination: some View {
             EstimatedMaintenanceForm(
-                pastDate: pastDate,
+                provider: provider,
                 isPresented: $isPresented,
                 dismissDisabled: $dismissDisabled
             )
@@ -245,8 +251,8 @@ struct MaintenanceForm: View {
             Text(description)
         }
     }
-    
-    var explanation: some View {
+ 
+    var about: some View {
         var footer: some View {
             Button {
                 showingMaintenanceInfo = true
@@ -256,24 +262,30 @@ struct MaintenanceForm: View {
             }
         }
         
+        return Section(footer: footer) {
+            Text("Your Maintenance Energy (also known as your Total Daily Energy Expenditure or TDEE) is the dietary energy you would need to consume daily to maintain your weight.\n\nThere are two ways you can calculate it.")
+        }
+    }
+    
+    var explanation: some View {
         var header: some View {
-            Text("About Maintenance Energy")
+            Text("Usage")
                 .formTitleStyle()
         }
-        return Section(header: header, footer: footer) {
-            Text("Your Maintenance Energy (also known as your Total Daily Energy Expenditure or TDEE) is the dietary energy you would need to consume daily to maintain your weight.\n\nIt can be used to create energy goals that target a desired change in your weight.\n\nThere are two ways you can calculate it.")
+        return Section(header: header) {
+            Text("Your Maintenance Energy is used to create energy goals that target a desired change in your weight.\n\nFor example, you could create an energy goal that targets a 500 kcal deficit in weight per week, which would amount to about 0.2 to 0.5 kg.")
         }
     }
 }
 
 #Preview("Current") {
     NavigationView {
-        MaintenanceForm()
+        MaintenanceForm(provider: MockCurrentProvider)
     }
 }
 
 #Preview("Past") {
     NavigationView {
-        MaintenanceForm(pastDate: MockPastDate)
+        MaintenanceForm(provider: MockPastProvider)
     }
 }

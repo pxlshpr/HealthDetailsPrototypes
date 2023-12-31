@@ -2,6 +2,8 @@ import SwiftUI
 
 struct EquationVariablesSections: View {
 
+    @Bindable var provider: HealthProvider
+    
     @Binding var healthDetails: [HealthDetail]
     let pastDate: Date?
     @Binding var isEditing: Bool
@@ -11,12 +13,14 @@ struct EquationVariablesSections: View {
     
     init(
         healthDetails: Binding<[HealthDetail]>,
+        provider: HealthProvider,
         pastDate: Date?,
         isEditing: Binding<Bool>,
         isPresented: Binding<Bool>,
         dismissDisabled: Binding<Bool>,
         showHeader: Bool = true
     ) {
+        self.provider = provider
         _healthDetails = healthDetails
         self.pastDate = pastDate
         _isEditing = isEditing
@@ -41,8 +45,8 @@ struct EquationVariablesSections: View {
     func link(for characteristic: HealthDetail) -> some View {
         NavigationLink {
             switch characteristic {
-            case .age:  AgeForm()
-            case .sex:  SexForm()
+            case .age:  AgeForm(provider: provider)
+            case .sex:  SexForm(provider: provider)
             default:    EmptyView()
             }
         } label: {
@@ -147,7 +151,7 @@ struct EquationVariablesSections: View {
                         WeightForm()
                     case .leanBodyMass:
                         LeanBodyMassForm(
-                            pastDate: pastDate,
+                            provider: provider,
                             isPresented: $isPresented,
                             dismissDisabled: $dismissDisabled
                         )
@@ -179,7 +183,7 @@ struct EquationVariablesSections: View {
                         WeightForm()
                     case .leanBodyMass:
                         LeanBodyMassForm(
-                            pastDate: pastDate,
+                            provider: provider,
                             isPresented: $isPresented,
                             dismissDisabled: $dismissDisabled
                         )

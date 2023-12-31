@@ -3,6 +3,9 @@ import SwiftUI
 struct LeanBodyMassMeasurementForm: View {
     
     @Environment(\.dismiss) var dismiss
+    
+    @Bindable var provider: HealthProvider
+    
     @State var source: LeanBodyMassSource = .fatPercentage
         
     @State var time = Date.now
@@ -17,13 +20,18 @@ struct LeanBodyMassMeasurementForm: View {
     @State var showingAlert = false
     @State var showingFatPercentageAlert = false
 
-    let date: Date
     @State var isDirty: Bool = false
 
     @State var dismissDisabled: Bool = false
     
-    init(date: Date? = nil) {
-        self.date = (date ?? Date.now).startOfDay
+    init(
+        provider: HealthProvider
+    ) {
+        self.provider = provider
+    }
+    
+    var date: Date {
+        provider.healthDetails.date
     }
 
     var body: some View {
@@ -167,6 +175,7 @@ struct LeanBodyMassMeasurementForm: View {
                 get: { [.weight] },
                 set: { _ in }
             ),
+            provider: provider,
             pastDate: date,
             isEditing: .constant(false),
             isPresented: Binding<Bool>(
@@ -188,6 +197,7 @@ struct LeanBodyMassMeasurementForm: View {
                 get: { equation.requiredHealthDetails },
                 set: { _ in }
             ),
+            provider: provider,
             pastDate: date,
             isEditing: .constant(false),
             isPresented: Binding<Bool>(
@@ -388,5 +398,5 @@ struct LeanBodyMassMeasurementForm: View {
 
 
 #Preview("Measurement") {
-    LeanBodyMassMeasurementForm()
+    LeanBodyMassMeasurementForm(provider: MockCurrentProvider)
 }

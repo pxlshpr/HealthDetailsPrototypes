@@ -3,23 +3,29 @@ import SwiftSugar
 
 struct SexForm: View {
     
-    @State var sex: Sex = .other
+    @Bindable var provider: HealthProvider
+    @State var sex: BiologicalSex
     
-    let pastDate: Date?
     @State var isEditing: Bool
     @State var isDirty: Bool = false
     @Binding var isPresented: Bool
     @Binding var dismissDisabled: Bool
     
     init(
-        pastDate: Date? = nil,
+        provider: HealthProvider,
         isPresented: Binding<Bool> = .constant(true),
         dismissDisabled: Binding<Bool> = .constant(false)
     ) {
-        self.pastDate = pastDate
+        self.provider = provider
         _isPresented = isPresented
         _dismissDisabled = dismissDisabled
-        _isEditing = State(initialValue: pastDate == nil)
+        _isEditing = State(initialValue: provider.isCurrent)
+        
+        _sex = State(initialValue: provider.healthDetails.sex)
+    }
+
+    var pastDate: Date? {
+        provider.pastDate
     }
 
     var body: some View {
@@ -54,10 +60,10 @@ struct SexForm: View {
                     .font(LargeNumberFont)
                     .opacity(0)
 
-                Text(sex != .other ? sex.name : "Not Set")
+                Text(sex != .notSet ? sex.name : "Not Set")
                     .font(LargeUnitFont)
 //                    .font(sex == .other ? LargeUnitFont : LargeNumberFont)
-                    .foregroundStyle(sex != .other ? .primary : .secondary)
+                    .foregroundStyle(sex != .notSet ? .primary : .secondary)
             }
         }
         .padding(.horizontal, BottomValueHorizontalPadding)
@@ -77,7 +83,7 @@ struct SexForm: View {
     }
     
     func setIsDirty() {
-        isDirty = sex != .other
+        isDirty = sex != .notSet
     }
     
     func setDismissDisabled() {
@@ -85,12 +91,9 @@ struct SexForm: View {
     }
 
     func undo() {
+        self.sex = provider.healthDetails.sex
     }
     
-    func save() {
-        
-    }
-
     var isDisabled: Bool {
         isPast && !isEditing
     }
@@ -119,15 +122,15 @@ struct SexForm: View {
     }
 
     var picker: some View {
-        let binding = Binding<Sex>(
+        let binding = Binding<BiologicalSex>(
             get: { sex },
             set: { newValue in
                 self.sex = newValue
-                setIsDirty()
+                handleChanges()
             }
         )
         return PickerSection(
-            [Sex.female, Sex.male],
+            [BiologicalSex.female, BiologicalSex.male],
             binding,
             isDisabled: Binding<Bool>(
                 get: { isDisabled },
@@ -135,16 +138,31 @@ struct SexForm: View {
             )
         )
     }
+    
+    func handleChanges() {
+        setIsDirty()
+        if !isPast {
+            save()
+        }
+    }
+    
+    func save() {
+        provider.saveSex(sex)
+    }
 }
 
 #Preview("Current") {
     NavigationView {
-        SexForm()
+        SexForm(provider: MockCurrentProvider)
     }
 }
 
 #Preview("Past") {
     NavigationView {
-        SexForm(pastDate: MockPastDate)
+        SexForm(provider: MockPastProvider)
     }
+}
+
+#Preview("DemoView ") {
+    DemoView()
 }
