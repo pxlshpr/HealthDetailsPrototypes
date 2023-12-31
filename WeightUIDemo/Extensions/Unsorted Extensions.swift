@@ -209,3 +209,16 @@ extension BodyMassUnit {
         14
     }
 }
+
+extension Double {
+    
+    var cleanHealth: String {
+        /// round it off to a reasonable number first to avoid numbers like `7.00000000000009` resulting in `7.0`
+        let value = self.rounded(toPlaces: 6).truncatingRemainder(dividingBy: 1)
+        if value == 0 {
+            return String(format: "%.0f", self.rounded(toPlaces: 1))
+        } else {
+            return String(self.rounded(toPlaces: 1))
+        }
+    }
+}

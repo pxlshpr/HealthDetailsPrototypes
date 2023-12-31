@@ -110,7 +110,7 @@ struct HeightForm: View {
                 get: { double }, set: { _ in }
             ),
             doubleString: Binding<String?>(
-                get: { double?.clean }, set: { _ in }
+                get: { double?.cleanHealth }, set: { _ in }
             ),
             doubleUnitString: doubleUnitString,
             isDisabled: Binding<Bool>(
@@ -291,7 +291,7 @@ struct HeightForm: View {
         }
         
         var string: String {
-            let double = "\(double.clean) \(doubleUnitString)"
+            let double = "\(double.cleanHealth) \(doubleUnitString)"
             return if let int, let intUnitString {
                 "\(int) \(intUnitString) \(double)"
             } else {
