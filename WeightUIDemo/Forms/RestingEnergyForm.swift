@@ -2,7 +2,7 @@ import SwiftUI
 
 struct RestingEnergyForm: View {
 
-    @Bindable var provider: HealthProvider
+    @Bindable var healthProvider: HealthProvider
     
     @State var value: Double? = 2798
 
@@ -31,18 +31,18 @@ struct RestingEnergyForm: View {
     @Binding var dismissDisabled: Bool
 
     init(
-        provider: HealthProvider,
+        healthProvider: HealthProvider,
         isPresented: Binding<Bool> = .constant(true),
         dismissDisabled: Binding<Bool> = .constant(false)
     ) {
-        self.provider = provider
+        self.healthProvider = healthProvider
         _isPresented = isPresented
         _dismissDisabled = dismissDisabled
-        _isEditing = State(initialValue: provider.isCurrent)
+        _isEditing = State(initialValue: healthProvider.isCurrent)
     }
     
     var pastDate: Date? {
-        provider.pastDate
+        healthProvider.pastDate
     }
 
     var body: some View {
@@ -147,7 +147,7 @@ extension RestingEnergyForm {
                 get: { equation.requiredHealthDetails },
                 set: { _ in }
             ),
-            provider: provider,
+            healthProvider: healthProvider,
             pastDate: pastDate,
             isEditing: $isEditing,
             isPresented: $isPresented,
@@ -352,13 +352,13 @@ extension RestingEnergyForm {
 
 #Preview("Current") {
     NavigationView {
-        RestingEnergyForm(provider: MockCurrentProvider)
+        RestingEnergyForm(healthProvider: MockCurrentProvider)
     }
 }
 
 #Preview("Past") {
     NavigationView {
-        RestingEnergyForm(provider: MockPastProvider)
+        RestingEnergyForm(healthProvider: MockPastProvider)
     }
 }
 

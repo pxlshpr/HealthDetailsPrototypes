@@ -4,7 +4,7 @@ struct LeanBodyMassMeasurementForm: View {
     
     @Environment(\.dismiss) var dismiss
     
-    @Bindable var provider: HealthProvider
+    @Bindable var healthProvider: HealthProvider
     
     @State var source: LeanBodyMassSource = .fatPercentage
         
@@ -25,13 +25,13 @@ struct LeanBodyMassMeasurementForm: View {
     @State var dismissDisabled: Bool = false
     
     init(
-        provider: HealthProvider
+        healthProvider: HealthProvider
     ) {
-        self.provider = provider
+        self.healthProvider = healthProvider
     }
     
     var date: Date {
-        provider.healthDetails.date
+        healthProvider.healthDetails.date
     }
 
     var body: some View {
@@ -175,7 +175,7 @@ struct LeanBodyMassMeasurementForm: View {
                 get: { [.weight] },
                 set: { _ in }
             ),
-            provider: provider,
+            healthProvider: healthProvider,
             pastDate: date,
             isEditing: .constant(false),
             isPresented: Binding<Bool>(
@@ -197,7 +197,7 @@ struct LeanBodyMassMeasurementForm: View {
                 get: { equation.requiredHealthDetails },
                 set: { _ in }
             ),
-            provider: provider,
+            healthProvider: healthProvider,
             pastDate: date,
             isEditing: .constant(false),
             isPresented: Binding<Bool>(
@@ -398,5 +398,5 @@ struct LeanBodyMassMeasurementForm: View {
 
 
 #Preview("Measurement") {
-    LeanBodyMassMeasurementForm(provider: MockCurrentProvider)
+    LeanBodyMassMeasurementForm(healthProvider: MockCurrentProvider)
 }

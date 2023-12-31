@@ -1,9 +1,9 @@
 import SwiftUI
 import SwiftSugar
 
-struct SexForm: View {
+struct BiologicalSexForm: View {
     
-    @Bindable var provider: HealthProvider
+    @Bindable var healthProvider: HealthProvider
     @State var sex: BiologicalSex
     
     @State var isEditing: Bool
@@ -12,20 +12,20 @@ struct SexForm: View {
     @Binding var dismissDisabled: Bool
     
     init(
-        provider: HealthProvider,
+        healthProvider: HealthProvider,
         isPresented: Binding<Bool> = .constant(true),
         dismissDisabled: Binding<Bool> = .constant(false)
     ) {
-        self.provider = provider
+        self.healthProvider = healthProvider
         _isPresented = isPresented
         _dismissDisabled = dismissDisabled
-        _isEditing = State(initialValue: provider.isCurrent)
+        _isEditing = State(initialValue: healthProvider.isCurrent)
         
-        _sex = State(initialValue: provider.healthDetails.sex)
+        _sex = State(initialValue: healthProvider.healthDetails.sex)
     }
 
     var pastDate: Date? {
-        provider.pastDate
+        healthProvider.pastDate
     }
 
     var body: some View {
@@ -91,7 +91,7 @@ struct SexForm: View {
     }
 
     func undo() {
-        self.sex = provider.healthDetails.sex
+        self.sex = healthProvider.healthDetails.sex
     }
     
     var isDisabled: Bool {
@@ -147,19 +147,19 @@ struct SexForm: View {
     }
     
     func save() {
-        provider.saveSex(sex)
+        healthProvider.saveSex(sex)
     }
 }
 
 #Preview("Current") {
     NavigationView {
-        SexForm(provider: MockCurrentProvider)
+        BiologicalSexForm(healthProvider: MockCurrentProvider)
     }
 }
 
 #Preview("Past") {
     NavigationView {
-        SexForm(provider: MockPastProvider)
+        BiologicalSexForm(healthProvider: MockPastProvider)
     }
 }
 

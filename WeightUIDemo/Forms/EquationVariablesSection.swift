@@ -2,7 +2,7 @@ import SwiftUI
 
 struct EquationVariablesSections: View {
 
-    @Bindable var provider: HealthProvider
+    @Bindable var healthProvider: HealthProvider
     
     @Binding var healthDetails: [HealthDetail]
     let pastDate: Date?
@@ -13,14 +13,14 @@ struct EquationVariablesSections: View {
     
     init(
         healthDetails: Binding<[HealthDetail]>,
-        provider: HealthProvider,
+        healthProvider: HealthProvider,
         pastDate: Date?,
         isEditing: Binding<Bool>,
         isPresented: Binding<Bool>,
         dismissDisabled: Binding<Bool>,
         showHeader: Bool = true
     ) {
-        self.provider = provider
+        self.healthProvider = healthProvider
         _healthDetails = healthDetails
         self.pastDate = pastDate
         _isEditing = isEditing
@@ -45,8 +45,8 @@ struct EquationVariablesSections: View {
     func link(for characteristic: HealthDetail) -> some View {
         NavigationLink {
             switch characteristic {
-            case .age:  AgeForm(provider: provider)
-            case .sex:  SexForm(provider: provider)
+            case .age:  AgeForm(healthProvider: healthProvider)
+            case .sex:  BiologicalSexForm(healthProvider: healthProvider)
             default:    EmptyView()
             }
         } label: {
@@ -144,14 +144,14 @@ struct EquationVariablesSections: View {
                     switch healthDetail {
                     case .height:
                         HeightForm(
-                            pastDate: pastDate,
+                            healthProvider: healthProvider,
                             isPresented: $isPresented
                         )
                     case .weight:
                         WeightForm()
                     case .leanBodyMass:
                         LeanBodyMassForm(
-                            provider: provider,
+                            healthProvider: healthProvider,
                             isPresented: $isPresented,
                             dismissDisabled: $dismissDisabled
                         )
@@ -176,14 +176,14 @@ struct EquationVariablesSections: View {
                     switch healthDetail {
                     case .height:
                         HeightForm(
-                            pastDate: pastDate,
+                            healthProvider: healthProvider,
                             isPresented: $isPresented
                         )
                     case .weight:
                         WeightForm()
                     case .leanBodyMass:
                         LeanBodyMassForm(
-                            provider: provider,
+                            healthProvider: healthProvider,
                             isPresented: $isPresented,
                             dismissDisabled: $dismissDisabled
                         )

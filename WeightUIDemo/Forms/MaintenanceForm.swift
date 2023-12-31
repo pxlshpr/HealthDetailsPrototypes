@@ -3,7 +3,7 @@ import SwiftSugar
 
 struct MaintenanceForm: View {
     
-    @Bindable var provider: HealthProvider
+    @Bindable var healthProvider: HealthProvider
     
     @State var maintenancetype: MaintenanceType = .adaptive
     @State var value: Double? = 3225
@@ -21,18 +21,18 @@ struct MaintenanceForm: View {
     @Binding var dismissDisabled: Bool
 
     init(
-        provider: HealthProvider,
+        healthProvider: HealthProvider,
         isPresented: Binding<Bool> = .constant(true),
         dismissDisabled: Binding<Bool> = .constant(false)
     ) {
-        self.provider = provider
+        self.healthProvider = healthProvider
         _isPresented = isPresented
         _dismissDisabled = dismissDisabled
-        _isEditing = State(initialValue: provider.isCurrent)
+        _isEditing = State(initialValue: healthProvider.isCurrent)
     }
     
     var pastDate: Date? {
-        provider.pastDate
+        healthProvider.pastDate
     }
 
     var body: some View {
@@ -184,7 +184,7 @@ struct MaintenanceForm: View {
         
         var destination: some View {
             EstimatedMaintenanceForm(
-                provider: provider,
+                healthProvider: healthProvider,
                 isPresented: $isPresented,
                 dismissDisabled: $dismissDisabled
             )
@@ -280,12 +280,12 @@ struct MaintenanceForm: View {
 
 #Preview("Current") {
     NavigationView {
-        MaintenanceForm(provider: MockCurrentProvider)
+        MaintenanceForm(healthProvider: MockCurrentProvider)
     }
 }
 
 #Preview("Past") {
     NavigationView {
-        MaintenanceForm(provider: MockPastProvider)
+        MaintenanceForm(healthProvider: MockPastProvider)
     }
 }

@@ -3,23 +3,30 @@ import SwiftSugar
 
 struct PregnancyStatusForm: View {
 
+    @Bindable var healthProvider: HealthProvider
+
     @State var pregnancyStatus: PregnancyStatus = .notSet
 
-    let pastDate: Date?
     @State var isEditing: Bool
     @State var isDirty: Bool = false
     @Binding var isPresented: Bool
     @Binding var dismissDisabled: Bool
     
     init(
-        pastDate: Date? = nil,
+        healthProvider: HealthProvider,
         isPresented: Binding<Bool> = .constant(true),
         dismissDisabled: Binding<Bool> = .constant(false)
     ) {
-        self.pastDate = pastDate
+        self.healthProvider = healthProvider
         _isPresented = isPresented
         _dismissDisabled = dismissDisabled
-        _isEditing = State(initialValue: pastDate == nil)
+        _isEditing = State(initialValue: healthProvider.isCurrent)
+        
+        _pregnancyStatus = State(initialValue: healthProvider.healthDetails.pregnancyStatus)
+    }
+
+    var pastDate: Date? {
+        healthProvider.pastDate
     }
 
     var body: some View {
@@ -49,7 +56,7 @@ struct PregnancyStatusForm: View {
             get: { pregnancyStatus },
             set: { newValue in
                 self.pregnancyStatus = newValue
-                setIsDirty()
+                handleChanges()
             }
         )
         return PickerSection(
@@ -94,10 +101,18 @@ struct PregnancyStatusForm: View {
     }
 
     func undo() {
+        self.pregnancyStatus = healthProvider.healthDetails.pregnancyStatus
+    }
+    
+    func handleChanges() {
+        setIsDirty()
+        if !isPast {
+            save()
+        }
     }
     
     func save() {
-        
+        healthProvider.savePregnancyStatus(pregnancyStatus)
     }
 
     var isDisabled: Bool {
@@ -127,12 +142,12 @@ struct PregnancyStatusForm: View {
 
 #Preview("Current") {
     NavigationView {
-        PregnancyStatusForm()
+        PregnancyStatusForm(healthProvider: MockCurrentProvider)
     }
 }
 
 #Preview("Past") {
     NavigationView {
-        PregnancyStatusForm(pastDate: MockPastDate)
+        PregnancyStatusForm(healthProvider: MockPastProvider)
     }
 }

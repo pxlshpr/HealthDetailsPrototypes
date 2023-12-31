@@ -2,37 +2,48 @@ import SwiftUI
 import SwiftSugar
 
 struct HeightForm: View {
+
+    @Environment(SettingsProvider.self) var settingsProvider
+
+    @Bindable var healthProvider: HealthProvider
     
+    @State var heightInCm: Double? = nil
+    @State var measurements: [HeightMeasurement] = []
+    @State var deletedHealthKitMeasurements: [HeightMeasurement] = []
+    @State var isSynced: Bool = false
+
+    @State var showingForm = false
+    @State var showingSyncOffConfirmation: Bool = false
     @ScaledMetric var scale: CGFloat = 1
     let imageScale: CGFloat = 24
-    
-    @State var value: Double? = 177.4
-    
-    @State var isSynced: Bool = true
-    @State var showingSyncOffConfirmation: Bool = false
-    
-    @State var listData: [MeasurementData] = MockHeightData
-    @State var deletedHealthData: [MeasurementData] = []
-    
-    @State var showingForm = false
 
-    let pastDate: Date?
     @State var isEditing: Bool
     @State var isDirty: Bool = false
     @Binding var isPresented: Bool
     @Binding var dismissDisabled: Bool
     
     init(
-        pastDate: Date? = nil,
+        healthProvider: HealthProvider,
         isPresented: Binding<Bool> = .constant(true),
         dismissDisabled: Binding<Bool> = .constant(false)
     ) {
-        self.pastDate = pastDate
+        self.healthProvider = healthProvider
         _isPresented = isPresented
         _dismissDisabled = dismissDisabled
-        _isEditing = State(initialValue: pastDate == nil)
+        _isEditing = State(initialValue: healthProvider.isCurrent)
+                
+        if let height = healthProvider.healthDetails.height {
+            _heightInCm = State(initialValue: height.heightInCm)
+            _measurements = State(initialValue: height.measurements)
+            _deletedHealthKitMeasurements = State(initialValue: height.deletedHealthKitMeasurements)
+            _isSynced = State(initialValue: height.isSynced)
+        }
     }
-    
+
+    var pastDate: Date? {
+        healthProvider.pastDate
+    }
+
     var body: some View {
         Form {
             noticeOrDateSection
@@ -60,9 +71,9 @@ struct HeightForm: View {
     
     var bottomValue: some View {
         BottomValue(
-            value: $value,
+            value: $heightInCm,
             valueString: Binding<String?>(
-                get: { value?.clean },
+                get: { heightInCm?.clean },
                 set: { _ in }
             ),
             isDisabled: Binding<Bool>(
@@ -74,7 +85,7 @@ struct HeightForm: View {
     }
     
     var measurementForm: some View {
-        MeasurementForm(healthDetail: .height, date: pastDate)
+        MeasurementForm(type: .height, date: pastDate)
     }
     
     var deletedList: some View {
@@ -82,17 +93,17 @@ struct HeightForm: View {
             Text("Ignored Apple Health Data")
         }
         
-        func restore(_ data: MeasurementData) {
+        func restore(_ data: HeightMeasurement) {
             withAnimation {
-                listData.append(data)
-                listData.sort()
-                deletedHealthData.removeAll(where: { $0.id == data.id })
+                measurements.append(data)
+                measurements.sort()
+                deletedHealthKitMeasurements.removeAll(where: { $0.id == data.id })
             }
         }
         return Group {
-            if !deletedHealthData.isEmpty {
+            if !deletedHealthKitMeasurements.isEmpty {
                 Section(header: header) {
-                    ForEach(deletedHealthData) { data in
+                    ForEach(deletedHealthKitMeasurements) { data in
                         HStack {
                             cell(for: data, disabled: true)
                             Button {
@@ -183,7 +194,7 @@ struct HeightForm: View {
         }
     }
     
-    func cell(for data: MeasurementData, disabled: Bool = false) -> some View {
+    func cell(for data: HeightMeasurement, disabled: Bool = false) -> some View {
         @ViewBuilder
         var image: some View {
             switch data.isFromHealthKit {
@@ -234,29 +245,41 @@ struct HeightForm: View {
     }
     
     var list: some View {
+        @ViewBuilder
         var footer: some View {
-            Text(DailyValueType.last.description)
+            if !measurements.isEmpty {
+                Text(DailyValueType.last.description)
+            }
         }
         
-        @ViewBuilder
         var addButton: some View {
-            if !isDisabled {
+            HStack {
+                if isDisabled {
+                    if measurements.isEmpty {
+                        Text("No Measurements")
+                            .foregroundStyle(.secondary)
+                    }
+                } else {
+                    Text("Add Measurement")
+                        .foregroundStyle(Color.accentColor)
+                }
+                Spacer()
                 Button {
                     showingForm = true
                 } label: {
-                    Text("Add Measurement")
                 }
+                .disabled(isDisabled)
             }
         }
         
         var cells: some View {
-            ForEach(listData) { data in
+            ForEach(measurements) { data in
                 cell(for: data)
                     .deleteDisabled(isPast)
             }
             .onDelete(perform: delete)
         }
-
+        
         return Section(footer: footer) {
             cells
             addButton
@@ -273,17 +296,17 @@ struct HeightForm: View {
         
     }
 
-    func delete(_ data: MeasurementData) {
+    func delete(_ data: HeightMeasurement) {
         if data.isFromHealthKit {
-            deletedHealthData.append(data)
-            deletedHealthData.sort()
+            deletedHealthKitMeasurements.append(data)
+            deletedHealthKitMeasurements.sort()
         }
-        listData.removeAll(where: { $0.id == data.id })
+        measurements.removeAll(where: { $0.id == data.id })
         setIsDirty()
     }
     
     func delete(at offsets: IndexSet) {
-        let dataToDelete = offsets.map { self.listData[$0] }
+        let dataToDelete = offsets.map { self.measurements[$0] }
         withAnimation {
             for data in dataToDelete {
                 delete(data)
@@ -295,8 +318,8 @@ struct HeightForm: View {
     }
 
     func setIsDirty() {
-        isDirty = listData != MockWeightData
-        || !deletedHealthData.isEmpty
+        isDirty = measurements != MockWeightData
+        || !deletedHealthKitMeasurements.isEmpty
     }
 
     //MARK: - Convenience
@@ -314,20 +337,20 @@ struct HeightForm: View {
     }
 }
 
-let MockHeightData: [MeasurementData] = [
-    .init(1, Date(fromTimeString: "09_42")!, 177.7),
-    .init(2, Date(fromTimeString: "12_07")!, 177.2, UUID(uuidString: "5F507BFC-6BCB-4BE6-88B2-3FD4BEFE4556")!),
-    .init(3, Date(fromTimeString: "13_23")!, 177.2),
+let MockHeightData: [HeightMeasurement] = [
+    .init(UUID(uuidString: "4312C284-45EA-4805-A924-84658496533B")!, Date(fromShortTimeString: "09_42")!, 177.7),
+    .init(UUID(uuidString: "637D2E34-1348-4240-9C96-D9A1E8B347B3")!, Date(fromShortTimeString: "12_07")!, 177.2, UUID(uuidString: "5F507BFC-6BCB-4BE6-88B2-3FD4BEFE4556")!),
+    .init(UUID(uuidString: "62440554-1DB5-4024-873A-82B4A63C7EA2")!, Date(fromShortTimeString: "13_23")!, 177.2),
 ]
 
 #Preview("Current") {
     NavigationView {
-        HeightForm()
+        HeightForm(healthProvider: MockCurrentProvider)
     }
 }
 
 #Preview("Past") {
     NavigationView {
-        HeightForm(pastDate: MockPastDate)
+        HeightForm(healthProvider: MockPastProvider)
     }
 }

@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Provides a binding for inputting a double
-class DoubleInput {
+@Observable class DoubleInput {
     
     var double: Double?
     var stringAsDouble: Double?
@@ -11,10 +11,13 @@ class DoubleInput {
     var includeTrailingZero: Bool = false
     var numberOfTrailingZeros: Int = 0
 
-    init(double: Double? = nil) {
+    let automaticallySubmitsValues: Bool
+    
+    init(double: Double? = nil, automaticallySubmitsValues: Bool = false) {
         self.double = double
         self.stringAsDouble = double
         self.string = double?.clean ?? ""
+        self.automaticallySubmitsValues = automaticallySubmitsValues
     }
     
     var binding: Binding<String> {
@@ -30,6 +33,7 @@ class DoubleInput {
         /// Cleanup by removing any extra periods and non-numbers
         let newValue = newValue.sanitizedDouble
         string = newValue
+//        print("String is: \(string)")
         
         /// If we haven't already set the flag for the trailing period, and the string has period as its last character, set it so that its displayed
         if !includeTrailingPeriod, newValue.last == "." {
@@ -48,6 +52,17 @@ class DoubleInput {
         
         let double = Double(newValue)
         stringAsDouble = double
+        
+        if automaticallySubmitsValues {
+            submitValue()
+        }
+//        string = if let stringAsDouble {
+//            "\(stringAsDouble.cleanWithoutRounding)"
+//        } else {
+//            ""
+//        }
+//        print("String is now: \(string)")
+
     }
     
     func submitValue() {

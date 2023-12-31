@@ -1,3 +1,5 @@
+import PrepShared
+
 public enum PregnancyStatus: Int16, Codable {
     case notPregnantOrLactating
     case pregnant

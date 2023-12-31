@@ -1,4 +1,5 @@
 import Foundation
+import PrepShared
 
 public enum RestingEnergyEquation: Int16, Hashable, Codable, CaseIterable {
     case katchMcardle = 1

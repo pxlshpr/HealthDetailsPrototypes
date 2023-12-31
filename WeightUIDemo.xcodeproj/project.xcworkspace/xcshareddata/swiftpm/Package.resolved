@@ -1,6 +1,33 @@
 {
   "pins" : [
     {
+      "identity" : "colorkit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/pxlshpr/ColorKit",
+      "state" : {
+        "revision" : "d45ed513998a88230316f8b0ca57230311394896",
+        "version" : "1.2.1"
+      }
+    },
+    {
+      "identity" : "colorsugar",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/pxlshpr/ColorSugar",
+      "state" : {
+        "revision" : "ca642a18e471e0be2bda54f752fc1ad51e8d827a",
+        "version" : "0.0.8"
+      }
+    },
+    {
+      "identity" : "prepshared",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/pxlshpr/PrepShared",
+      "state" : {
+        "revision" : "b7a6e7078bbbbc597cad68bba43b215686f23c00",
+        "version" : "0.0.200"
+      }
+    },
+    {
       "identity" : "swifthaptics",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/pxlshpr/SwiftHaptics",
@@ -16,6 +43,33 @@
       "state" : {
         "revision" : "1a03a2ca2ea9c0f459e0870c25e8470556bbc842",
         "version" : "0.0.97"
+      }
+    },
+    {
+      "identity" : "swiftui-introspect",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/siteline/SwiftUI-Introspect",
+      "state" : {
+        "revision" : "9e1cc02a65b22e09a8251261cccbccce02731fc5",
+        "version" : "1.1.1"
+      }
+    },
+    {
+      "identity" : "visionsugar",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/pxlshpr/VisionSugar",
+      "state" : {
+        "revision" : "603c843e2482d44233259a4eb38012114c859054",
+        "version" : "0.0.80"
+      }
+    },
+    {
+      "identity" : "zip",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/marmelroy/Zip",
+      "state" : {
+        "revision" : "67fa55813b9e7b3b9acee9c0ae501def28746d76",
+        "version" : "2.1.2"
       }
     }
   ],

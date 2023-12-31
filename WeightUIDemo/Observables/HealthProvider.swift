@@ -23,13 +23,17 @@ import SwiftUI
 //TODO: For each of these:
 /// [ ] Recalculate any HealthDetails like calculated LBM, Resting Energy
 /// [ ] This could affect plans so make sure this occurs
-/// [ ] Send a notification so that DailyValues set on this day get updated too
+/// [ ] Send a notification so that DailyValues set on this day get updated too if dependent on the HealthDetail
 
 extension HealthProvider {
     
+    func savePregnancyStatus(_ pregnancyStatus: PregnancyStatus) {
+        healthDetails.pregnancyStatus = pregnancyStatus
+        save()
+    }
+    
     func saveSex(_ sex: BiologicalSex) {
         healthDetails.sex = sex
-        
         save()
     }
     
@@ -37,10 +41,15 @@ extension HealthProvider {
         healthDetails.age = age
         save()
     }
+    
+    func saveSmokingStatus(_ smokingStatus: SmokingStatus) {
+        healthDetails.smokingStatus = smokingStatus
+        save()
+    }
 }
 
+//TODO: Replace this with actual backend manipulation in Prep
 extension HealthProvider {
-    //TODO: Replace this with actual backend manipulation in Prep
     func save() {
         saveHealthDetailsInDocuments(healthDetails)
     }

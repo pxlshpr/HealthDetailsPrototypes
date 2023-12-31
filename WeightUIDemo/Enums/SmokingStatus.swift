@@ -1,4 +1,5 @@
 import Foundation
+import PrepShared
 
 public enum SmokingStatus: Int16, Codable, CaseIterable {
     case nonSmoker = 1

@@ -5,71 +5,60 @@ let LargeNumberFont: Font = .system(.largeTitle, design: .rounded, weight: .bold
 
 struct DemoView: View {
     
-    enum WeightFormType: Int, Hashable, Identifiable, CaseIterable {
-        case maintenance = 1
-        case pastMaintenance
-
-        var id: Int { rawValue }
-        var label: String {
-            switch self {
-            case .maintenance:
-                "Health Details"
-            case .pastMaintenance:
-                "Health Details (Past)"
-            }
-        }
-    }
+    @State var settingsProvider: SettingsProvider
     
-    @State var type: WeightFormType? = nil
+    @State var showingCurrentHealthDetails = false
+    @State var showingPastHealthDetails = false
+    @State var showingSettings = false
+
+    init() {
+        let settings = fetchSettingsFromDocuments()
+        let settingsProvider = SettingsProvider(settings: settings)
+        _settingsProvider = State(initialValue: settingsProvider)
+    }
     
     var body: some View {
         NavigationView {
             List {
-                ForEach(WeightFormType.allCases) { type in
+                Section {
                     Button {
-                        self.type = type
+                        showingCurrentHealthDetails = true
                     } label: {
-                        Text(type.label)
+                        Text("Health Details")
+                    }
+                    
+                    Button {
+                        showingPastHealthDetails = true
+                    } label: {
+                        Text("Health Details (Past)")
+                    }
+                }
+                
+                Section {
+                    Button {
+                        showingSettings = true
+                    } label: {
+                        Text("Settings")
                     }
                 }
             }
             .navigationTitle("Demo")
         }
-        .sheet(item: $type) { type in
-            sheet(for: type)
+        .sheet(isPresented: $showingCurrentHealthDetails) {
+            MockCurrentHealthDetailsForm(isPresented: $showingCurrentHealthDetails)
+                .environment(settingsProvider)
         }
-    }
-    
-    @ViewBuilder
-    func sheet(for type: WeightFormType) -> some View {
-        switch type {
-        case .maintenance:
-            MockCurrentHealthDetailsForm(
-                isPresented: Binding<Bool>(
-                    get: { self.type == .maintenance },
-                    set: { newValue in
-                        if !newValue {
-                            self.type = nil
-                        }
-                    }
-                )
-            )
-        case .pastMaintenance:
-            MockPastHealthDetailsForm(
-                isPresented: Binding<Bool>(
-                    get: { self.type == .pastMaintenance },
-                    set: { newValue in
-                        if !newValue {
-                            self.type = nil
-                        }
-                    }
-                )
-            )
+        .sheet(isPresented: $showingPastHealthDetails) {
+            MockPastHealthDetailsForm(isPresented: $showingPastHealthDetails)
+                .environment(settingsProvider)
+        }
+        .sheet(isPresented: $showingSettings) {
+            SettingsForm(settingsProvider, isPresented: $showingSettings)
         }
     }
 }
 
-#Preview {
+#Preview("DemoView") {
     DemoView()
 }
 

@@ -6,7 +6,7 @@ struct InputSection: View {
     @Binding var valueString: String?
     @Binding var showingAlert: Bool
     @Binding var isDisabled: Bool
-    let unitString: String
+    let unitString: String?
     let footerString: String?
 
     init(
@@ -14,7 +14,7 @@ struct InputSection: View {
         valueString: Binding<String?>,
         showingAlert: Binding<Bool>,
         isDisabled: Binding<Bool> = .constant(false),
-        unitString: String,
+        unitString: String? = nil,
         footerString: String? = nil
     ) {
         self.name = name
@@ -28,22 +28,40 @@ struct InputSection: View {
     var body: some View {
         Section(footer: footer) {
             if let valueString {
-                HStack {
-                    Text(name)
-                    Spacer()
-                    Text("\(valueString) \(unitString)")
-                        .foregroundStyle(isDisabled ? .secondary : .primary)
-                    if !isDisabled {
-                        Button {
-                            showingAlert = true
-                        } label: {
-                            Image(systemName: "pencil")
-                        }
-                    }
-                }
+                filledContent(valueString)
             } else {
                 addButton
             }
+        }
+    }
+    
+    func filledContent(_ valueString: String) -> some View {
+        
+        var string: String {
+            if let unitString {
+                "\(valueString) \(unitString)"
+            } else {
+                valueString
+            }
+        }
+        
+        @ViewBuilder
+        var editButton: some View {
+            if !isDisabled {
+                Button {
+                    showingAlert = true
+                } label: {
+                    Image(systemName: "pencil")
+                }
+            }
+        }
+        
+        return HStack {
+            Text(name)
+            Spacer()
+            Text("\(string)")
+                .foregroundStyle(isDisabled ? .secondary : .primary)
+            editButton
         }
     }
     

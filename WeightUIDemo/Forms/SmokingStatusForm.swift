@@ -3,23 +3,30 @@ import SwiftSugar
 
 struct SmokingStatusForm: View {
     
+    @Bindable var healthProvider: HealthProvider
+
     @State var smokingStatus: SmokingStatus = .notSet
     
-    let pastDate: Date?
     @State var isEditing: Bool
     @State var isDirty: Bool = false
     @Binding var isPresented: Bool
     @Binding var dismissDisabled: Bool
     
     init(
-        pastDate: Date? = nil,
+        healthProvider: HealthProvider,
         isPresented: Binding<Bool> = .constant(true),
         dismissDisabled: Binding<Bool> = .constant(false)
     ) {
-        self.pastDate = pastDate
+        self.healthProvider = healthProvider
         _isPresented = isPresented
         _dismissDisabled = dismissDisabled
-        _isEditing = State(initialValue: pastDate == nil)
+        _isEditing = State(initialValue: healthProvider.isCurrent)
+        
+        _smokingStatus = State(initialValue: healthProvider.healthDetails.smokingStatus)
+    }
+
+    var pastDate: Date? {
+        healthProvider.pastDate
     }
 
     var body: some View {
@@ -69,7 +76,7 @@ struct SmokingStatusForm: View {
             get: { smokingStatus },
             set: { newValue in
                 self.smokingStatus = newValue
-                setIsDirty()
+                handleChanges()
             }
         )
         return PickerSection(
@@ -102,12 +109,20 @@ struct SmokingStatusForm: View {
     }
 
     func undo() {
+        self.smokingStatus = healthProvider.healthDetails.smokingStatus
+    }
+    
+    func handleChanges() {
+        setIsDirty()
+        if !isPast {
+            save()
+        }
     }
     
     func save() {
-        
+        healthProvider.saveSmokingStatus(smokingStatus)
     }
-
+    
     var isDisabled: Bool {
         isPast && !isEditing
     }
@@ -135,12 +150,16 @@ struct SmokingStatusForm: View {
 
 #Preview("Current") {
     NavigationView {
-        SmokingStatusForm()
+        SmokingStatusForm(healthProvider: MockCurrentProvider)
     }
 }
 
 #Preview("Past") {
     NavigationView {
-        SmokingStatusForm(pastDate: MockPastDate)
+        SmokingStatusForm(healthProvider: MockPastProvider)
     }
+}
+
+#Preview("DemoView ") {
+    DemoView()
 }

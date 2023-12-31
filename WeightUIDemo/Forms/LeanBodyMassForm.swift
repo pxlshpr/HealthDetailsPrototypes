@@ -3,7 +3,7 @@ import SwiftSugar
 
 struct LeanBodyMassForm: View {
     
-    @Bindable var provider: HealthProvider
+    @Bindable var healthProvider: HealthProvider
     
     @ScaledMetric var scale: CGFloat = 1
     let imageScale: CGFloat = 24
@@ -26,18 +26,18 @@ struct LeanBodyMassForm: View {
     @Binding var dismissDisabled: Bool
 
     init(
-        provider: HealthProvider,
+        healthProvider: HealthProvider,
         isPresented: Binding<Bool> = .constant(true),
         dismissDisabled: Binding<Bool> = .constant(false)
     ) {
-        self.provider = provider
+        self.healthProvider = healthProvider
         _isPresented = isPresented
         _dismissDisabled = dismissDisabled
-        _isEditing = State(initialValue: provider.isCurrent)
+        _isEditing = State(initialValue: healthProvider.isCurrent)
     }
     
     var pastDate: Date? {
-        provider.pastDate
+        healthProvider.pastDate
     }
     
     var body: some View {
@@ -159,7 +159,7 @@ struct LeanBodyMassForm: View {
     }
 
     var measurementForm: some View {
-        LeanBodyMassMeasurementForm(provider: provider)
+        LeanBodyMassMeasurementForm(healthProvider: healthProvider)
     }
     
     var isDisabled: Bool {
@@ -381,22 +381,22 @@ struct LeanBodyMassForm: View {
 }
 
 let MockLeanBodyMassData: [LeanBodyMassData] = [
-    .init(1, .userEntered, Date(fromTimeString: "09_42")!, 73.7, 23),
-    .init(2, .healthKit(UUID(uuidString: "69BD6FDB-B6B3-4134-B31E-CDA217ACC1CA")!), Date(fromTimeString: "12_07")!, 74.6, 22.8),
-    .init(3, .fatPercentage, Date(fromTimeString: "13_23")!, 72.3, 23.9),
-    .init(4, .equation, Date(fromTimeString: "15_01")!, 70.9, 24.7),
-    .init(5, .userEntered, Date(fromTimeString: "17_35")!, 72.5),
-    .init(6, .healthKit(UUID(uuidString: "EE5EB41F-9491-4AC9-93F5-E82443D8C260")!), Date(fromTimeString: "19_54")!, 74.2),
+    .init(1, .userEntered, Date(fromShortTimeString: "09_42")!, 73.7, 23),
+    .init(2, .healthKit(UUID(uuidString: "69BD6FDB-B6B3-4134-B31E-CDA217ACC1CA")!), Date(fromShortTimeString: "12_07")!, 74.6, 22.8),
+    .init(3, .fatPercentage, Date(fromShortTimeString: "13_23")!, 72.3, 23.9),
+    .init(4, .equation, Date(fromShortTimeString: "15_01")!, 70.9, 24.7),
+    .init(5, .userEntered, Date(fromShortTimeString: "17_35")!, 72.5),
+    .init(6, .healthKit(UUID(uuidString: "EE5EB41F-9491-4AC9-93F5-E82443D8C260")!), Date(fromShortTimeString: "19_54")!, 74.2),
 ]
 
 #Preview("Current") {
     NavigationView {
-        LeanBodyMassForm(provider: MockCurrentProvider)
+        LeanBodyMassForm(healthProvider: MockCurrentProvider)
     }
 }
 
 #Preview("Past") {
     NavigationView {
-        LeanBodyMassForm(provider: MockPastProvider)
+        LeanBodyMassForm(healthProvider: MockPastProvider)
     }
 }

@@ -3,7 +3,7 @@ import SwiftSugar
 
 struct AgeForm: View {
     
-    @Bindable var provider: HealthProvider
+    @Bindable var healthProvider: HealthProvider
     
     @State var years: Int?
     @State var dateOfBirth: Date
@@ -20,25 +20,25 @@ struct AgeForm: View {
     @Binding var dismissDisabled: Bool
     
     init(
-        provider: HealthProvider,
+        healthProvider: HealthProvider,
         isPresented: Binding<Bool> = .constant(true),
         dismissDisabled: Binding<Bool> = .constant(false)
     ) {
-        self.provider = provider
+        self.healthProvider = healthProvider
         _isPresented = isPresented
         _dismissDisabled = dismissDisabled
-        _isEditing = State(initialValue: provider.isCurrent)
+        _isEditing = State(initialValue: healthProvider.isCurrent)
         
-        let years = provider.healthDetails.age?.years
+        let years = healthProvider.healthDetails.age?.years
         _years = State(initialValue: years)
         _customInput = State(initialValue: IntInput(int: years))
         
-        let dateOfBirth = provider.healthDetails.age?.dateOfBirth
+        let dateOfBirth = healthProvider.healthDetails.age?.dateOfBirth
         _dateOfBirth = State(initialValue: dateOfBirth ?? DefaultDateOfBirth)
     }
     
     var pastDate: Date? {
-        provider.pastDate
+        healthProvider.pastDate
     }
     
     var body: some View {
@@ -136,11 +136,11 @@ struct AgeForm: View {
     }
 
     func undo() {
-        let years = provider.healthDetails.age?.years
+        let years = healthProvider.healthDetails.age?.years
         self.years = years
         customInput = IntInput(int: years)
         
-        let dateOfBirth = provider.healthDetails.age?.dateOfBirth
+        let dateOfBirth = healthProvider.healthDetails.age?.dateOfBirth
         self.dateOfBirth = dateOfBirth ?? DefaultDateOfBirth
     }
     
@@ -152,14 +152,12 @@ struct AgeForm: View {
     }
     
     var age: HealthDetails.Age? {
-        guard let years else { return nil }
-        return HealthDetails.Age(
-            value: years, dateOfBirth: dateOfBirth
-        )
+        guard years != nil else { return nil }
+        return HealthDetails.Age(dateOfBirth: dateOfBirth)
     }
     
     func save() {
-        provider.saveAge(age)
+        healthProvider.saveAge(age)
     }
 
     var isDisabled: Bool {
@@ -284,13 +282,13 @@ struct AgeForm: View {
 
 #Preview("Current") {
     NavigationView {
-        AgeForm(provider: MockCurrentProvider)
+        AgeForm(healthProvider: MockCurrentProvider)
     }
 }
 
 #Preview("Past") {
     NavigationView {
-        AgeForm(provider: MockPastProvider)
+        AgeForm(healthProvider: MockPastProvider)
     }
 }
 

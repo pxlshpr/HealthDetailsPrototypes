@@ -12,8 +12,8 @@ struct WeightForm: View {
     @State var isSynced: Bool = true
     @State var showingSyncOffConfirmation: Bool = false
     
-    @State var listData: [MeasurementData] = MockWeightData
-    @State var deletedHealthData: [MeasurementData] = []
+    @State var listData: [HeightMeasurement] = MockWeightData
+    @State var deletedHealthData: [HeightMeasurement] = []
     
     @State var showingForm = false
 
@@ -73,7 +73,7 @@ struct WeightForm: View {
         }
     }
     
-    func cell(for data: MeasurementData, disabled: Bool = false) -> some View {
+    func cell(for data: HeightMeasurement, disabled: Bool = false) -> some View {
         @ViewBuilder
         var image: some View {
             switch data.isFromHealthKit {
@@ -154,7 +154,10 @@ struct WeightForm: View {
     }
     
     var measurementForm: some View {
-        MeasurementForm(healthDetail: .weight, date: pastDate)
+        MeasurementForm(
+            type: .weight,
+            date: pastDate
+        )
     }
 
     var bottomValue: some View {
@@ -203,7 +206,7 @@ struct WeightForm: View {
             Text("Ignored Apple Health Data")
         }
         
-        func restore(_ data: MeasurementData) {
+        func restore(_ data: HeightMeasurement) {
             withAnimation {
                 listData.append(data)
                 listData.sort()
@@ -343,7 +346,7 @@ struct WeightForm: View {
         
     }
 
-    func delete(_ data: MeasurementData) {
+    func delete(_ data: HeightMeasurement) {
         if data.isFromHealthKit {
             deletedHealthData.append(data)
             deletedHealthData.sort()
@@ -362,13 +365,13 @@ struct WeightForm: View {
     }
 }
 
-let MockWeightData: [MeasurementData] = [
-    .init(1, Date(fromTimeString: "09_42")!, 95.4),
-    .init(2, Date(fromTimeString: "12_07")!, 94.4, UUID(uuidString: "5F507BFC-6BCB-4BE6-88B2-3FD4BEFE4556")!),
-    .init(3, Date(fromTimeString: "13_23")!, 94.3),
-    .init(4, Date(fromTimeString: "15_01")!, 94.7, UUID(uuidString: "9B12AB6D-69DA-4FAC-9D80-3D0BB6A67D50")!),
-    .init(5, Date(fromTimeString: "17_35")!, 95.1),
-    .init(6, Date(fromTimeString: "19_54")!, 94.5),
+let MockWeightData: [HeightMeasurement] = [
+    .init(UUID(uuidString: "F89DC6EC-F6C9-49B0-A860-6BFABE48A2BC")!, Date(fromShortTimeString: "09_42")!, 95.4),
+    .init(UUID(uuidString: "B18C3606-7790-48B8-B62B-76C928BEAE3B")!, Date(fromShortTimeString: "12_07")!, 94.4, UUID(uuidString: "5F507BFC-6BCB-4BE6-88B2-3FD4BEFE4556")!),
+    .init(UUID(uuidString: "BAFFCD6B-B9D8-46B8-878D-771FB3895D4C")!, Date(fromShortTimeString: "13_23")!, 94.3),
+    .init(UUID(uuidString: "EA1716DA-4DD0-4549-9ED6-955FFEEDEB79")!, Date(fromShortTimeString: "15_01")!, 94.7, UUID(uuidString: "9B12AB6D-69DA-4FAC-9D80-3D0BB6A67D50")!),
+    .init(UUID(uuidString: "49CB4FF0-673C-4FCC-BF66-0E04E06C4A72")!, Date(fromShortTimeString: "17_35")!, 95.1),
+    .init(UUID(uuidString: "E45059D5-6AF6-49F7-91FB-BFABF9533405")!, Date(fromShortTimeString: "19_54")!, 94.5),
 ]
 
 #Preview("Current") {

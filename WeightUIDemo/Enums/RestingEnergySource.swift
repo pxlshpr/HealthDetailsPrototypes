@@ -1,4 +1,5 @@
 import Foundation
+import PrepShared
 
 public enum RestingEnergySource: Int16, Codable, CaseIterable {
     case healthKit = 1

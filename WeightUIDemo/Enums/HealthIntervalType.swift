@@ -1,4 +1,5 @@
 import Foundation
+import PrepShared
 
 public enum HealthIntervalType: Int16, Codable, CaseIterable {
     case average = 1

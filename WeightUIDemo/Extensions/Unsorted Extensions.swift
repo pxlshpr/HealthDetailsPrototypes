@@ -52,7 +52,7 @@ extension Date {
         self = date
     }
     
-    init?(fromTimeString timeString: String, on date: Date = Date.now) {
+    init?(fromShortTimeString timeString: String, on date: Date = Date.now) {
         let dateString = date.dateString
         let dateTimeString = "\(dateString)-\(timeString)"
         self.init(fromDateTimeString: dateTimeString)

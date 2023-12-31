@@ -2,37 +2,43 @@ import SwiftUI
 
 struct MockCurrentHealthDetailsForm: View {
     
-    @State var provider: HealthProvider
+    @Environment(SettingsProvider.self) var settingsProvider
+
+    @State var healthProvider: HealthProvider
     @Binding var isPresented: Bool
 
     init(isPresented: Binding<Bool> = .constant(true)) {
         _isPresented = isPresented
         
         let healthDetails = fetchHealthDetailsFromDocuments(Date.now)
-        let provider = HealthProvider(isCurrent: true, healthDetails: healthDetails)
-        _provider = State(initialValue: provider)
+        let healthProvider = HealthProvider(isCurrent: true, healthDetails: healthDetails)
+        _healthProvider = State(initialValue: healthProvider)
     }
 
     var body: some View {
-        HealthDetailsForm(provider: provider)
+        HealthDetailsForm(healthProvider: healthProvider, isPresented: $isPresented)
+            .environment(settingsProvider)
     }
 }
 
 struct MockPastHealthDetailsForm: View {
     
-    @State var provider: HealthProvider
+    @Environment(SettingsProvider.self) var settingsProvider
+
+    @State var healthProvider: HealthProvider
     @Binding var isPresented: Bool
     
     init(isPresented: Binding<Bool> = .constant(true)) {
         _isPresented = isPresented
         
         let healthDetails = fetchHealthDetailsFromDocuments(Date(fromDateString: "2023_12_01")!)
-        let provider = HealthProvider(isCurrent: false, healthDetails: healthDetails)
-        _provider = State(initialValue: provider)
+        let healthProvider = HealthProvider(isCurrent: false, healthDetails: healthDetails)
+        _healthProvider = State(initialValue: healthProvider)        
     }
 
     var body: some View {
-        HealthDetailsForm(provider: provider)
+        HealthDetailsForm(healthProvider: healthProvider, isPresented: $isPresented)
+            .environment(settingsProvider)
     }
 }
 
@@ -50,7 +56,9 @@ let MockPastProvider = HealthProvider(
     healthDetails: HealthDetails(
         date: Date.now.moveDayBy(-1),
         sex: .male,
-        age: .init(value: 20)
+        age: .init(years: 20),
+        smokingStatus: .nonSmoker,
+        pregnancyStatus: .notSet
     )
 )
 
@@ -85,6 +93,35 @@ func saveHealthDetailsInDocuments(_ healthDetails: HealthDetails) {
         try json.write(to: url)
     } catch {
         print("Error Saving HealthDetails to documents")
+        fatalError()
+    }
+}
+
+func fetchSettingsFromDocuments() -> Settings {
+    let filename = "settings.json"
+    let url = getDocumentsDirectory().appendingPathComponent(filename)
+    do {
+        print("Fetching Settings from documents: \(filename)")
+        let data = try Data(contentsOf: url)
+        let settings = try JSONDecoder().decode(Settings.self, from: data)
+        return settings
+    } catch {
+        print("Couldn't fetch, creating")
+        let settings = Settings()
+        saveSettingsInDocuments(settings)
+        return settings
+    }
+}
+
+func saveSettingsInDocuments(_ settings: Settings) {
+    do {
+        let filename = "settings.json"
+        print("Saving Settings to documents: \(filename)")
+        let url = getDocumentsDirectory().appendingPathComponent(filename)
+        let json = try JSONEncoder().encode(settings)
+        try json.write(to: url)
+    } catch {
+        print("Error Saving Settings to documents")
         fatalError()
     }
 }

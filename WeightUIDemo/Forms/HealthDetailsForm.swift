@@ -2,23 +2,22 @@ import SwiftUI
 
 struct HealthDetailsForm: View {
     
-    @State var presentedHealthDetail: HealthDetail? = nil
+    @Environment(SettingsProvider.self) var settingsProvider
+    @Bindable var healthProvider: HealthProvider
     
     @Binding var isPresented: Bool
-    
     @State var dismissDisabled: Bool = false
     
-    @Bindable var provider: HealthProvider
     init(
-        provider: HealthProvider,
-        isPresented: Binding<Bool> = .constant(false)
+        healthProvider: HealthProvider,
+        isPresented: Binding<Bool>
     ) {
-        self.provider = provider
+        self.healthProvider = healthProvider
         _isPresented = isPresented
     }
     
     var pastDate: Date? {
-        provider.pastDate
+        healthProvider.pastDate
     }
     
     var body: some View {
@@ -26,9 +25,6 @@ struct HealthDetailsForm: View {
             form
                 .navigationTitle("Health Details")
                 .navigationBarTitleDisplayMode(.large)
-        }
-        .sheet(item: $presentedHealthDetail) { route in
-            sheet(for: route)
         }
         .interactiveDismissDisabled(dismissDisabled)
     }
@@ -79,13 +75,13 @@ struct HealthDetailsForm: View {
         switch route {
         case .maintenance:
             MaintenanceForm(
-                provider: provider,
+                healthProvider: healthProvider,
                 isPresented: $isPresented,
                 dismissDisabled: $dismissDisabled
             )
         case .leanBodyMass:
             LeanBodyMassForm(
-                provider: provider,
+                healthProvider: healthProvider,
                 isPresented: $isPresented,
                 dismissDisabled: $dismissDisabled
             )
@@ -97,49 +93,35 @@ struct HealthDetailsForm: View {
             )
         case .height:
             HeightForm(
-                pastDate: pastDate,
+                healthProvider: healthProvider,
                 isPresented: $isPresented,
                 dismissDisabled: $dismissDisabled
             )
         case .age:
             AgeForm(
-                provider: provider,
+                healthProvider: healthProvider,
                 isPresented: $isPresented,
                 dismissDisabled: $dismissDisabled
             )
         case .sex:
-            SexForm(
-                provider: provider,
+            BiologicalSexForm(
+                healthProvider: healthProvider,
                 isPresented: $isPresented,
                 dismissDisabled: $dismissDisabled
             )
         case .preganancyStatus:
             PregnancyStatusForm(
-                pastDate: pastDate,
+                healthProvider: healthProvider,
                 isPresented: $isPresented,
                 dismissDisabled: $dismissDisabled
             )
         case .smokingStatus:
             SmokingStatusForm(
-                pastDate: pastDate,
+                healthProvider: healthProvider,
                 isPresented: $isPresented,
                 dismissDisabled: $dismissDisabled
             )
         }
-    }
-    
-    func isPresentedBinding(for healthDetail: HealthDetail) -> Binding<Bool> {
-        Binding<Bool>(
-            get: { presentedHealthDetail == healthDetail },
-            set: {
-                switch $0 {
-                case true: 
-                    break
-                case false:
-                    presentedHealthDetail = nil
-                }
-            }
-        )
     }
 }
 

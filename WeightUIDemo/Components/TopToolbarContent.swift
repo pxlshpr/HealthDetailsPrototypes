@@ -57,12 +57,12 @@ struct EditDoneButton: View {
                         isEditing = false
                     }
                 }
-                Button("Cancel", role: .cancel) {
-                    Haptics.warningFeedback()
-                    withAnimation {
-                        isEditing = false
-                    }
-                }
+//                Button("Cancel", role: .cancel) {
+//                    Haptics.warningFeedback()
+//                    withAnimation {
+//                        isEditing = false
+//                    }
+//                }
             } message: {
                 Text("This will update any dependent goals.")
             }

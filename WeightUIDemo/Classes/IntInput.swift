@@ -7,7 +7,9 @@ class IntInput {
     var stringAsInt: Int?
     var string: String
 
-    init(int: Int? = nil) {
+    let automaticallySubmitsValues: Bool
+
+    init(int: Int? = nil, automaticallySubmitsValues: Bool = false) {
         self.int = int
         self.stringAsInt = int
         self.string = if let int {
@@ -15,6 +17,8 @@ class IntInput {
         } else {
             ""
         }
+        
+        self.automaticallySubmitsValues = automaticallySubmitsValues
     }
     
     var binding: Binding<String> {
@@ -32,11 +36,14 @@ class IntInput {
 
     func setNewValue(_ int: Int?) {
         self.int = int
-        self.stringAsInt = int
-        self.string = if let int {
+        stringAsInt = int
+        string = if let int {
             "\(int)"
         } else {
             ""
+        }
+        if automaticallySubmitsValues {
+            submitValue()
         }
     }
     
