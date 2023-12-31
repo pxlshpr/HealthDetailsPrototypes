@@ -39,6 +39,7 @@ struct HeightForm: View {
             list
             deletedList
             syncToggle
+            explanation
         }
         .navigationTitle("Height")
         .navigationBarTitleDisplayMode(.large)

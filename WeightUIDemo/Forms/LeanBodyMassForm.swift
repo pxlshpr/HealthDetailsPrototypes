@@ -41,6 +41,7 @@ struct LeanBodyMassForm: View {
             list
             deletedList
             syncSection
+            explanation
         }
         .navigationTitle("Lean Body Mass")
         .navigationBarTitleDisplayMode(.large)
@@ -227,9 +228,9 @@ struct LeanBodyMassForm: View {
     var explanation: some View {
         Section {
             VStack(alignment: .leading) {
-                Text("Your lean body mass is the weight of your body minus your body fat (adipose tissue). It may be used when:")
+                Text("Your lean body mass is the weight of your body minus your body fat (adipose tissue). It is used when:")
                 dotPoint("Creating goals. For example, you could create a protein goal relative to your lean body mass instead of your weight.")
-                dotPoint("Calculating your estimated resting energy.")
+                dotPoint("Calculating your Resting Energy using certain equations.")
             }
         }
     }

@@ -94,6 +94,12 @@ struct HealthDetails: View {
                 isPresented: $isPresented,
                 dismissDisabled: $dismissDisabled
             )
+        case .age:
+            AgeForm(
+                pastDate: pastDate,
+                isPresented: $isPresented,
+                dismissDisabled: $dismissDisabled
+            )
         default:
             EmptyView()
         }

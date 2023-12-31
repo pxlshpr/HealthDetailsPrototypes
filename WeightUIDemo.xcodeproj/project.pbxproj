@@ -49,6 +49,7 @@
 		E28E4BBB2B3E14E000F89FDC /* LeanBodyMassSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = E28E4BBA2B3E14E000F89FDC /* LeanBodyMassSource.swift */; };
 		E28E4BBD2B3E14ED00F89FDC /* LeanBodyMassEquation.swift in Sources */ = {isa = PBXBuildFile; fileRef = E28E4BBC2B3E14ED00F89FDC /* LeanBodyMassEquation.swift */; };
 		E28E4BBF2B3E150500F89FDC /* LeanBodyMassMeasurementForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = E28E4BBE2B3E150500F89FDC /* LeanBodyMassMeasurementForm.swift */; };
+		E28ED8012B4181930076BA50 /* IntInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = E28ED8002B4181930076BA50 /* IntInput.swift */; };
 		E2A687082B337E3900163078 /* DailyWeightPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2A687072B337E3900163078 /* DailyWeightPicker.swift */; };
 		E2BAE3222B30B601003C5B7F /* WeightUIDemoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2BAE3212B30B601003C5B7F /* WeightUIDemoApp.swift */; };
 		E2BAE3242B30B601003C5B7F /* DemoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2BAE3232B30B601003C5B7F /* DemoView.swift */; };
@@ -137,6 +138,7 @@
 		E28E4BBA2B3E14E000F89FDC /* LeanBodyMassSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeanBodyMassSource.swift; sourceTree = "<group>"; };
 		E28E4BBC2B3E14ED00F89FDC /* LeanBodyMassEquation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeanBodyMassEquation.swift; sourceTree = "<group>"; };
 		E28E4BBE2B3E150500F89FDC /* LeanBodyMassMeasurementForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeanBodyMassMeasurementForm.swift; sourceTree = "<group>"; };
+		E28ED8002B4181930076BA50 /* IntInput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntInput.swift; sourceTree = "<group>"; };
 		E2A687072B337E3900163078 /* DailyWeightPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyWeightPicker.swift; sourceTree = "<group>"; };
 		E2BAE31E2B30B601003C5B7F /* WeightUIDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WeightUIDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E2BAE3212B30B601003C5B7F /* WeightUIDemoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightUIDemoApp.swift; sourceTree = "<group>"; };
@@ -201,8 +203,6 @@
 			isa = PBXGroup;
 			children = (
 				E23A25152B39F1CA00BDAECE /* To Remove */,
-				E2F79F5B2B349E9500A09BDF /* AgeForm_Past.swift */,
-				E2F79F612B34A48F00A09BDF /* LeanBodyMassForm_Past.swift */,
 				E2F79F732B34C00B00A09BDF /* PregnancyStatusForm_Past.swift */,
 				E2F79F572B3485EB00A09BDF /* SexForm_Past.swift */,
 				E2F79F6D2B34BE4100A09BDF /* SmokingStatusForm_Past.swift */,
@@ -315,6 +315,8 @@
 		E23A25152B39F1CA00BDAECE /* To Remove */ = {
 			isa = PBXGroup;
 			children = (
+				E2F79F5B2B349E9500A09BDF /* AgeForm_Past.swift */,
+				E2F79F612B34A48F00A09BDF /* LeanBodyMassForm_Past.swift */,
 				E2F79F4D2B34755700A09BDF /* WeightForm_Past.swift */,
 				E2F16EB12B31CABB004AD1BA /* WeightChangePointForm_Past.swift */,
 				E2103B042B35BC4000B0C381 /* WeightChangeForm_Past.swift */,
@@ -334,6 +336,7 @@
 			isa = PBXGroup;
 			children = (
 				E28C693A2B3EC414005E0096 /* DoubleInput.swift */,
+				E28ED8002B4181930076BA50 /* IntInput.swift */,
 			);
 			path = Classes;
 			sourceTree = "<group>";
@@ -503,6 +506,7 @@
 				E2F79F702B34BEB300A09BDF /* PregnancyStatusForm.swift in Sources */,
 				E2103B012B35BC0D00B0C381 /* Unsorted Extensions.swift in Sources */,
 				E2F4184F2B3D9BB5004E2DAB /* CorrectionInfo.swift in Sources */,
+				E28ED8012B4181930076BA50 /* IntInput.swift in Sources */,
 				E2D47E352B37374F0095B00C /* RestingEnergySource.swift in Sources */,
 				E2F79F5E2B34A2CF00A09BDF /* LeanBodyMassForm.swift in Sources */,
 				E2F79F602B34A3AC00A09BDF /* LeanBodyMassSettings.swift in Sources */,

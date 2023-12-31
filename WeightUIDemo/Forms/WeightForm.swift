@@ -40,6 +40,7 @@ struct WeightForm: View {
             list
             deletedList
             syncSection
+            explanation
         }
         .navigationTitle("Weight")
         .navigationBarTitleDisplayMode(.large)
@@ -61,9 +62,9 @@ struct WeightForm: View {
     var explanation: some View {
         Section {
             VStack(alignment: .leading) {
-                Text("Your weight may be used when:")
+                Text("Your weight is used when:")
                 dotPoint("Creating goals. For example, you could create a protein goal relative to your weight.")
-                dotPoint("Calculating your Adaptive Maintenance Energy, estimated Resting Energy, or Lean Body Mass.")
+                dotPoint("Calculating your Adaptive Maintenance Energy, Resting Energy, or Lean Body Mass.")
             }
         }
     }

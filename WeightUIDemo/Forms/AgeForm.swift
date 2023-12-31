@@ -3,8 +3,6 @@ import SwiftSugar
 
 struct AgeForm: View {
     
-//    @Environment(\.dismiss) var dismiss
-
     @ScaledMetric var scale: CGFloat = 1
     let imageScale: CGFloat = 24
     
@@ -12,46 +10,52 @@ struct AgeForm: View {
     @State var showingDateOfBirthAlert = false
 
     @State var age: Int? = nil
-    @State var ageTextAsInt: Int? = nil
-    @State var ageText: String = ""
+    
     @State var dateOfBirth = DefaultDateOfBirth
     @State var chosenDateOfBirth = DefaultDateOfBirth
+    @State var customInput = IntInput()
 
+    let pastDate: Date?
     @State var isEditing: Bool
-    let isPast: Bool
+    @State var isDirty: Bool = false
+    @Binding var isPresented: Bool
+    @Binding var dismissDisabled: Bool
     
-    enum Mode {
-        case healthDetails
-        case healthDetailsPast
-        case restingEnergyVariable
-        case pastRestingEnergyVariable
-        case leanBodyMassVariable
-        case pastLeanBodyMassVariable
-    }
-    
-    init(isPast: Bool = false) {
-        _isEditing = State(initialValue: isPast ? false : true)
-        self.isPast = isPast
+    init(
+        pastDate: Date? = nil,
+        isPresented: Binding<Bool> = .constant(true),
+        dismissDisabled: Binding<Bool> = .constant(false)
+    ) {
+        self.pastDate = pastDate
+        _isPresented = isPresented
+        _dismissDisabled = dismissDisabled
+        _isEditing = State(initialValue: pastDate == nil)
     }
     
     var body: some View {
         Form {
-            explanation
-            if !isEditing {
-                notice
-            } else {
-                actions
+            notice
+            Group {
+                healthSection
+                dateOfBirthSection
+                customSection
             }
+            explanation
+            .disabled(isDisabled)
         }
         .navigationTitle("Age")
         .navigationBarTitleDisplayMode(.large)
         .toolbar { toolbarContent }
         .alert("Enter your age", isPresented: $showingAgeAlert) {
-            TextField("Enter your age", text: ageTextBinding)
+            TextField("Enter your age", text: customInput.binding)
                 .keyboardType(.numberPad)
             Button("OK", action: submitAge)
             Button("Cancel") { }
         }
+        .safeAreaInset(edge: .bottom) { bottomValue }
+        .navigationBarBackButtonHidden(isPast && isEditing)
+        .onChange(of: isEditing) { _, _ in setDismissDisabled() }
+        .onChange(of: isDirty) { _, _ in setDismissDisabled() }
         .sheet(isPresented: $showingDateOfBirthAlert) {
             NavigationView {
                 DatePicker(
@@ -65,12 +69,7 @@ struct AgeForm: View {
                 .toolbar {
                     ToolbarItem(placement: .topBarTrailing) {
                         Button("Done") {
-                            dateOfBirth = chosenDateOfBirth
-                            withAnimation {
-                                let age = dateOfBirth.age
-                                self.age = age
-                                ageText = "\(age)"
-                            }
+                            setDateOfBirth(chosenDateOfBirth)
                             showingDateOfBirthAlert = false
                         }
                         .fontWeight(.semibold)
@@ -87,77 +86,108 @@ struct AgeForm: View {
         }
     }
     
-    var notice: some View {
-        NoticeSection(
-            style: .plain,
-            title: "Previous Data",
-            message: "This data has been preserved to ensure any goals or daily values set on this day remain unchanged."
-//            image: {
-//                Image(systemName: "calendar.badge.clock")
-//                    .font(.system(size: 30))
-//                    .padding(5)
-//            }
-        )
+    func setDateOfBirth(_ dateOfBirth: Date) {
+        self.dateOfBirth = dateOfBirth
+        withAnimation {
+            let age = dateOfBirth.age
+            self.age = age
+            customInput.setNewValue(age)
+        }
     }
+    
+    var bottomValue: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 5) {
+            Spacer()
+            if let age {
+                Text("\(age)")
+                    .contentTransition(.numericText(value: Double(age)))
+                    .font(LargeNumberFont)
+                Text("years")
+                    .font(LargeUnitFont)
+                    .foregroundStyle(.secondary)
+            } else {
+                ZStack {
+                    
+                    /// dummy text placed to ensure height stays consistent
+                    Text("0")
+                        .font(LargeNumberFont)
+                        .opacity(0)
 
-    var ageTextBinding: Binding<String> {
-        Binding<String>(
-            get: { ageText },
-            set: { newValue in
-                ageTextAsInt = Int(newValue)
-                ageText = if let ageTextAsInt {
-                    "\(ageTextAsInt)"
-                } else {
-                    ""
+                    Text("Not Set")
+                        .font(NotSetFont)
+                        .foregroundStyle(.secondary)
                 }
             }
+        }
+        .padding(.horizontal, BottomValueHorizontalPadding)
+        .padding(.vertical, BottomValueVerticalPadding)
+        .background(.bar)
+    }
+    
+    var toolbarContent: some ToolbarContent {
+        topToolbarContent(
+            isEditing: $isEditing,
+            isDirty: $isDirty,
+            isPast: isPast,
+            dismissAction: { isPresented = false },
+            undoAction: undo,
+            saveAction: save
         )
+    }
+    
+    func setIsDirty() {
+        isDirty = age != nil
+        || dateOfBirth != DefaultDateOfBirth
+    }
+    
+    func setDismissDisabled() {
+        dismissDisabled = isPast && isEditing && isDirty
+    }
+
+    func undo() {
+    }
+    
+    func save() {
+        
+    }
+
+    var isDisabled: Bool {
+        isPast && !isEditing
+    }
+    
+    var controlColor: Color {
+        isDisabled ? .secondary : .primary
+    }
+    
+    var isPast: Bool {
+        pastDate != nil
+    }
+    
+    @ViewBuilder
+    var notice: some View {
+        if let pastDate {
+            NoticeSection.legacy(pastDate, isEditing: $isEditing)
+        }
     }
     
     func submitAge() {
         withAnimation {
-            age = ageTextAsInt
-            if let ageTextAsInt {
-                dateOfBirth = ageTextAsInt.dateOfBirth
-                chosenDateOfBirth = ageTextAsInt.dateOfBirth
+            customInput.submitValue()
+            age = customInput.int
+            if let age {
+                dateOfBirth = age.dateOfBirth
+                chosenDateOfBirth = age.dateOfBirth
             }
+            setIsDirty()
         }
     }
-
-    var toolbarContent: some ToolbarContent {
-        Group {
-            ToolbarItem(placement: .bottomBar) {
-                HStack(alignment: .firstTextBaseline, spacing: 5) {
-                    Spacer()
-                    if let age {
-                        Text("\(age)")
-                            .contentTransition(.numericText(value: Double(age)))
-                            .font(LargeNumberFont)
-                        Text("years")
-                            .font(LargeUnitFont)
-                            .foregroundStyle(.secondary)
-                    } else {
-                        Text("Not Set")
-                            .font(NotSetFont)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-            }
-            ToolbarItem(placement: .topBarTrailing) {
-                Button("Done") {
-//                    dismiss()
-                }
-                .fontWeight(.semibold)
-            }
-        }
-    }
-
+    
     var explanation: some View {
         Section {
             VStack(alignment: .leading) {
-                Text("Your age may be used when:")
-                dotPoint("Calculating your estimated resting energy.")
-                dotPoint("Picking daily values for micronutrients.")
+                Text("Your age is used when:")
+                dotPoint("Calculating your Resting Energy.")
+                dotPoint("Assigning nutrient Recommended Daily Allowances.")
             }
         }
     }
@@ -205,60 +235,65 @@ struct AgeForm: View {
         }
     }
         
-    var actions: some View {
-        Group {
-            Section {
-                Button {
-                    
-                } label: {
-                    HStack {
-                        Text("Read from Apple Health")
-                        Spacer()
-                        Image("AppleHealthIcon")
-                            .resizable()
-                            .frame(width: imageScale * scale, height: imageScale * scale)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 5)
-                                    .stroke(Color(.systemGray3), lineWidth: 0.5)
-                            )
-                    }
+    var healthSection: some View {
+        Section {
+            Button {
+                self.setDateOfBirth(DefaultDateOfBirth)
+            } label: {
+                HStack {
+                    Text("Read from Apple Health")
+                    Spacer()
+                    Image("AppleHealthIcon")
+                        .resizable()
+                        .frame(width: imageScale * scale, height: imageScale * scale)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 5)
+                                .stroke(Color(.systemGray3), lineWidth: 0.5)
+                        )
                 }
             }
-            Section {
-                Button {
-                    showingDateOfBirthAlert = true
-                } label: {
-                    HStack {
-                        Text("Choose Date of Birth")
-                        Spacer()
-                        Image(systemName: "calendar")
-                            .frame(width: imageScale * scale, height: imageScale * scale)
-                    }
+        }
+    }
+    
+    var dateOfBirthSection: some View {
+        Section {
+            Button {
+                showingDateOfBirthAlert = true
+            } label: {
+                HStack {
+                    Text("Choose Date of Birth")
+                    Spacer()
+                    Image(systemName: "calendar")
+                        .frame(width: imageScale * scale, height: imageScale * scale)
                 }
             }
-            Section {
-                Button {
-                    showingAgeAlert = true
-                } label: {
-                    HStack {
-                        Text("Enter Age")
-                        Spacer()
-                        Image(systemName: "keyboard")
-                            .frame(width: imageScale * scale, height: imageScale * scale)
-                    }
+        }
+    }
+    
+    var customSection: some View {
+        Section {
+            Button {
+                showingAgeAlert = true
+            } label: {
+                HStack {
+                    Text("Enter Age")
+                    Spacer()
+                    Image(systemName: "keyboard")
+                        .frame(width: imageScale * scale, height: imageScale * scale)
                 }
             }
         }
     }
 }
 
-#Preview {
+#Preview("Current") {
     NavigationView {
         AgeForm()
     }
 }
-#Preview {
+
+#Preview("Past") {
     NavigationView {
-        AgeForm(isPast: true)
+        AgeForm(pastDate: MockPastDate)
     }
 }
