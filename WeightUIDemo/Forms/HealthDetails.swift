@@ -43,6 +43,10 @@ struct HealthDetails: View {
                 link(for: .age)
                 link(for: .sex)
             }
+            Section {
+                link(for: .smokingStatus)
+                link(for: .preganancyStatus)
+            }
         }
     }
     

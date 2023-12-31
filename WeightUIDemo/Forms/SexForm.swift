@@ -55,7 +55,8 @@ struct SexForm: View {
                     .opacity(0)
 
                 Text(sex != .other ? sex.name : "Not Set")
-                    .font(sex == .other ? LargeUnitFont : LargeNumberFont)
+                    .font(LargeUnitFont)
+//                    .font(sex == .other ? LargeUnitFont : LargeNumberFont)
                     .foregroundStyle(sex != .other ? .primary : .secondary)
             }
         }
@@ -130,7 +131,6 @@ struct SexForm: View {
                 set: { _ in }
             )
         )
-        
     }
 }
 

@@ -8,6 +8,8 @@ enum HealthDetail: Int, Identifiable, CaseIterable {
     case weight
     case leanBodyMass
     case height
+    case preganancyStatus
+    case smokingStatus
     
     var id: Int { rawValue }
     var name: String {
@@ -18,6 +20,8 @@ enum HealthDetail: Int, Identifiable, CaseIterable {
         case .height: "Height"
         case .weight: "Weight"
         case .leanBodyMass: "Lean Body Mass"
+        case .preganancyStatus: "Pregnancy Status"
+        case .smokingStatus: "Smoking Status"
         }
     }
     
