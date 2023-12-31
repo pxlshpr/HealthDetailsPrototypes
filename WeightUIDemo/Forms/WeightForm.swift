@@ -149,7 +149,7 @@ struct WeightForm: View {
     }
     
     var measurementForm: some View {
-        WeightMeasurementForm(date: pastDate)
+        MeasurementForm(healthDetail: .weight, date: pastDate)
     }
 
     var bottomValue: some View {

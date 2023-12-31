@@ -29,16 +29,28 @@ struct HealthDetails: View {
     var form: some View {
         Form {
             dateSection
-            ForEach(HealthDetail.allCases) { healthDetail in
-                NavigationLink {
-                    sheet(for: healthDetail)
-                } label: {
-                    Text(healthDetail.name)
-                }
-//                Button(healthDetail.name) {
-//                    presentedHealthDetail = healthDetail
-//                }
+            Section {
+                link(for: .maintenance)
             }
+            Section {
+                link(for: .weight)
+                link(for: .leanBodyMass)
+            }
+            Section {
+                link(for: .height)
+            }
+            Section {
+                link(for: .age)
+                link(for: .sex)
+            }
+        }
+    }
+    
+    func link(for healthDetail: HealthDetail) -> some View {
+        NavigationLink {
+            sheet(for: healthDetail)
+        } label: {
+            Text(healthDetail.name)
         }
     }
     
@@ -72,6 +84,12 @@ struct HealthDetails: View {
             )
         case .weight:
             WeightForm(
+                pastDate: pastDate,
+                isPresented: $isPresented,
+                dismissDisabled: $dismissDisabled
+            )
+        case .height:
+            HeightForm(
                 pastDate: pastDate,
                 isPresented: $isPresented,
                 dismissDisabled: $dismissDisabled

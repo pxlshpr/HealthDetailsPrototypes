@@ -73,8 +73,7 @@ struct HeightForm: View {
     }
     
     var measurementForm: some View {
-        EmptyView()
-        //        LeanBodyMassMeasurementForm(date: pastDate)
+        MeasurementForm(healthDetail: .height, date: pastDate)
     }
     
     var deletedList: some View {
