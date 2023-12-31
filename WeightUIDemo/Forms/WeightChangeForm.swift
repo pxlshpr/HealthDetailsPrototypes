@@ -245,37 +245,7 @@ struct WeightChangeForm: View {
             }
         }
     }
-    
-//    var toolbarContent: some ToolbarContent {
-//        Group {
-//            ToolbarItem(placement: .bottomBar) {
-//                HStack {
-//                    Spacer()
-//                    if let value {
-//                        HStack(alignment: .firstTextBaseline, spacing: 5) {
-//                            Text("\(value.clean)")
-//                                .contentTransition(.numericText(value: value))
-//                                .font(LargeNumberFont)
-//                            Text("kg")
-//                                .font(LargeUnitFont)
-//                                .foregroundStyle(.secondary)
-//                        }
-//                    } else {
-//                        Text("Not Set")
-//                            .foregroundStyle(.secondary)
-//                            .font(LargeUnitFont)
-//                    }
-//                }
-//            }
-//            ToolbarItem(placement: .topBarTrailing) {
-//                Button("Done") {
-//                    dismiss()
-//                }
-//                .fontWeight(.semibold)
-//            }
-//        }
-//    }
-    
+
     var explanation: some View {
         Section {
             Text("This represents the change in your weight from 17-24 December, which is used to calculate your Adaptive Maintenance Energy.")
