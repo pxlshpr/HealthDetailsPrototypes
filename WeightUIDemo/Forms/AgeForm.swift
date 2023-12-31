@@ -49,8 +49,8 @@ struct AgeForm: View {
                 dateOfBirthSection
                 customSection
             }
-            explanation
             .disabled(isDisabled)
+            explanation
         }
         .navigationTitle("Age")
         .navigationBarTitleDisplayMode(.large)
