@@ -5,14 +5,25 @@ import SwiftUI
     let isCurrent: Bool
     var healthDetails: HealthDetails
     
-    //TODO: Store the most recent weight, height, leanBodyMass here
+    var latest: LatestHealthDetails
     
+    
+    struct LatestHealthDetails {
+        var weight: Weight?
+        struct Weight {
+            let date: Date
+            let weight: HealthDetails.Weight
+        }
+    }
+
     init(
         isCurrent: Bool,
-        healthDetails: HealthDetails
+        healthDetails: HealthDetails,
+        latest: LatestHealthDetails = LatestHealthDetails()
     ) {
         self.isCurrent = isCurrent
         self.healthDetails = healthDetails
+        self.latest = latest
     }
     
     /// Returns the date of the `HealthDetails` struct if not current, otherwise returns nil

@@ -1,5 +1,8 @@
 import SwiftUI
 
+let CurrentHealthDetails = fetchHealthDetailsFromDocuments(Date.now)
+let PreviousHealthDetails = fetchHealthDetailsFromDocuments(Date(fromDateString: "2023_12_01")!)
+
 struct MockCurrentHealthDetailsForm: View {
     
     @Environment(SettingsProvider.self) var settingsProvider
@@ -10,10 +13,16 @@ struct MockCurrentHealthDetailsForm: View {
     init(isPresented: Binding<Bool> = .constant(true)) {
         _isPresented = isPresented
         
-        let healthDetails = fetchHealthDetailsFromDocuments(Date.now)
+        var latest = HealthProvider.LatestHealthDetails()
+        latest.weight = .init(
+            date: PreviousHealthDetails.date,
+            weight: PreviousHealthDetails.weight
+        )
+        
         let healthProvider = HealthProvider(
             isCurrent: true,
-            healthDetails: healthDetails
+            healthDetails: CurrentHealthDetails,
+            latest: latest
         )
         _healthProvider = State(initialValue: healthProvider)
     }
@@ -37,10 +46,9 @@ struct MockPastHealthDetailsForm: View {
     init(isPresented: Binding<Bool> = .constant(true)) {
         _isPresented = isPresented
         
-        let healthDetails = fetchHealthDetailsFromDocuments(Date(fromDateString: "2023_12_01")!)
         let healthProvider = HealthProvider(
             isCurrent: false,
-            healthDetails: healthDetails
+            healthDetails: PreviousHealthDetails
         )
         _healthProvider = State(initialValue: healthProvider)
     }

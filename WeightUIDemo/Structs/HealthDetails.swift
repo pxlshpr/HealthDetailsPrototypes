@@ -1,4 +1,5 @@
 import Foundation
+import PrepShared
 
 struct HealthDetails: Hashable, Codable {
  
@@ -32,6 +33,25 @@ extension HealthDetails {
         var measurements: [WeightMeasurement] = []
         var deletedHealthKitMeasurements: [WeightMeasurement] = []
         var isSynced: Bool = false
+    }
+}
+
+extension HealthDetails.Weight {
+    func valueString(in unit: BodyMassUnit) -> String {
+        weightInKg.valueString(convertedFrom: .kg, to: unit)
+    }
+}
+
+extension Optional where Wrapped == Double {
+    func valueString(convertedFrom fromUnit: BodyMassUnit, to unit: BodyMassUnit) -> String {
+        guard let self else { return "Not Set" }
+        let converted = fromUnit.convert(self, to: unit)
+        let double = unit.doubleComponent(of: converted)
+        if let int = unit.intComponent(of: converted), let intUnit = unit.intUnitString {
+            return "\(int) \(intUnit) \(double.cleanHealth) \(unit.doubleUnitString)"
+        } else {
+            return "\(double.cleanHealth) \(unit.doubleUnitString)"
+        }
     }
 }
 

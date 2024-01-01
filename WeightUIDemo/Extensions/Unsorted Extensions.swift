@@ -188,19 +188,35 @@ extension BodyMassUnit: HealthUnit {
     public var hasTwoComponents: Bool { self == .st }
     
     public func intComponent(_ value: Double, in other: BodyMassUnit) -> Int? {
-        guard other.hasTwoComponents else {
-            return nil
-        }
         let converted = convert(value, to: other)
-        return Int(converted)
+        return other.intComponent(of: converted)
+//        guard other.hasTwoComponents else {
+//            return nil
+//        }
+//        let converted = convert(value, to: other)
+//        return Int(converted)
     }
     
     public func doubleComponent(_ value: Double, in other: BodyMassUnit) -> Double {
         let converted = convert(value, to: other)
-        return if other.hasTwoComponents {
-            (converted - converted.whole) * Self.upperSecondaryUnitValue
+        return other.doubleComponent(of: converted)
+//        return if other.hasTwoComponents {
+//            (converted - converted.whole) * Self.upperSecondaryUnitValue
+//        } else {
+//            converted
+//        }
+    }
+    
+    public func intComponent(of value: Double) -> Int? {
+        guard hasTwoComponents else { return nil }
+        return Int(value)
+    }
+    
+    public func doubleComponent(of value: Double) -> Double {
+        return if hasTwoComponents {
+            (value - value.whole) * Self.upperSecondaryUnitValue
         } else {
-            converted
+            value
         }
     }
     

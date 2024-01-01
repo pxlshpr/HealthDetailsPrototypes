@@ -4,6 +4,7 @@ import SwiftUIIntrospect
 
 //TODO: Next
 /// [ ] Now do the date stuff for fetching the weight. Consider how we want to save it—check Reminders for where we had a reminder about this first.
+/// [ ] Only show "Since no weight data has been set..." footer when we actually have a latest value, otherwise say something like, "Enter your weight data to calculate your fat percentage/lean body mass" – and when they haven't entered in their weight for a source of .fatPercentage, show the text saying "Enter Weight" or something
 /// [ ] Test by saving height for past date, and weight for today, then making sure equation variables correctly picks up the values from the backend (we'll need HealthProvider to help us with this somehow, even though its for a past date)
 struct LeanBodyMassMeasurementForm: View {
     
@@ -165,12 +166,13 @@ struct LeanBodyMassMeasurementForm: View {
     }
 
     var customSection: some View {
-        MeasurementTextField(
+        MeasurementInputSection(
             type: .leanBodyMass,
             doubleInput: $doubleInput,
             intInput: $intInput,
             hasFocused: $hasFocusedCustom,
             delayFocus: true,
+            footer: "The weight below will be used to calculate your Fat Percentage.",
             handleChanges: handleCustomValue
         )
     }
@@ -189,24 +191,19 @@ struct LeanBodyMassMeasurementForm: View {
             doubleInput: $fatPercentageInput,
             hasFocused: $hasFocusedFatPercentage,
             delayFocus: true,
+            footer: "The weight below will be used to calculate your Lean Body Mass.",
             handleChanges: handleFatPercentageValue
         )
-//        InputSection(
-//            name: "Fat Percentage",
-//            valueString: Binding<String?>(
-//                get: { fatPercentageInput.double?.clean },
-//                set: { _ in }
-//            ),
-//            showingAlert: $showingFatPercentageAlert,
-//            unitString: "%",
-//            footerString: "The weight below will be used to calculate your Lean Body Mass."
-//        )
     }
     
     var weightSection: some View {
         EquationVariablesSections(
             healthDetails: Binding<[HealthDetail]>(
                 get: { [.weight] },
+                set: { _ in }
+            ),
+            isRequired: Binding<Bool>(
+                get: { self.source == .fatPercentage },
                 set: { _ in }
             ),
             healthProvider: healthProvider,
@@ -523,4 +520,8 @@ struct LeanBodyMassMeasurementForm: View {
         LeanBodyMassForm(healthProvider: MockCurrentProvider)
             .environment(SettingsProvider(settings: .init(bodyMassUnit: .st)))
     }
+}
+
+#Preview("DemoView") {
+    DemoView()
 }

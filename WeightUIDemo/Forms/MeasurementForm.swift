@@ -77,7 +77,7 @@ struct MeasurementForm: View {
     //MARK: - Sections
 
     var customSection: some View {
-        MeasurementTextField(
+        MeasurementInputSection(
             type: type,
             doubleInput: $doubleInput,
             intInput: $intInput,
@@ -124,7 +124,7 @@ struct MeasurementForm: View {
     }
 }
 
-struct MeasurementTextField: View {
+struct MeasurementInputSection: View {
     
     @Environment(SettingsProvider.self) var settingsProvider
     
@@ -134,6 +134,7 @@ struct MeasurementTextField: View {
     @Binding var intInput: IntInput
     @Binding var hasFocused: Bool
     let delayFocus: Bool
+    let footerString: String?
     let handleChanges: () -> ()
 
     init(
@@ -142,6 +143,7 @@ struct MeasurementTextField: View {
         intInput: Binding<IntInput>,
         hasFocused: Binding<Bool>,
         delayFocus: Bool = false,
+        footer: String? = nil,
         handleChanges: @escaping () -> Void
     ) {
         self.type = type
@@ -149,16 +151,25 @@ struct MeasurementTextField: View {
         _intInput = intInput
         _hasFocused = hasFocused
         self.delayFocus = delayFocus
+        self.footerString = footer
         self.handleChanges = handleChanges
     }
     
+    @ViewBuilder
     var body: some View {
-        Section {
-            if let secondUnitString {
+        if let secondUnitString {
+            Section(footer: footer) {
                 dualUnit(secondUnitString)
-            } else {
-                singleUnit
             }
+        } else {
+            singleUnit
+        }
+    }
+    
+    @ViewBuilder
+    var footer: some View {
+        if let footerString {
+            Text(footerString)
         }
     }
     
@@ -168,6 +179,7 @@ struct MeasurementTextField: View {
             doubleInput: $doubleInput,
             hasFocused: $hasFocused,
             delayFocus: delayFocus,
+            footer: footerString,
             handleChanges: handleChanges
         )
     }
@@ -253,6 +265,7 @@ struct SingleUnitMeasurementTextField: View {
     @Environment(SettingsProvider.self) var settingsProvider
     
     let type: MeasurementType
+    let footerString: String?
 
     @Binding var doubleInput: DoubleInput
     @Binding var hasFocused: Bool
@@ -264,17 +277,19 @@ struct SingleUnitMeasurementTextField: View {
         doubleInput: Binding<DoubleInput>,
         hasFocused: Binding<Bool>,
         delayFocus: Bool = false,
+        footer: String? = nil,
         handleChanges: @escaping () -> Void
     ) {
         self.type = type
         _doubleInput = doubleInput
         _hasFocused = hasFocused
         self.delayFocus = delayFocus
+        self.footerString = footer
         self.handleChanges = handleChanges
     }
     
     var body: some View {
-        Section {
+        Section(footer: footer) {
             HStack {
                 Text(unitString)
                 Spacer()
@@ -286,6 +301,13 @@ struct SingleUnitMeasurementTextField: View {
         }
     }
     
+    @ViewBuilder
+    var footer: some View {
+        if let footerString {
+            Text(footerString)
+        }
+    }
+
     var binding: Binding<String> {
         Binding<String>(
             get: { doubleInput.binding.wrappedValue },

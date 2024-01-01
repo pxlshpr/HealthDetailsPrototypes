@@ -2,6 +2,7 @@ import SwiftUI
 
 struct EquationVariablesSections: View {
 
+    @Environment(SettingsProvider.self) var settingsProvider: SettingsProvider
     @Bindable var healthProvider: HealthProvider
     
     @Binding var healthDetails: [HealthDetail]
@@ -10,9 +11,11 @@ struct EquationVariablesSections: View {
     @Binding var isPresented: Bool
     @Binding var dismissDisabled: Bool
     let showHeader: Bool
+    @Binding var isRequired: Bool
     
     init(
         healthDetails: Binding<[HealthDetail]>,
+        isRequired: Binding<Bool> = .constant(true),
         healthProvider: HealthProvider,
         pastDate: Date?,
         isEditing: Binding<Bool>,
@@ -21,6 +24,7 @@ struct EquationVariablesSections: View {
         showHeader: Bool = true
     ) {
         self.healthProvider = healthProvider
+        _isRequired = isRequired
         _healthDetails = healthDetails
         self.pastDate = pastDate
         _isEditing = isEditing
@@ -98,14 +102,25 @@ struct EquationVariablesSections: View {
             pastDate ?? Date.now
         }
         
+        var hasData: Bool {
+            switch healthDetail {
+            case .weight:
+                healthProvider.latest.weight != nil
+            default:
+                false
+            }
+        }
+        
         @ViewBuilder
         var footer: some View {
-            if dateIsInPast {
-                if let pastDate {
+            if hasData {
+                if let pastDate, !pastDate.isToday {
                     Text("Since no \(healthDetail.name.lowercased()) data has been set for \(pastDate.shortDateString), the most recent entry prior to that is being used.")
                 } else {
                     Text("Since no \(healthDetail.name.lowercased()) data has been set for today, the most recent entry is being used.")
                 }
+            } else if isRequired {
+                Text("Your \(healthDetail.name.lowercased()) is required for this calculation.")
             }
         }
         
@@ -139,38 +154,30 @@ struct EquationVariablesSections: View {
         
         @ViewBuilder
         var measurementLink: some View {
-            if let date, let valueString {
-                //TODO: We need to fetch or set the HealthProvider for the particular date here
-                NavigationLink {
-                    switch healthDetail {
-                    case .height:
-                        HeightForm(
-                            healthProvider: healthProvider,
-                            isPresented: $isPresented
-                        )
-                    case .weight:
+            switch healthDetail {
+            case .weight:
+                if let latestWeight = healthProvider.latest.weight {
+                    NavigationLink {
                         WeightForm(
-                            healthProvider: healthProvider,
+                            date: latestWeight.date,
+                            weight: latestWeight.weight,
                             isPresented: $isPresented,
-                            dismissDisabled: $dismissDisabled
+                            dismissDisabled: $dismissDisabled,
+                            save: { newWeight in
+                                //TODO: Save
+                            }
                         )
-                    case .leanBodyMass:
-                        LeanBodyMassForm(
-                            healthProvider: healthProvider,
-                            isPresented: $isPresented,
-                            dismissDisabled: $dismissDisabled
-                        )
-                    default:
-                        EmptyView()
+                    } label: {
+                        HStack {
+                            Text(latestWeight.date.shortDateString)
+                            Spacer()
+                            Text(latestWeight.weight.valueString(in: settingsProvider.bodyMassUnit))
+                        }
                     }
-                } label: {
-                    HStack {
-                        Text(date.shortDateString)
-                        Spacer()
-                        Text(valueString)
-                    }
+                    .disabled(isEditing && isPast)
                 }
-                .disabled(isEditing && isPast)
+            default:
+                EmptyView()
             }
         }
         

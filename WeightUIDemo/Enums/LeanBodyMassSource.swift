@@ -29,7 +29,7 @@ enum LeanBodyMassSource: Codable, Hashable {
         case .healthKit:        "Apple Health"
         case .equation:         "Equation"
         case .fatPercentage:    "Fat %"
-        case .userEntered:      "Enter"
+        case .userEntered:      "Manual"
         }
     }
     

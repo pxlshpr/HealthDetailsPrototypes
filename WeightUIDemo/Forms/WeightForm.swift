@@ -9,11 +9,6 @@ struct WeightForm: View {
     let date: Date
     let initialWeight: HealthDetails.Weight
     
-//    @Bindable var healthProvider: HealthProvider
-//    let initialMeasurements: [WeightMeasurement]
-//    let initialDeletedHealthKitMeasurements: [WeightMeasurement]
-//    let initialDailyValueType: DailyValueType
-
     @State var weightInKg: Double?
     @State var dailyValueType: DailyValueType
     @State var measurements: [WeightMeasurement]
@@ -32,7 +27,6 @@ struct WeightForm: View {
     init(
         date: Date,
         weight: HealthDetails.Weight,
-//        healthProvider: HealthProvider,
         isPresented: Binding<Bool> = .constant(true),
         dismissDisabled: Binding<Bool> = .constant(false),
         save: @escaping (HealthDetails.Weight) -> ()
@@ -40,22 +34,15 @@ struct WeightForm: View {
         self.date = date
         self.initialWeight = weight
         self.saveHandler = save
-//        self.healthProvider = healthProvider
         _isPresented = isPresented
         _dismissDisabled = dismissDisabled
-//        _isEditing = State(initialValue: healthProvider.isCurrent)
         _isEditing = State(initialValue: date.isToday)
 
-//        let weight = healthProvider.healthDetails.weight
         _weightInKg = State(initialValue: weight.weightInKg)
         _measurements = State(initialValue: weight.measurements)
         _dailyValueType = State(initialValue: weight.dailyValueType)
         _deletedHealthKitMeasurements = State(initialValue: weight.deletedHealthKitMeasurements)
         _isSynced = State(initialValue: weight.isSynced)
-
-//        self.initialMeasurements = weight.measurements
-//        self.initialDeletedHealthKitMeasurements = weight.deletedHealthKitMeasurements
-//        self.initialDailyValueType = weight.dailyValueType
     }
     
     init(
@@ -83,7 +70,7 @@ struct WeightForm: View {
         .toolbar { toolbarContent }
         .sheet(isPresented: $showingForm) { measurementForm }
         .safeAreaInset(edge: .bottom) { bottomValue }
-        .navigationBarBackButtonHidden(isPast && isEditing)
+        .navigationBarBackButtonHidden(isLegacy && isEditing)
         .onChange(of: isEditing) { _, _ in setDismissDisabled() }
         .onChange(of: isDirty) { _, _ in setDismissDisabled() }
     }
@@ -120,7 +107,7 @@ struct WeightForm: View {
             ),
             showingForm: $showingForm,
             isPast: Binding<Bool>(
-                get: { isPast },
+                get: { isLegacy },
                 set: { _ in }
             ),
             isEditing: Binding<Bool>(
@@ -135,7 +122,6 @@ struct WeightForm: View {
     var measurementForm: some View {
         MeasurementForm(
             type: .weight,
-//            date: pastDate
             date: date
         ) { int, double, time in
             let weightInKg = settingsProvider.bodyMassUnit.convert(int, double, to: .kg)
@@ -205,9 +191,7 @@ struct WeightForm: View {
     
     @ViewBuilder
     var noticeOrDateSection: some View {
-//        if let pastDate {
-//            NoticeSection.legacy(pastDate, isEditing: $isEditing)
-        if isPast {
+        if isLegacy {
             NoticeSection.legacy(date, isEditing: $isEditing)
         } else {
             Section {
@@ -243,7 +227,7 @@ struct WeightForm: View {
 
     @ViewBuilder
     var syncSection: some View {
-        if !isPast {
+        if !isLegacy {
             SyncSection(
                 healthDetail: .weight,
                 isSynced: $isSynced,
@@ -256,7 +240,7 @@ struct WeightForm: View {
         topToolbarContent(
             isEditing: $isEditing,
             isDirty: $isDirty,
-            isPast: isPast,
+            isPast: isLegacy,
             dismissAction: { isPresented = false },
             undoAction: undo,
             saveAction: save
@@ -267,56 +251,46 @@ struct WeightForm: View {
     
     func setIsDirty() {
         isDirty = weight != initialWeight
-//        isDirty = measurements != initialMeasurements
-//        || deletedHealthKitMeasurements != initialDeletedHealthKitMeasurements
-//        || dailyValueType != initialDailyValueType
     }
     
     func setDismissDisabled() {
-        dismissDisabled = isPast && isEditing && isDirty
+        dismissDisabled = isLegacy && isEditing && isDirty
     }
 
     func handleChanges() {
         weightInKg = calculatedWeightInKg
         setIsDirty()
-        if !isPast {
+        if !isLegacy {
             save()
         }
     }
 
     func undo() {
-//        let weight = healthProvider.healthDetails.weight
-        self.weightInKg = weight.weightInKg
-        self.dailyValueType = weight.dailyValueType
-        self.measurements = weight.measurements
-        self.deletedHealthKitMeasurements = weight.deletedHealthKitMeasurements
-        self.isSynced = weight.isSynced
+        self.weightInKg = initialWeight.weightInKg
+        self.dailyValueType = initialWeight.dailyValueType
+        self.measurements = initialWeight.measurements
+        self.deletedHealthKitMeasurements = initialWeight.deletedHealthKitMeasurements
+        self.isSynced = initialWeight.isSynced
     }
     
     func save() {
         saveHandler(weight)
-//        healthProvider.saveWeight(weight)
     }
 
     //MARK: - Convenience
     
     var isDisabled: Bool {
-        isPast && !isEditing
+        isLegacy && !isEditing
     }
     
     var controlColor: Color {
         isDisabled ? .secondary : .primary
     }
     
-    var isPast: Bool {
+    var isLegacy: Bool {
         date.startOfDay < Date.now.startOfDay
-//        pastDate != nil
     }
     
-//    var pastDate: Date? {
-//        healthProvider.pastDate
-//    }
-
     var calculatedWeightInKg: Double? {
         switch dailyValueType {
         case .average:
