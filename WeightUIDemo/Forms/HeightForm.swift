@@ -16,9 +16,6 @@ struct HeightForm: View {
     let initialDeletedHealthKitMeasurements: [HeightMeasurement]
     
     @State var showingForm = false
-    @State var showingSyncOffConfirmation: Bool = false
-    @ScaledMetric var scale: CGFloat = 1
-    let imageScale: CGFloat = 24
 
     @State var isEditing: Bool
     @State var isDirty: Bool = false
@@ -45,42 +42,21 @@ struct HeightForm: View {
         self.initialDeletedHealthKitMeasurements = height.deletedHealthKitMeasurements
     }
 
-    var pastDate: Date? {
-        healthProvider.pastDate
-    }
-
     var body: some View {
         Form {
             noticeOrDateSection
-            list
-            deletedList
+            measurementsSections
             syncSection
             explanation
         }
         .navigationTitle("Height")
         .navigationBarTitleDisplayMode(.large)
         .toolbar { toolbarContent }
-        .confirmationDialog("Turn Off Sync", isPresented: $showingSyncOffConfirmation, titleVisibility: .visible) {
-            Button("Turn Off", role: .destructive) {
-                isSynced = false
-                handleChanges()
-            }
-        } message: {
-            Text("Height data will no longer be read from or written to Apple Health.")
-        }
         .sheet(isPresented: $showingForm) { measurementForm }
         .safeAreaInset(edge: .bottom) { bottomValue }
         .navigationBarBackButtonHidden(isPast && isEditing)
         .onChange(of: isEditing) { _, _ in setDismissDisabled() }
         .onChange(of: isDirty) { _, _ in setDismissDisabled() }
-    }
-    
-    var intUnitString: String? {
-        settingsProvider.heightUnit.intUnitString
-    }
-    
-    var doubleUnitString: String {
-        settingsProvider.heightUnit.doubleUnitString
     }
     
     var bottomValue: some View {
@@ -95,6 +71,14 @@ struct HeightForm: View {
             guard let heightInCm else { return nil }
             return HeightUnit.cm
                 .intComponent(heightInCm, in: settingsProvider.heightUnit)
+        }
+        
+        var intUnitString: String? {
+            settingsProvider.heightUnit.intUnitString
+        }
+        
+        var doubleUnitString: String {
+            settingsProvider.heightUnit.doubleUnitString
         }
         
         return BottomValue(
@@ -119,82 +103,20 @@ struct HeightForm: View {
         MeasurementForm(type: .height, date: pastDate) { int, double, time in
             let heightInCm = settingsProvider.heightUnit.convert(int, double, to: .cm)
             let measurement = HeightMeasurement(date: time, heightInCm: heightInCm)
-            addMeasurement(measurement)
+            measurements.append(measurement)
+            measurements.sort()
             handleChanges()
         }
     }
     
-    func addMeasurement(_ measurement: HeightMeasurement) {
-        measurements.append(measurement)
-        measurements.sort()
-    }
-    
-    var deletedList: some View {
-        var header: some View {
-            Text("Ignored Apple Health Data")
-        }
-        
-        func restore(_ measurement: HeightMeasurement) {
-            withAnimation {
-                addMeasurement(measurement)
-                deletedHealthKitMeasurements.removeAll(where: { $0.id == measurement.id })
-            }
-            handleChanges()
-        }
-        
-        return Group {
-            if !deletedHealthKitMeasurements.isEmpty {
-                Section(header: header) {
-                    ForEach(deletedHealthKitMeasurements) { data in
-                        HStack {
-                            cell(for: data, disabled: true)
-                            Button {
-                                restore(data)
-                            } label: {
-                                Image(systemName: "arrow.up.bin")
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    
+    @ViewBuilder
     var syncSection: some View {
-        let binding = Binding<Bool>(
-            get: { isSynced },
-            set: { newValue in
-                if !newValue {
-                    showingSyncOffConfirmation = true
-                } else {
-                    isSynced = newValue
-                    handleChanges()
-                }
-            }
-        )
-        
-        var section: some View {
-            Section(footer: Text("Automatically reads height data from Apple Health. Data you enter here will also be exported back to Apple Health.")) {
-                HStack {
-                    Image("AppleHealthIcon")
-                        .resizable()
-                        .frame(width: imageScale * scale, height: imageScale * scale)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 5)
-                                .stroke(Color(.systemGray3), lineWidth: 0.5)
-                        )
-                    Text("Sync with Apple Health")
-                        .layoutPriority(1)
-                    Spacer()
-                    Toggle("", isOn: binding)
-                }
-            }
-        }
-        
-        return Group {
-            if !isPast {
-                section
-            }
+        if !isPast {
+            SyncSection(
+                healthDetail: .height,
+                isSynced: $isSynced,
+                handleChanges: handleChanges
+            )
         }
     }
     
@@ -239,39 +161,8 @@ struct HeightForm: View {
         }
     }
     
-    func cell(for measurement: HeightMeasurement, disabled: Bool = false) -> some View {
-        var double: Double {
-            HeightUnit.cm
-                .doubleComponent(measurement.heightInCm, in: settingsProvider.heightUnit)
-        }
-
-        var int: Int? {
-            HeightUnit.cm
-                .intComponent(measurement.heightInCm, in: settingsProvider.heightUnit)
-        }
-        
-        return MeasurementCell(
-            imageType: measurement.imageType,
-            timeString: measurement.timeString,
-            isDisabled: disabled,
-            showDeleteButton: Binding<Bool>(
-                get: { isEditing && isPast },
-                set: { _ in }
-            ),
-            deleteAction: {
-                withAnimation {
-                    delete(measurement)
-                }
-            },
-            double: double,
-            int: int,
-            doubleUnitString: doubleUnitString,
-            intUnitString: intUnitString
-        )
-    }
-    
-    var list: some View {
-        MeasurementsSection<HeightUnit>(
+    var measurementsSections: some View {
+        MeasurementsSections<HeightUnit>(
             measurements: Binding<[any Measurable]>(
                 get: { measurements },
                 set: { newValue in
@@ -299,60 +190,6 @@ struct HeightForm: View {
         )
     }
     
-//    var list_: some View {
-//        @ViewBuilder
-//        var footer: some View {
-//            if !measurements.isEmpty {
-//                Text(DailyValueType.last.description)
-//            }
-//        }
-//        
-//        var lastRow: some View {
-//            var shouldShow: Bool {
-//                !(isDisabled && !measurements.isEmpty)
-//            }
-//            
-//            var content: some View {
-//                HStack {
-//                    if isDisabled {
-//                        if measurements.isEmpty {
-//                            Text("No Measurements")
-//                                .foregroundStyle(.secondary)
-//                        }
-//                    } else {
-//                        Text("Add Measurement")
-//                            .foregroundStyle(Color.accentColor)
-//                    }
-//                    Spacer()
-//                    Button {
-//                        showingForm = true
-//                    } label: {
-//                    }
-//                    .disabled(isDisabled)
-//                }
-//            }
-//            
-//            return Group {
-//                if shouldShow {
-//                    content
-//                }
-//            }
-//        }
-//        
-//        var cells: some View {
-//            ForEach(measurements) { data in
-//                cell(for: data)
-//                    .deleteDisabled(isPast)
-//            }
-//            .onDelete(perform: delete)
-//        }
-//        
-//        return Section(footer: footer) {
-//            cells
-//            lastRow
-//        }
-//    }
-    
     //MARK: - Actions
     
     func save() {
@@ -367,36 +204,6 @@ struct HeightForm: View {
         self.isSynced = height.isSynced
     }
 
-    var lastMeasurementInCm: Double? {
-        measurements.last?.heightInCm
-    }
-    
-    var height: HealthDetails.Height {
-        HealthDetails.Height(
-            heightInCm: lastMeasurementInCm,
-            measurements: measurements,
-            deletedHealthKitMeasurements: deletedHealthKitMeasurements,
-            isSynced: isSynced
-        )
-    }
-
-    func delete(_ data: HeightMeasurement) {
-        if data.isFromHealthKit {
-            deletedHealthKitMeasurements.append(data)
-            deletedHealthKitMeasurements.sort()
-        }
-        measurements.removeAll(where: { $0.id == data.id })
-        handleChanges()
-    }
-    
-    func delete(at offsets: IndexSet) {
-        let dataToDelete = offsets.map { self.measurements[$0] }
-        withAnimation {
-            for data in dataToDelete {
-                delete(data)
-            }
-        }
-    }
     func setDismissDisabled() {
         dismissDisabled = isPast && isEditing && isDirty
     }
@@ -415,6 +222,23 @@ struct HeightForm: View {
     }
 
     //MARK: - Convenience
+
+    var pastDate: Date? {
+        healthProvider.pastDate
+    }
+
+    var lastMeasurementInCm: Double? {
+        measurements.last?.heightInCm
+    }
+    
+    var height: HealthDetails.Height {
+        HealthDetails.Height(
+            heightInCm: lastMeasurementInCm,
+            measurements: measurements,
+            deletedHealthKitMeasurements: deletedHealthKitMeasurements,
+            isSynced: isSynced
+        )
+    }
 
     var isDisabled: Bool {
         isPast && !isEditing

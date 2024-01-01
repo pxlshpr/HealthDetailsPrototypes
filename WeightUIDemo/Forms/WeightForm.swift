@@ -18,9 +18,6 @@ struct WeightForm: View {
     let initialDailyValueType: DailyValueType
 
     @State var showingForm = false
-    @State var showingSyncOffConfirmation: Bool = false
-    @ScaledMetric var scale: CGFloat = 1
-    let imageScale: CGFloat = 24
     
     @State var isEditing: Bool
     @State var isDirty: Bool = false
@@ -49,29 +46,16 @@ struct WeightForm: View {
         self.initialDailyValueType = weight.dailyValueType
     }
     
-    var pastDate: Date? {
-        healthProvider.pastDate
-    }
-
     var body: some View {
         Form {
             noticeOrDateSection
-            list
-            deletedList
+            measurementsSections
             syncSection
             explanation
         }
         .navigationTitle("Weight")
         .navigationBarTitleDisplayMode(.large)
         .toolbar { toolbarContent }
-        .confirmationDialog("Turn Off Sync", isPresented: $showingSyncOffConfirmation, titleVisibility: .visible) {
-            Button("Turn Off", role: .destructive) {
-                isSynced = false
-                handleChanges()
-            }
-        } message: {
-            Text("Weight data will no longer be read from or written to Apple Health.")
-        }
         .sheet(isPresented: $showingForm) { measurementForm }
         .safeAreaInset(edge: .bottom) { bottomValue }
         .navigationBarBackButtonHidden(isPast && isEditing)
@@ -133,8 +117,8 @@ struct WeightForm: View {
         )
     }
     
-    var list: some View {
-        MeasurementsSection<BodyMassUnit>(
+    var measurementsSections: some View {
+        MeasurementsSections<BodyMassUnit>(
             measurements: Binding<[any Measurable]>(
                 get: { measurements },
                 set: { newValue in
@@ -161,60 +145,6 @@ struct WeightForm: View {
             handleChanges: handleChanges
         )
     }
-    
-//    var list: some View {
-//        @ViewBuilder
-//        var footer: some View {
-//            if !measurements.isEmpty {
-//                Text(DailyValueType.last.description)
-//            }
-//        }
-//        
-//        var lastRow: some View {
-//            var shouldShow: Bool {
-//                !(isDisabled && !measurements.isEmpty)
-//            }
-//            
-//            var content: some View {
-//                HStack {
-//                    if isDisabled {
-//                        if measurements.isEmpty {
-//                            Text("No Measurements")
-//                                .foregroundStyle(.secondary)
-//                        }
-//                    } else {
-//                        Text("Add Measurement")
-//                            .foregroundStyle(Color.accentColor)
-//                    }
-//                    Spacer()
-//                    Button {
-//                        showingForm = true
-//                    } label: {
-//                    }
-//                    .disabled(isDisabled)
-//                }
-//            }
-//            
-//            return Group {
-//                if shouldShow {
-//                    content
-//                }
-//            }
-//        }
-//        
-//        var cells: some View {
-//            ForEach(measurements) { data in
-//                cell(for: data)
-//                    .deleteDisabled(isPast)
-//            }
-//            .onDelete(perform: delete)
-//        }
-//        
-//        return Section(footer: footer) {
-//            cells
-//            lastRow
-//        }
-//    }
     
     var measurementForm: some View {
         MeasurementForm(type: .weight, date: pastDate) { int, double, time in
@@ -263,34 +193,7 @@ struct WeightForm: View {
                 isStyledAsBottomBar: false
             )
         }
-        
-//        var bottomRow: some View {
-//            HStack(alignment: .firstTextBaseline, spacing: 5) {
-//                Spacer()
-//                if let weightInKg {
-//                    Text("\(weightInKg.roundedToOnePlace)")
-//                        .contentTransition(.numericText(value: weightInKg))
-//                        .font(LargeNumberFont)
-//                        .foregroundStyle(isDisabled ? .secondary : .primary)
-//                    Text("kg")
-//                        .font(LargeUnitFont)
-//                        .foregroundStyle(isDisabled ? .tertiary : .secondary)
-//                } else {
-//                    ZStack {
-//
-//                        /// dummy text placed to ensure height stays consistent
-//                        Text("0")
-//                            .font(LargeNumberFont)
-//                            .opacity(0)
-//                        
-//                        Text("Not Set")
-//                            .font(LargeUnitFont)
-//                            .foregroundStyle(isDisabled ? .tertiary : .secondary)
-//                    }
-//                }
-//            }
-//        }
-        
+
         var topRow: some View {
             dailyValuePicker
         }
@@ -302,36 +205,6 @@ struct WeightForm: View {
         .padding(.horizontal, BottomValueHorizontalPadding)
         .padding(.vertical, BottomValueVerticalPadding)
         .background(.bar)
-    }
-    
-    var deletedList: some View {
-        var header: some View {
-            Text("Ignored Apple Health Data")
-        }
-        
-        func restore(_ measurement: WeightMeasurement) {
-            withAnimation {
-                addMeasurement(measurement)
-                deletedHealthKitMeasurements.removeAll(where: { $0.id == measurement.id })
-                handleChanges()
-            }
-        }
-        return Group {
-            if !deletedHealthKitMeasurements.isEmpty {
-                Section(header: header) {
-                    ForEach(deletedHealthKitMeasurements) { data in
-                        HStack {
-                            cell(for: data, disabled: true)
-                            Button {
-                                restore(data)
-                            } label: {
-                                Image(systemName: "arrow.up.bin")
-                            }
-                        }
-                    }
-                }
-            }
-        }
     }
     
     @ViewBuilder
@@ -371,41 +244,11 @@ struct WeightForm: View {
     }
 
     var syncSection: some View {
-        let binding = Binding<Bool>(
-            get: { isSynced },
-            set: { newValue in
-                if !newValue {
-                    showingSyncOffConfirmation = true
-                } else {
-                    isSynced = newValue
-                    handleChanges()
-                }
-            }
+        SyncSection(
+            healthDetail: .weight,
+            isSynced: $isSynced,
+            handleChanges: handleChanges
         )
-        
-        var section: some View {
-            Section(footer: Text("Automatically imports your Weight data from Apple Health. Data you add here will also be exported back to Apple Health.")) {
-                HStack {
-                    Image("AppleHealthIcon")
-                        .resizable()
-                        .frame(width: imageScale * scale, height: imageScale * scale)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 5)
-                                .stroke(Color(.systemGray3), lineWidth: 0.5)
-                        )
-                    Text("Sync with Apple Health")
-                        .layoutPriority(1)
-                    Spacer()
-                    Toggle("", isOn: binding)
-                }
-            }
-        }
-        
-        return Group {
-            if !isPast {
-                section
-            }
-        }
     }
     
     var toolbarContent: some ToolbarContent {
@@ -419,20 +262,6 @@ struct WeightForm: View {
         )
     }
     
-    //MARK: - Convenience
-    
-    var isDisabled: Bool {
-        isPast && !isEditing
-    }
-    
-    var controlColor: Color {
-        isDisabled ? .secondary : .primary
-    }
-    
-    var isPast: Bool {
-        pastDate != nil
-    }
-    
     //MARK: - Actions
     
     func setIsDirty() {
@@ -443,27 +272,6 @@ struct WeightForm: View {
     
     func setDismissDisabled() {
         dismissDisabled = isPast && isEditing && isDirty
-    }
-
-    var calculatedWeightInKg: Double? {
-        switch dailyValueType {
-        case .average:
-            measurements.compactMap { $0.weightInKg }.average
-        case .last:
-            measurements.last?.weightInKg
-        case .first:
-            measurements.first?.weightInKg
-        }
-    }
-
-    var weight: HealthDetails.Weight {
-        HealthDetails.Weight(
-            weightInKg: calculatedWeightInKg,
-            dailyValueType: dailyValueType,
-            measurements: measurements,
-            deletedHealthKitMeasurements: deletedHealthKitMeasurements,
-            isSynced: isSynced
-        )
     }
 
     func handleChanges() {
@@ -503,6 +311,44 @@ struct WeightForm: View {
                 delete(data)
             }
         }
+    }
+    //MARK: - Convenience
+    
+    var isDisabled: Bool {
+        isPast && !isEditing
+    }
+    
+    var controlColor: Color {
+        isDisabled ? .secondary : .primary
+    }
+    
+    var isPast: Bool {
+        pastDate != nil
+    }
+    
+    var pastDate: Date? {
+        healthProvider.pastDate
+    }
+
+    var calculatedWeightInKg: Double? {
+        switch dailyValueType {
+        case .average:
+            measurements.compactMap { $0.weightInKg }.average
+        case .last:
+            measurements.last?.weightInKg
+        case .first:
+            measurements.first?.weightInKg
+        }
+    }
+
+    var weight: HealthDetails.Weight {
+        HealthDetails.Weight(
+            weightInKg: calculatedWeightInKg,
+            dailyValueType: dailyValueType,
+            measurements: measurements,
+            deletedHealthKitMeasurements: deletedHealthKitMeasurements,
+            isSynced: isSynced
+        )
     }
 }
 

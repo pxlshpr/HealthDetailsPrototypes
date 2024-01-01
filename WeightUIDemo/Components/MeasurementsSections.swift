@@ -1,7 +1,7 @@
 import SwiftUI
 import PrepShared
 
-struct MeasurementsSection<U:HealthUnit>: View {
+struct MeasurementsSections<U:HealthUnit>: View {
     
     @Environment(SettingsProvider.self) var settingsProvider
 
@@ -14,12 +14,50 @@ struct MeasurementsSection<U:HealthUnit>: View {
     let handleChanges: () -> ()
     
     var body: some View {
-        return Section(footer: footer) {
+        Group {
+            measurementsSection
+            deletedHealthDataSection
+        }
+    }
+    
+    var measurementsSection: some View {
+        Section(footer: footer) {
             cells
             lastRow
         }
     }
     
+    var deletedHealthDataSection: some View {
+        var header: some View {
+            Text("Excluded Health Data")
+        }
+        
+        func restore(_ measurement: any Measurable) {
+            withAnimation {
+                measurements.append(measurement)
+                measurements.sort(by: { $0.date < $1.date })
+                deletedHealthKitMeasurements.removeAll(where: { $0.id == measurement.id })
+            }
+            handleChanges()
+        }
+        
+        return Group {
+            if !deletedHealthKitMeasurements.isEmpty {
+                Section(header: header) {
+                    ForEach(deletedHealthKitMeasurements, id: \.id) { data in
+                        HStack {
+                            cell(for: data, disabled: true)
+                            Button {
+                                restore(data)
+                            } label: {
+                                Image(systemName: "arrow.up.bin")
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
     @ViewBuilder
     var footer: some View {
         if !measurements.isEmpty {
