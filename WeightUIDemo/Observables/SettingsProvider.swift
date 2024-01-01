@@ -80,6 +80,28 @@ extension SettingsProvider {
             nil
         }
     }
+    
+    func unitString(for measurementType: MeasurementType) -> String {
+        switch measurementType {
+        case .height:
+            heightUnit.abbreviation
+        case .weight, .leanBodyMass:
+            bodyMassUnit.abbreviation
+        case .fatPercentage:
+            "%"
+        }
+    }
+    
+    func secondUnitString(for measurementType: MeasurementType) -> String? {
+        switch measurementType {
+        case .height:
+            heightUnit.secondaryUnit
+        case .weight, .leanBodyMass:
+            bodyMassUnit.secondaryUnit
+        case .fatPercentage:
+            nil
+        }
+    }
 }
 
 //import HealthKit

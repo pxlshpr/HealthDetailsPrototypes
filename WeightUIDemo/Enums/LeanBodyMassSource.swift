@@ -7,7 +7,7 @@ enum LeanBodyMassSource: Codable, Hashable {
     case userEntered
     
     static var formCases: [LeanBodyMassSource] {
-        [.fatPercentage, .equation, .userEntered]
+        [ .userEntered, .fatPercentage, .equation]
     }
     
     var isFromHealthKit: Bool {
@@ -29,7 +29,7 @@ enum LeanBodyMassSource: Codable, Hashable {
         case .healthKit:        "Apple Health"
         case .equation:         "Equation"
         case .fatPercentage:    "Fat %"
-        case .userEntered:      "Custom"
+        case .userEntered:      "Enter"
         }
     }
     

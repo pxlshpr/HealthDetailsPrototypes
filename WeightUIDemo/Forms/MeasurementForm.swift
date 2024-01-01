@@ -6,12 +6,14 @@ enum MeasurementType {
     case weight
     case leanBodyMass
     case height
+    case fatPercentage
     
     var name: String {
         switch self {
-        case .weight:   "Weight"
-        case .leanBodyMass:   "Lean Body Mass"
-        case .height:   "Height"
+        case .weight:           "Weight"
+        case .leanBodyMass:     "Lean Body Mass"
+        case .height:           "Height"
+        case .fatPercentage:   "Fat Percentage"
         }
     }
 }
@@ -105,7 +107,7 @@ struct MeasurementForm: View {
 //    }
 
     var customSection: some View {
-        CustomSection(
+        MeasurementTextField(
             type: type,
             doubleInput: $doubleInput,
             intInput: $intInput,
@@ -238,18 +240,34 @@ struct MeasurementForm: View {
     }
 }
 
-struct CustomSection: View {
+struct MeasurementTextField: View {
     
     @Environment(SettingsProvider.self) var settingsProvider
-//    @State var hasFocusedOnAppear: Bool = false
     
     let type: MeasurementType
 
     @Binding var doubleInput: DoubleInput
     @Binding var intInput: IntInput
     @Binding var hasFocused: Bool
+    let delayFocus: Bool
     let handleChanges: () -> ()
 
+    init(
+        type: MeasurementType,
+        doubleInput: Binding<DoubleInput>,
+        intInput: Binding<IntInput>,
+        hasFocused: Binding<Bool>,
+        delayFocus: Bool = false,
+        handleChanges: @escaping () -> Void
+    ) {
+        self.type = type
+        _doubleInput = doubleInput
+        _intInput = intInput
+        _hasFocused = hasFocused
+        self.delayFocus = delayFocus
+        self.handleChanges = handleChanges
+    }
+    
     var body: some View {
         Section {
             if let secondUnitString {
@@ -258,39 +276,16 @@ struct CustomSection: View {
                 singleUnit
             }
         }
-//        .onChange(of: hasFocused) { oldValue, newValue in
-//            guard !newValue, let textField else { return }
-//            focus(textField)
-//        }
     }
     
-    var unitString: String {
-        switch type {
-        case .height:   
-            settingsProvider.heightUnit.abbreviation
-        case .weight, .leanBodyMass:
-            settingsProvider.bodyMassUnit.abbreviation
-        }
-    }
-
-    var secondUnitString: String? {
-        switch type {
-        case .height:   
-            settingsProvider.heightUnit.secondaryUnit
-        case .weight, .leanBodyMass:
-            settingsProvider.bodyMassUnit.secondaryUnit
-        }
-    }
-    
-    func introspect(_ textField: UITextField) {
-        guard !hasFocused else {
-            print("⌨️ Ignoring introspect")
-            return
-        }
-        print("⌨️ Making textField first responder")
-        textField.becomeFirstResponder()
-        textField.selectedTextRange = textField.textRange(from: textField.beginningOfDocument, to: textField.endOfDocument)
-        hasFocused = true
+    var singleUnit: some View {
+        SingleUnitMeasurementTextField(
+            type: type,
+            doubleInput: $doubleInput,
+            hasFocused: $hasFocused,
+            delayFocus: delayFocus,
+            handleChanges: handleChanges
+        )
     }
     
     func dualUnit(_ secondUnitString: String) -> some View {
@@ -320,6 +315,8 @@ struct CustomSection: View {
                     if double >= HeightUnit.upperSecondaryUnitValue {
                         doubleInput.binding.wrappedValue = ""
                     }
+                default:
+                    break
                 }
                 handleChanges()
             }
@@ -343,22 +340,90 @@ struct CustomSection: View {
         }
     }
     
-    var singleUnit: some View {
-        let firstComponent = Binding<String>(
+    var unitString: String {
+        settingsProvider.unitString(for: type)
+    }
+
+    var secondUnitString: String? {
+        settingsProvider.secondUnitString(for: type)
+    }
+    
+    func introspect(_ textField: UITextField) {
+        guard !hasFocused else { return }
+        
+        /// Set this immediately
+        hasFocused = true
+
+        print("⌨️ Making textField first responder")
+        let deadline: DispatchTime = .now() + (delayFocus ? 0.05 : 0)
+        DispatchQueue.main.asyncAfter(deadline: deadline) {
+            textField.becomeFirstResponder()
+            textField.selectedTextRange = textField.textRange(from: textField.beginningOfDocument, to: textField.endOfDocument)
+        }
+    }
+    
+}
+
+struct SingleUnitMeasurementTextField: View {
+    
+    @Environment(SettingsProvider.self) var settingsProvider
+    
+    let type: MeasurementType
+
+    @Binding var doubleInput: DoubleInput
+    @Binding var hasFocused: Bool
+    let delayFocus: Bool
+    let handleChanges: () -> ()
+
+    init(
+        type: MeasurementType,
+        doubleInput: Binding<DoubleInput>,
+        hasFocused: Binding<Bool>,
+        delayFocus: Bool = false,
+        handleChanges: @escaping () -> Void
+    ) {
+        self.type = type
+        _doubleInput = doubleInput
+        _hasFocused = hasFocused
+        self.delayFocus = delayFocus
+        self.handleChanges = handleChanges
+    }
+    
+    var body: some View {
+        Section {
+            HStack {
+                Text(unitString)
+                Spacer()
+                TextField("", text: binding)
+                    .keyboardType(.decimalPad)
+                    .multilineTextAlignment(.trailing)
+                    .introspect(.textField, on: .iOS(.v17)) { introspect($0) }
+            }
+        }
+    }
+    
+    var binding: Binding<String> {
+        Binding<String>(
             get: { doubleInput.binding.wrappedValue },
             set: { newValue in
                 doubleInput.binding.wrappedValue = newValue
                 handleChanges()
             }
         )
+    }
+    
+    var unitString: String {
+        settingsProvider.unitString(for: type)
+    }
 
-        return HStack {
-            Text(unitString)
-            Spacer()
-            TextField("", text: firstComponent)
-                .keyboardType(.decimalPad)
-                .multilineTextAlignment(.trailing)
-                .introspect(.textField, on: .iOS(.v17)) { introspect($0) }
+    func introspect(_ textField: UITextField) {
+        guard !hasFocused else { return }
+        hasFocused = true
+
+        let deadline: DispatchTime = .now() + (delayFocus ? 0.05 : 0)
+        DispatchQueue.main.asyncAfter(deadline: deadline) {
+            textField.becomeFirstResponder()
+            textField.selectedTextRange = textField.textRange(from: textField.beginningOfDocument, to: textField.endOfDocument)
         }
     }
 }

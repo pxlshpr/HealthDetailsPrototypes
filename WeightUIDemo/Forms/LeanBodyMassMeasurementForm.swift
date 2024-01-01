@@ -4,7 +4,6 @@ import SwiftUIIntrospect
 
 
 //TODO: Next
-/// [ ] Make CustomSection its own View, passing in the bool for tracking whether its been focused (so we can reset it here). Have it usable for Height or Weight (check MeasurementForm) and use it in both places
 /// [ ] Now use a single value field for percentage (which we should extract out of CustomSection and make it another view thats used there for the single unit values)
 /// [ ] Now visit the LBM calculation and make sure its happening
 /// [ ] See if we can get rid of `value` and just use `doubleInput` and `intInput` which we set whenever calculated (through fat percentage and equation) so that the value is always consistent amongst the sections (we don't need to *remember* what values each section had
@@ -19,15 +18,15 @@ struct LeanBodyMassMeasurementForm: View {
     
     @State var time = Date.now
 
-    @State var source: LeanBodyMassSource = .fatPercentage
+    @State var source: LeanBodyMassSource = .userEntered
     @State var equation: LeanBodyMassEquation = .boer
     
-    @State var value: Double? = 72.0
+    @State var leanBodyMassInKg: Double?
     
     @State var doubleInput = DoubleInput(automaticallySubmitsValues: true)
     @State var intInput = IntInput(automaticallySubmitsValues: true)
 
-    @State var fatPercentageInput = DoubleInput(double: 24.8)
+    @State var fatPercentageInput = DoubleInput(automaticallySubmitsValues: true)
     
     @State var isDirty: Bool = false
     @State var dismissDisabled: Bool = false
@@ -35,6 +34,9 @@ struct LeanBodyMassMeasurementForm: View {
 //    @State var showingAlert = false
 //    @State var showingFatPercentageAlert = false
     @State var showingEquationsInfo = false
+
+    @State var hasFocusedCustom: Bool = false
+    @State var hasFocusedFatPercentage: Bool = false
 
     let add: (Int, Double, Date) -> ()
 
@@ -107,9 +109,9 @@ struct LeanBodyMassMeasurementForm: View {
                     .foregroundStyle(.secondary)
             }
             Spacer()
-            if let value {
-                Text("\(value.roundedToOnePlace)")
-                    .contentTransition(.numericText(value: value))
+            if let leanBodyMassInKg {
+                Text("\(leanBodyMassInKg.roundedToOnePlace)")
+                    .contentTransition(.numericText(value: leanBodyMassInKg))
                     .font(LargeNumberFont)
                     .foregroundStyle(.primary)
                 Text("kg")
@@ -150,93 +152,16 @@ struct LeanBodyMassMeasurementForm: View {
             }
         }
     }
-    
-    @State var hasFocusedCustom: Bool = false
 
     var customSection: some View {
-        CustomSection(
+        MeasurementTextField(
             type: .leanBodyMass,
             doubleInput: $doubleInput,
             intInput: $intInput,
             hasFocused: $hasFocusedCustom,
-            handleChanges: setIsDirty
+            delayFocus: true,
+            handleChanges: handleCustomValue
         )
-
-//        func introspect(_ textField: UITextField) {
-//            guard !hasFocusedCustom else { return }
-//            textField.becomeFirstResponder()
-//            textField.selectedTextRange = textField.textRange(from: textField.beginningOfDocument, to: textField.endOfDocument)
-//            hasFocusedCustom = true
-//        }
-//        
-//        func dualUnit(_ secondUnitString: String) -> some View {
-//            let firstComponent = Binding<String>(
-//                get: { intInput.binding.wrappedValue },
-//                set: { newValue in
-//                    intInput.binding.wrappedValue = newValue
-//                    setIsDirty()
-//                }
-//            )
-//            
-//            let secondComponent = Binding<String>(
-//                get: { doubleInput.binding.wrappedValue },
-//                set: { newValue in
-//                    doubleInput.binding.wrappedValue = newValue
-//                    guard let double = doubleInput.double else {
-//                        handleCustomValue()
-//                        return
-//                    }
-//                    
-//                    if double >= BodyMassUnit.upperSecondaryUnitValue {
-//                        doubleInput.binding.wrappedValue = ""
-//                    }
-//                    handleCustomValue()
-//                }
-//            )
-//            return Group {
-//                HStack {
-//                    Text(unitString)
-//                    Spacer()
-//                    TextField("", text: firstComponent)
-//                        .keyboardType(.numberPad)
-//                        .multilineTextAlignment(.trailing)
-//                        .introspect(.textField, on: .iOS(.v17)) { introspect($0) }
-//                }
-//                HStack {
-//                    Text(secondUnitString)
-//                    Spacer()
-//                    TextField("", text: secondComponent)
-//                        .keyboardType(.decimalPad)
-//                        .multilineTextAlignment(.trailing)
-//                }
-//            }
-//        }
-//        
-//        var singleUnit: some View {
-//            let firstComponent = Binding<String>(
-//                get: { doubleInput.binding.wrappedValue },
-//                set: { newValue in
-//                    doubleInput.binding.wrappedValue = newValue
-//                    handleCustomValue()
-//                }
-//            )
-//
-//            return HStack {
-//                Text(unitString)
-//                Spacer()
-//                TextField("", text: firstComponent)
-//                    .keyboardType(.decimalPad)
-//                    .multilineTextAlignment(.trailing)
-//                    .introspect(.textField, on: .iOS(.v17)) { introspect($0) }
-//            }
-//        }
-//        return Section {
-//            if let secondUnitString {
-//                dualUnit(secondUnitString)
-//            } else {
-//                singleUnit
-//            }
-//        }
     }
     
     var unitString: String {
@@ -247,22 +172,14 @@ struct LeanBodyMassMeasurementForm: View {
         settingsProvider.bodyMassUnit.secondaryUnit
     }
     
-    var customSection_: some View {
-        EmptyView()
-//        InputSection(
-//            name: "Lean Body Mass",
-//            valueString: Binding<String?>(
-//                get: { customInput.double?.clean },
-//                set: { _ in }
-//            ),
-//            showingAlert: $showingAlert,
-//            unitString: "kg",
-//            footerString: "The weight below will be used to calculate your Fat Percentage."
-//        )
-    }
-    
     var fatPercentageEnterSection: some View {
-        EmptyView()
+        SingleUnitMeasurementTextField(
+            type: .fatPercentage,
+            doubleInput: $fatPercentageInput,
+            hasFocused: $hasFocusedFatPercentage,
+            delayFocus: true,
+            handleChanges: handleFatPercentageValue
+        )
 //        InputSection(
 //            name: "Fat Percentage",
 //            valueString: Binding<String?>(
@@ -370,8 +287,12 @@ struct LeanBodyMassMeasurementForm: View {
             get: { source },
             set: { newValue in
                 
-                if source != .userEntered {
+                /// Reset this immediately to make sure the text field gets focused
+                if newValue == .userEntered {
                     hasFocusedCustom = false
+                }
+                if newValue == .fatPercentage {
+                    hasFocusedFatPercentage = false
                 }
                 
                 withAnimation {
@@ -379,19 +300,13 @@ struct LeanBodyMassMeasurementForm: View {
 //                    calculateEquation()
                     setIsDirty()
                 }
+                
                 switch source {
                 case .userEntered:
                     break
-//                    showingAlert = true
                 case .fatPercentage:
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                        hasFocusedCustom = false
-                    }
-//                    showingFatPercentageAlert = true
+                    break
                 case .equation:
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                        hasFocusedCustom = false
-                    }
                     calculateEquation()
                 default:
                     break
@@ -433,14 +348,22 @@ struct LeanBodyMassMeasurementForm: View {
     }
     
     func handleCustomValue() {
+        guard let double = doubleInput.double else { return }
         withAnimation {
-            let value = doubleInput.double
-            self.value = value
-            calculateFatPercentage(forLeanBodyMass: value)
+            self.leanBodyMassInKg = double
+            calculateFatPercentage(forLeanBodyMass: double)
             setIsDirty()
         }
     }
-    
+
+    func handleFatPercentageValue() {
+        guard let double = fatPercentageInput.double else { return }
+        withAnimation {
+            calculateLeanBodyMass(forFatPercentage: double)
+            setIsDirty()
+        }
+    }
+
 //    func submitCustomValue() {
 //        withAnimation {
 //            customInput.submitValue()
@@ -480,7 +403,7 @@ struct LeanBodyMassMeasurementForm: View {
     }
     
     func calculateFatPercentage(forLeanBodyMass lbm: Double? = nil) {
-        guard let lbm = lbm ?? self.value else {
+        guard let lbm = lbm ?? self.leanBodyMassInKg else {
             setFatPercentage(nil)
             return
         }
@@ -501,29 +424,25 @@ struct LeanBodyMassMeasurementForm: View {
     
     func setFatPercentage(_ p: Double?) {
         guard let p = p?.rounded(toPlaces: 1) else {
-            fatPercentageInput = DoubleInput()
+            fatPercentageInput = DoubleInput(automaticallySubmitsValues: true)
             return
         }
-        fatPercentageInput = DoubleInput(double: p)
+        fatPercentageInput = DoubleInput(double: p, automaticallySubmitsValues: true)
     }
     
-    func setLeanBodyMass(_ lbm: Double?) {
-        guard let lbm = lbm?.rounded(toPlaces: 1) else {
-            value = nil
-//            customInput = DoubleInput()
+    func setLeanBodyMass(_ value: Double?) {
+        guard let value = value?.rounded(toPlaces: 1) else {
+            leanBodyMassInKg = nil
+            doubleInput = DoubleInput(automaticallySubmitsValues: true)
             return
         }
-        value = lbm
-//        customInput = DoubleInput(double: lbm)
+        leanBodyMassInKg = value
+        doubleInput = DoubleInput(double: value, automaticallySubmitsValues: true)
     }
 
     func setIsDirty() {
-        isDirty = if let value {
-            value != 72
-            || fatPercentageInput.double != 24.8
-        } else {
-            false
-        }
+        isDirty = leanBodyMassInKg != nil
+        || fatPercentageInput.double != nil
     }
     
     //MARK: - Convenience
