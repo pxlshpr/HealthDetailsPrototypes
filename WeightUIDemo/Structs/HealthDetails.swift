@@ -29,18 +29,6 @@ struct WeightMeasurement: Hashable, Identifiable, Codable {
     let weightInKg: Double
     
     init(
-        _ id: UUID,
-        _ date: Date,
-        _ weightInKg: Double,
-        _ healthKitUUID: UUID? = nil
-    ) {
-        self.id = id
-        self.healthKitUUID = healthKitUUID
-        self.date = date
-        self.weightInKg = weightInKg
-    }
-
-    init(
         id: UUID = UUID(),
         date: Date,
         weightInKg: Double,
@@ -51,27 +39,11 @@ struct WeightMeasurement: Hashable, Identifiable, Codable {
         self.date = date
         self.weightInKg = weightInKg
     }
-
-    var timeString: String {
-        date.shortTime
-    }
-    
-    var isFromHealthKit: Bool {
-        healthKitUUID != nil
-    }
-    
-    var imageType: MeasurementCell.ImageType {
-        if isFromHealthKit {
-            .healthKit
-        } else {
-            .systemImage("pencil")
-        }
-    }
 }
 
-extension WeightMeasurement: Comparable {
-    static func < (lhs: WeightMeasurement, rhs: WeightMeasurement) -> Bool {
-        lhs.date < rhs.date
+extension WeightMeasurement: Measurable {
+    var value: Double {
+        weightInKg
     }
 }
 
@@ -93,18 +65,6 @@ struct HeightMeasurement: Hashable, Identifiable, Codable {
     let heightInCm: Double
     
     init(
-        _ id: UUID,
-        _ date: Date,
-        _ heightInCm: Double,
-        _ healthKitUUID: UUID? = nil
-    ) {
-        self.id = id
-        self.healthKitUUID = healthKitUUID
-        self.date = date
-        self.heightInCm = heightInCm
-    }
-
-    init(
         id: UUID = UUID(),
         date: Date,
         heightInCm: Double,
@@ -115,27 +75,11 @@ struct HeightMeasurement: Hashable, Identifiable, Codable {
         self.date = date
         self.heightInCm = heightInCm
     }
-
-    var timeString: String {
-        date.shortTime
-    }
-    
-    var isFromHealthKit: Bool {
-        healthKitUUID != nil
-    }
-    
-    var imageType: MeasurementCell.ImageType {
-        if isFromHealthKit {
-            .healthKit
-        } else {
-            .systemImage("pencil")
-        }
-    }
 }
 
-extension HeightMeasurement: Comparable {
-    static func < (lhs: HeightMeasurement, rhs: HeightMeasurement) -> Bool {
-        lhs.date < rhs.date
+extension HeightMeasurement: Measurable {
+    var value: Double {
+        heightInCm
     }
 }
 

@@ -70,6 +70,18 @@ extension SettingsProvider {
     }
 }
 
+extension SettingsProvider {
+    func unit(for healthUnit: any HealthUnit.Type) -> (any HealthUnit)? {
+        if healthUnit is BodyMassUnit.Type {
+            bodyMassUnit
+        } else if healthUnit is HeightUnit.Type {
+            heightUnit
+        } else {
+            nil
+        }
+    }
+}
+
 //import HealthKit
 //
 //public extension SettingsStore {

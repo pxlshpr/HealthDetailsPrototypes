@@ -133,109 +133,88 @@ struct WeightForm: View {
         )
     }
     
-//    func cell_(for data: WeightMeasurement, disabled: Bool = false) -> some View {
+    var list: some View {
+        MeasurementsSection<BodyMassUnit>(
+            measurements: Binding<[any Measurable]>(
+                get: { measurements },
+                set: { newValue in
+                    guard let measurements = newValue as? [WeightMeasurement] else { return }
+                    self.measurements = measurements
+                }
+            ),
+            deletedHealthKitMeasurements: Binding<[any Measurable]>(
+                get: { deletedHealthKitMeasurements },
+                set: { newValue in
+                    guard let measurements = newValue as? [WeightMeasurement] else { return }
+                    self.deletedHealthKitMeasurements = measurements
+                }
+            ),
+            showingForm: $showingForm,
+            isPast: Binding<Bool>(
+                get: { isPast },
+                set: { _ in }
+            ),
+            isEditing: Binding<Bool>(
+                get: { isEditing },
+                set: { _ in }
+            ),
+            handleChanges: handleChanges
+        )
+    }
+    
+//    var list: some View {
 //        @ViewBuilder
-//        var image: some View {
-//            switch data.isFromHealthKit {
-//            case true:
-//                Image("AppleHealthIcon")
-//                    .resizable()
-//                    .frame(width: 24, height: 24)
-//                    .overlay(
-//                        RoundedRectangle(cornerRadius: 5)
-//                            .stroke(Color(.systemGray3), lineWidth: 0.5)
-//                    )
-//            case false:
-//                Image(systemName: "pencil")
-//                    .frame(width: 24, height: 24)
-//                    .background(
-//                        RoundedRectangle(cornerRadius: 5)
-//                            .foregroundStyle(Color(.systemGray4))
-//                    )
+//        var footer: some View {
+//            if !measurements.isEmpty {
+//                Text(DailyValueType.last.description)
 //            }
 //        }
 //        
-//        @ViewBuilder
-//        var deleteButton: some View {
-//            if isEditing, isPast {
-//                Button {
-//                    withAnimation {
-//                        delete(data)
+//        var lastRow: some View {
+//            var shouldShow: Bool {
+//                !(isDisabled && !measurements.isEmpty)
+//            }
+//            
+//            var content: some View {
+//                HStack {
+//                    if isDisabled {
+//                        if measurements.isEmpty {
+//                            Text("No Measurements")
+//                                .foregroundStyle(.secondary)
+//                        }
+//                    } else {
+//                        Text("Add Measurement")
+//                            .foregroundStyle(Color.accentColor)
 //                    }
-//                } label: {
-//                    Image(systemName: "minus.circle.fill")
-//                        .imageScale(.large)
-//                        .foregroundStyle(.red)
+//                    Spacer()
+//                    Button {
+//                        showingForm = true
+//                    } label: {
+//                    }
+//                    .disabled(isDisabled)
 //                }
-//                .buttonStyle(.plain)
+//            }
+//            
+//            return Group {
+//                if shouldShow {
+//                    content
+//                }
 //            }
 //        }
 //        
-//        return HStack {
-//            deleteButton
-//                .opacity(disabled ? 0.6 : 1)
-//            image
-//            Text(data.dateString)
-//                .foregroundStyle(disabled ? .secondary : .primary)
-//            Spacer()
-//            Text(data.valueString(unit: "kg"))
-//                .foregroundStyle(disabled ? .secondary : .primary)
+//        var cells: some View {
+//            ForEach(measurements) { data in
+//                cell(for: data)
+//                    .deleteDisabled(isPast)
+//            }
+//            .onDelete(perform: delete)
+//        }
+//        
+//        return Section(footer: footer) {
+//            cells
+//            lastRow
 //        }
 //    }
-    
-    var list: some View {
-        @ViewBuilder
-        var footer: some View {
-            if !measurements.isEmpty {
-                Text(DailyValueType.last.description)
-            }
-        }
-        
-        var lastRow: some View {
-            var shouldShow: Bool {
-                !(isDisabled && !measurements.isEmpty)
-            }
-            
-            var content: some View {
-                HStack {
-                    if isDisabled {
-                        if measurements.isEmpty {
-                            Text("No Measurements")
-                                .foregroundStyle(.secondary)
-                        }
-                    } else {
-                        Text("Add Measurement")
-                            .foregroundStyle(Color.accentColor)
-                    }
-                    Spacer()
-                    Button {
-                        showingForm = true
-                    } label: {
-                    }
-                    .disabled(isDisabled)
-                }
-            }
-            
-            return Group {
-                if shouldShow {
-                    content
-                }
-            }
-        }
-        
-        var cells: some View {
-            ForEach(measurements) { data in
-                cell(for: data)
-                    .deleteDisabled(isPast)
-            }
-            .onDelete(perform: delete)
-        }
-        
-        return Section(footer: footer) {
-            cells
-            lastRow
-        }
-    }
     
     var measurementForm: some View {
         MeasurementForm(type: .weight, date: pastDate) { int, double, time in
@@ -527,15 +506,6 @@ struct WeightForm: View {
     }
 }
 
-let MockWeightData: [HeightMeasurement] = [
-    .init(UUID(uuidString: "F89DC6EC-F6C9-49B0-A860-6BFABE48A2BC")!, Date(fromShortTimeString: "09_42")!, 95.4),
-    .init(UUID(uuidString: "B18C3606-7790-48B8-B62B-76C928BEAE3B")!, Date(fromShortTimeString: "12_07")!, 94.4, UUID(uuidString: "5F507BFC-6BCB-4BE6-88B2-3FD4BEFE4556")!),
-    .init(UUID(uuidString: "BAFFCD6B-B9D8-46B8-878D-771FB3895D4C")!, Date(fromShortTimeString: "13_23")!, 94.3),
-    .init(UUID(uuidString: "EA1716DA-4DD0-4549-9ED6-955FFEEDEB79")!, Date(fromShortTimeString: "15_01")!, 94.7, UUID(uuidString: "9B12AB6D-69DA-4FAC-9D80-3D0BB6A67D50")!),
-    .init(UUID(uuidString: "49CB4FF0-673C-4FCC-BF66-0E04E06C4A72")!, Date(fromShortTimeString: "17_35")!, 95.1),
-    .init(UUID(uuidString: "E45059D5-6AF6-49F7-91FB-BFABF9533405")!, Date(fromShortTimeString: "19_54")!, 94.5),
-]
-
 #Preview("Current (kg)") {
     NavigationView {
         WeightForm(healthProvider: MockCurrentProvider)
@@ -578,6 +548,6 @@ let MockWeightData: [HeightMeasurement] = [
     }
 }
 
-#Preview("Demo ") {
+#Preview("Demo") {
     DemoView()
 }
