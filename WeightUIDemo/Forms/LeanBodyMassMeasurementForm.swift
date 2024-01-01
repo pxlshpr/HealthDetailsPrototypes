@@ -1,39 +1,51 @@
 import SwiftUI
+import PrepShared
+import SwiftUIIntrospect
 
+
+//TODO: Next
+/// [ ] Make CustomSection its own View, passing in the bool for tracking whether its been focused (so we can reset it here). Have it usable for Height or Weight (check MeasurementForm) and use it in both places
+/// [ ] Now use a single value field for percentage (which we should extract out of CustomSection and make it another view thats used there for the single unit values)
+/// [ ] Now visit the LBM calculation and make sure its happening
+/// [ ] See if we can get rid of `value` and just use `doubleInput` and `intInput` which we set whenever calculated (through fat percentage and equation) so that the value is always consistent amongst the sections (we don't need to *remember* what values each section had
+/// [ ] Now do the date stuff for fetching the weight. Consider how we want to save it—check Reminders for where we had a reminder about this first.
+/// [ ] Test by saving height for past date, and weight for today, then making sure equation variables correctly picks up the values from the backend (we'll need HealthProvider to help us with this somehow, even though its for a past date)
 struct LeanBodyMassMeasurementForm: View {
     
+    @Environment(SettingsProvider.self) var settingsProvider
     @Environment(\.dismiss) var dismiss
     
     @Bindable var healthProvider: HealthProvider
     
-    @State var source: LeanBodyMassSource = .fatPercentage
-        
     @State var time = Date.now
 
+    @State var source: LeanBodyMassSource = .fatPercentage
     @State var equation: LeanBodyMassEquation = .boer
-    @State var showingEquationsInfo = false
     
     @State var value: Double? = 72.0
-    @State var customInput = DoubleInput(double: 72)
+    
+    @State var doubleInput = DoubleInput(automaticallySubmitsValues: true)
+    @State var intInput = IntInput(automaticallySubmitsValues: true)
+
     @State var fatPercentageInput = DoubleInput(double: 24.8)
     
-    @State var showingAlert = false
-    @State var showingFatPercentageAlert = false
-
     @State var isDirty: Bool = false
-
     @State var dismissDisabled: Bool = false
-    
+
+//    @State var showingAlert = false
+//    @State var showingFatPercentageAlert = false
+    @State var showingEquationsInfo = false
+
+    let add: (Int, Double, Date) -> ()
+
     init(
-        healthProvider: HealthProvider
+        healthProvider: HealthProvider,
+        add: @escaping (Int, Double, Date) -> ()
     ) {
         self.healthProvider = healthProvider
+        self.add = add
     }
     
-    var date: Date {
-        healthProvider.healthDetails.date
-    }
-
     var body: some View {
         NavigationView {
             form
@@ -42,22 +54,23 @@ struct LeanBodyMassMeasurementForm: View {
                 .toolbar { toolbarContent }
                 .safeAreaInset(edge: .bottom) { bottomValue }
         }
-        .alert("Enter your Lean Body Mass", isPresented: $showingAlert) {
-            TextField("kg", text: customInput.binding)
-                .keyboardType(.decimalPad)
-            Button("OK", action: submitCustomValue)
-            Button("Cancel") {
-                customInput.cancel()
-            }
-        }
-        .alert("Enter your Fat Percentage", isPresented: $showingFatPercentageAlert) {
-            TextField("%", text: fatPercentageInput.binding)
-                .keyboardType(.decimalPad)
-            Button("OK", action: submitFatPercentage)
-            Button("Cancel") { 
-                fatPercentageInput.cancel()
-            }
-        }
+        .scrollDismissesKeyboard(.immediately)
+//        .alert("Enter your Lean Body Mass", isPresented: $showingAlert) {
+//            TextField("kg", text: customInput.binding)
+//                .keyboardType(.decimalPad)
+//            Button("OK", action: submitCustomValue)
+//            Button("Cancel") {
+//                customInput.cancel()
+//            }
+//        }
+//        .alert("Enter your Fat Percentage", isPresented: $showingFatPercentageAlert) {
+//            TextField("%", text: fatPercentageInput.binding)
+//                .keyboardType(.decimalPad)
+//            Button("OK", action: submitFatPercentage)
+//            Button("Cancel") { 
+//                fatPercentageInput.cancel()
+//            }
+//        }
         .interactiveDismissDisabled(dismissDisabled)
         .onChange(of: isDirty) { _, _ in setDismissDisabled() }
     }
@@ -80,10 +93,6 @@ struct LeanBodyMassMeasurementForm: View {
                 EmptyView()
             }
         }
-    }
-    
-    func setDismissDisabled() {
-        dismissDisabled = isDirty
     }
     
     var bottomValue: some View {
@@ -142,31 +151,121 @@ struct LeanBodyMassMeasurementForm: View {
         }
     }
     
-    //MARK: - Sections
+    @State var hasFocusedCustom: Bool = false
+
     var customSection: some View {
-        InputSection(
-            name: "Lean Body Mass",
-            valueString: Binding<String?>(
-                get: { customInput.double?.clean },
-                set: { _ in }
-            ),
-            showingAlert: $showingAlert,
-            unitString: "kg",
-            footerString: "The weight below will be used to calculate your Fat Percentage."
-        )
+
+        func introspect(_ textField: UITextField) {
+            guard !hasFocusedCustom else { return }
+            textField.becomeFirstResponder()
+            textField.selectedTextRange = textField.textRange(from: textField.beginningOfDocument, to: textField.endOfDocument)
+            hasFocusedCustom = true
+        }
+        
+        func dualUnit(_ secondUnitString: String) -> some View {
+            let firstComponent = Binding<String>(
+                get: { intInput.binding.wrappedValue },
+                set: { newValue in
+                    intInput.binding.wrappedValue = newValue
+                    setIsDirty()
+                }
+            )
+            
+            let secondComponent = Binding<String>(
+                get: { doubleInput.binding.wrappedValue },
+                set: { newValue in
+                    doubleInput.binding.wrappedValue = newValue
+                    guard let double = doubleInput.double else {
+                        handleCustomValue()
+                        return
+                    }
+                    
+                    if double >= BodyMassUnit.upperSecondaryUnitValue {
+                        doubleInput.binding.wrappedValue = ""
+                    }
+                    handleCustomValue()
+                }
+            )
+            return Group {
+                HStack {
+                    Text(unitString)
+                    Spacer()
+                    TextField("", text: firstComponent)
+                        .keyboardType(.numberPad)
+                        .multilineTextAlignment(.trailing)
+                        .introspect(.textField, on: .iOS(.v17)) { introspect($0) }
+                }
+                HStack {
+                    Text(secondUnitString)
+                    Spacer()
+                    TextField("", text: secondComponent)
+                        .keyboardType(.decimalPad)
+                        .multilineTextAlignment(.trailing)
+                }
+            }
+        }
+        
+        var singleUnit: some View {
+            let firstComponent = Binding<String>(
+                get: { doubleInput.binding.wrappedValue },
+                set: { newValue in
+                    doubleInput.binding.wrappedValue = newValue
+                    handleCustomValue()
+                }
+            )
+
+            return HStack {
+                Text(unitString)
+                Spacer()
+                TextField("", text: firstComponent)
+                    .keyboardType(.decimalPad)
+                    .multilineTextAlignment(.trailing)
+                    .introspect(.textField, on: .iOS(.v17)) { introspect($0) }
+            }
+        }
+        return Section {
+            if let secondUnitString {
+                dualUnit(secondUnitString)
+            } else {
+                singleUnit
+            }
+        }
+    }
+    
+    var unitString: String {
+        settingsProvider.bodyMassUnit.abbreviation
+    }
+
+    var secondUnitString: String? {
+        settingsProvider.bodyMassUnit.secondaryUnit
+    }
+    
+    var customSection_: some View {
+        EmptyView()
+//        InputSection(
+//            name: "Lean Body Mass",
+//            valueString: Binding<String?>(
+//                get: { customInput.double?.clean },
+//                set: { _ in }
+//            ),
+//            showingAlert: $showingAlert,
+//            unitString: "kg",
+//            footerString: "The weight below will be used to calculate your Fat Percentage."
+//        )
     }
     
     var fatPercentageEnterSection: some View {
-        InputSection(
-            name: "Fat Percentage",
-            valueString: Binding<String?>(
-                get: { fatPercentageInput.double?.clean },
-                set: { _ in }
-            ),
-            showingAlert: $showingFatPercentageAlert,
-            unitString: "%",
-            footerString: "The weight below will be used to calculate your Lean Body Mass."
-        )
+        EmptyView()
+//        InputSection(
+//            name: "Fat Percentage",
+//            valueString: Binding<String?>(
+//                get: { fatPercentageInput.double?.clean },
+//                set: { _ in }
+//            ),
+//            showingAlert: $showingFatPercentageAlert,
+//            unitString: "%",
+//            footerString: "The weight below will be used to calculate your Lean Body Mass."
+//        )
     }
     
     var weightSection: some View {
@@ -270,10 +369,14 @@ struct LeanBodyMassMeasurementForm: View {
                 }
                 switch source {
                 case .userEntered:
-                    showingAlert = true
+                    break
+//                    showingAlert = true
                 case .fatPercentage:
-                    showingFatPercentageAlert = true
+                    hasFocusedCustom = false
+                    break
+//                    showingFatPercentageAlert = true
                 case .equation:
+                    hasFocusedCustom = false
                     calculateEquation()
                 default:
                     break
@@ -310,22 +413,35 @@ struct LeanBodyMassMeasurementForm: View {
     
     //MARK: - Actions
     
-    func submitCustomValue() {
+    func setDismissDisabled() {
+        dismissDisabled = isDirty
+    }
+    
+    func handleCustomValue() {
         withAnimation {
-            customInput.submitValue()
-            value = customInput.double
-            calculateFatPercentage(forLeanBodyMass: customInput.double)
+            let value = doubleInput.double
+            self.value = value
+            calculateFatPercentage(forLeanBodyMass: value)
             setIsDirty()
         }
     }
-
-    func submitFatPercentage() {
-        withAnimation {
-            fatPercentageInput.submitValue()
-            calculateLeanBodyMass(forFatPercentage: fatPercentageInput.double)
-            setIsDirty()
-        }
-    }
+    
+//    func submitCustomValue() {
+//        withAnimation {
+//            customInput.submitValue()
+//            value = customInput.double
+//            calculateFatPercentage(forLeanBodyMass: customInput.double)
+//            setIsDirty()
+//        }
+//    }
+//
+//    func submitFatPercentage() {
+//        withAnimation {
+//            fatPercentageInput.submitValue()
+//            calculateLeanBodyMass(forFatPercentage: fatPercentageInput.double)
+//            setIsDirty()
+//        }
+//    }
     
     func calculateEquation() {
         let weightInKg: Double? = 95.7
@@ -379,11 +495,11 @@ struct LeanBodyMassMeasurementForm: View {
     func setLeanBodyMass(_ lbm: Double?) {
         guard let lbm = lbm?.rounded(toPlaces: 1) else {
             value = nil
-            customInput = DoubleInput()
+//            customInput = DoubleInput()
             return
         }
         value = lbm
-        customInput = DoubleInput(double: lbm)
+//        customInput = DoubleInput(double: lbm)
     }
 
     func setIsDirty() {
@@ -394,9 +510,42 @@ struct LeanBodyMassMeasurementForm: View {
             false
         }
     }
+    
+    //MARK: - Convenience
+    
+    var date: Date {
+        healthProvider.healthDetails.date
+    }
 }
 
+#Preview("Current (kg)") {
+    LeanBodyMassMeasurementForm(
+        healthProvider: MockCurrentProvider
+    ) { int, double, time in
+        
+    }
+    .environment(SettingsProvider(settings: .init(bodyMassUnit: .kg)))
+}
 
-#Preview("Measurement") {
-    LeanBodyMassMeasurementForm(healthProvider: MockCurrentProvider)
+#Preview("Current (st)") {
+    LeanBodyMassMeasurementForm(
+        healthProvider: MockCurrentProvider
+    ) { int, double, time in
+        
+    }
+    .environment(SettingsProvider(settings: .init(bodyMassUnit: .st)))
+}
+
+#Preview("LeanBodyMassForm (kg)") {
+    NavigationView {
+        LeanBodyMassForm(healthProvider: MockCurrentProvider)
+            .environment(SettingsProvider(settings: .init(bodyMassUnit: .kg)))
+    }
+}
+
+#Preview("LeanBodyMassForm (st)") {
+    NavigationView {
+        LeanBodyMassForm(healthProvider: MockCurrentProvider)
+            .environment(SettingsProvider(settings: .init(bodyMassUnit: .st)))
+    }
 }

@@ -60,7 +60,6 @@ struct LeanBodyMassForm: View {
         Form {
             noticeOrDateSection
             measurementsSections
-            //            deletedList
             syncSection
             explanation
         }
@@ -156,27 +155,6 @@ struct LeanBodyMassForm: View {
                         get: { isDisabled }, set: { _ in }
                     )
                 )
-                //                if let leanBodyMassInKg {
-                //                    Text("\(leanBodyMassInKg.roundedToOnePlace)")
-                //                        .contentTransition(.numericText(value: leanBodyMassInKg))
-                //                        .font(LargeNumberFont)
-                //                        .foregroundStyle(isDisabled ? .secondary : .primary)
-                //                    Text("kg")
-                //                        .font(LargeUnitFont)
-                //                        .foregroundStyle(isDisabled ? .tertiary : .secondary)
-                //                } else {
-                //                    ZStack {
-                //
-                //                        /// dummy text placed to ensure height stays consistent
-                //                        Text("0")
-                //                            .font(LargeNumberFont)
-                //                            .opacity(0)
-                //
-                //                        Text("Not Set")
-                //                            .font(LargeUnitFont)
-                //                            .foregroundStyle(isDisabled ? .tertiary : .secondary)
-                //                    }
-                //                }
             }
         }
         
@@ -206,14 +184,13 @@ struct LeanBodyMassForm: View {
     
     //MARK: - Rewrite
     var measurementForm: some View {
-        LeanBodyMassMeasurementForm(healthProvider: healthProvider)
-        //        MeasurementForm(type: .weight, date: pastDate) { int, double, time in
-        //            let weightInKg = settingsProvider.bodyMassUnit.convert(int, double, to: .kg)
-        //            let measurement = WeightMeasurement(date: time, weightInKg: weightInKg)
-        //            measurements.append(measurement)
-        //            measurements.sort()
-        //            handleChanges()
-        //        }
+        LeanBodyMassMeasurementForm(healthProvider: healthProvider) { int, double, time in
+//            let weightInKg = settingsProvider.bodyMassUnit.convert(int, double, to: .kg)
+//            let measurement = WeightMeasurement(date: time, weightInKg: weightInKg)
+//            measurements.append(measurement)
+//            measurements.sort()
+            handleChanges()
+        }
     }
     
     var dailyValuePicker: some View {

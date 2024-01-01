@@ -4,10 +4,6 @@ import SwiftUIIntrospect
 
 struct MeasurementForm: View {
     
-    @Environment(SettingsProvider.self) var settingsProvider
-    
-    @Environment(\.dismiss) var dismiss
-    
     enum MeasurementType {
         case weight
         case height
@@ -20,6 +16,9 @@ struct MeasurementForm: View {
         }
     }
     
+    @Environment(SettingsProvider.self) var settingsProvider
+    @Environment(\.dismiss) var dismiss
+    
     let type: MeasurementType
     let date: Date
     @State var time = Date.now
@@ -27,7 +26,6 @@ struct MeasurementForm: View {
     @State var doubleInput = DoubleInput(automaticallySubmitsValues: true)
     @State var intInput = IntInput(automaticallySubmitsValues: true)
     
-    @State var showingAlert = false
     @State var isDirty: Bool = false
     @State var dismissDisabled: Bool = false
     @State var hasFocusedOnAppear: Bool = false
@@ -112,6 +110,7 @@ struct MeasurementForm: View {
             textField.selectedTextRange = textField.textRange(from: textField.beginningOfDocument, to: textField.endOfDocument)
             hasFocusedOnAppear = true
         }
+        
         func dualUnit(_ secondUnitString: String) -> some View {
             let firstComponent = Binding<String>(
                 get: { intInput.binding.wrappedValue },
