@@ -3,7 +3,6 @@ import PrepShared
 import SwiftUIIntrospect
 
 //TODO: Next
-/// [ ] See if we can get rid of `value` and just use `doubleInput` and `intInput` which we set whenever calculated (through fat percentage and equation) so that the value is always consistent amongst the sections (we don't need to *remember* what values each section had
 /// [ ] Now do the date stuff for fetching the weight. Consider how we want to save it—check Reminders for where we had a reminder about this first.
 /// [ ] Test by saving height for past date, and weight for today, then making sure equation variables correctly picks up the values from the backend (we'll need HealthProvider to help us with this somehow, even though its for a past date)
 struct LeanBodyMassMeasurementForm: View {
@@ -28,8 +27,6 @@ struct LeanBodyMassMeasurementForm: View {
     @State var isDirty: Bool = false
     @State var dismissDisabled: Bool = false
 
-//    @State var showingAlert = false
-//    @State var showingFatPercentageAlert = false
     @State var showingEquationsInfo = false
 
     @State var hasFocusedCustom: Bool = false

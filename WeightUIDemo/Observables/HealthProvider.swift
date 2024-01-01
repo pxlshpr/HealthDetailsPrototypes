@@ -4,7 +4,9 @@ import SwiftUI
     
     let isCurrent: Bool
     var healthDetails: HealthDetails
-
+    
+    //TODO: Store the most recent weight, height, leanBodyMass here
+    
     init(
         isCurrent: Bool,
         healthDetails: HealthDetails

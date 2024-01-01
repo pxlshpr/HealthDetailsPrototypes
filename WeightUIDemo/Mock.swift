@@ -11,13 +11,19 @@ struct MockCurrentHealthDetailsForm: View {
         _isPresented = isPresented
         
         let healthDetails = fetchHealthDetailsFromDocuments(Date.now)
-        let healthProvider = HealthProvider(isCurrent: true, healthDetails: healthDetails)
+        let healthProvider = HealthProvider(
+            isCurrent: true,
+            healthDetails: healthDetails
+        )
         _healthProvider = State(initialValue: healthProvider)
     }
 
     var body: some View {
-        HealthDetailsForm(healthProvider: healthProvider, isPresented: $isPresented)
-            .environment(settingsProvider)
+        HealthDetailsForm(
+            healthProvider: healthProvider,
+            isPresented: $isPresented
+        )
+        .environment(settingsProvider)
     }
 }
 
@@ -32,13 +38,19 @@ struct MockPastHealthDetailsForm: View {
         _isPresented = isPresented
         
         let healthDetails = fetchHealthDetailsFromDocuments(Date(fromDateString: "2023_12_01")!)
-        let healthProvider = HealthProvider(isCurrent: false, healthDetails: healthDetails)
-        _healthProvider = State(initialValue: healthProvider)        
+        let healthProvider = HealthProvider(
+            isCurrent: false,
+            healthDetails: healthDetails
+        )
+        _healthProvider = State(initialValue: healthProvider)
     }
 
     var body: some View {
-        HealthDetailsForm(healthProvider: healthProvider, isPresented: $isPresented)
-            .environment(settingsProvider)
+        HealthDetailsForm(
+            healthProvider: healthProvider,
+            isPresented: $isPresented
+        )
+        .environment(settingsProvider)
     }
 }
 

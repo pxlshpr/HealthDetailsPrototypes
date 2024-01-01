@@ -5,17 +5,20 @@ import PrepShared
 struct WeightForm: View {
     
     @Environment(SettingsProvider.self) var settingsProvider
-    @Bindable var healthProvider: HealthProvider
+    
+    let date: Date
+    let initialWeight: HealthDetails.Weight
+    
+//    @Bindable var healthProvider: HealthProvider
+//    let initialMeasurements: [WeightMeasurement]
+//    let initialDeletedHealthKitMeasurements: [WeightMeasurement]
+//    let initialDailyValueType: DailyValueType
 
     @State var weightInKg: Double?
     @State var dailyValueType: DailyValueType
     @State var measurements: [WeightMeasurement]
     @State var deletedHealthKitMeasurements: [WeightMeasurement]
     @State var isSynced: Bool = true
-
-    let initialMeasurements: [WeightMeasurement]
-    let initialDeletedHealthKitMeasurements: [WeightMeasurement]
-    let initialDailyValueType: DailyValueType
 
     @State var showingForm = false
     
@@ -24,28 +27,50 @@ struct WeightForm: View {
     @Binding var isPresented: Bool
     @Binding var dismissDisabled: Bool
     
+    let saveHandler: (HealthDetails.Weight) -> ()
+    
     init(
-        healthProvider: HealthProvider,
+        date: Date,
+        weight: HealthDetails.Weight,
+//        healthProvider: HealthProvider,
         isPresented: Binding<Bool> = .constant(true),
-        dismissDisabled: Binding<Bool> = .constant(false)
+        dismissDisabled: Binding<Bool> = .constant(false),
+        save: @escaping (HealthDetails.Weight) -> ()
     ) {
-        self.healthProvider = healthProvider
+        self.date = date
+        self.initialWeight = weight
+        self.saveHandler = save
+//        self.healthProvider = healthProvider
         _isPresented = isPresented
         _dismissDisabled = dismissDisabled
-        _isEditing = State(initialValue: healthProvider.isCurrent)
-        
-        let weight = healthProvider.healthDetails.weight
+//        _isEditing = State(initialValue: healthProvider.isCurrent)
+        _isEditing = State(initialValue: date.isToday)
+
+//        let weight = healthProvider.healthDetails.weight
         _weightInKg = State(initialValue: weight.weightInKg)
         _measurements = State(initialValue: weight.measurements)
         _dailyValueType = State(initialValue: weight.dailyValueType)
         _deletedHealthKitMeasurements = State(initialValue: weight.deletedHealthKitMeasurements)
         _isSynced = State(initialValue: weight.isSynced)
 
-        self.initialMeasurements = weight.measurements
-        self.initialDeletedHealthKitMeasurements = weight.deletedHealthKitMeasurements
-        self.initialDailyValueType = weight.dailyValueType
+//        self.initialMeasurements = weight.measurements
+//        self.initialDeletedHealthKitMeasurements = weight.deletedHealthKitMeasurements
+//        self.initialDailyValueType = weight.dailyValueType
     }
     
+    init(
+        healthProvider: HealthProvider,
+        isPresented: Binding<Bool> = .constant(true),
+        dismissDisabled: Binding<Bool> = .constant(false)
+    ) {
+        self.init(
+            date: healthProvider.healthDetails.date,
+            weight: healthProvider.healthDetails.weight,
+            isPresented: isPresented,
+            dismissDisabled: dismissDisabled,
+            save: healthProvider.saveWeight(_:)
+        )
+    }
     var body: some View {
         Form {
             noticeOrDateSection
@@ -108,7 +133,11 @@ struct WeightForm: View {
     }
     
     var measurementForm: some View {
-        MeasurementForm(type: .weight, date: pastDate) { int, double, time in
+        MeasurementForm(
+            type: .weight,
+//            date: pastDate
+            date: date
+        ) { int, double, time in
             let weightInKg = settingsProvider.bodyMassUnit.convert(int, double, to: .kg)
             let measurement = WeightMeasurement(date: time, weightInKg: weightInKg)
             measurements.append(measurement)
@@ -176,8 +205,10 @@ struct WeightForm: View {
     
     @ViewBuilder
     var noticeOrDateSection: some View {
-        if let pastDate {
-            NoticeSection.legacy(pastDate, isEditing: $isEditing)
+//        if let pastDate {
+//            NoticeSection.legacy(pastDate, isEditing: $isEditing)
+        if isPast {
+            NoticeSection.legacy(date, isEditing: $isEditing)
         } else {
             Section {
                 HStack {
@@ -235,9 +266,10 @@ struct WeightForm: View {
     //MARK: - Actions
     
     func setIsDirty() {
-        isDirty = measurements != initialMeasurements
-        || deletedHealthKitMeasurements != initialDeletedHealthKitMeasurements
-        || dailyValueType != initialDailyValueType
+        isDirty = weight != initialWeight
+//        isDirty = measurements != initialMeasurements
+//        || deletedHealthKitMeasurements != initialDeletedHealthKitMeasurements
+//        || dailyValueType != initialDailyValueType
     }
     
     func setDismissDisabled() {
@@ -253,7 +285,7 @@ struct WeightForm: View {
     }
 
     func undo() {
-        let weight = healthProvider.healthDetails.weight
+//        let weight = healthProvider.healthDetails.weight
         self.weightInKg = weight.weightInKg
         self.dailyValueType = weight.dailyValueType
         self.measurements = weight.measurements
@@ -262,26 +294,9 @@ struct WeightForm: View {
     }
     
     func save() {
-        healthProvider.saveWeight(weight)
+        saveHandler(weight)
+//        healthProvider.saveWeight(weight)
     }
-
-//    func delete(_ data: WeightMeasurement) {
-//        if data.isFromHealthKit {
-//            deletedHealthKitMeasurements.append(data)
-//            deletedHealthKitMeasurements.sort()
-//        }
-//        measurements.removeAll(where: { $0.id == data.id })
-//        handleChanges()
-//    }
-//    
-//    func delete(at offsets: IndexSet) {
-//        let dataToDelete = offsets.map { self.measurements[$0] }
-//        withAnimation {
-//            for data in dataToDelete {
-//                delete(data)
-//            }
-//        }
-//    }
 
     //MARK: - Convenience
     
@@ -294,12 +309,13 @@ struct WeightForm: View {
     }
     
     var isPast: Bool {
-        pastDate != nil
+        date.startOfDay < Date.now.startOfDay
+//        pastDate != nil
     }
     
-    var pastDate: Date? {
-        healthProvider.pastDate
-    }
+//    var pastDate: Date? {
+//        healthProvider.pastDate
+//    }
 
     var calculatedWeightInKg: Double? {
         switch dailyValueType {
