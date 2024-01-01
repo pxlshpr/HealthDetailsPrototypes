@@ -5,9 +5,28 @@ protocol Measurable: Identifiable {
     var healthKitUUID: UUID? { get }
     var date: Date { get }
     var value: Double { get }
+    var secondaryValue: Double? { get }
+    var secondaryValueUnit: String? { get }
+    var imageType: MeasurementImageType { get }
 }
 
 extension Measurable {
+    var secondaryValue: Double? {
+        nil
+    }
+    
+    var secondaryValueUnit: String? {
+        nil
+    }
+    
+    var secondaryValueString: String? {
+        if let secondaryValue, let secondaryValueUnit {
+            "\(secondaryValue) \(secondaryValueUnit)"
+        } else {
+            nil
+        }
+    }
+    
     var timeString: String {
         date.shortTime
     }
@@ -16,7 +35,7 @@ extension Measurable {
         healthKitUUID != nil
     }
     
-    var imageType: MeasurementCell.ImageType {
+    var imageType: MeasurementImageType {
         if isFromHealthKit {
             .healthKit
         } else {

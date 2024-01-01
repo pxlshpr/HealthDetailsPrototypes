@@ -102,6 +102,7 @@ struct WeightForm: View {
                 get: { isEditing },
                 set: { _ in }
             ),
+            dailyValueType: $dailyValueType,
             handleChanges: handleChanges
         )
     }
@@ -110,15 +111,12 @@ struct WeightForm: View {
         MeasurementForm(type: .weight, date: pastDate) { int, double, time in
             let weightInKg = settingsProvider.bodyMassUnit.convert(int, double, to: .kg)
             let measurement = WeightMeasurement(date: time, weightInKg: weightInKg)
-            addMeasurement(measurement)
+            measurements.append(measurement)
+            measurements.sort()
             handleChanges()
         }
     }
 
-    func addMeasurement(_ measurement: WeightMeasurement) {
-        measurements.append(measurement)
-        measurements.sort()
-    }
 
     var bottomValue: some View {
         
@@ -144,7 +142,7 @@ struct WeightForm: View {
                     .intComponent(weightInKg, in: settingsProvider.bodyMassUnit)
             }
             
-            return BottomValue(
+            return MeasurementBottomBar(
                 int: Binding<Int?>(
                     get: { int }, set: { _ in }
                 ),
@@ -267,23 +265,24 @@ struct WeightForm: View {
         healthProvider.saveWeight(weight)
     }
 
-    func delete(_ data: WeightMeasurement) {
-        if data.isFromHealthKit {
-            deletedHealthKitMeasurements.append(data)
-            deletedHealthKitMeasurements.sort()
-        }
-        measurements.removeAll(where: { $0.id == data.id })
-        handleChanges()
-    }
-    
-    func delete(at offsets: IndexSet) {
-        let dataToDelete = offsets.map { self.measurements[$0] }
-        withAnimation {
-            for data in dataToDelete {
-                delete(data)
-            }
-        }
-    }
+//    func delete(_ data: WeightMeasurement) {
+//        if data.isFromHealthKit {
+//            deletedHealthKitMeasurements.append(data)
+//            deletedHealthKitMeasurements.sort()
+//        }
+//        measurements.removeAll(where: { $0.id == data.id })
+//        handleChanges()
+//    }
+//    
+//    func delete(at offsets: IndexSet) {
+//        let dataToDelete = offsets.map { self.measurements[$0] }
+//        withAnimation {
+//            for data in dataToDelete {
+//                delete(data)
+//            }
+//        }
+//    }
+
     //MARK: - Convenience
     
     var isDisabled: Bool {

@@ -58,6 +58,11 @@ extension HealthProvider {
         healthDetails.weight = weight
         save()
     }
+    
+    func saveLeanBodyMass(_ leanBodyMass: HealthDetails.LeanBodyMass) {
+        healthDetails.leanBodyMass = leanBodyMass
+        save()
+    }
 }
 
 //TODO: Replace this with actual backend manipulation in Prep

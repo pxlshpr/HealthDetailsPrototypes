@@ -1,30 +1,30 @@
 import SwiftUI
 import SwiftSugar
+import PrepShared
 
 struct LeanBodyMassForm: View {
     
+    @Environment(SettingsProvider.self) var settingsProvider
     @Bindable var healthProvider: HealthProvider
     
-    @ScaledMetric var scale: CGFloat = 1
-    let imageScale: CGFloat = 24
-
-    @State var dailyValueType: DailyValueType = .average
-    @State var value: Double? = 73.6
-    @State var fatPercentage: Double? = 22.4
-    
+    @State var leanBodyMassInKg: Double?
+    @State var fatPercentage: Double?
+    @State var dailyValueType: DailyValueType
+    @State var measurements: [LeanBodyMassMeasurement]
+    @State var deletedHealthKitMeasurements: [LeanBodyMassMeasurement]
     @State var isSynced: Bool = true
-    @State var showingSyncOffConfirmation: Bool = false
-
-    @State var showingForm = false
     
-    @State var listData: [LeanBodyMassData] = MockLeanBodyMassData
-    @State var deletedHealthData: [LeanBodyMassData] = []
+    let initialMeasurements: [LeanBodyMassMeasurement]
+    let initialDeletedHealthKitMeasurements: [LeanBodyMassMeasurement]
+    let initialDailyValueType: DailyValueType
+    
+    @State var showingForm = false
     
     @State var isEditing: Bool
     @State var isDirty: Bool = false
     @Binding var isPresented: Bool
     @Binding var dismissDisabled: Bool
-
+    
     init(
         healthProvider: HealthProvider,
         isPresented: Binding<Bool> = .constant(true),
@@ -34,30 +34,39 @@ struct LeanBodyMassForm: View {
         _isPresented = isPresented
         _dismissDisabled = dismissDisabled
         _isEditing = State(initialValue: healthProvider.isCurrent)
-    }
-    
-    var pastDate: Date? {
-        healthProvider.pastDate
+        
+//        let mock: [LeanBodyMassMeasurement] = [
+//            .init(date: Date.now, leanBodyMassInKg: 73, fatPercentage: 22.3, source: .fatPercentage),
+//            .init(date: Date.now, leanBodyMassInKg: 73, fatPercentage: 21.3, source: .userEntered),
+//            .init(date: Date.now, leanBodyMassInKg: 73, fatPercentage: 20.3, source: .healthKit(UUID())),
+//            .init(date: Date.now, leanBodyMassInKg: 73, fatPercentage: 15.3, source: .equation),
+//        ]
+        
+        let leanBodyMass = healthProvider.healthDetails.leanBodyMass
+        _leanBodyMassInKg = State(initialValue: leanBodyMass.leanBodyMassInKg)
+        _measurements = State(initialValue: leanBodyMass.measurements)
+//        _measurements = State(initialValue: mock)
+        _dailyValueType = State(initialValue: leanBodyMass.dailyValueType)
+        _deletedHealthKitMeasurements = State(initialValue: leanBodyMass.deletedHealthKitMeasurements)
+        _isSynced = State(initialValue: leanBodyMass.isSynced)
+        
+        self.initialMeasurements = leanBodyMass.measurements
+//        self.initialMeasurements = mock
+        self.initialDeletedHealthKitMeasurements = leanBodyMass.deletedHealthKitMeasurements
+        self.initialDailyValueType = leanBodyMass.dailyValueType
     }
     
     var body: some View {
         Form {
             noticeOrDateSection
-            list
-            deletedList
+            measurementsSections
+            //            deletedList
             syncSection
             explanation
         }
         .navigationTitle("Lean Body Mass")
         .navigationBarTitleDisplayMode(.large)
         .toolbar { toolbarContent }
-        .confirmationDialog("Turn Off Sync", isPresented: $showingSyncOffConfirmation, titleVisibility: .visible) {
-            Button("Turn Off", role: .destructive) {
-                
-            }
-        } message: {
-            Text("Lean body mass data will no longer be read from or written to Apple Health.")
-        }
         .sheet(isPresented: $showingForm) { measurementForm }
         .safeAreaInset(edge: .bottom) { bottomValue }
         .navigationBarBackButtonHidden(isPast && isEditing)
@@ -65,13 +74,62 @@ struct LeanBodyMassForm: View {
         .onChange(of: isDirty) { _, _ in setDismissDisabled() }
     }
     
-    func setDismissDisabled() {
-        dismissDisabled = isPast && isEditing && isDirty
+    //MARK: - Sections
+    
+    var explanation: some View {
+        var header: some View {
+            Text("Usage")
+                .formTitleStyle()
+        }
+        
+        return Section(header: header) {
+            VStack(alignment: .leading) {
+                Text("Your lean body mass is the weight of your body minus your body fat (adipose tissue). It is used when:")
+                dotPoint("Creating goals. For example, you could create a protein goal relative to your lean body mass instead of your weight.")
+                dotPoint("Calculating your Resting Energy using certain equations.")
+            }
+        }
+    }
+    
+    
+    @ViewBuilder
+    var noticeOrDateSection: some View {
+        if let pastDate {
+            NoticeSection.legacy(pastDate, isEditing: $isEditing)
+        } else {
+            Section {
+                HStack {
+                    Text("Date")
+                    Spacer()
+                    Text(Date.now.shortDateString)
+                }
+            }
+        }
     }
     
     var bottomValue: some View {
         var bottomRow: some View {
-            HStack(alignment: .firstTextBaseline, spacing: 5) {
+            var intUnitString: String? {
+                settingsProvider.bodyMassUnit.intUnitString
+            }
+            
+            var doubleUnitString: String {
+                settingsProvider.bodyMassUnit.doubleUnitString
+            }
+            
+            var double: Double? {
+                guard let leanBodyMassInKg else { return nil }
+                return BodyMassUnit.kg
+                    .doubleComponent(leanBodyMassInKg, in: settingsProvider.bodyMassUnit)
+            }
+            
+            var int: Int? {
+                guard let leanBodyMassInKg else { return nil }
+                return BodyMassUnit.kg
+                    .intComponent(leanBodyMassInKg, in: settingsProvider.bodyMassUnit)
+            }
+            
+            return HStack(alignment: .firstTextBaseline, spacing: 5) {
                 if let fatPercentage {
                     Text("\(fatPercentage.roundedToOnePlace)")
                         .contentTransition(.numericText(value: fatPercentage))
@@ -82,27 +140,43 @@ struct LeanBodyMassForm: View {
                         .foregroundStyle(isDisabled ? .tertiary : .secondary)
                 }
                 Spacer()
-                if let value {
-                    Text("\(value.roundedToOnePlace)")
-                        .contentTransition(.numericText(value: value))
-                        .font(LargeNumberFont)
-                        .foregroundStyle(isDisabled ? .secondary : .primary)
-                    Text("kg")
-                        .font(LargeUnitFont)
-                        .foregroundStyle(isDisabled ? .tertiary : .secondary)
-                } else {
-                    ZStack {
-
-                        /// dummy text placed to ensure height stays consistent
-                        Text("0")
-                            .font(LargeNumberFont)
-                            .opacity(0)
-                        
-                        Text("Not Set")
-                            .font(LargeUnitFont)
-                            .foregroundStyle(isDisabled ? .tertiary : .secondary)
-                    }
-                }
+                MeasurementBottomText(
+                    int: Binding<Int?>(
+                        get: { int }, set: { _ in }
+                    ),
+                    intUnitString: intUnitString,
+                    double: Binding<Double?>(
+                        get: { double }, set: { _ in }
+                    ),
+                    doubleString: Binding<String?>(
+                        get: { double?.cleanHealth }, set: { _ in }
+                    ),
+                    doubleUnitString: doubleUnitString,
+                    isDisabled: Binding<Bool>(
+                        get: { isDisabled }, set: { _ in }
+                    )
+                )
+                //                if let leanBodyMassInKg {
+                //                    Text("\(leanBodyMassInKg.roundedToOnePlace)")
+                //                        .contentTransition(.numericText(value: leanBodyMassInKg))
+                //                        .font(LargeNumberFont)
+                //                        .foregroundStyle(isDisabled ? .secondary : .primary)
+                //                    Text("kg")
+                //                        .font(LargeUnitFont)
+                //                        .foregroundStyle(isDisabled ? .tertiary : .secondary)
+                //                } else {
+                //                    ZStack {
+                //
+                //                        /// dummy text placed to ensure height stays consistent
+                //                        Text("0")
+                //                            .font(LargeNumberFont)
+                //                            .opacity(0)
+                //
+                //                        Text("Not Set")
+                //                            .font(LargeUnitFont)
+                //                            .foregroundStyle(isDisabled ? .tertiary : .secondary)
+                //                    }
+                //                }
             }
         }
         
@@ -118,7 +192,7 @@ struct LeanBodyMassForm: View {
         .padding(.vertical, BottomValueVerticalPadding)
         .background(.bar)
     }
-
+    
     var toolbarContent: some ToolbarContent {
         topToolbarContent(
             isEditing: $isEditing,
@@ -130,36 +204,119 @@ struct LeanBodyMassForm: View {
         )
     }
     
+    //MARK: - Rewrite
+    var measurementForm: some View {
+        LeanBodyMassMeasurementForm(healthProvider: healthProvider)
+        //        MeasurementForm(type: .weight, date: pastDate) { int, double, time in
+        //            let weightInKg = settingsProvider.bodyMassUnit.convert(int, double, to: .kg)
+        //            let measurement = WeightMeasurement(date: time, weightInKg: weightInKg)
+        //            measurements.append(measurement)
+        //            measurements.sort()
+        //            handleChanges()
+        //        }
+    }
+    
+    var dailyValuePicker: some View {
+        let binding = Binding<DailyValueType>(
+            get: { dailyValueType },
+            set: { newValue in
+                withAnimation {
+                    dailyValueType = newValue
+                    handleChanges()
+                }
+            }
+        )
+        
+        return Picker("", selection: binding) {
+            ForEach(DailyValueType.allCases, id: \.self) {
+                Text($0.name).tag($0)
+            }
+        }
+        .pickerStyle(.segmented)
+        .listRowSeparator(.hidden)
+        .disabled(isDisabled || measurements.isEmpty)
+    }
+    
+    @ViewBuilder
+    var syncSection: some View {
+        if !isPast {
+            SyncSection(
+                healthDetail: .leanBodyMass,
+                isSynced: $isSynced,
+                handleChanges: handleChanges
+            )
+        }
+    }
+    
+    var measurementsSections: some View {
+        MeasurementsSections<BodyMassUnit>(
+            measurements: Binding<[any Measurable]>(
+                get: { measurements },
+                set: { newValue in
+                    guard let measurements = newValue as? [LeanBodyMassMeasurement] else { return }
+                    self.measurements = measurements
+                }
+            ),
+            deletedHealthKitMeasurements: Binding<[any Measurable]>(
+                get: { deletedHealthKitMeasurements },
+                set: { newValue in
+                    guard let measurements = newValue as? [LeanBodyMassMeasurement] else { return }
+                    self.deletedHealthKitMeasurements = measurements
+                }
+            ),
+            showingForm: $showingForm,
+            isPast: Binding<Bool>(
+                get: { isPast },
+                set: { _ in }
+            ),
+            isEditing: Binding<Bool>(
+                get: { isEditing },
+                set: { _ in }
+            ),
+            dailyValueType: $dailyValueType,
+            footerSuffix: "Percentages indicate your body fat.",
+            handleChanges: handleChanges
+        )
+    }
+    
+    //MARK: - Actions
+    
+    func setDismissDisabled() {
+        dismissDisabled = isPast && isEditing && isDirty
+    }
+    
+    
     func undo() {
+        let leanBodyMass = healthProvider.healthDetails.leanBodyMass
+        self.leanBodyMassInKg = leanBodyMass.leanBodyMassInKg
+        self.dailyValueType = leanBodyMass.dailyValueType
+        self.measurements = leanBodyMass.measurements
+        self.deletedHealthKitMeasurements = leanBodyMass.deletedHealthKitMeasurements
+        self.isSynced = leanBodyMass.isSynced
     }
     
     func save() {
-        
+        healthProvider.saveLeanBodyMass(leanBodyMass)
     }
     
     func setIsDirty() {
-        isDirty = listData != MockLeanBodyMassData
-        || !deletedHealthData.isEmpty
-        || dailyValueType != .average
+        isDirty = measurements != initialMeasurements
+        || deletedHealthKitMeasurements != initialDeletedHealthKitMeasurements
+        || dailyValueType != initialDailyValueType
     }
-
-    @ViewBuilder
-    var noticeOrDateSection: some View {
-        if let pastDate {
-            NoticeSection.legacy(pastDate, isEditing: $isEditing)
-        } else {
-            Section {
-                HStack {
-                    Text("Date")
-                    Spacer()
-                    Text(Date.now.shortDateString)
-                }
-            }
+    
+    func handleChanges() {
+        leanBodyMassInKg = calculatedLeanBodyMassInKg
+        setIsDirty()
+        if !isPast {
+            save()
         }
     }
-
-    var measurementForm: some View {
-        LeanBodyMassMeasurementForm(healthProvider: healthProvider)
+    
+    //MARK: - Convenience
+    
+    var pastDate: Date? {
+        healthProvider.pastDate
     }
     
     var isDisabled: Bool {
@@ -173,230 +330,83 @@ struct LeanBodyMassForm: View {
     var isPast: Bool {
         pastDate != nil
     }
-
-    var dailyValuePicker: some View {
-        let binding = Binding<DailyValueType>(
-            get: { dailyValueType },
-            set: { newValue in
-                withAnimation {
-                    dailyValueType = newValue
-                    setIsDirty()
-                }
-            }
+    
+    var calculatedLeanBodyMassInKg: Double? {
+        switch dailyValueType {
+        case .average:
+            measurements.compactMap { $0.leanBodyMassInKg }.average
+        case .last:
+            measurements.last?.leanBodyMassInKg
+        case .first:
+            measurements.first?.leanBodyMassInKg
+        }
+    }
+    
+    var calculatedFatPercentage: Double? {
+        switch dailyValueType {
+        case .average:
+            measurements.compactMap { $0.fatPercentage }.average
+        case .last:
+            measurements.last?.fatPercentage
+        case .first:
+            measurements.first?.fatPercentage
+        }
+    }
+    
+    var leanBodyMass: HealthDetails.LeanBodyMass {
+        HealthDetails.LeanBodyMass(
+            leanBodyMassInKg: calculatedLeanBodyMassInKg,
+            fatPercentage: calculatedFatPercentage,
+            dailyValueType: dailyValueType,
+            measurements: measurements,
+            deletedHealthKitMeasurements: deletedHealthKitMeasurements,
+            isSynced: isSynced
         )
-
-        return Picker("", selection: binding) {
-            ForEach(DailyValueType.allCases, id: \.self) {
-                Text($0.name).tag($0)
-            }
-        }
-        .pickerStyle(.segmented)
-        .listRowSeparator(.hidden)
-        .disabled(isDisabled)
-    }
-    
-    var syncSection: some View {
-        let binding = Binding<Bool>(
-            get: { isSynced },
-            set: {
-                if !$0 {
-                    showingSyncOffConfirmation = true
-                }
-            }
-        )
-
-        var section: some View {
-            Section(footer: Text("Automatically imports your Lean Body Mass and Body Fat Percentage data from Apple Health. Data you add here will also be exported back to Apple Health.")) {
-                HStack {
-                    Image("AppleHealthIcon")
-                        .resizable()
-                        .frame(width: imageScale * scale, height: imageScale * scale)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 5)
-                                .stroke(Color(.systemGray3), lineWidth: 0.5)
-                        )
-                    Text("Sync with Apple Health")
-                        .layoutPriority(1)
-                    Spacer()
-                    Toggle("", isOn: binding)
-                }
-            }
-        }
-        
-        return Group {
-            if !isPast {
-                section
-            }
-        }
-    }
-    
-    var explanation: some View {
-        var header: some View {
-            Text("Usage")
-                .formTitleStyle()
-        }
-
-        return Section(header: header) {
-            VStack(alignment: .leading) {
-                Text("Your lean body mass is the weight of your body minus your body fat (adipose tissue). It is used when:")
-                dotPoint("Creating goals. For example, you could create a protein goal relative to your lean body mass instead of your weight.")
-                dotPoint("Calculating your Resting Energy using certain equations.")
-            }
-        }
-    }
-    
-    func cell(for data: LeanBodyMassData, disabled: Bool = false) -> some View {
-        
-        @ViewBuilder
-        var image: some View {
-            switch data.source {
-            case .healthKit:
-                Image("AppleHealthIcon")
-                    .resizable()
-                    .frame(width: 24, height: 24)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 5)
-                            .stroke(Color(.systemGray3), lineWidth: 0.5)
-                    )
-            default:
-                Image(systemName: data.source.image)
-                    .scaleEffect(data.source.scale)
-                    .frame(width: 24, height: 24)
-                    .background(
-                        RoundedRectangle(cornerRadius: 5)
-                            .foregroundStyle(Color(.systemGray4))
-                    )
-            }
-        }
-        
-        @ViewBuilder
-        var deleteButton: some View {
-            if isEditing, isPast {
-                Button {
-                    withAnimation {
-                        delete(data)
-                    }
-                } label: {
-                    Image(systemName: "minus.circle.fill")
-                        .imageScale(.large)
-                        .foregroundStyle(.red)
-                }
-                .buttonStyle(.plain)
-            }
-        }
-        
-        return HStack {
-            deleteButton
-                .opacity(disabled ? 0.6 : 1)
-            image
-            Text(data.dateString)
-                .foregroundStyle(disabled ? .secondary : .primary)
-            Spacer()
-            if let fatPercentage = data.fatPercentage {
-                Text("\(fatPercentage.roundedToOnePlace)%")
-                    .foregroundStyle(disabled ? .tertiary : .secondary)
-            }
-            Text(data.valueString)
-                .foregroundStyle(disabled ? .secondary : .primary)
-        }
-    }
-
-    var deletedList: some View {
-        var header: some View {
-            Text("Ignored Apple Health Data")
-        }
-        
-        func restore(_ data: LeanBodyMassData) {
-            withAnimation {
-                listData.append(data)
-                listData.sort()
-                deletedHealthData.removeAll(where: { $0.id == data.id })
-            }
-        }
-        return Group {
-            if !deletedHealthData.isEmpty {
-                Section(header: header) {
-                    ForEach(deletedHealthData) { data in
-                        HStack {
-                            cell(for: data, disabled: true)
-                            Button {
-                                restore(data)
-                            } label: {
-                                Image(systemName: "arrow.up.bin")
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    
-    var list: some View {
-        var cells: some View {
-            ForEach(listData) { data in
-                cell(for: data)
-                    .deleteDisabled(isPast)
-            }
-            .onDelete(perform: delete)
-        }
-        
-        @ViewBuilder
-        var addButton: some View {
-            if !isDisabled {
-                Button {
-                    showingForm = true
-                } label: {
-                    Text("Add Measurement")
-                }
-            }
-        }
-
-        var footer: some View {
-            Text("\(dailyValueType.description) Percentages indicate your body fat.")
-        }
-        
-        return Section(footer: footer) {
-            cells
-            addButton
-        }
-    }
-    
-    func delete(_ data: LeanBodyMassData) {
-        if data.source.isFromHealthKit {
-            deletedHealthData.append(data)
-            deletedHealthData.sort()
-        }
-        listData.removeAll(where: { $0.id == data.id })
-        setIsDirty()
-    }
-    
-    func delete(at offsets: IndexSet) {
-        let dataToDelete = offsets.map { self.listData[$0] }
-        withAnimation {
-            for data in dataToDelete {
-                delete(data)
-            }
-        }
     }
 }
 
-let MockLeanBodyMassData: [LeanBodyMassData] = [
-    .init(1, .userEntered, Date(fromShortTimeString: "09_42")!, 73.7, 23),
-    .init(2, .healthKit(UUID(uuidString: "69BD6FDB-B6B3-4134-B31E-CDA217ACC1CA")!), Date(fromShortTimeString: "12_07")!, 74.6, 22.8),
-    .init(3, .fatPercentage, Date(fromShortTimeString: "13_23")!, 72.3, 23.9),
-    .init(4, .equation, Date(fromShortTimeString: "15_01")!, 70.9, 24.7),
-    .init(5, .userEntered, Date(fromShortTimeString: "17_35")!, 72.5),
-    .init(6, .healthKit(UUID(uuidString: "EE5EB41F-9491-4AC9-93F5-E82443D8C260")!), Date(fromShortTimeString: "19_54")!, 74.2),
-]
-
-#Preview("Current") {
+#Preview("Current (kg)") {
     NavigationView {
         LeanBodyMassForm(healthProvider: MockCurrentProvider)
+            .environment(SettingsProvider(settings: .init(bodyMassUnit: .kg)))
     }
 }
 
-#Preview("Past") {
+#Preview("Past (kg)") {
     NavigationView {
         LeanBodyMassForm(healthProvider: MockPastProvider)
+            .environment(SettingsProvider(settings: .init(bodyMassUnit: .kg)))
     }
+}
+
+#Preview("Current (st)") {
+    NavigationView {
+        LeanBodyMassForm(healthProvider: MockCurrentProvider)
+            .environment(SettingsProvider(settings: .init(bodyMassUnit: .st)))
+    }
+}
+
+#Preview("Past (st)") {
+    NavigationView {
+        LeanBodyMassForm(healthProvider: MockPastProvider)
+            .environment(SettingsProvider(settings: .init(bodyMassUnit: .st)))
+    }
+}
+
+#Preview("Current (lb)") {
+    NavigationView {
+        LeanBodyMassForm(healthProvider: MockCurrentProvider)
+            .environment(SettingsProvider(settings: .init(bodyMassUnit: .lb)))
+    }
+}
+
+#Preview("Past (lb)") {
+    NavigationView {
+        LeanBodyMassForm(healthProvider: MockPastProvider)
+            .environment(SettingsProvider(settings: .init(bodyMassUnit: .lb)))
+    }
+}
+
+#Preview("Demo") {
+    DemoView()
 }

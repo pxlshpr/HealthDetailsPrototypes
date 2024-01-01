@@ -1,7 +1,7 @@
 import SwiftUI
 import PrepShared
 
-struct MeasurementsSections<U:HealthUnit>: View {
+struct MeasurementsSections<U : HealthUnit>: View {
     
     @Environment(SettingsProvider.self) var settingsProvider
 
@@ -10,7 +10,9 @@ struct MeasurementsSections<U:HealthUnit>: View {
     @Binding var showingForm: Bool
     @Binding var isPast: Bool
     @Binding var isEditing: Bool
-
+    @Binding var dailyValueType: DailyValueType
+    
+    var footerSuffix: String? = nil
     let handleChanges: () -> ()
     
     var body: some View {
@@ -58,10 +60,20 @@ struct MeasurementsSections<U:HealthUnit>: View {
             }
         }
     }
-    @ViewBuilder
+    
     var footer: some View {
-        if !measurements.isEmpty {
-            Text(DailyValueType.last.description)
+        var string: String {
+            let string = dailyValueType.description
+            return if let footerSuffix {
+                string + " " + footerSuffix
+            } else {
+                string
+            }
+        }
+        return Group {
+            if !measurements.isEmpty {
+                Text(string)
+            }
         }
     }
     
@@ -127,28 +139,9 @@ struct MeasurementsSections<U:HealthUnit>: View {
         handleChanges()
     }
 
-    var unit: U {
-        settingsProvider.unit(for: U.self) as! U
-    }
-
     func cell(for measurement: any Measurable, disabled: Bool = false) -> some View {
-
-        var double: Double {
-            let double = U.default.doubleComponent(measurement.value, in: unit)
-            print("double is: \(double)")
-            return double
-        }
-
-        var int: Int? {
-            let int = U.default.intComponent(measurement.value, in: unit)
-            print("Converting \(measurement.value) from \(U.default) to \(unit)")
-            print("int is: \(int)")
-            return int
-        }
-        
-        return MeasurementCell(
-            imageType: measurement.imageType,
-            timeString: measurement.timeString,
+        MeasurementCell<U>(
+            measurement: measurement,
             isDisabled: disabled,
             showDeleteButton: Binding<Bool>(
                 get: { isEditing && isPast },
@@ -158,19 +151,7 @@ struct MeasurementsSections<U:HealthUnit>: View {
                 withAnimation {
                     delete(measurement)
                 }
-            },
-            double: double,
-            int: int,
-            doubleUnitString: doubleUnitString,
-            intUnitString: intUnitString
+            }
         )
-    }
-    
-    var intUnitString: String? {
-        unit.intUnitString
-    }
-    
-    var doubleUnitString: String {
-        unit.doubleUnitString
     }
 }

@@ -81,7 +81,7 @@ struct HeightForm: View {
             settingsProvider.heightUnit.doubleUnitString
         }
         
-        return BottomValue(
+        return MeasurementBottomBar(
             int: Binding<Int?>(
                 get: { int }, set: { _ in }
             ),
@@ -186,6 +186,7 @@ struct HeightForm: View {
                 get: { isEditing },
                 set: { _ in }
             ),
+            dailyValueType: .constant(.last),
             handleChanges: handleChanges
         )
     }

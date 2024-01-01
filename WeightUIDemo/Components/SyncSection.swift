@@ -9,7 +9,7 @@ struct SyncSection: View {
     @State var showingSyncOffConfirmation: Bool = false
 
     var body: some View {
-        Section(footer: Text("Continuously import your \(healthDetail.name) data from Apple Health. Data you enter here will also be exported back to Apple Health.")) {
+        Section(footer: Text("Continuously import your \(healthDetail.syncName) data from Apple Health. Data you enter here will also be exported back to Apple Health.")) {
             HStack {
                 AppleHealthIcon()
                 Text("Sync with Apple Health")
@@ -24,7 +24,7 @@ struct SyncSection: View {
                 handleChanges()
             }
         } message: {
-            Text("\(healthDetail.name) data will no longer be read from or written to Apple Health.")
+            Text("\(healthDetail.syncName) data will no longer be read from or written to Apple Health.")
         }
     }
     

@@ -61,7 +61,7 @@ struct MaintenanceForm: View {
     }
     
     var bottomValue: some View {
-        BottomValue(
+        MeasurementBottomBar(
             double: $value,
             doubleString: Binding<String?>(
                 get: { value?.formattedEnergy },

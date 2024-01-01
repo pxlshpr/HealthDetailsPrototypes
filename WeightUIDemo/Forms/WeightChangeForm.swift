@@ -65,7 +65,7 @@ struct WeightChangeForm: View {
     }
 
     var bottomValue: some View {
-        BottomValue(
+        MeasurementBottomBar(
             double: $value,
             doubleString: Binding<String?>(
                 get: { valueAsString },

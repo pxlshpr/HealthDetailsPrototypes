@@ -12,6 +12,7 @@ enum HealthDetail: Int, Identifiable, CaseIterable {
     case smokingStatus
     
     var id: Int { rawValue }
+
     var name: String {
         switch self {
         case .maintenance:  "Maintenance Energy"
@@ -22,6 +23,13 @@ enum HealthDetail: Int, Identifiable, CaseIterable {
         case .leanBodyMass: "Lean Body Mass"
         case .preganancyStatus: "Pregnancy Status"
         case .smokingStatus: "Smoking Status"
+        }
+    }
+    
+    var syncName: String {
+        switch self {
+        case .leanBodyMass: "Lean Body Mass and Fat Percentage"
+        default: name
         }
     }
     

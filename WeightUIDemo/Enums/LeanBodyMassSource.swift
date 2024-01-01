@@ -37,7 +37,7 @@ enum LeanBodyMassSource: Codable, Hashable {
 //        self
 //    }
     
-    var scale: Double {
+    var imageScale: Double {
         switch self {
         case .equation, .fatPercentage:
             0.8

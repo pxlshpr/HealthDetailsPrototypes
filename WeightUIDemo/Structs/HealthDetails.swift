@@ -9,6 +9,65 @@ struct HealthDetails: Hashable, Codable {
     var pregnancyStatus: PregnancyStatus = .notSet
     var height = Height()
     var weight = Weight()
+    var leanBodyMass = LeanBodyMass()
+}
+
+//MARK: - LeanBodyMass
+extension HealthDetails {
+    struct LeanBodyMass: Hashable, Codable {
+        var leanBodyMassInKg: Double? = nil
+        var fatPercentage: Double? = nil
+        var dailyValueType: DailyValueType = .average
+        var measurements: [LeanBodyMassMeasurement] = []
+        var deletedHealthKitMeasurements: [LeanBodyMassMeasurement] = []
+        var isSynced: Bool = false
+    }
+}
+
+struct LeanBodyMassMeasurement: Hashable, Identifiable, Codable {
+    let id: UUID
+    let source: LeanBodyMassSource
+    let date: Date
+    let leanBodyMassInKg: Double
+    let fatPercentage: Double? /// e.g. 10 for 10%
+    
+    init(
+        id: UUID = UUID(),
+        date: Date,
+        leanBodyMassInKg: Double,
+        fatPercentage: Double? = nil,
+        source: LeanBodyMassSource
+    ) {
+        self.id = id
+        self.source = source
+        self.date = date
+        self.leanBodyMassInKg = leanBodyMassInKg
+        self.fatPercentage = fatPercentage
+    }
+}
+
+extension LeanBodyMassMeasurement: Measurable {
+    var healthKitUUID: UUID? {
+        source.healthKitUUID
+    }
+    
+    var secondaryValue: Double? {
+        fatPercentage?.rounded(toPlaces: 1)
+    }
+    var secondaryValueUnit: String? {
+        "%"
+    }
+    
+    var value: Double {
+        leanBodyMassInKg
+    }
+    
+    var imageType: MeasurementImageType {
+        switch source {
+        case .healthKit:    .healthKit
+        default:            .systemImage(source.image, source.imageScale)
+        }
+    }
 }
 
 //MARK: - Weight
