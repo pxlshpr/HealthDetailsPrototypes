@@ -1,7 +1,7 @@
 import Foundation
 
-enum DailyValueType: CaseIterable, Hashable {
-    case average
+enum DailyValueType: Int, CaseIterable, Hashable, Codable {
+    case average = 1
     case last
     case first
     

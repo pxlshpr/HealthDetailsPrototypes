@@ -87,7 +87,7 @@ struct HealthDetailsForm: View {
             )
         case .weight:
             WeightForm(
-                pastDate: pastDate,
+                healthProvider: healthProvider,
                 isPresented: $isPresented,
                 dismissDisabled: $dismissDisabled
             )

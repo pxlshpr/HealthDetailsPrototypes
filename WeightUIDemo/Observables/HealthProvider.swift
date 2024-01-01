@@ -49,8 +49,13 @@ extension HealthProvider {
     
     //TODO: Sync stuff
     /// [ ] Handle sync being turned on and off for these here
-    func saveHeight(_ height: HealthDetails.Height?) {
+    func saveHeight(_ height: HealthDetails.Height) {
         healthDetails.height = height
+        save()
+    }
+    
+    func saveWeight(_ weight: HealthDetails.Weight) {
+        healthDetails.weight = weight
         save()
     }
 }

@@ -140,6 +140,7 @@ struct EquationVariablesSections: View {
         @ViewBuilder
         var measurementLink: some View {
             if let date, let valueString {
+                //TODO: We need to fetch or set the HealthProvider for the particular date here
                 NavigationLink {
                     switch healthDetail {
                     case .height:
@@ -148,7 +149,11 @@ struct EquationVariablesSections: View {
                             isPresented: $isPresented
                         )
                     case .weight:
-                        WeightForm()
+                        WeightForm(
+                            healthProvider: healthProvider,
+                            isPresented: $isPresented,
+                            dismissDisabled: $dismissDisabled
+                        )
                     case .leanBodyMass:
                         LeanBodyMassForm(
                             healthProvider: healthProvider,
@@ -180,7 +185,11 @@ struct EquationVariablesSections: View {
                             isPresented: $isPresented
                         )
                     case .weight:
-                        WeightForm()
+                        WeightForm(
+                            healthProvider: healthProvider,
+                            isPresented: $isPresented,
+                            dismissDisabled: $dismissDisabled
+                        )
                     case .leanBodyMass:
                         LeanBodyMassForm(
                             healthProvider: healthProvider,

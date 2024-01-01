@@ -10,6 +10,8 @@ struct BottomValue: View {
     @Binding var isDisabled: Bool
     
     let doubleUnitString: String
+    
+    let isStyledAsBottomBar: Bool
 
     init(
         int: Binding<Int?>? = nil,
@@ -19,7 +21,9 @@ struct BottomValue: View {
         doubleString: Binding<String?>,
         doubleUnitString: String,
 
-        isDisabled: Binding<Bool>
+        isDisabled: Binding<Bool>,
+        
+        isStyledAsBottomBar: Bool = true
     ) {
         self.int = int
         self.intUnitString = intUnitString
@@ -27,9 +31,22 @@ struct BottomValue: View {
         _doubleString = doubleString
         _isDisabled = isDisabled
         self.doubleUnitString = doubleUnitString
+        self.isStyledAsBottomBar = isStyledAsBottomBar
     }
     
+    @ViewBuilder
     var body: some View {
+        if isStyledAsBottomBar {
+            content
+                .padding(.horizontal, BottomValueHorizontalPadding)
+                .padding(.vertical, BottomValueVerticalPadding)
+                .background(.bar)
+        } else {
+            content
+        }
+    }
+    
+    var content: some View {
         HStack(alignment: .firstTextBaseline, spacing: 20) {
             Spacer()
             if let double {
@@ -67,8 +84,5 @@ struct BottomValue: View {
                 }
             }
         }
-        .padding(.horizontal, BottomValueHorizontalPadding)
-        .padding(.vertical, BottomValueVerticalPadding)
-        .background(.bar)
     }
 }

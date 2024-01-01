@@ -7,17 +7,82 @@ struct HealthDetails: Hashable, Codable {
     var age: Age? = nil
     var smokingStatus: SmokingStatus = .notSet
     var pregnancyStatus: PregnancyStatus = .notSet
-    var height: Height? = nil
+    var height = Height()
+    var weight = Weight()
+}
+
+//MARK: - Weight
+extension HealthDetails {
+    struct Weight: Hashable, Codable {
+        var weightInKg: Double? = nil
+        var dailyValueType: DailyValueType = .average
+        var measurements: [WeightMeasurement] = []
+        var deletedHealthKitMeasurements: [WeightMeasurement] = []
+        var isSynced: Bool = false
+    }
+}
+
+struct WeightMeasurement: Hashable, Identifiable, Codable {
+    let id: UUID
+    let healthKitUUID: UUID?
+    let date: Date
+    let weightInKg: Double
+    
+    init(
+        _ id: UUID,
+        _ date: Date,
+        _ weightInKg: Double,
+        _ healthKitUUID: UUID? = nil
+    ) {
+        self.id = id
+        self.healthKitUUID = healthKitUUID
+        self.date = date
+        self.weightInKg = weightInKg
+    }
+
+    init(
+        id: UUID = UUID(),
+        date: Date,
+        weightInKg: Double,
+        healthKitUUID: UUID? = nil
+    ) {
+        self.id = id
+        self.healthKitUUID = healthKitUUID
+        self.date = date
+        self.weightInKg = weightInKg
+    }
+
+    var timeString: String {
+        date.shortTime
+    }
+    
+    var isFromHealthKit: Bool {
+        healthKitUUID != nil
+    }
+    
+    var imageType: MeasurementCell.ImageType {
+        if isFromHealthKit {
+            .healthKit
+        } else {
+            .systemImage("pencil")
+        }
+    }
+}
+
+extension WeightMeasurement: Comparable {
+    static func < (lhs: WeightMeasurement, rhs: WeightMeasurement) -> Bool {
+        lhs.date < rhs.date
+    }
 }
 
 //MARK: - Height
 
 extension HealthDetails {
     struct Height: Hashable, Codable {
-        var heightInCm: Double
-        var measurements: [HeightMeasurement]
-        var deletedHealthKitMeasurements: [HeightMeasurement]
-        var isSynced: Bool
+        var heightInCm: Double? = nil
+        var measurements: [HeightMeasurement] = []
+        var deletedHealthKitMeasurements: [HeightMeasurement] = []
+        var isSynced: Bool = false
     }
 }
 
@@ -51,16 +116,20 @@ struct HeightMeasurement: Hashable, Identifiable, Codable {
         self.heightInCm = heightInCm
     }
 
-    func valueString(unit: String) -> String {
-        "\(heightInCm.clean) \(unit)"
-    }
-    
-    var dateString: String {
+    var timeString: String {
         date.shortTime
     }
     
     var isFromHealthKit: Bool {
         healthKitUUID != nil
+    }
+    
+    var imageType: MeasurementCell.ImageType {
+        if isFromHealthKit {
+            .healthKit
+        } else {
+            .systemImage("pencil")
+        }
     }
 }
 

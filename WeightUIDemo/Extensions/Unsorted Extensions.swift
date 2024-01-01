@@ -1,5 +1,14 @@
 import Foundation
 
+extension Array where Element == Double {
+    var average: Double? {
+        guard !isEmpty else { return nil }
+        let sum = self
+            .reduce(0, +)
+        return sum / Double(count)
+    }
+}
+
 public extension Double {
     
     var roundedToOnePlace: String {
@@ -188,6 +197,49 @@ extension HeightUnit {
     }
 }
 
+extension BodyMassUnit {
+    func convert(_ int: Int, _ double: Double, to other: BodyMassUnit) -> Double {
+        let value = if self.hasTwoComponents {
+            Double(int) + (double / Self.upperSecondaryUnitValue)
+        } else {
+            double
+        }
+        return self.convert(value, to: other)
+    }
+    
+    func intComponent(_ value: Double, in other: BodyMassUnit) -> Int? {
+        guard other.hasTwoComponents else {
+            return nil
+        }
+        let converted = convert(value, to: other)
+        return Int(converted)
+    }
+    
+    func doubleComponent(_ value: Double, in other: BodyMassUnit) -> Double {
+        let converted = convert(value, to: other)
+        return if other.hasTwoComponents {
+            (converted - converted.whole) * Self.upperSecondaryUnitValue
+        } else {
+            converted
+        }
+    }
+    
+    var intUnitString: String? {
+        if self == .st {
+            "st"
+        } else {
+            nil
+        }
+    }
+    
+    var doubleUnitString: String {
+        if self == .st {
+            "lb"
+        } else {
+            abbreviation
+        }
+    }
+}
 extension HeightUnit {
     var secondaryUnit: String? {
         hasTwoComponents ? "in" : nil
@@ -214,7 +266,7 @@ extension Double {
     
     var cleanHealth: String {
         /// round it off to a reasonable number first to avoid numbers like `7.00000000000009` resulting in `7.0`
-        let value = self.rounded(toPlaces: 6).truncatingRemainder(dividingBy: 1)
+        let value = self.rounded(toPlaces: 1).truncatingRemainder(dividingBy: 1)
         if value == 0 {
             return String(format: "%.0f", self.rounded(toPlaces: 1))
         } else {

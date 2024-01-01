@@ -54,6 +54,7 @@
 		E28ED8112B41F5BE0076BA50 /* PrepShared in Frameworks */ = {isa = PBXBuildFile; productRef = E28ED8102B41F5BE0076BA50 /* PrepShared */; };
 		E28ED8152B41FA7A0076BA50 /* SettingsForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = E28ED8142B41FA7A0076BA50 /* SettingsForm.swift */; };
 		E28ED8262B420F7A0076BA50 /* SwiftUIIntrospect in Frameworks */ = {isa = PBXBuildFile; productRef = E28ED8252B420F7A0076BA50 /* SwiftUIIntrospect */; };
+		E2923FCD2B42B1830008F010 /* MeasurementCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2923FCC2B42B1830008F010 /* MeasurementCell.swift */; };
 		E2BAE3222B30B601003C5B7F /* WeightUIDemoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2BAE3212B30B601003C5B7F /* WeightUIDemoApp.swift */; };
 		E2BAE3242B30B601003C5B7F /* DemoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2BAE3232B30B601003C5B7F /* DemoView.swift */; };
 		E2BAE3262B30B602003C5B7F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E2BAE3252B30B602003C5B7F /* Assets.xcassets */; };
@@ -130,6 +131,7 @@
 		E28ED80B2B41F57D0076BA50 /* SettingsProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsProvider.swift; sourceTree = "<group>"; };
 		E28ED80D2B41F5A10076BA50 /* Settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
 		E28ED8142B41FA7A0076BA50 /* SettingsForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsForm.swift; sourceTree = "<group>"; };
+		E2923FCC2B42B1830008F010 /* MeasurementCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeasurementCell.swift; sourceTree = "<group>"; };
 		E2BAE31E2B30B601003C5B7F /* WeightUIDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WeightUIDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E2BAE3212B30B601003C5B7F /* WeightUIDemoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightUIDemoApp.swift; sourceTree = "<group>"; };
 		E2BAE3232B30B601003C5B7F /* DemoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoView.swift; sourceTree = "<group>"; };
@@ -241,6 +243,7 @@
 			isa = PBXGroup;
 			children = (
 				E2261F812B371B9A007B7DDD /* IntervalPicker.swift */,
+				E2923FCC2B42B1830008F010 /* MeasurementCell.swift */,
 				E28ED8092B41BD440076BA50 /* DatePickerSheet.swift */,
 				E28C693F2B3F47AB005E0096 /* InputSection.swift */,
 				E2BCCC062B3DC30300616E9A /* DotPoint.swift */,
@@ -487,6 +490,7 @@
 				E28E4BBD2B3E14ED00F89FDC /* LeanBodyMassEquation.swift in Sources */,
 				E28E4BB72B3DDB7E00F89FDC /* ActiveEnergyInfo.swift in Sources */,
 				E2BAE3222B30B601003C5B7F /* WeightUIDemoApp.swift in Sources */,
+				E2923FCD2B42B1830008F010 /* MeasurementCell.swift in Sources */,
 				E2103AFB2B35A85500B0C381 /* AdaptiveMaintenanceForm.swift in Sources */,
 				E28E4BB92B3E11E800F89FDC /* EquationVariablesSection.swift in Sources */,
 				E2F79F642B34A54B00A09BDF /* HeightForm.swift in Sources */,

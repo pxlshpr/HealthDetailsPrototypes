@@ -19,6 +19,11 @@ extension SettingsProvider {
         settings.heightUnit = heightUnit
         save()
     }
+    
+    func saveBodyMassUnit(_ bodyMassUnit: BodyMassUnit) {
+        settings.bodyMassUnit = bodyMassUnit
+        save()
+    }
 }
 
 extension SettingsProvider {

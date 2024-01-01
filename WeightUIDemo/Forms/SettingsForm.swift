@@ -18,6 +18,7 @@ struct SettingsForm: View {
         NavigationView {
             Form {
                 heightUnitPicker
+                bodyMassUnitPicker
             }
             .navigationTitle("Settings")
         }
@@ -30,7 +31,17 @@ struct SettingsForm: View {
                 settingsProvider.saveHeightUnit(newValue)
             }
         )
-        return PickerSection(binding)
+        return PickerSection(binding, "Height Unit")
+    }
+    
+    var bodyMassUnitPicker: some View {
+        let binding = Binding<BodyMassUnit>(
+            get: { settingsProvider.settings.bodyMassUnit },
+            set: { newValue in
+                settingsProvider.saveBodyMassUnit(newValue)
+            }
+        )
+        return PickerSection(binding, "Body Mass Unit")
     }
 }
 

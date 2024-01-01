@@ -5,13 +5,12 @@ import PrepShared
 struct HeightForm: View {
 
     @Environment(SettingsProvider.self) var settingsProvider
-
     @Bindable var healthProvider: HealthProvider
     
-    @State var heightInCm: Double? = nil
-    @State var measurements: [HeightMeasurement] = []
-    @State var deletedHealthKitMeasurements: [HeightMeasurement] = []
-    @State var isSynced: Bool = false
+    @State var heightInCm: Double?
+    @State var measurements: [HeightMeasurement]
+    @State var deletedHealthKitMeasurements: [HeightMeasurement]
+    @State var isSynced: Bool
 
     let initialMeasurements: [HeightMeasurement]
     let initialDeletedHealthKitMeasurements: [HeightMeasurement]
@@ -36,18 +35,14 @@ struct HeightForm: View {
         _dismissDisabled = dismissDisabled
         _isEditing = State(initialValue: healthProvider.isCurrent)
                 
-        if let height = healthProvider.healthDetails.height {
-            _heightInCm = State(initialValue: height.heightInCm)
-            _measurements = State(initialValue: height.measurements)
-            _deletedHealthKitMeasurements = State(initialValue: height.deletedHealthKitMeasurements)
-            _isSynced = State(initialValue: height.isSynced)
+        let height = healthProvider.healthDetails.height
+        _heightInCm = State(initialValue: height.heightInCm)
+        _measurements = State(initialValue: height.measurements)
+        _deletedHealthKitMeasurements = State(initialValue: height.deletedHealthKitMeasurements)
+        _isSynced = State(initialValue: height.isSynced)
 
-            self.initialMeasurements = height.measurements
-            self.initialDeletedHealthKitMeasurements = height.deletedHealthKitMeasurements
-        } else {
-            self.initialMeasurements = []
-            self.initialDeletedHealthKitMeasurements = []
-        }
+        self.initialMeasurements = height.measurements
+        self.initialDeletedHealthKitMeasurements = height.deletedHealthKitMeasurements
     }
 
     var pastDate: Date? {
@@ -59,7 +54,7 @@ struct HeightForm: View {
             noticeOrDateSection
             list
             deletedList
-            syncToggle
+            syncSection
             explanation
         }
         .navigationTitle("Height")
@@ -67,7 +62,8 @@ struct HeightForm: View {
         .toolbar { toolbarContent }
         .confirmationDialog("Turn Off Sync", isPresented: $showingSyncOffConfirmation, titleVisibility: .visible) {
             Button("Turn Off", role: .destructive) {
-                
+                isSynced = false
+                handleChanges()
             }
         } message: {
             Text("Height data will no longer be read from or written to Apple Health.")
@@ -164,15 +160,16 @@ struct HeightForm: View {
         }
     }
     
-    var syncToggle: some View {
+    var syncSection: some View {
         let binding = Binding<Bool>(
             get: { isSynced },
             set: { newValue in
                 if !newValue {
                     showingSyncOffConfirmation = true
+                } else {
+                    isSynced = newValue
+                    handleChanges()
                 }
-                isSynced = newValue
-                handleChanges()
             }
         )
         
@@ -242,74 +239,105 @@ struct HeightForm: View {
         }
     }
     
-    func cell(for data: HeightMeasurement, disabled: Bool = false) -> some View {
-        @ViewBuilder
-        var image: some View {
-            switch data.isFromHealthKit {
-            case true:
-                Image("AppleHealthIcon")
-                    .resizable()
-                    .frame(width: 24, height: 24)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 5)
-                            .stroke(Color(.systemGray3), lineWidth: 0.5)
-                    )
-            case false:
-                Image(systemName: "pencil")
-                    .frame(width: 24, height: 24)
-                    .background(
-                        RoundedRectangle(cornerRadius: 5)
-                            .foregroundStyle(Color(.systemGray4))
-                    )
-            }
-        }
-        
-        @ViewBuilder
-        var deleteButton: some View {
-            if isEditing, isPast {
-                Button {
-                    withAnimation {
-                        delete(data)
-                    }
-                } label: {
-                    Image(systemName: "minus.circle.fill")
-                        .imageScale(.large)
-                        .foregroundStyle(.red)
-                }
-                .buttonStyle(.plain)
-            }
-        }
-        
+    func cell(for measurement: HeightMeasurement, disabled: Bool = false) -> some View {
         var double: Double {
             HeightUnit.cm
-                .doubleComponent(data.heightInCm, in: settingsProvider.heightUnit)
+                .doubleComponent(measurement.heightInCm, in: settingsProvider.heightUnit)
         }
-        
+
         var int: Int? {
             HeightUnit.cm
-                .intComponent(data.heightInCm, in: settingsProvider.heightUnit)
+                .intComponent(measurement.heightInCm, in: settingsProvider.heightUnit)
         }
         
-        var string: String {
-            let double = "\(double.cleanHealth) \(doubleUnitString)"
-            return if let int, let intUnitString {
-                "\(int) \(intUnitString) \(double)"
-            } else {
-                double
-            }
-        }
-        
-        return HStack {
-            deleteButton
-                .opacity(disabled ? 0.6 : 1)
-            image
-            Text(data.dateString)
-                .foregroundStyle(disabled ? .secondary : .primary)
-            Spacer()
-            Text(string)
-                .foregroundStyle(disabled ? .secondary : .primary)
-        }
+        return MeasurementCell(
+            imageType: measurement.imageType,
+            timeString: measurement.timeString,
+            isDisabled: disabled,
+            showDeleteButton: Binding<Bool>(
+                get: { isEditing && isPast },
+                set: { _ in }
+            ),
+            deleteAction: {
+                withAnimation {
+                    delete(measurement)
+                }
+            },
+            double: double,
+            int: int,
+            doubleUnitString: doubleUnitString,
+            intUnitString: intUnitString
+        )
     }
+    
+//    func cell(for data: HeightMeasurement, disabled: Bool = false) -> some View {
+//        @ViewBuilder
+//        var image: some View {
+//            switch data.isFromHealthKit {
+//            case true:
+//                Image("AppleHealthIcon")
+//                    .resizable()
+//                    .frame(width: 24, height: 24)
+//                    .overlay(
+//                        RoundedRectangle(cornerRadius: 5)
+//                            .stroke(Color(.systemGray3), lineWidth: 0.5)
+//                    )
+//            case false:
+//                Image(systemName: "pencil")
+//                    .frame(width: 24, height: 24)
+//                    .background(
+//                        RoundedRectangle(cornerRadius: 5)
+//                            .foregroundStyle(Color(.systemGray4))
+//                    )
+//            }
+//        }
+//        
+//        @ViewBuilder
+//        var deleteButton: some View {
+//            if isEditing, isPast {
+//                Button {
+//                    withAnimation {
+//                        delete(data)
+//                    }
+//                } label: {
+//                    Image(systemName: "minus.circle.fill")
+//                        .imageScale(.large)
+//                        .foregroundStyle(.red)
+//                }
+//                .buttonStyle(.plain)
+//            }
+//        }
+//        
+//        var double: Double {
+//            HeightUnit.cm
+//                .doubleComponent(data.heightInCm, in: settingsProvider.heightUnit)
+//        }
+//        
+//        var int: Int? {
+//            HeightUnit.cm
+//                .intComponent(data.heightInCm, in: settingsProvider.heightUnit)
+//        }
+//        
+//        var string: String {
+//            let double = "\(double.cleanHealth) \(doubleUnitString)"
+//            return if let int, let intUnitString {
+//                "\(int) \(intUnitString) \(double)"
+//            } else {
+//                double
+//            }
+//        }
+//        
+//        return HStack {
+//            deleteButton
+//                .opacity(disabled ? 0.6 : 1)
+//            image
+//            Text(data.dateString)
+//                .foregroundStyle(disabled ? .secondary : .primary)
+//            Spacer()
+//            Text(string)
+//                .foregroundStyle(disabled ? .secondary : .primary)
+//        }
+//    }
     
     var list: some View {
         @ViewBuilder
@@ -373,19 +401,18 @@ struct HeightForm: View {
     
     func undo() {
         let height = healthProvider.healthDetails.height
-        self.heightInCm = height?.heightInCm
-        self.measurements = height?.measurements ?? []
-        self.deletedHealthKitMeasurements = height?.deletedHealthKitMeasurements ?? []
-        self.isSynced = height?.isSynced ?? false
+        self.heightInCm = height.heightInCm
+        self.measurements = height.measurements
+        self.deletedHealthKitMeasurements = height.deletedHealthKitMeasurements
+        self.isSynced = height.isSynced
     }
 
     var lastMeasurementInCm: Double? {
         measurements.last?.heightInCm
     }
     
-    var height: HealthDetails.Height? {
-        guard let lastMeasurementInCm else { return nil }
-        return HealthDetails.Height(
+    var height: HealthDetails.Height {
+        HealthDetails.Height(
             heightInCm: lastMeasurementInCm,
             measurements: measurements,
             deletedHealthKitMeasurements: deletedHealthKitMeasurements,
