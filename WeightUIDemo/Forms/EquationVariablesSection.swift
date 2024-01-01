@@ -165,6 +165,7 @@ struct EquationVariablesSections: View {
                             dismissDisabled: $dismissDisabled,
                             save: { newWeight in
                                 //TODO: Save
+                                healthProvider.updateLatestWeight(newWeight)
                             }
                         )
                     } label: {
@@ -172,6 +173,28 @@ struct EquationVariablesSections: View {
                             Text(latestWeight.date.shortDateString)
                             Spacer()
                             Text(latestWeight.weight.valueString(in: settingsProvider.bodyMassUnit))
+                        }
+                    }
+                    .disabled(isEditing && isPast)
+                }
+            case .height:
+                if let latestHeight = healthProvider.latest.height {
+                    NavigationLink {
+                        HeightForm(
+                            date: latestHeight.date,
+                            height: latestHeight.height,
+                            isPresented: $isPresented,
+                            dismissDisabled: $dismissDisabled,
+                            save: { newHeight in
+                                //TODO: Save
+                                healthProvider.updateLatestHeight(newHeight)
+                            }
+                        )
+                    } label: {
+                        HStack {
+                            Text(latestHeight.date.shortDateString)
+                            Spacer()
+                            Text(latestHeight.height.valueString(in: settingsProvider.heightUnit))
                         }
                     }
                     .disabled(isEditing && isPast)

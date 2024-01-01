@@ -3,13 +3,12 @@ import PrepShared
 import SwiftUIIntrospect
 
 //TODO: Next
-/// [ ] Now actually save weight in WeightForm from equation variables section
-/// [ ] Make sure we've updated the weight in HealthDetails (either manually or by re-fetching from backend, but maybe just leave it manual since we already have the data)
-/// [ ] Ensure updating it shows the correct weight in the form again
-/// [ ] Make sure we've left comments for the saved weight to be persisted (and repurcussions managed) by HealthProvider
-/// [ ] Test by saving height for past date, and weight for today, then making sure equation variables correctly picks up the values from the backend (we'll need HealthProvider to help us with this somehow, even though its for a past date)
+/// [ ] Change Lean Body Mass Form to not need HealthProvider
+/// [ ] Have LeanBodymassMeasurementsForm save value when added
+/// [ ] Make all other forms not need HealthProvider
 /// [ ] Put all the code for value string for BodyMassUnit and HeightUnit in one place and use that in all forms
 /// [ ] Show HealthDetails values in cells themselves
+/// [ ] Start working on MaintenanceEnergy sections
 struct LeanBodyMassMeasurementForm: View {
     
     @Environment(SettingsProvider.self) var settingsProvider
@@ -526,6 +525,6 @@ struct LeanBodyMassMeasurementForm: View {
     }
 }
 
-#Preview("DemoView") {
+#Preview("DemoView ") {
     DemoView()
 }

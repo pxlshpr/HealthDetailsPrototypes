@@ -1,7 +1,11 @@
 import SwiftUI
 
-let CurrentHealthDetails = fetchHealthDetailsFromDocuments(Date.now)
-let PreviousHealthDetails = fetchHealthDetailsFromDocuments(Date(fromDateString: "2023_12_01")!)
+var CurrentHealthDetails: HealthDetails {
+    fetchHealthDetailsFromDocuments(Date.now)
+}
+var PreviousHealthDetails: HealthDetails {
+    fetchHealthDetailsFromDocuments(Date(fromDateString: "2023_12_01")!)
+}
 
 struct MockCurrentHealthDetailsForm: View {
     
@@ -17,6 +21,10 @@ struct MockCurrentHealthDetailsForm: View {
         latest.weight = .init(
             date: PreviousHealthDetails.date,
             weight: PreviousHealthDetails.weight
+        )
+        latest.height = .init(
+            date: PreviousHealthDetails.date,
+            height: PreviousHealthDetails.height
         )
         
         let healthProvider = HealthProvider(

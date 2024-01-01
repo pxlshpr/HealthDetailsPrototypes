@@ -5,16 +5,15 @@ import PrepShared
 struct HeightForm: View {
 
     @Environment(SettingsProvider.self) var settingsProvider
-    @Bindable var healthProvider: HealthProvider
     
+    let date: Date
+    let initialHeight: HealthDetails.Height
+
     @State var heightInCm: Double?
     @State var measurements: [HeightMeasurement]
     @State var deletedHealthKitMeasurements: [HeightMeasurement]
     @State var isSynced: Bool
 
-    let initialMeasurements: [HeightMeasurement]
-    let initialDeletedHealthKitMeasurements: [HeightMeasurement]
-    
     @State var showingForm = false
 
     @State var isEditing: Bool
@@ -22,26 +21,42 @@ struct HeightForm: View {
     @Binding var isPresented: Bool
     @Binding var dismissDisabled: Bool
     
+    let saveHandler: (HealthDetails.Height) -> ()
+
+    init(
+        date: Date,
+        height: HealthDetails.Height,
+        isPresented: Binding<Bool> = .constant(true),
+        dismissDisabled: Binding<Bool> = .constant(false),
+        save: @escaping (HealthDetails.Height) -> ()
+    ) {
+        self.date = date
+        self.initialHeight = height
+        self.saveHandler = save
+        _isPresented = isPresented
+        _dismissDisabled = dismissDisabled
+        _isEditing = State(initialValue: date.isToday)
+                
+        _heightInCm = State(initialValue: height.heightInCm)
+        _measurements = State(initialValue: height.measurements)
+        _deletedHealthKitMeasurements = State(initialValue: height.deletedHealthKitMeasurements)
+        _isSynced = State(initialValue: height.isSynced)
+    }
+
     init(
         healthProvider: HealthProvider,
         isPresented: Binding<Bool> = .constant(true),
         dismissDisabled: Binding<Bool> = .constant(false)
     ) {
-        self.healthProvider = healthProvider
-        _isPresented = isPresented
-        _dismissDisabled = dismissDisabled
-        _isEditing = State(initialValue: healthProvider.isCurrent)
-                
-        let height = healthProvider.healthDetails.height
-        _heightInCm = State(initialValue: height.heightInCm)
-        _measurements = State(initialValue: height.measurements)
-        _deletedHealthKitMeasurements = State(initialValue: height.deletedHealthKitMeasurements)
-        _isSynced = State(initialValue: height.isSynced)
-
-        self.initialMeasurements = height.measurements
-        self.initialDeletedHealthKitMeasurements = height.deletedHealthKitMeasurements
+        self.init(
+            date: healthProvider.healthDetails.date,
+            height: healthProvider.healthDetails.height,
+            isPresented: isPresented,
+            dismissDisabled: dismissDisabled,
+            save: healthProvider.saveHeight(_:)
+        )
     }
-
+    
     var body: some View {
         Form {
             noticeOrDateSection
@@ -54,7 +69,7 @@ struct HeightForm: View {
         .toolbar { toolbarContent }
         .sheet(isPresented: $showingForm) { measurementForm }
         .safeAreaInset(edge: .bottom) { bottomValue }
-        .navigationBarBackButtonHidden(isPast && isEditing)
+        .navigationBarBackButtonHidden(isLegacy && isEditing)
         .onChange(of: isEditing) { _, _ in setDismissDisabled() }
         .onChange(of: isDirty) { _, _ in setDismissDisabled() }
     }
@@ -100,7 +115,7 @@ struct HeightForm: View {
     }
     
     var measurementForm: some View {
-        MeasurementForm(type: .height, date: pastDate) { int, double, time in
+        MeasurementForm(type: .height, date: date) { int, double, time in
             let heightInCm = settingsProvider.heightUnit.convert(int, double, to: .cm)
             let measurement = HeightMeasurement(date: time, heightInCm: heightInCm)
             measurements.append(measurement)
@@ -111,7 +126,7 @@ struct HeightForm: View {
     
     @ViewBuilder
     var syncSection: some View {
-        if !isPast {
+        if !isLegacy {
             SyncSection(
                 healthDetail: .height,
                 isSynced: $isSynced,
@@ -124,7 +139,7 @@ struct HeightForm: View {
         topToolbarContent(
             isEditing: $isEditing,
             isDirty: $isDirty,
-            isPast: isPast,
+            isPast: isLegacy,
             dismissAction: { isPresented = false },
             undoAction: undo,
             saveAction: save
@@ -148,8 +163,8 @@ struct HeightForm: View {
     
     @ViewBuilder
     var noticeOrDateSection: some View {
-        if let pastDate {
-            NoticeSection.legacy(pastDate, isEditing: $isEditing)
+        if isLegacy {
+            NoticeSection.legacy(date, isEditing: $isEditing)
         } else {
             Section {
                 HStack {
@@ -179,7 +194,7 @@ struct HeightForm: View {
             ),
             showingForm: $showingForm,
             isPast: Binding<Bool>(
-                get: { isPast },
+                get: { isLegacy },
                 set: { _ in }
             ),
             isEditing: Binding<Bool>(
@@ -194,39 +209,33 @@ struct HeightForm: View {
     //MARK: - Actions
     
     func save() {
-        healthProvider.saveHeight(height)
+        saveHandler(height)
     }
     
     func undo() {
-        let height = healthProvider.healthDetails.height
-        self.heightInCm = height.heightInCm
-        self.measurements = height.measurements
-        self.deletedHealthKitMeasurements = height.deletedHealthKitMeasurements
-        self.isSynced = height.isSynced
+        self.heightInCm = initialHeight.heightInCm
+        self.measurements = initialHeight.measurements
+        self.deletedHealthKitMeasurements = initialHeight.deletedHealthKitMeasurements
+        self.isSynced = initialHeight.isSynced
     }
 
     func setDismissDisabled() {
-        dismissDisabled = isPast && isEditing && isDirty
+        dismissDisabled = isLegacy && isEditing && isDirty
     }
 
     func handleChanges() {
         heightInCm = lastMeasurementInCm
         setIsDirty()
-        if !isPast {
+        if !isLegacy {
             save()
         }
     }
 
     func setIsDirty() {
-        isDirty = measurements != initialMeasurements
-        || deletedHealthKitMeasurements != initialDeletedHealthKitMeasurements
+        isDirty = height != initialHeight
     }
 
     //MARK: - Convenience
-
-    var pastDate: Date? {
-        healthProvider.pastDate
-    }
 
     var lastMeasurementInCm: Double? {
         measurements.last?.heightInCm
@@ -242,15 +251,15 @@ struct HeightForm: View {
     }
 
     var isDisabled: Bool {
-        isPast && !isEditing
+        isLegacy && !isEditing
     }
     
     var controlColor: Color {
         isDisabled ? .secondary : .primary
     }
     
-    var isPast: Bool {
-        pastDate != nil
+    var isLegacy: Bool {
+        date.startOfDay < Date.now.startOfDay
     }
 }
 

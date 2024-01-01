@@ -58,6 +58,7 @@ struct WeightForm: View {
             save: healthProvider.saveWeight(_:)
         )
     }
+    
     var body: some View {
         Form {
             noticeOrDateSection

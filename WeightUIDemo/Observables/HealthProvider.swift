@@ -10,9 +10,16 @@ import SwiftUI
     
     struct LatestHealthDetails {
         var weight: Weight?
+        var height: Height?
+
         struct Weight {
             let date: Date
-            let weight: HealthDetails.Weight
+            var weight: HealthDetails.Weight
+        }
+        
+        struct Height {
+            let date: Date
+            var height: HealthDetails.Height
         }
     }
 
@@ -75,6 +82,26 @@ extension HealthProvider {
     func saveLeanBodyMass(_ leanBodyMass: HealthDetails.LeanBodyMass) {
         healthDetails.leanBodyMass = leanBodyMass
         save()
+    }
+    
+    //TODO: Persist changes
+    /// [ ] Replace Mock coding with actual persistence
+    func updateLatestWeight(_ weight: HealthDetails.Weight) {
+        guard let latestWeight = latest.weight else { return }
+        latest.weight?.weight = weight
+        
+        var healthDetails = fetchHealthDetailsFromDocuments(latestWeight.date)
+        healthDetails.weight = weight
+        saveHealthDetailsInDocuments(healthDetails)
+    }
+    
+    func updateLatestHeight(_ height: HealthDetails.Height) {
+        guard let latestHeight = latest.height else { return }
+        latest.height?.height = height
+        
+        var healthDetails = fetchHealthDetailsFromDocuments(latestHeight.date)
+        healthDetails.height = height
+        saveHealthDetailsInDocuments(healthDetails)
     }
 }
 
