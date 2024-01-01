@@ -2,10 +2,7 @@ import SwiftUI
 import PrepShared
 import SwiftUIIntrospect
 
-
 //TODO: Next
-/// [ ] Now use a single value field for percentage (which we should extract out of CustomSection and make it another view thats used there for the single unit values)
-/// [ ] Now visit the LBM calculation and make sure its happening
 /// [ ] See if we can get rid of `value` and just use `doubleInput` and `intInput` which we set whenever calculated (through fat percentage and equation) so that the value is always consistent amongst the sections (we don't need to *remember* what values each section had
 /// [ ] Now do the date stuff for fetching the weight. Consider how we want to save it—check Reminders for where we had a reminder about this first.
 /// [ ] Test by saving height for past date, and weight for today, then making sure equation variables correctly picks up the values from the backend (we'll need HealthProvider to help us with this somehow, even though its for a past date)
@@ -97,8 +94,32 @@ struct LeanBodyMassMeasurementForm: View {
         }
     }
     
+    var unit: BodyMassUnit {
+        settingsProvider.bodyMassUnit
+    }
+    
     var bottomValue: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 5) {
+        var intUnitString: String? {
+            unit.intUnitString
+        }
+        
+        var doubleUnitString: String {
+            unit.doubleUnitString
+        }
+        
+        var double: Double? {
+            guard let leanBodyMassInKg else { return nil }
+            return BodyMassUnit.kg
+                .doubleComponent(leanBodyMassInKg, in: unit)
+        }
+        
+        var int: Int? {
+            guard let leanBodyMassInKg else { return nil }
+            return BodyMassUnit.kg
+                .intComponent(leanBodyMassInKg, in: unit)
+        }
+
+        return HStack(alignment: .firstTextBaseline, spacing: 5) {
             if let fatPercentage = fatPercentageInput.double {
                 Text("\(fatPercentage.roundedToOnePlace)")
                     .contentTransition(.numericText(value: fatPercentage))
@@ -109,27 +130,20 @@ struct LeanBodyMassMeasurementForm: View {
                     .foregroundStyle(.secondary)
             }
             Spacer()
-            if let leanBodyMassInKg {
-                Text("\(leanBodyMassInKg.roundedToOnePlace)")
-                    .contentTransition(.numericText(value: leanBodyMassInKg))
-                    .font(LargeNumberFont)
-                    .foregroundStyle(.primary)
-                Text("kg")
-                    .font(LargeUnitFont)
-                    .foregroundStyle(.secondary)
-            } else {
-                ZStack {
-                    
-                    /// dummy text placed to ensure height stays consistent
-                    Text("0")
-                        .font(LargeNumberFont)
-                        .opacity(0)
-
-                    Text("Not Set")
-                        .font(LargeUnitFont)
-                        .foregroundStyle(.secondary)
-                }
-            }
+            MeasurementBottomText(
+                int: Binding<Int?>(
+                    get: { int }, set: { _ in }
+                ),
+                intUnitString: intUnitString,
+                double: Binding<Double?>(
+                    get: { double }, set: { _ in }
+                ),
+                doubleString: Binding<String?>(
+                    get: { double?.cleanHealth }, set: { _ in }
+                ),
+                doubleUnitString: doubleUnitString,
+                isDisabled: .constant(false)
+            )
         }
         .padding(.horizontal, BottomValueHorizontalPadding)
         .padding(.vertical, BottomValueVerticalPadding)
@@ -165,11 +179,11 @@ struct LeanBodyMassMeasurementForm: View {
     }
     
     var unitString: String {
-        settingsProvider.bodyMassUnit.abbreviation
+        unit.abbreviation
     }
 
     var secondUnitString: String? {
-        settingsProvider.bodyMassUnit.secondaryUnit
+        unit.secondaryUnit
     }
     
     var fatPercentageEnterSection: some View {
@@ -348,10 +362,25 @@ struct LeanBodyMassMeasurementForm: View {
     }
     
     func handleCustomValue() {
-        guard let double = doubleInput.double else { return }
+        let double: Double? = if unit.hasTwoComponents {
+            doubleInput.double ?? 0
+        } else {
+            doubleInput.double
+        }
+        let int: Int? = if unit.hasTwoComponents {
+            intInput.int
+        } else {
+            0
+        }
+        
+        let kg: Double? = if let int, let double {
+            unit.convert(int, double, to: .kg)
+        } else {
+            nil
+        }
         withAnimation {
-            self.leanBodyMassInKg = double
-            calculateFatPercentage(forLeanBodyMass: double)
+            self.leanBodyMassInKg = kg
+            calculateFatPercentage(forLeanBodyMass: kg)
             setIsDirty()
         }
     }
@@ -383,8 +412,8 @@ struct LeanBodyMassMeasurementForm: View {
     
     func calculateEquation() {
         let weightInKg: Double? = 95.7
-//        let heightInCm: Double? = 177
-        let heightInCm: Double? = nil
+        let heightInCm: Double? = 177
+//        let heightInCm: Double? = nil
         let sexIsFemale: Bool? = false
         
         let lbm: Double? = if let weightInKg, let heightInCm, let sexIsFemale {

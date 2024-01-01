@@ -2,22 +2,6 @@ import SwiftUI
 import PrepShared
 import SwiftUIIntrospect
 
-enum MeasurementType {
-    case weight
-    case leanBodyMass
-    case height
-    case fatPercentage
-    
-    var name: String {
-        switch self {
-        case .weight:           "Weight"
-        case .leanBodyMass:     "Lean Body Mass"
-        case .height:           "Height"
-        case .fatPercentage:   "Fat Percentage"
-        }
-    }
-}
-
 struct MeasurementForm: View {
     
     @Environment(SettingsProvider.self) var settingsProvider
@@ -91,20 +75,6 @@ struct MeasurementForm: View {
     }
     
     //MARK: - Sections
-    
-//    var unitString: String {
-//        switch type {
-//        case .height:   settingsProvider.heightUnit.abbreviation
-//        case .weight:   settingsProvider.bodyMassUnit.abbreviation
-//        }
-//    }
-//
-//    var secondUnitString: String? {
-//        switch type {
-//        case .height:   settingsProvider.heightUnit.secondaryUnit
-//        case .weight:   settingsProvider.bodyMassUnit.secondaryUnit
-//        }
-//    }
 
     var customSection: some View {
         MeasurementTextField(
@@ -115,92 +85,6 @@ struct MeasurementForm: View {
             handleChanges: setIsDirty
         )
     }
-    
-//    var customSection_: some View {
-//
-//        func introspect(_ textField: UITextField) {
-//            guard !hasFocusedOnAppear else { return }
-//            textField.becomeFirstResponder()
-//            textField.selectedTextRange = textField.textRange(from: textField.beginningOfDocument, to: textField.endOfDocument)
-//            hasFocusedOnAppear = true
-//        }
-//        
-//        func dualUnit(_ secondUnitString: String) -> some View {
-//            let firstComponent = Binding<String>(
-//                get: { intInput.binding.wrappedValue },
-//                set: { newValue in
-//                    intInput.binding.wrappedValue = newValue
-//                    setIsDirty()
-//                }
-//            )
-//            
-//            let secondComponent = Binding<String>(
-//                get: { doubleInput.binding.wrappedValue },
-//                set: { newValue in
-//                    doubleInput.binding.wrappedValue = newValue
-//                    guard let double = doubleInput.double else {
-//                        setIsDirty()
-//                        return
-//                    }
-//                    
-//                    switch type {
-//                    case .weight:
-//                        if double >= BodyMassUnit.upperSecondaryUnitValue {
-//                            doubleInput.binding.wrappedValue = ""
-//                        }
-//                    case .height:
-//                        if double >= HeightUnit.upperSecondaryUnitValue {
-//                            doubleInput.binding.wrappedValue = ""
-//                        }
-//                    }
-//                    setIsDirty()
-//                }
-//            )
-//            return Group {
-//                HStack {
-//                    Text(unitString)
-//                    Spacer()
-//                    TextField("", text: firstComponent)
-//                        .keyboardType(.numberPad)
-//                        .multilineTextAlignment(.trailing)
-//                        .introspect(.textField, on: .iOS(.v17)) { introspect($0) }
-//                }
-//                HStack {
-//                    Text(secondUnitString)
-//                    Spacer()
-//                    TextField("", text: secondComponent)
-//                        .keyboardType(.decimalPad)
-//                        .multilineTextAlignment(.trailing)
-//                }
-//            }
-//        }
-//        
-//        var singleUnit: some View {
-//            let firstComponent = Binding<String>(
-//                get: { doubleInput.binding.wrappedValue },
-//                set: { newValue in
-//                    doubleInput.binding.wrappedValue = newValue
-//                    setIsDirty()
-//                }
-//            )
-//
-//            return HStack {
-//                Text(unitString)
-//                Spacer()
-//                TextField("", text: firstComponent)
-//                    .keyboardType(.decimalPad)
-//                    .multilineTextAlignment(.trailing)
-//                    .introspect(.textField, on: .iOS(.v17)) { introspect($0) }
-//            }
-//        }
-//        return Section {
-//            if let secondUnitString {
-//                dualUnit(secondUnitString)
-//            } else {
-//                singleUnit
-//            }
-//        }
-//    }
     
     var dateTimeSection: some View {
         Section {

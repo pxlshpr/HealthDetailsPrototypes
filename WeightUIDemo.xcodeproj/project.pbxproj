@@ -60,6 +60,7 @@
 		E2923FD32B42D7CD0008F010 /* SyncSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2923FD22B42D7CC0008F010 /* SyncSection.swift */; };
 		E2923FD52B42D9FE0008F010 /* AppleHealthIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2923FD42B42D9FE0008F010 /* AppleHealthIcon.swift */; };
 		E2923FD72B4305C80008F010 /* MeasurementImageType.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2923FD62B4305C80008F010 /* MeasurementImageType.swift */; };
+		E2923FD92B43415E0008F010 /* MeasurementType.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2923FD82B43415E0008F010 /* MeasurementType.swift */; };
 		E2BAE3222B30B601003C5B7F /* WeightUIDemoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2BAE3212B30B601003C5B7F /* WeightUIDemoApp.swift */; };
 		E2BAE3242B30B601003C5B7F /* DemoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2BAE3232B30B601003C5B7F /* DemoView.swift */; };
 		E2BAE3262B30B602003C5B7F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E2BAE3252B30B602003C5B7F /* Assets.xcassets */; };
@@ -142,6 +143,7 @@
 		E2923FD22B42D7CC0008F010 /* SyncSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncSection.swift; sourceTree = "<group>"; };
 		E2923FD42B42D9FE0008F010 /* AppleHealthIcon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleHealthIcon.swift; sourceTree = "<group>"; };
 		E2923FD62B4305C80008F010 /* MeasurementImageType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeasurementImageType.swift; sourceTree = "<group>"; };
+		E2923FD82B43415E0008F010 /* MeasurementType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeasurementType.swift; sourceTree = "<group>"; };
 		E2BAE31E2B30B601003C5B7F /* WeightUIDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WeightUIDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E2BAE3212B30B601003C5B7F /* WeightUIDemoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightUIDemoApp.swift; sourceTree = "<group>"; };
 		E2BAE3232B30B601003C5B7F /* DemoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoView.swift; sourceTree = "<group>"; };
@@ -222,6 +224,7 @@
 			isa = PBXGroup;
 			children = (
 				E2103AF82B35A2FA00B0C381 /* DailyValueType.swift */,
+				E2923FD82B43415E0008F010 /* MeasurementType.swift */,
 				E2923FD62B4305C80008F010 /* MeasurementImageType.swift */,
 				E28C69412B3F508E005E0096 /* HealthDetail.swift */,
 				E28E4BBA2B3E14E000F89FDC /* LeanBodyMassSource.swift */,
@@ -459,6 +462,7 @@
 				E2261F822B371B9A007B7DDD /* IntervalPicker.swift in Sources */,
 				E2BCCC072B3DC30300616E9A /* DotPoint.swift in Sources */,
 				E2923FD12B42C3D60008F010 /* Measurable.swift in Sources */,
+				E2923FD92B43415E0008F010 /* MeasurementType.swift in Sources */,
 				E2261F802B371AEF007B7DDD /* HealthIntervalType.swift in Sources */,
 				E2923FCF2B42C2860008F010 /* MeasurementsSections.swift in Sources */,
 				E2F79F522B3484B900A09BDF /* PickerSection.swift in Sources */,
