@@ -3,8 +3,10 @@ import PrepShared
 import SwiftUIIntrospect
 
 //TODO: Next
-/// [ ] Now do the date stuff for fetching the weight. Consider how we want to save it—check Reminders for where we had a reminder about this first.
-/// [ ] Only show "Since no weight data has been set..." footer when we actually have a latest value, otherwise say something like, "Enter your weight data to calculate your fat percentage/lean body mass" – and when they haven't entered in their weight for a source of .fatPercentage, show the text saying "Enter Weight" or something
+/// [ ] Now actually save weight in WeightForm from equation variables section
+/// [ ] Make sure we've updated the weight in HealthDetails (either manually or by re-fetching from backend, but maybe just leave it manual since we already have the data)
+/// [ ] Ensure updating it shows the correct weight in the form again
+/// [ ] Make sure we've left comments for the saved weight to be persisted (and repurcussions managed) by HealthProvider
 /// [ ] Test by saving height for past date, and weight for today, then making sure equation variables correctly picks up the values from the backend (we'll need HealthProvider to help us with this somehow, even though its for a past date)
 struct LeanBodyMassMeasurementForm: View {
     
