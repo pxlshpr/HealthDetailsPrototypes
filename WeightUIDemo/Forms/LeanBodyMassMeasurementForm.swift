@@ -154,82 +154,89 @@ struct LeanBodyMassMeasurementForm: View {
     @State var hasFocusedCustom: Bool = false
 
     var customSection: some View {
+        CustomSection(
+            type: .leanBodyMass,
+            doubleInput: $doubleInput,
+            intInput: $intInput,
+            hasFocused: $hasFocusedCustom,
+            handleChanges: setIsDirty
+        )
 
-        func introspect(_ textField: UITextField) {
-            guard !hasFocusedCustom else { return }
-            textField.becomeFirstResponder()
-            textField.selectedTextRange = textField.textRange(from: textField.beginningOfDocument, to: textField.endOfDocument)
-            hasFocusedCustom = true
-        }
-        
-        func dualUnit(_ secondUnitString: String) -> some View {
-            let firstComponent = Binding<String>(
-                get: { intInput.binding.wrappedValue },
-                set: { newValue in
-                    intInput.binding.wrappedValue = newValue
-                    setIsDirty()
-                }
-            )
-            
-            let secondComponent = Binding<String>(
-                get: { doubleInput.binding.wrappedValue },
-                set: { newValue in
-                    doubleInput.binding.wrappedValue = newValue
-                    guard let double = doubleInput.double else {
-                        handleCustomValue()
-                        return
-                    }
-                    
-                    if double >= BodyMassUnit.upperSecondaryUnitValue {
-                        doubleInput.binding.wrappedValue = ""
-                    }
-                    handleCustomValue()
-                }
-            )
-            return Group {
-                HStack {
-                    Text(unitString)
-                    Spacer()
-                    TextField("", text: firstComponent)
-                        .keyboardType(.numberPad)
-                        .multilineTextAlignment(.trailing)
-                        .introspect(.textField, on: .iOS(.v17)) { introspect($0) }
-                }
-                HStack {
-                    Text(secondUnitString)
-                    Spacer()
-                    TextField("", text: secondComponent)
-                        .keyboardType(.decimalPad)
-                        .multilineTextAlignment(.trailing)
-                }
-            }
-        }
-        
-        var singleUnit: some View {
-            let firstComponent = Binding<String>(
-                get: { doubleInput.binding.wrappedValue },
-                set: { newValue in
-                    doubleInput.binding.wrappedValue = newValue
-                    handleCustomValue()
-                }
-            )
-
-            return HStack {
-                Text(unitString)
-                Spacer()
-                TextField("", text: firstComponent)
-                    .keyboardType(.decimalPad)
-                    .multilineTextAlignment(.trailing)
-                    .introspect(.textField, on: .iOS(.v17)) { introspect($0) }
-            }
-        }
-        return Section {
-            if let secondUnitString {
-                dualUnit(secondUnitString)
-            } else {
-                singleUnit
-            }
-        }
+//        func introspect(_ textField: UITextField) {
+//            guard !hasFocusedCustom else { return }
+//            textField.becomeFirstResponder()
+//            textField.selectedTextRange = textField.textRange(from: textField.beginningOfDocument, to: textField.endOfDocument)
+//            hasFocusedCustom = true
+//        }
+//        
+//        func dualUnit(_ secondUnitString: String) -> some View {
+//            let firstComponent = Binding<String>(
+//                get: { intInput.binding.wrappedValue },
+//                set: { newValue in
+//                    intInput.binding.wrappedValue = newValue
+//                    setIsDirty()
+//                }
+//            )
+//            
+//            let secondComponent = Binding<String>(
+//                get: { doubleInput.binding.wrappedValue },
+//                set: { newValue in
+//                    doubleInput.binding.wrappedValue = newValue
+//                    guard let double = doubleInput.double else {
+//                        handleCustomValue()
+//                        return
+//                    }
+//                    
+//                    if double >= BodyMassUnit.upperSecondaryUnitValue {
+//                        doubleInput.binding.wrappedValue = ""
+//                    }
+//                    handleCustomValue()
+//                }
+//            )
+//            return Group {
+//                HStack {
+//                    Text(unitString)
+//                    Spacer()
+//                    TextField("", text: firstComponent)
+//                        .keyboardType(.numberPad)
+//                        .multilineTextAlignment(.trailing)
+//                        .introspect(.textField, on: .iOS(.v17)) { introspect($0) }
+//                }
+//                HStack {
+//                    Text(secondUnitString)
+//                    Spacer()
+//                    TextField("", text: secondComponent)
+//                        .keyboardType(.decimalPad)
+//                        .multilineTextAlignment(.trailing)
+//                }
+//            }
+//        }
+//        
+//        var singleUnit: some View {
+//            let firstComponent = Binding<String>(
+//                get: { doubleInput.binding.wrappedValue },
+//                set: { newValue in
+//                    doubleInput.binding.wrappedValue = newValue
+//                    handleCustomValue()
+//                }
+//            )
+//
+//            return HStack {
+//                Text(unitString)
+//                Spacer()
+//                TextField("", text: firstComponent)
+//                    .keyboardType(.decimalPad)
+//                    .multilineTextAlignment(.trailing)
+//                    .introspect(.textField, on: .iOS(.v17)) { introspect($0) }
+//            }
+//        }
+//        return Section {
+//            if let secondUnitString {
+//                dualUnit(secondUnitString)
+//            } else {
+//                singleUnit
+//            }
+//        }
     }
     
     var unitString: String {
@@ -362,6 +369,11 @@ struct LeanBodyMassMeasurementForm: View {
         let binding = Binding<LeanBodyMassSource>(
             get: { source },
             set: { newValue in
+                
+                if source != .userEntered {
+                    hasFocusedCustom = false
+                }
+                
                 withAnimation {
                     source = newValue
 //                    calculateEquation()
@@ -372,11 +384,14 @@ struct LeanBodyMassMeasurementForm: View {
                     break
 //                    showingAlert = true
                 case .fatPercentage:
-                    hasFocusedCustom = false
-                    break
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        hasFocusedCustom = false
+                    }
 //                    showingFatPercentageAlert = true
                 case .equation:
-                    hasFocusedCustom = false
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        hasFocusedCustom = false
+                    }
                     calculateEquation()
                 default:
                     break
