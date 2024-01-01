@@ -213,7 +213,7 @@ extension BodyMassUnit: HealthUnit {
     }
 }
 
-    
+//TODO: Move this into HealthUnit
 extension HeightUnit {
     func convert(_ int: Int, _ double: Double, to other: HeightUnit) -> Double {
         let value = if self.hasTwoComponents {

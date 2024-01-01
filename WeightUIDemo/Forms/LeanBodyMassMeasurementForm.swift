@@ -296,36 +296,41 @@ struct LeanBodyMassMeasurementForm: View {
         }
     }
     
+    func handleNewSource(_ newValue: LeanBodyMassSource) {
+        /// Reset this immediately to make sure the text field gets focused
+        if newValue == .userEntered {
+            hasFocusedCustom = false
+        }
+        if newValue == .fatPercentage {
+            hasFocusedFatPercentage = false
+        }
+        
+        /// If we're moving away from fat percentage, round it off to 1 decimal place
+        if source == .fatPercentage, newValue != .fatPercentage {
+            setFatPercentage(fatPercentageInput.double?.rounded(toPlaces: 1))
+        }
+        
+        withAnimation {
+            source = newValue
+            setIsDirty()
+        }
+        
+        switch source {
+        case .userEntered:
+            break
+        case .fatPercentage:
+            break
+        case .equation:
+            calculateEquation()
+        default:
+            break
+        }
+    }
+    
     var sourceSection: some View {
         let binding = Binding<LeanBodyMassSource>(
             get: { source },
-            set: { newValue in
-                
-                /// Reset this immediately to make sure the text field gets focused
-                if newValue == .userEntered {
-                    hasFocusedCustom = false
-                }
-                if newValue == .fatPercentage {
-                    hasFocusedFatPercentage = false
-                }
-                
-                withAnimation {
-                    source = newValue
-//                    calculateEquation()
-                    setIsDirty()
-                }
-                
-                switch source {
-                case .userEntered:
-                    break
-                case .fatPercentage:
-                    break
-                case .equation:
-                    calculateEquation()
-                default:
-                    break
-                }
-            }
+            set: { handleNewSource($0) }
         )
         var picker: some View {
             Picker("Source", selection: binding) {
@@ -416,7 +421,7 @@ struct LeanBodyMassMeasurementForm: View {
 //        let heightInCm: Double? = nil
         let sexIsFemale: Bool? = false
         
-        let lbm: Double? = if let weightInKg, let heightInCm, let sexIsFemale {
+        let leanBodyMassInKg: Double? = if let weightInKg, let heightInCm, let sexIsFemale {
             equation.calculateInKg(
                 sexIsFemale: sexIsFemale,
                 weightInKg: weightInKg,
@@ -426,47 +431,57 @@ struct LeanBodyMassMeasurementForm: View {
             nil
         }
         withAnimation {
-            setLeanBodyMass(lbm)
+            setLeanBodyMassInKg(leanBodyMassInKg)
             calculateFatPercentage()
         }
     }
     
-    func calculateFatPercentage(forLeanBodyMass lbm: Double? = nil) {
-        guard let lbm = lbm ?? self.leanBodyMassInKg else {
+    func calculateFatPercentage(forLeanBodyMass leanBodyMassInKg: Double? = nil) {
+        guard let leanBodyMassInKg = leanBodyMassInKg ?? self.leanBodyMassInKg else {
             setFatPercentage(nil)
             return
         }
         let weight = 95.7
-        let p = ((max(0, (weight - lbm)) / weight) * 100)
-        setFatPercentage(p)
+        let p = ((max(0, (weight - leanBodyMassInKg)) / weight) * 100)
+        setFatPercentage(p.rounded(toPlaces: 1))
     }
     
     func calculateLeanBodyMass(forFatPercentage p: Double? = nil) {
         guard let p = p ?? self.fatPercentageInput.double else {
-            setLeanBodyMass(nil)
+            setLeanBodyMassInKg(nil)
             return
         }
         let weight = 95.7
-        let lbm = weight - ((p / 100.0) * weight)
-        setLeanBodyMass(lbm)
+        let kg = weight - ((p / 100.0) * weight)
+        setLeanBodyMassInKg(kg)
     }
     
     func setFatPercentage(_ p: Double?) {
-        guard let p = p?.rounded(toPlaces: 1) else {
+        guard let p else {
             fatPercentageInput = DoubleInput(automaticallySubmitsValues: true)
             return
         }
         fatPercentageInput = DoubleInput(double: p, automaticallySubmitsValues: true)
     }
     
-    func setLeanBodyMass(_ value: Double?) {
-        guard let value = value?.rounded(toPlaces: 1) else {
-            leanBodyMassInKg = nil
+    func setLeanBodyMassInKg(_ leanBodyMassInKg: Double?) {
+        guard let leanBodyMassInKg else {
+            self.leanBodyMassInKg = nil
             doubleInput = DoubleInput(automaticallySubmitsValues: true)
+            intInput = IntInput(automaticallySubmitsValues: true)
             return
         }
-        leanBodyMassInKg = value
-        doubleInput = DoubleInput(double: value, automaticallySubmitsValues: true)
+        
+        self.leanBodyMassInKg = leanBodyMassInKg
+        let double = BodyMassUnit.kg.doubleComponent(leanBodyMassInKg, in: unit).rounded(toPlaces: 1)
+        doubleInput = DoubleInput(double: double, automaticallySubmitsValues: true)
+        
+        intInput = if let int = BodyMassUnit.kg.intComponent(leanBodyMassInKg, in: unit) {
+            IntInput(int: int, automaticallySubmitsValues: true)
+        } else {
+            IntInput(automaticallySubmitsValues: true)
+        }
+
     }
 
     func setIsDirty() {
