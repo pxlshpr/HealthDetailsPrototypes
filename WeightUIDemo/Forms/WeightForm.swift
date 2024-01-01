@@ -76,46 +76,6 @@ struct WeightForm: View {
             }
         }
     }
-
-    var intUnitString: String? {
-        settingsProvider.bodyMassUnit.intUnitString
-    }
-    
-    var doubleUnitString: String {
-        settingsProvider.bodyMassUnit.doubleUnitString
-    }
-
-    func cell(for measurement: WeightMeasurement, disabled: Bool = false) -> some View {
-        
-        var double: Double {
-            BodyMassUnit.kg
-                .doubleComponent(measurement.weightInKg, in: settingsProvider.bodyMassUnit)
-        }
-        
-        var int: Int? {
-            BodyMassUnit.kg
-                .intComponent(measurement.weightInKg, in: settingsProvider.bodyMassUnit)
-        }
-
-        return MeasurementCell(
-            imageType: measurement.imageType,
-            timeString: measurement.timeString,
-            isDisabled: disabled,
-            showDeleteButton: Binding<Bool>(
-                get: { isEditing && isPast },
-                set: { _ in }
-            ),
-            deleteAction: {
-                withAnimation {
-                    delete(measurement)
-                }
-            },
-            double: double,
-            int: int,
-            doubleUnitString: doubleUnitString,
-            intUnitString: intUnitString
-        )
-    }
     
     var measurementsSections: some View {
         MeasurementsSections<BodyMassUnit>(
@@ -163,6 +123,15 @@ struct WeightForm: View {
     var bottomValue: some View {
         
         var bottomRow: some View {
+            
+            var intUnitString: String? {
+                settingsProvider.bodyMassUnit.intUnitString
+            }
+            
+            var doubleUnitString: String {
+                settingsProvider.bodyMassUnit.doubleUnitString
+            }
+            
             var double: Double? {
                 guard let weightInKg else { return nil }
                 return BodyMassUnit.kg
@@ -240,15 +209,18 @@ struct WeightForm: View {
         }
         .pickerStyle(.segmented)
         .listRowSeparator(.hidden)
-        .disabled(isDisabled)
+        .disabled(isDisabled || measurements.isEmpty)
     }
 
+    @ViewBuilder
     var syncSection: some View {
-        SyncSection(
-            healthDetail: .weight,
-            isSynced: $isSynced,
-            handleChanges: handleChanges
-        )
+        if !isPast {
+            SyncSection(
+                healthDetail: .weight,
+                isSynced: $isSynced,
+                handleChanges: handleChanges
+            )
+        }
     }
     
     var toolbarContent: some ToolbarContent {
