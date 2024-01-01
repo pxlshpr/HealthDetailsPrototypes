@@ -8,6 +8,8 @@ import SwiftUIIntrospect
 /// [ ] Ensure updating it shows the correct weight in the form again
 /// [ ] Make sure we've left comments for the saved weight to be persisted (and repurcussions managed) by HealthProvider
 /// [ ] Test by saving height for past date, and weight for today, then making sure equation variables correctly picks up the values from the backend (we'll need HealthProvider to help us with this somehow, even though its for a past date)
+/// [ ] Put all the code for value string for BodyMassUnit and HeightUnit in one place and use that in all forms
+/// [ ] Show HealthDetails values in cells themselves
 struct LeanBodyMassMeasurementForm: View {
     
     @Environment(SettingsProvider.self) var settingsProvider
