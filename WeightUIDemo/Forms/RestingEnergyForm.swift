@@ -63,7 +63,7 @@ struct RestingEnergyForm: View {
         
         /// If the source is manual, delay focus until push transition completes
         if restingEnergy.source == .userEntered {
-            _focusDelay = State(initialValue: restingEnergyInKcal.wrappedValue == nil ? 0.3 : 0.6)
+            _focusDelay = State(initialValue: restingEnergyInKcal.wrappedValue == nil ? 0.4 : 0.6)
         }
     }
     
