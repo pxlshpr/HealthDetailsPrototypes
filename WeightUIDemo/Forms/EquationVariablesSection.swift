@@ -2,7 +2,7 @@ import SwiftUI
 
 struct EquationVariablesSections: View {
 
-    @Environment(SettingsProvider.self) var settingsProvider: SettingsProvider
+    @Environment(SettingsProvider.self) var settingsProvider
     @Bindable var healthProvider: HealthProvider
     
     @Binding var healthDetails: [HealthDetail]

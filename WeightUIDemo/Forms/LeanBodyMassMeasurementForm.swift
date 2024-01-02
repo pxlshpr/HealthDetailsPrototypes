@@ -3,37 +3,33 @@ import PrepShared
 import SwiftUIIntrospect
 
 struct LeanBodyMassMeasurementForm: View {
-    
-    @Environment(SettingsProvider.self) var settingsProvider
+
     @Environment(\.dismiss) var dismiss
-    
+
+    @Environment(SettingsProvider.self) var settingsProvider
     @Bindable var healthProvider: HealthProvider
     
     @State var time = Date.now
-
     @State var source: LeanBodyMassSource = .equation
     @State var equation: LeanBodyMassEquation = .boer
     
     @State var leanBodyMassInKg: Double?
-    
     @State var doubleInput = DoubleInput(automaticallySubmitsValues: true)
     @State var intInput = IntInput(automaticallySubmitsValues: true)
-
     @State var fatPercentageInput = DoubleInput(automaticallySubmitsValues: true)
     
     @State var isDirty: Bool = false
     @State var dismissDisabled: Bool = false
 
     @State var showingEquationsInfo = false
-
     @State var hasFocusedCustom: Bool = false
     @State var hasFocusedFatPercentage: Bool = false
 
-    let add: (Int, Double, Date) -> ()
+    let add: (LeanBodyMassMeasurement) -> ()
 
     init(
         healthProvider: HealthProvider,
-        add: @escaping (Int, Double, Date) -> ()
+        add: @escaping (LeanBodyMassMeasurement) -> ()
     ) {
         self.healthProvider = healthProvider
         self.add = add
@@ -48,22 +44,6 @@ struct LeanBodyMassMeasurementForm: View {
                 .safeAreaInset(edge: .bottom) { bottomValue }
         }
         .scrollDismissesKeyboard(.immediately)
-//        .alert("Enter your Lean Body Mass", isPresented: $showingAlert) {
-//            TextField("kg", text: customInput.binding)
-//                .keyboardType(.decimalPad)
-//            Button("OK", action: submitCustomValue)
-//            Button("Cancel") {
-//                customInput.cancel()
-//            }
-//        }
-//        .alert("Enter your Fat Percentage", isPresented: $showingFatPercentageAlert) {
-//            TextField("%", text: fatPercentageInput.binding)
-//                .keyboardType(.decimalPad)
-//            Button("OK", action: submitFatPercentage)
-//            Button("Cancel") { 
-//                fatPercentageInput.cancel()
-//            }
-//        }
         .interactiveDismissDisabled(dismissDisabled)
         .onChange(of: isDirty) { _, _ in setDismissDisabled() }
     }
@@ -144,14 +124,30 @@ struct LeanBodyMassMeasurementForm: View {
         .background(.bar)
     }
     
+    var measurement: LeanBodyMassMeasurement? {
+        guard let leanBodyMassInKg else { return nil }
+        return LeanBodyMassMeasurement(
+            date: time,
+            leanBodyMassInKg: leanBodyMassInKg,
+            fatPercentage: fatPercentageInput.double,
+            source: source
+        )
+    }
+    
+    var hasMeasurement: Bool {
+        measurement != nil
+    }
+    
     var toolbarContent: some ToolbarContent {
         Group {
             ToolbarItem(placement: .topBarTrailing) {
                 Button("Add") {
+                    guard let measurement else { return }
+                    add(measurement)
                     dismiss()
                 }
                 .fontWeight(.bold)
-                .disabled(!isDirty)
+                .disabled(!isDirty || !hasMeasurement)
             }
             ToolbarItem(placement: .topBarLeading) {
                 Button("Cancel") {
@@ -287,7 +283,7 @@ struct LeanBodyMassMeasurementForm: View {
     }
     
     func handleNewSource(_ newValue: LeanBodyMassSource) {
-        /// Reset this immediately to make sure the text field gets focused
+        /// Reset these immediately to make sure the text field gets focused
         if newValue == .userEntered {
             hasFocusedCustom = false
         }
@@ -374,16 +370,15 @@ struct LeanBodyMassMeasurementForm: View {
             nil
         }
         withAnimation {
-            self.leanBodyMassInKg = kg
+            leanBodyMassInKg = kg
             calculateFatPercentage(forLeanBodyMass: kg)
             setIsDirty()
         }
     }
 
     func handleFatPercentageValue() {
-        guard let double = fatPercentageInput.double else { return }
         withAnimation {
-            calculateLeanBodyMass(forFatPercentage: double)
+            calculateLeanBodyMass(forFatPercentage: fatPercentageInput.double)
             setIsDirty()
         }
     }
@@ -489,7 +484,7 @@ struct LeanBodyMassMeasurementForm: View {
 #Preview("Current (kg)") {
     LeanBodyMassMeasurementForm(
         healthProvider: MockCurrentProvider
-    ) { int, double, time in
+    ) { measurement in
         
     }
     .environment(SettingsProvider(settings: .init(bodyMassUnit: .kg)))
@@ -498,7 +493,7 @@ struct LeanBodyMassMeasurementForm: View {
 #Preview("Current (st)") {
     LeanBodyMassMeasurementForm(
         healthProvider: MockCurrentProvider
-    ) { int, double, time in
+    ) { measurement in
         
     }
     .environment(SettingsProvider(settings: .init(bodyMassUnit: .st)))

@@ -5,6 +5,9 @@ struct AdaptiveMaintenanceForm: View {
     
     @State var value: Double? = 3225
     @State var weeks: Int = 1
+    @State var dietaryEnergyInKcalPerDay: Double? = 3456
+    @State var weightChangeInKg: Double? = -1.42
+    
     @State var showingInfo = false
 
     let pastDate: Date?
@@ -84,7 +87,12 @@ struct AdaptiveMaintenanceForm: View {
             HStack {
                 Text("Weight Change")
                 Spacer()
-                Text("-1.42 kg")
+                if let weightChangeInKg {
+                    Text("\(weightChangeInKg.cleanHealth) kg")
+                } else {
+                    Text("Not Set")
+                        .foregroundStyle(.secondary)
+                }
             }
         }
         
@@ -114,7 +122,12 @@ struct AdaptiveMaintenanceForm: View {
             HStack {
                 Text("Dietary Energy")
                 Spacer()
-                Text("3,456 kcal / day")
+                if let dietaryEnergyInKcalPerDay {
+                    Text("\(dietaryEnergyInKcalPerDay.formattedEnergy) kcal / day")
+                } else {
+                    Text("Not Set")
+                        .foregroundStyle(.secondary)
+                }
             }
         }
         var navigationViewLink: some View {

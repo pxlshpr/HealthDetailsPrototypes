@@ -1,16 +1,16 @@
 import Foundation
 import PrepShared
 
-public enum RestingEnergySource: Int16, Codable, CaseIterable {
-    case healthKit = 1
-    case equation
+public enum RestingEnergySource: Int, Codable, CaseIterable {
+    case equation = 1
+    case healthKit
     case userEntered
     
     var name: String {
         switch self {
         case .healthKit:    "Apple Health"
         case .equation:     "Equation"
-        case .userEntered:  "Custom"
+        case .userEntered:  "Manual"
         }
     }
     
@@ -28,7 +28,7 @@ extension RestingEnergySource: Pickable {
         case .healthKit:    "Sync with Apple Health"
         case .equation:     "Equation"
 //        case .userEntered:  "Entered manually"
-        case .userEntered:  "Custom"
+        case .userEntered:  "Manual"
         }
     }
     

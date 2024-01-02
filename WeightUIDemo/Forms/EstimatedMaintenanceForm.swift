@@ -3,7 +3,9 @@ import SwiftUI
 struct EstimatedMaintenanceForm: View {
 
     @Bindable var healthProvider: HealthProvider
-    @State var value: Double? = 2782
+    @State var estimatedMaintenanceInKcal: Double? = nil
+    @State var restingEnergyInKcal: Double? = nil
+    @State var activeEnergyInKcal: Double? = nil
     
     @State var isEditing: Bool
     @Binding var isPresented: Bool
@@ -38,9 +40,9 @@ struct EstimatedMaintenanceForm: View {
     
     var bottomValue: some View {
         MeasurementBottomBar(
-            double: $value,
+            double: $estimatedMaintenanceInKcal,
             doubleString: Binding<String?>(
-                get: { value?.formattedEnergy },
+                get: { estimatedMaintenanceInKcal?.formattedEnergy },
                 set: { _ in }
             ),
             doubleUnitString: "kcal",
@@ -56,6 +58,7 @@ struct EstimatedMaintenanceForm: View {
             NavigationLink {
                 RestingEnergyForm(
                     healthProvider: healthProvider,
+                    restingEnergyInKcal: $restingEnergyInKcal,
                     isPresented: $isPresented,
                     dismissDisabled: $dismissDisabled
                 )
@@ -63,7 +66,12 @@ struct EstimatedMaintenanceForm: View {
                 HStack {
                     Text("Resting Energy")
                     Spacer()
-                    Text("2,021 kcal")
+                    if let restingEnergyInKcal {
+                        Text("\(restingEnergyInKcal.formattedEnergy) kcal")
+                    } else {
+                        Text("Not Set")
+                            .foregroundStyle(.secondary)
+                    }
                 }
             }
         }
@@ -81,7 +89,12 @@ struct EstimatedMaintenanceForm: View {
                 HStack {
                     Text("Active Energy")
                     Spacer()
-                    Text("761 kcal")
+                    if let activeEnergyInKcal {
+                        Text("\(activeEnergyInKcal.formattedEnergy) kcal")
+                    } else {
+                        Text("Not Set")
+                            .foregroundStyle(.secondary)
+                    }
                 }
             }
         }

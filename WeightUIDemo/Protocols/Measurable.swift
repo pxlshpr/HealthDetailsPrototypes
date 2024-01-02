@@ -21,7 +21,7 @@ extension Measurable {
     
     var secondaryValueString: String? {
         if let secondaryValue, let secondaryValueUnit {
-            "\(secondaryValue) \(secondaryValueUnit)"
+            "\(secondaryValue.cleanHealth)\(secondaryValueUnit)"
         } else {
             nil
         }

@@ -17,11 +17,22 @@ struct SettingsForm: View {
     var body: some View {
         NavigationView {
             Form {
-                heightUnitPicker
+                energyUnitPicker
                 bodyMassUnitPicker
+                heightUnitPicker
             }
             .navigationTitle("Settings")
         }
+    }
+
+    var energyUnitPicker: some View {
+        let binding = Binding<EnergyUnit>(
+            get: { settingsProvider.settings.energyUnit },
+            set: { newValue in
+                settingsProvider.saveEnergyUnit(newValue)
+            }
+        )
+        return PickerSection(binding, "Energy Unit")
     }
     
     var heightUnitPicker: some View {

@@ -5,13 +5,99 @@ struct HealthDetails: Hashable, Codable {
  
     let date: Date
     var biologicalSex: BiologicalSex = .notSet
-//    var age: Age? = nil
     var dateOfBirthComponents: DateComponents?
     var smokingStatus: SmokingStatus = .notSet
     var pregnancyStatus: PregnancyStatus = .notSet
     var height = Height()
     var weight = Weight()
     var leanBodyMass = LeanBodyMass()
+    var maintenance = Maintenance()
+}
+
+//MARK: - Maintenance
+
+extension HealthDetails {
+    struct Maintenance: Hashable, Codable {
+        
+        var type: MaintenanceType = .estimated
+        var kcal: Double?
+        var adaptive = Adaptive()
+        var estimate = Estimate()
+        var useEstimateAsFallback: Bool = true
+        
+        struct Adaptive: Hashable, Codable {
+            var kcal: Double? = nil
+            var interval: HealthInterval = .init(1, .week)
+            
+            var dietaryEnergy = DietaryEnergy()
+            var weightChange = WeightChange()
+            
+            struct DietaryEnergy: Hashable, Codable {
+                var kcalPerDay: Double?
+                var points: [Point] = []
+             
+                struct Point: Hashable, Codable {
+                    var date: Date
+                    var kcal: Double?
+                    var type: DietaryEnergyPointType
+                }
+            }
+            
+            struct WeightChange: Hashable, Codable {
+                var kg: Double?
+                var isCustom: Bool = false
+                var points: [Point] = []
+
+                struct Point: Hashable, Codable {
+                    var date: Date
+                    var kg: Double?
+                    var useMovingAverage: Bool
+                    var movingAverageInterval: HealthInterval = .init(7, .day)
+                    var weights: [Weight]
+                    
+                    struct Weight: Hashable, Codable {
+                        var date: Date
+                        var weight: HealthDetails.Weight
+                    }
+                }
+            }
+        }
+        
+        struct Estimate: Hashable, Codable {
+            var kcal: Double?
+            var restingEnergy = RestingEnergy()
+            var activeEnergy = ActiveEnergy()
+            
+            struct RestingEnergy: Hashable, Codable {
+                var kcal: Double? = nil
+                var source: RestingEnergySource = .equation
+                
+                var equation: RestingEnergyEquation = .katchMcardle
+                var healthKitSyncSettings = HealthKitSyncSettings()
+            }
+
+            struct ActiveEnergy: Hashable, Codable {
+                var kcal: Double? = nil
+                var source: ActiveEnergySource = .activityLevel
+                
+                var activityLevel: ActivityLevel = .lightlyActive
+                var healthKitSyncSettings = HealthKitSyncSettings()
+            }
+            
+            struct HealthKitSyncSettings: Hashable, Codable {
+                var intervalType: HealthIntervalType = .average
+                var interval: HealthInterval = .init(3, .day)
+                var correction: Correction? = nil
+                
+                struct Correction: Hashable, Codable {
+                    var type: CorrectionType = .divide
+                    var correction: Double?
+                }
+            }
+
+        }
+
+    }
 }
 
 //MARK: - LeanBodyMass
@@ -40,6 +126,19 @@ extension HealthDetails {
 extension HealthDetails.Weight {
     func valueString(in unit: BodyMassUnit) -> String {
         weightInKg.valueString(convertedFrom: .kg, to: unit)
+    }
+}
+
+extension HealthDetails.LeanBodyMass {
+    func secondaryValueString() -> String? {
+        if let fatPercentage {
+            "\(fatPercentage.cleanHealth)%"
+        } else {
+            nil
+        }
+    }
+    func valueString(in unit: BodyMassUnit) -> String {
+        leanBodyMassInKg.valueString(convertedFrom: .kg, to: unit)
     }
 }
 

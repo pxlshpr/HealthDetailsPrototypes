@@ -25,6 +25,7 @@ struct HealthDetailsForm: View {
             form
                 .navigationTitle("Health Details")
                 .navigationBarTitleDisplayMode(.large)
+                .toolbar { toolbarContent }
         }
         .interactiveDismissDisabled(dismissDisabled)
     }
@@ -37,8 +38,10 @@ struct HealthDetailsForm: View {
             }
             Section {
                 link(for: .weight)
-                link(for: .leanBodyMass)
                 link(for: .height)
+            }
+            Section {
+                link(for: .leanBodyMass)
             }
             Section {
                 link(for: .age)
@@ -49,11 +52,43 @@ struct HealthDetailsForm: View {
         }
     }
     
+    var toolbarContent: some ToolbarContent {
+        ToolbarItem(placement: .topBarTrailing) {
+            Button {
+                isPresented = false
+            } label: {
+                CloseButtonLabel()
+            }
+        }
+    }
+    
     func link(for healthDetail: HealthDetail) -> some View {
-        NavigationLink {
+        var details: HealthDetails { healthProvider.healthDetails }
+        
+        @ViewBuilder
+        var secondaryText: some View {
+            if let secondary = details.secondaryValueString(for: healthDetail, settingsProvider) {
+                Text(secondary)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        
+        var primaryText: some View {
+            Text(details.valueString(for: healthDetail, settingsProvider))
+                .foregroundStyle(details.hasSet(healthDetail) ? .primary : .secondary)
+        }
+        
+        return NavigationLink {
             sheet(for: healthDetail)
         } label: {
-            Text(healthDetail.name)
+            HStack {
+                Text(healthDetail.name)
+                Spacer()
+                HStack(spacing: 4) {
+//                    secondaryText
+                    primaryText
+                }
+            }
         }
     }
     
@@ -125,10 +160,14 @@ struct HealthDetailsForm: View {
     }
 }
 
-#Preview("Current") {
-    MockCurrentHealthDetailsForm()
-}
+//#Preview("Current") {
+//    MockCurrentHealthDetailsForm()
+//}
+//
+//#Preview("Past") {
+//    MockPastHealthDetailsForm()
+//}
 
-#Preview("Past") {
-    MockPastHealthDetailsForm()
+#Preview("DemoView") {
+    DemoView()
 }

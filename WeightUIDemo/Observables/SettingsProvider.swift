@@ -19,7 +19,12 @@ extension SettingsProvider {
         settings.heightUnit = heightUnit
         save()
     }
-    
+
+    func saveEnergyUnit(_ energyUnit: EnergyUnit) {
+        settings.energyUnit = energyUnit
+        save()
+    }
+
     func saveBodyMassUnit(_ bodyMassUnit: BodyMassUnit) {
         settings.bodyMassUnit = bodyMassUnit
         save()
@@ -89,6 +94,8 @@ extension SettingsProvider {
             bodyMassUnit.abbreviation
         case .fatPercentage:
             "%"
+        case .energy:
+            energyUnit.abbreviation
         }
     }
     
@@ -99,6 +106,8 @@ extension SettingsProvider {
         case .weight, .leanBodyMass:
             bodyMassUnit.secondaryUnit
         case .fatPercentage:
+            nil
+        case .energy:
             nil
         }
     }

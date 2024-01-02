@@ -6,11 +6,11 @@ struct MaintenanceForm: View {
     @Bindable var healthProvider: HealthProvider
     
     @State var maintenancetype: MaintenanceType = .adaptive
-    @State var value: Double? = 3225
-    @State var adaptiveValue: Double = 3225
-    @State var estimatedValue: Double = 2856
+    @State var valueInKcal: Double? = nil
+    @State var adaptiveValueInKcal: Double? = nil
+    @State var estimatedValueInKcal: Double? = nil
 
-    @State var useEstimatedAsFallback = true
+    @State var useEstimateAsFallback = true
 
     @State var showingMaintenanceInfo = false
     
@@ -62,9 +62,9 @@ struct MaintenanceForm: View {
     
     var bottomValue: some View {
         MeasurementBottomBar(
-            double: $value,
+            double: $valueInKcal,
             doubleString: Binding<String?>(
-                get: { value?.formattedEnergy },
+                get: { valueInKcal?.formattedEnergy },
                 set: { _ in }
             ),
             doubleUnitString: "kcal",
@@ -78,13 +78,13 @@ struct MaintenanceForm: View {
     var fallbackToggle: some View {
         
         var footer: some View {
-            Text("This may occur when there is not enough Weight or Dietary Energy data to make the calculation.")
+            Text("Your Estimated Maintenance Energy will be used when there is not enough Weight or Dietary Energy data to calculate your Adaptive Maintenance.")
         }
         
         return Group {
             if maintenancetype == .adaptive {
                 Section(footer: footer) {
-                    Toggle("Use Estimate when Adaptive calculation cannot be made", isOn: $useEstimatedAsFallback)
+                    Toggle("Use Estimate when Adaptive calculation cannot be made", isOn: $useEstimateAsFallback)
                         .disabled(!isEditing)
                         .foregroundColor(isEditing ? .primary : .secondary)
                 }
@@ -121,7 +121,7 @@ struct MaintenanceForm: View {
     func undo() {
         isDirty = false
         maintenancetype = .adaptive
-        value = adaptiveValue
+        valueInKcal = adaptiveValueInKcal
     }
 
     enum AdaptiveRoute {
@@ -137,7 +137,12 @@ struct MaintenanceForm: View {
             HStack {
                 Text("Adaptive")
                 Spacer()
-                Text("\(adaptiveValue.formattedEnergy) kcal")
+                if let adaptiveValueInKcal {
+                    Text("\(adaptiveValueInKcal.formattedEnergy) kcal")
+                } else {
+                    Text("Not Set")
+                        .foregroundStyle(.secondary)
+                }
             }
         }
         
@@ -178,7 +183,12 @@ struct MaintenanceForm: View {
             HStack {
                 Text("Estimated")
                 Spacer()
-                Text("\(estimatedValue.formattedEnergy) kcal")
+                if let estimatedValueInKcal {
+                    Text("\(estimatedValueInKcal.formattedEnergy) kcal")
+                } else {
+                    Text("Not Set")
+                        .foregroundStyle(.secondary)
+                }
             }
         }
         
@@ -220,7 +230,7 @@ struct MaintenanceForm: View {
             set: { newValue in
                 withAnimation {
                     maintenancetype = newValue
-                    value = maintenancetype == .adaptive ? adaptiveValue : estimatedValue
+                    valueInKcal = maintenancetype == .adaptive ? adaptiveValueInKcal : estimatedValueInKcal
                     isDirty = maintenancetype != .adaptive
                 }
             }

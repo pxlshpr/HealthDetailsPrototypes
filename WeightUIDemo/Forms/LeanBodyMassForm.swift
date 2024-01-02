@@ -6,17 +6,16 @@ struct LeanBodyMassForm: View {
     
     @Environment(SettingsProvider.self) var settingsProvider
     @Bindable var healthProvider: HealthProvider
-    
+
+    let date: Date
+    let initialLeanBodyMass: HealthDetails.LeanBodyMass
+
     @State var leanBodyMassInKg: Double?
     @State var fatPercentage: Double?
     @State var dailyValueType: DailyValueType
     @State var measurements: [LeanBodyMassMeasurement]
     @State var deletedHealthKitMeasurements: [LeanBodyMassMeasurement]
     @State var isSynced: Bool = true
-    
-    let initialMeasurements: [LeanBodyMassMeasurement]
-    let initialDeletedHealthKitMeasurements: [LeanBodyMassMeasurement]
-    let initialDailyValueType: DailyValueType
     
     @State var showingForm = false
     
@@ -25,37 +24,46 @@ struct LeanBodyMassForm: View {
     @Binding var isPresented: Bool
     @Binding var dismissDisabled: Bool
     
+    let saveHandler: (HealthDetails.LeanBodyMass) -> ()
+
+    init(
+        date: Date,
+        leanBodyMass: HealthDetails.LeanBodyMass,
+        healthProvider: HealthProvider,
+        isPresented: Binding<Bool> = .constant(true),
+        dismissDisabled: Binding<Bool> = .constant(false),
+        save: @escaping (HealthDetails.LeanBodyMass) -> ()
+    ) {
+        self.date = date
+        self.initialLeanBodyMass = leanBodyMass
+        self.saveHandler = save
+        self.healthProvider = healthProvider
+        _isPresented = isPresented
+        _dismissDisabled = dismissDisabled
+        _isEditing = State(initialValue: date.isToday)
+        
+        _leanBodyMassInKg = State(initialValue: leanBodyMass.leanBodyMassInKg)
+        _measurements = State(initialValue: leanBodyMass.measurements)
+        _dailyValueType = State(initialValue: leanBodyMass.dailyValueType)
+        _deletedHealthKitMeasurements = State(initialValue: leanBodyMass.deletedHealthKitMeasurements)
+        _isSynced = State(initialValue: leanBodyMass.isSynced)
+    }
+    
     init(
         healthProvider: HealthProvider,
         isPresented: Binding<Bool> = .constant(true),
         dismissDisabled: Binding<Bool> = .constant(false)
     ) {
-        self.healthProvider = healthProvider
-        _isPresented = isPresented
-        _dismissDisabled = dismissDisabled
-        _isEditing = State(initialValue: healthProvider.isCurrent)
-        
-//        let mock: [LeanBodyMassMeasurement] = [
-//            .init(date: Date.now, leanBodyMassInKg: 73, fatPercentage: 22.3, source: .fatPercentage),
-//            .init(date: Date.now, leanBodyMassInKg: 73, fatPercentage: 21.3, source: .userEntered),
-//            .init(date: Date.now, leanBodyMassInKg: 73, fatPercentage: 20.3, source: .healthKit(UUID())),
-//            .init(date: Date.now, leanBodyMassInKg: 73, fatPercentage: 15.3, source: .equation),
-//        ]
-        
-        let leanBodyMass = healthProvider.healthDetails.leanBodyMass
-        _leanBodyMassInKg = State(initialValue: leanBodyMass.leanBodyMassInKg)
-        _measurements = State(initialValue: leanBodyMass.measurements)
-//        _measurements = State(initialValue: mock)
-        _dailyValueType = State(initialValue: leanBodyMass.dailyValueType)
-        _deletedHealthKitMeasurements = State(initialValue: leanBodyMass.deletedHealthKitMeasurements)
-        _isSynced = State(initialValue: leanBodyMass.isSynced)
-        
-        self.initialMeasurements = leanBodyMass.measurements
-//        self.initialMeasurements = mock
-        self.initialDeletedHealthKitMeasurements = leanBodyMass.deletedHealthKitMeasurements
-        self.initialDailyValueType = leanBodyMass.dailyValueType
+        self.init(
+            date: healthProvider.healthDetails.date,
+            leanBodyMass: healthProvider.healthDetails.leanBodyMass,
+            healthProvider: healthProvider,
+            isPresented: isPresented,
+            dismissDisabled: dismissDisabled,
+            save: healthProvider.saveLeanBodyMass
+        )
     }
-    
+
     var body: some View {
         Form {
             noticeOrDateSection
@@ -68,7 +76,7 @@ struct LeanBodyMassForm: View {
         .toolbar { toolbarContent }
         .sheet(isPresented: $showingForm) { measurementForm }
         .safeAreaInset(edge: .bottom) { bottomValue }
-        .navigationBarBackButtonHidden(isPast && isEditing)
+        .navigationBarBackButtonHidden(isLegacy && isEditing)
         .onChange(of: isEditing) { _, _ in setDismissDisabled() }
         .onChange(of: isDirty) { _, _ in setDismissDisabled() }
     }
@@ -93,8 +101,8 @@ struct LeanBodyMassForm: View {
     
     @ViewBuilder
     var noticeOrDateSection: some View {
-        if let pastDate {
-            NoticeSection.legacy(pastDate, isEditing: $isEditing)
+        if isLegacy {
+            NoticeSection.legacy(date, isEditing: $isEditing)
         } else {
             Section {
                 HStack {
@@ -175,7 +183,7 @@ struct LeanBodyMassForm: View {
         topToolbarContent(
             isEditing: $isEditing,
             isDirty: $isDirty,
-            isPast: isPast,
+            isPast: isLegacy,
             dismissAction: { isPresented = false },
             undoAction: undo,
             saveAction: save
@@ -184,11 +192,9 @@ struct LeanBodyMassForm: View {
     
     //MARK: - Rewrite
     var measurementForm: some View {
-        LeanBodyMassMeasurementForm(healthProvider: healthProvider) { int, double, time in
-//            let weightInKg = settingsProvider.bodyMassUnit.convert(int, double, to: .kg)
-//            let measurement = WeightMeasurement(date: time, weightInKg: weightInKg)
-//            measurements.append(measurement)
-//            measurements.sort()
+        LeanBodyMassMeasurementForm(healthProvider: healthProvider) { measurement in
+            measurements.append(measurement)
+            measurements.sort()
             handleChanges()
         }
     }
@@ -216,7 +222,7 @@ struct LeanBodyMassForm: View {
     
     @ViewBuilder
     var syncSection: some View {
-        if !isPast {
+        if !isLegacy {
             SyncSection(
                 healthDetail: .leanBodyMass,
                 isSynced: $isSynced,
@@ -243,7 +249,7 @@ struct LeanBodyMassForm: View {
             ),
             showingForm: $showingForm,
             isPast: Binding<Bool>(
-                get: { isPast },
+                get: { isLegacy },
                 set: { _ in }
             ),
             isEditing: Binding<Bool>(
@@ -259,53 +265,46 @@ struct LeanBodyMassForm: View {
     //MARK: - Actions
     
     func setDismissDisabled() {
-        dismissDisabled = isPast && isEditing && isDirty
+        dismissDisabled = isLegacy && isEditing && isDirty
     }
     
     
     func undo() {
-        let leanBodyMass = healthProvider.healthDetails.leanBodyMass
-        self.leanBodyMassInKg = leanBodyMass.leanBodyMassInKg
-        self.dailyValueType = leanBodyMass.dailyValueType
-        self.measurements = leanBodyMass.measurements
-        self.deletedHealthKitMeasurements = leanBodyMass.deletedHealthKitMeasurements
-        self.isSynced = leanBodyMass.isSynced
+        self.leanBodyMassInKg = initialLeanBodyMass.leanBodyMassInKg
+        self.dailyValueType = initialLeanBodyMass.dailyValueType
+        self.measurements = initialLeanBodyMass.measurements
+        self.deletedHealthKitMeasurements = initialLeanBodyMass.deletedHealthKitMeasurements
+        self.isSynced = initialLeanBodyMass.isSynced
     }
     
     func save() {
-        healthProvider.saveLeanBodyMass(leanBodyMass)
+        saveHandler(leanBodyMass)
     }
     
     func setIsDirty() {
-        isDirty = measurements != initialMeasurements
-        || deletedHealthKitMeasurements != initialDeletedHealthKitMeasurements
-        || dailyValueType != initialDailyValueType
+        isDirty = leanBodyMass != initialLeanBodyMass
     }
     
     func handleChanges() {
         leanBodyMassInKg = calculatedLeanBodyMassInKg
         setIsDirty()
-        if !isPast {
+        if !isLegacy {
             save()
         }
     }
     
     //MARK: - Convenience
     
-    var pastDate: Date? {
-        healthProvider.pastDate
-    }
-    
     var isDisabled: Bool {
-        isPast && !isEditing
+        isLegacy && !isEditing
     }
     
     var controlColor: Color {
         isDisabled ? .secondary : .primary
     }
     
-    var isPast: Bool {
-        pastDate != nil
+    var isLegacy: Bool {
+        date.startOfDay < Date.now.startOfDay
     }
     
     var calculatedLeanBodyMassInKg: Double? {

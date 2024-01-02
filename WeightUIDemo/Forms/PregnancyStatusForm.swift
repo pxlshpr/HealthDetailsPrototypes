@@ -3,7 +3,8 @@ import SwiftSugar
 
 struct PregnancyStatusForm: View {
 
-    @Bindable var healthProvider: HealthProvider
+    let date: Date
+    let initialPregnancyStatus: PregnancyStatus
 
     @State var pregnancyStatus: PregnancyStatus = .notSet
 
@@ -12,21 +13,37 @@ struct PregnancyStatusForm: View {
     @Binding var isPresented: Bool
     @Binding var dismissDisabled: Bool
     
+    let saveHandler: (PregnancyStatus) -> ()
+
+    init(
+        date: Date,
+        pregnancyStatus: PregnancyStatus,
+        isPresented: Binding<Bool> = .constant(true),
+        dismissDisabled: Binding<Bool> = .constant(false),
+        save: @escaping (PregnancyStatus) -> ()
+    ) {
+        self.date = date
+        self.initialPregnancyStatus = pregnancyStatus
+        self.saveHandler = save
+        _isPresented = isPresented
+        _dismissDisabled = dismissDisabled
+        _isEditing = State(initialValue: date.isToday)
+        
+        _pregnancyStatus = State(initialValue: pregnancyStatus)
+    }
+    
     init(
         healthProvider: HealthProvider,
         isPresented: Binding<Bool> = .constant(true),
         dismissDisabled: Binding<Bool> = .constant(false)
     ) {
-        self.healthProvider = healthProvider
-        _isPresented = isPresented
-        _dismissDisabled = dismissDisabled
-        _isEditing = State(initialValue: healthProvider.isCurrent)
-        
-        _pregnancyStatus = State(initialValue: healthProvider.healthDetails.pregnancyStatus)
-    }
-
-    var pastDate: Date? {
-        healthProvider.pastDate
+        self.init(
+            date: healthProvider.healthDetails.date,
+            pregnancyStatus: healthProvider.healthDetails.pregnancyStatus,
+            isPresented: isPresented,
+            dismissDisabled: dismissDisabled,
+            save: healthProvider.savePregnancyStatus
+        )
     }
 
     var body: some View {
@@ -39,15 +56,15 @@ struct PregnancyStatusForm: View {
         .navigationBarTitleDisplayMode(.large)
         .toolbar { toolbarContent }
         .safeAreaInset(edge: .bottom) { bottomValue }
-        .navigationBarBackButtonHidden(isPast && isEditing)
+        .navigationBarBackButtonHidden(isLegacy && isEditing)
         .onChange(of: isEditing) { _, _ in setDismissDisabled() }
         .onChange(of: isDirty) { _, _ in setDismissDisabled() }
     }
     
     @ViewBuilder
     var notice: some View {
-        if let pastDate {
-            NoticeSection.legacy(pastDate, isEditing: $isEditing)
+        if isLegacy {
+            NoticeSection.legacy(date, isEditing: $isEditing)
         }
     }
 
@@ -85,7 +102,7 @@ struct PregnancyStatusForm: View {
         topToolbarContent(
             isEditing: $isEditing,
             isDirty: $isDirty,
-            isPast: isPast,
+            isPast: isLegacy,
             dismissAction: { isPresented = false },
             undoAction: undo,
             saveAction: save
@@ -97,34 +114,34 @@ struct PregnancyStatusForm: View {
     }
     
     func setDismissDisabled() {
-        dismissDisabled = isPast && isEditing && isDirty
+        dismissDisabled = isLegacy && isEditing && isDirty
     }
 
     func undo() {
-        self.pregnancyStatus = healthProvider.healthDetails.pregnancyStatus
+        self.pregnancyStatus = initialPregnancyStatus
     }
     
     func handleChanges() {
         setIsDirty()
-        if !isPast {
+        if !isLegacy {
             save()
         }
     }
     
     func save() {
-        healthProvider.savePregnancyStatus(pregnancyStatus)
+        saveHandler(pregnancyStatus)
     }
 
     var isDisabled: Bool {
-        isPast && !isEditing
+        isLegacy && !isEditing
     }
     
     var controlColor: Color {
         isDisabled ? .secondary : .primary
     }
     
-    var isPast: Bool {
-        pastDate != nil
+    var isLegacy: Bool {
+        date.startOfDay < Date.now.startOfDay
     }
     
     var explanation: some View {

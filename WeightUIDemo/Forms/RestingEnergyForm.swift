@@ -4,7 +4,7 @@ struct RestingEnergyForm: View {
 
     @Bindable var healthProvider: HealthProvider
     
-    @State var value: Double? = 2798
+    @Binding var restingEnergyInKcal: Double?
 
     @State var source: RestingEnergySource = .equation
     @State var equation: RestingEnergyEquation = .katchMcardle
@@ -14,24 +14,28 @@ struct RestingEnergyForm: View {
 
     @State var applyCorrection: Bool = true
     @State var correctionType: CorrectionType = .divide
+    @State var correctionInput = DoubleInput(automaticallySubmitsValues: true)
 
-    @State var showingAlert = false
+    @State var customInput = DoubleInput(automaticallySubmitsValues: true)
     
-    @State var correctionInput = DoubleInput(double: 2)
-
+//    @State var showingAlert = false
+    
     @State var showingEquationsInfo = false
     @State var showingRestingEnergyInfo = false
     @State var showingCorrectionAlert = false
 
-    @State var customInput = DoubleInput(double: 2798)
-    
     @State var isEditing: Bool
     @State var isDirty: Bool = false
     @Binding var isPresented: Bool
     @Binding var dismissDisabled: Bool
 
+    @State var hasFocusedCustomField = false
+    
+    @State var focusDelay: Double = 0.05
+    
     init(
         healthProvider: HealthProvider,
+        restingEnergyInKcal: Binding<Double?> = .constant(nil),
         isPresented: Binding<Bool> = .constant(true),
         dismissDisabled: Binding<Bool> = .constant(false)
     ) {
@@ -39,6 +43,28 @@ struct RestingEnergyForm: View {
         _isPresented = isPresented
         _dismissDisabled = dismissDisabled
         _isEditing = State(initialValue: healthProvider.isCurrent)
+
+        _restingEnergyInKcal = restingEnergyInKcal
+        _customInput = State(initialValue: DoubleInput(double: restingEnergyInKcal.wrappedValue, automaticallySubmitsValues: true))
+
+        let restingEnergy = healthProvider.healthDetails.maintenance.estimate.restingEnergy
+        _source = State(initialValue: restingEnergy.source)
+        _equation = State(initialValue: restingEnergy.equation)
+        _intervalType = State(initialValue: restingEnergy.healthKitSyncSettings.intervalType)
+        _interval = State(initialValue: restingEnergy.healthKitSyncSettings.interval)
+   
+        if let correction = restingEnergy.healthKitSyncSettings.correction {
+            _applyCorrection = State(initialValue: true)
+            _correctionType = State(initialValue: correction.type)
+            _correctionInput = State(initialValue: DoubleInput(double: correction.correction, automaticallySubmitsValues: true))
+        } else {
+            _applyCorrection = State(initialValue: false)
+        }
+        
+        /// If the source is manual, delay focus until push transition completes
+        if restingEnergy.source == .userEntered {
+            _focusDelay = State(initialValue: restingEnergyInKcal.wrappedValue == nil ? 0.3 : 0.6)
+        }
     }
     
     var pastDate: Date? {
@@ -67,14 +93,21 @@ struct RestingEnergyForm: View {
         .sheet(isPresented: $showingRestingEnergyInfo) {
             RestingEnergyInfo()
         }
-        .alert("Enter your Resting Energy", isPresented: $showingAlert) {
-            TextField("kcal", text: customInput.binding)
-                .keyboardType(.decimalPad)
-            Button("OK", action: submitCustomValue)
-            Button("Cancel") { 
-                customInput.cancel()
+        .onAppear {
+            if source == .userEntered {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                    focusDelay = 0.05
+                }
             }
         }
+//        .alert("Enter your Resting Energy", isPresented: $showingAlert) {
+//            TextField("kcal", text: customInput.binding)
+//                .keyboardType(.decimalPad)
+//            Button("OK", action: submitCustomValue)
+//            Button("Cancel") { 
+//                customInput.cancel()
+//            }
+//        }
         .alert("Enter a correction", isPresented: $showingCorrectionAlert) {
             TextField(correctionType.textFieldPlaceholder, text: correctionInput.binding)
                 .keyboardType(.decimalPad)
@@ -93,9 +126,9 @@ struct RestingEnergyForm: View {
 
     var bottomValue: some View {
         MeasurementBottomBar(
-            double: $value,
+            double: $restingEnergyInKcal,
             doubleString: Binding<String?>(
-                get: { value?.formattedEnergy },
+                get: { restingEnergyInKcal?.formattedEnergy },
                 set: { _ in }
             ),
             doubleUnitString: "kcal",
@@ -116,7 +149,7 @@ struct RestingEnergyForm: View {
     func submitCustomValue() {
         withAnimation {
             customInput.submitValue()
-            value = customInput.double
+            restingEnergyInKcal = customInput.double
             setIsDirty()
         }
     }
@@ -135,12 +168,9 @@ struct RestingEnergyForm: View {
     var equationExplanations: some View {
         RestingEnergyEquationsInfo()
     }
-}
 
-//MARK: - Sections
+    //MARK: - Sections
 
-extension RestingEnergyForm {
-    
     var variablesSections: some View {
         EquationVariablesSections(
             healthDetails: Binding<[HealthDetail]>(
@@ -162,17 +192,41 @@ extension RestingEnergyForm {
         }
     }
     
+    var restingEnergy: HealthDetails.Maintenance.Estimate.RestingEnergy {
+        .init(
+            kcal: restingEnergyInKcal,
+            source: source,
+            equation: equation,
+            healthKitSyncSettings: .init(
+                intervalType: intervalType,
+                interval: interval,
+                correction: .init(
+                    type: correctionType,
+                    correction: correctionInput.double
+                )
+            )
+        )
+    }
+    
+    func handleChanges() {
+        setIsDirty()
+        if !isPast {
+            save()
+        }
+    }
+    
     var sourceSection: some View {
         let binding = Binding<RestingEnergySource>(
             get: { source },
             set: { newValue in
+                /// Reset this immediately to make sure the text field gets focused
+                if newValue == .userEntered {
+                    hasFocusedCustomField = false
+                }
                 withAnimation {
                     source = newValue
-                    setIsDirty()
                 }
-                if source == .userEntered {
-                    showingAlert = true
-                }
+                handleChanges()
             }
         )
         
@@ -249,19 +303,42 @@ extension RestingEnergyForm {
     }
     
     var customSection: some View {
-        InputSection(
-            name: "Resting Energy",
-            valueString: Binding<String?>(
-                get: { value?.formattedEnergy },
-                set: { _ in }
-            ),
-            showingAlert: $showingAlert,
-            isDisabled: Binding<Bool>(
-                get: { !isEditing },
-                set: { _ in }
-            ),
-            unitString: "kcal"
+        func handleCustomValue() {
+            withAnimation {
+                restingEnergyInKcal = customInput.double
+                setIsDirty()
+            }
+        }
+        return SingleUnitMeasurementTextField(
+            type: .energy,
+            doubleInput: $customInput,
+            hasFocused: $hasFocusedCustomField,
+            delayFocus: true,
+            focusDelay: $focusDelay,
+            footer: nil,
+            handleChanges: handleCustomValue
         )
+//        return MeasurementInputSection(
+//            type: type,
+//            doubleInput: $doubleInput,
+//            intInput: $intInput,
+//            hasFocused: $hasFocusedCustom,
+//            handleChanges: handleCustomValue
+//        )
+
+//        InputSection(
+//            name: "Resting Energy",
+//            valueString: Binding<String?>(
+//                get: { restingEnergyInKcal?.formattedEnergy },
+//                set: { _ in }
+//            ),
+//            showingAlert: $showingAlert,
+//            isDisabled: Binding<Bool>(
+//                get: { !isEditing },
+//                set: { _ in }
+//            ),
+//            unitString: "kcal"
+//        )
     }
     
     var equationSection: some View {
@@ -298,11 +375,9 @@ extension RestingEnergyForm {
             .foregroundStyle(controlColor)
         }
     }
-}
 
-//MARK: - Convenience
+    //MARK: - Convenience
 
-extension RestingEnergyForm {
     var isDisabled: Bool {
         isPast && !isEditing
     }
@@ -314,11 +389,9 @@ extension RestingEnergyForm {
     var isPast: Bool {
         pastDate != nil
     }
-}
-
-//MARK: - Actions
-
-extension RestingEnergyForm {
+    
+    //MARK: - Actions
+    
     func undo() {
         isDirty = false
         source = .equation
@@ -328,7 +401,7 @@ extension RestingEnergyForm {
         applyCorrection = true
         correctionType = .divide
         correctionInput = DoubleInput(double: 2)
-        value = 2798
+        restingEnergyInKcal = 2798
         customInput = DoubleInput(double: 2798)
     }
     
@@ -339,12 +412,12 @@ extension RestingEnergyForm {
         || interval != .init(3, .day)
         || applyCorrection != true
         || correctionType != .divide
-        || value != 2798
+        || restingEnergyInKcal != 2798
         || correctionInput.double != 2
     }
     
     func save() {
-        
+        healthProvider.saveRestingEnergy(restingEnergy)
     }
 }
 
@@ -353,123 +426,17 @@ extension RestingEnergyForm {
 #Preview("Current") {
     NavigationView {
         RestingEnergyForm(healthProvider: MockCurrentProvider)
+            .environment(SettingsProvider())
     }
 }
 
 #Preview("Past") {
     NavigationView {
         RestingEnergyForm(healthProvider: MockPastProvider)
+            .environment(SettingsProvider())
     }
 }
 
 #Preview("Demo") {
     DemoView()
-}
-
-public struct CloseButtonLabel: View {
-    
-    let backgroundStyle: TopButtonLabel.BackgroundStyle
-    let forUseOutsideOfNavigationBar: Bool
-    
-    public init(
-        forUseOutsideOfNavigationBar: Bool = false,
-        backgroundStyle: TopButtonLabel.BackgroundStyle = .standard
-    ) {
-        self.forUseOutsideOfNavigationBar = forUseOutsideOfNavigationBar
-        self.backgroundStyle = backgroundStyle
-    }
-    
-    public var body: some View {
-        TopButtonLabel(
-            systemImage: "xmark.circle.fill",
-            forUseOutsideOfNavigationBar: forUseOutsideOfNavigationBar,
-            backgroundStyle: backgroundStyle
-        )
-    }
-}
-
-import SwiftUI
-
-public struct TopButtonLabel: View {
-    
-    @Environment(\.colorScheme) var colorScheme
-    
-    let fontSize: CGFloat
-    let backgroundStyle: BackgroundStyle
-    let systemImage: String
-    
-    public init(
-        systemImage: String,
-        forUseOutsideOfNavigationBar: Bool = false,
-        backgroundStyle: BackgroundStyle = .standard
-    ) {
-        self.fontSize = forUseOutsideOfNavigationBar ? 30 : 24
-        self.backgroundStyle = backgroundStyle
-        self.systemImage = systemImage
-    }
-    
-    public var body: some View {
-        Image(systemName: systemImage)
-            .font(.system(size: fontSize))
-            .symbolRenderingMode(.palette)
-            .foregroundStyle(foregroundColor, backgroundColor)
-    }
-    
-    var foregroundColor: Color {
-        Color(hex: colorScheme == .light ? "838388" : "A0A0A8")
-    }
-    
-    var backgroundColor: Color {
-        switch backgroundStyle {
-        case .standard:
-#if os(iOS)
-            return Color(.quaternaryLabel).opacity(0.5)
-#else
-            return Color(.quaternaryLabelColor).opacity(0.5)
-#endif
-//            return Color(hex: colorScheme == .light ? "EEEEEF" : "313135")
-        case .forPlacingOverMaterials:
-#if os(iOS)
-            return colorScheme == .light
-            ? Color(hex: "EEEEEF").opacity(0.5)
-            : Color(.quaternaryLabel).opacity(0.5)
-#else
-            return colorScheme == .light
-            ? Color(hex: "EEEEEF").opacity(0.5)
-            : Color(.quaternaryLabelColor).opacity(0.5)
-#endif
-        }
-    }
-    
-    public enum BackgroundStyle {
-        case standard
-        case forPlacingOverMaterials
-    }
-}
-
-public extension Color {
-    init(hex: String) {
-        let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
-        var int: UInt64 = 0
-        Scanner(string: hex).scanHexInt64(&int)
-        let a, r, g, b: UInt64
-        switch hex.count {
-        case 3: // RGB (12-bit)
-            (a, r, g, b) = (255, (int >> 8) * 17, (int >> 4 & 0xF) * 17, (int & 0xF) * 17)
-        case 6: // RGB (24-bit)
-            (a, r, g, b) = (255, int >> 16, int >> 8 & 0xFF, int & 0xFF)
-        case 8: // ARGB (32-bit)
-            (a, r, g, b) = (int >> 24, int >> 16 & 0xFF, int >> 8 & 0xFF, int & 0xFF)
-        default:
-            (a, r, g, b) = (1, 1, 1, 0)
-        }
-
-        self.init(
-            .sRGB,
-            red: Double(r) / 255,
-            green: Double(g) / 255,
-            blue:  Double(b) / 255,
-            opacity: Double(a) / 255
-        )
-    }
 }

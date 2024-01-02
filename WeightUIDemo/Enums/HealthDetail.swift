@@ -17,7 +17,7 @@ enum HealthDetail: Int, Identifiable, CaseIterable {
         switch self {
         case .maintenance:  "Maintenance Energy"
         case .age: "Age"
-        case .sex: "Sex"
+        case .sex: "Biological Sex"
         case .height: "Height"
         case .weight: "Weight"
         case .leanBodyMass: "Lean Body Mass"

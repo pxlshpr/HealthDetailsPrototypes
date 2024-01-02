@@ -1,7 +1,7 @@
 import Foundation
 
-enum MaintenanceType: CaseIterable {
-    case adaptive
+enum MaintenanceType: Int, Codable, CaseIterable {
+    case adaptive = 1
     case estimated
     
     var name: String {

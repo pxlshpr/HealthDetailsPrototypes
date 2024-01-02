@@ -3,31 +3,49 @@ import SwiftSugar
 
 struct BiologicalSexForm: View {
     
-    @Bindable var healthProvider: HealthProvider
-    @State var sex: BiologicalSex
+    let date: Date
+    let initialBiologicalSex: BiologicalSex
+
+    @State var biologicalSex: BiologicalSex
     
     @State var isEditing: Bool
     @State var isDirty: Bool = false
     @Binding var isPresented: Bool
     @Binding var dismissDisabled: Bool
     
+    let saveHandler: (BiologicalSex) -> ()
+
+    init(
+        date: Date,
+        biologicalSex: BiologicalSex,
+        isPresented: Binding<Bool> = .constant(true),
+        dismissDisabled: Binding<Bool> = .constant(false),
+        save: @escaping (BiologicalSex) -> ()
+    ) {
+        self.date = date
+        self.initialBiologicalSex = biologicalSex
+        _isPresented = isPresented
+        _dismissDisabled = dismissDisabled
+        _isEditing = State(initialValue: date.isToday)
+        
+        _biologicalSex = State(initialValue: biologicalSex)
+        self.saveHandler = save
+    }
+
     init(
         healthProvider: HealthProvider,
         isPresented: Binding<Bool> = .constant(true),
         dismissDisabled: Binding<Bool> = .constant(false)
     ) {
-        self.healthProvider = healthProvider
-        _isPresented = isPresented
-        _dismissDisabled = dismissDisabled
-        _isEditing = State(initialValue: healthProvider.isCurrent)
-        
-        _sex = State(initialValue: healthProvider.healthDetails.biologicalSex)
+        self.init(
+            date: healthProvider.healthDetails.date,
+            biologicalSex: healthProvider.healthDetails.biologicalSex,
+            isPresented: isPresented,
+            dismissDisabled: dismissDisabled,
+            save: healthProvider.saveBiologicalSex
+        )
     }
-
-    var pastDate: Date? {
-        healthProvider.pastDate
-    }
-
+    
     var body: some View {
         Form {
             notice
@@ -38,15 +56,15 @@ struct BiologicalSexForm: View {
         .navigationBarTitleDisplayMode(.large)
         .toolbar { toolbarContent }
         .safeAreaInset(edge: .bottom) { bottomValue }
-        .navigationBarBackButtonHidden(isPast && isEditing)
+        .navigationBarBackButtonHidden(isLegacy && isEditing)
         .onChange(of: isEditing) { _, _ in setDismissDisabled() }
         .onChange(of: isDirty) { _, _ in setDismissDisabled() }
     }
     
     @ViewBuilder
     var notice: some View {
-        if let pastDate {
-            NoticeSection.legacy(pastDate, isEditing: $isEditing)
+        if isLegacy {
+            NoticeSection.legacy(date, isEditing: $isEditing)
         }
     }
     
@@ -60,10 +78,10 @@ struct BiologicalSexForm: View {
                     .font(LargeNumberFont)
                     .opacity(0)
 
-                Text(sex != .notSet ? sex.name : "Not Set")
+                Text(biologicalSex != .notSet ? biologicalSex.name : "Not Set")
                     .font(LargeUnitFont)
 //                    .font(sex == .other ? LargeUnitFont : LargeNumberFont)
-                    .foregroundStyle(sex != .notSet ? .primary : .secondary)
+                    .foregroundStyle(biologicalSex != .notSet ? .primary : .secondary)
             }
         }
         .padding(.horizontal, BottomValueHorizontalPadding)
@@ -75,7 +93,7 @@ struct BiologicalSexForm: View {
         topToolbarContent(
             isEditing: $isEditing,
             isDirty: $isDirty,
-            isPast: isPast,
+            isPast: isLegacy,
             dismissAction: { isPresented = false },
             undoAction: undo,
             saveAction: save
@@ -83,27 +101,27 @@ struct BiologicalSexForm: View {
     }
     
     func setIsDirty() {
-        isDirty = sex != .notSet
+        isDirty = biologicalSex != .notSet
     }
     
     func setDismissDisabled() {
-        dismissDisabled = isPast && isEditing && isDirty
+        dismissDisabled = isLegacy && isEditing && isDirty
     }
 
     func undo() {
-        self.sex = healthProvider.healthDetails.biologicalSex
+        self.biologicalSex = initialBiologicalSex
     }
     
     var isDisabled: Bool {
-        isPast && !isEditing
+        isLegacy && !isEditing
     }
     
     var controlColor: Color {
         isDisabled ? .secondary : .primary
     }
     
-    var isPast: Bool {
-        pastDate != nil
+    var isLegacy: Bool {
+        date.startOfDay < Date.now.startOfDay
     }
     
     var explanation: some View {
@@ -123,9 +141,9 @@ struct BiologicalSexForm: View {
 
     var picker: some View {
         let binding = Binding<BiologicalSex>(
-            get: { sex },
+            get: { biologicalSex },
             set: { newValue in
-                self.sex = newValue
+                self.biologicalSex = newValue
                 handleChanges()
             }
         )
@@ -141,13 +159,13 @@ struct BiologicalSexForm: View {
     
     func handleChanges() {
         setIsDirty()
-        if !isPast {
+        if !isLegacy {
             save()
         }
     }
     
     func save() {
-        healthProvider.saveSex(sex)
+        saveHandler(biologicalSex)
     }
 }
 
@@ -163,6 +181,6 @@ struct BiologicalSexForm: View {
     }
 }
 
-#Preview("DemoView ") {
+#Preview("DemoView") {
     DemoView()
 }

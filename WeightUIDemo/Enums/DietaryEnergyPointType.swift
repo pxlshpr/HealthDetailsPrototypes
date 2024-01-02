@@ -1,6 +1,6 @@
 import SwiftUI
 
-enum DietaryEnergyPointType: Int, CaseIterable, Identifiable {
+enum DietaryEnergyPointType: Int, Codable, CaseIterable, Identifiable {
     case log = 1
     case healthKit
     case fasted

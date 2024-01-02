@@ -5,17 +5,17 @@ struct ActiveEnergyForm: View {
     @State var value: Double? = valueForActivityLevel(.lightlyActive)
     @State var source: ActiveEnergySource = .userEntered
     @State var activityLevel: ActivityLevel = .lightlyActive
+    
     @State var intervalType: HealthIntervalType = .average
     @State var interval: HealthInterval = .init(3, .day)
-
-    @State var showingAlert = false
-    
-    @State var customInput = DoubleInput(double: valueForActivityLevel(.lightlyActive))
-
     @State var applyCorrection: Bool = false
     @State var correctionType: CorrectionType = .divide
     @State var correctionInput = DoubleInput(double: 2)
 
+    @State var customInput = DoubleInput(double: valueForActivityLevel(.lightlyActive))
+
+    @State var showingAlert = false
+    
     @State var showingActivityLevelInfo = false
     @State var showingActiveEnergyInfo = false
     @State var showingCorrectionAlert = false

@@ -3,7 +3,8 @@ import SwiftSugar
 
 struct SmokingStatusForm: View {
     
-    @Bindable var healthProvider: HealthProvider
+    let date: Date
+    let initialSmokingStatus: SmokingStatus
 
     @State var smokingStatus: SmokingStatus = .notSet
     
@@ -12,21 +13,37 @@ struct SmokingStatusForm: View {
     @Binding var isPresented: Bool
     @Binding var dismissDisabled: Bool
     
+    let saveHandler: (SmokingStatus) -> ()
+    
+    init(
+        date: Date,
+        smokingStatus: SmokingStatus,
+        isPresented: Binding<Bool> = .constant(true),
+        dismissDisabled: Binding<Bool> = .constant(false),
+        save: @escaping (SmokingStatus) -> ()
+    ) {
+        self.date = date
+        self.initialSmokingStatus = smokingStatus
+        self.saveHandler = save
+        _isPresented = isPresented
+        _dismissDisabled = dismissDisabled
+        _isEditing = State(initialValue: date.isToday)
+        
+        _smokingStatus = State(initialValue: initialSmokingStatus)
+    }
+    
     init(
         healthProvider: HealthProvider,
         isPresented: Binding<Bool> = .constant(true),
         dismissDisabled: Binding<Bool> = .constant(false)
     ) {
-        self.healthProvider = healthProvider
-        _isPresented = isPresented
-        _dismissDisabled = dismissDisabled
-        _isEditing = State(initialValue: healthProvider.isCurrent)
-        
-        _smokingStatus = State(initialValue: healthProvider.healthDetails.smokingStatus)
-    }
-
-    var pastDate: Date? {
-        healthProvider.pastDate
+        self.init(
+            date: healthProvider.healthDetails.date,
+            smokingStatus: healthProvider.healthDetails.smokingStatus,
+            isPresented: isPresented,
+            dismissDisabled: dismissDisabled,
+            save: healthProvider.saveSmokingStatus
+        )
     }
 
     var body: some View {
@@ -39,15 +56,15 @@ struct SmokingStatusForm: View {
         .navigationBarTitleDisplayMode(.large)
         .toolbar { toolbarContent }
         .safeAreaInset(edge: .bottom) { bottomValue }
-        .navigationBarBackButtonHidden(isPast && isEditing)
+        .navigationBarBackButtonHidden(isLegacy && isEditing)
         .onChange(of: isEditing) { _, _ in setDismissDisabled() }
         .onChange(of: isDirty) { _, _ in setDismissDisabled() }
     }
     
     @ViewBuilder
     var notice: some View {
-        if let pastDate {
-            NoticeSection.legacy(pastDate, isEditing: $isEditing)
+        if isLegacy {
+            NoticeSection.legacy(date, isEditing: $isEditing)
         }
     }
     
@@ -93,7 +110,7 @@ struct SmokingStatusForm: View {
         topToolbarContent(
             isEditing: $isEditing,
             isDirty: $isDirty,
-            isPast: isPast,
+            isPast: isLegacy,
             dismissAction: { isPresented = false },
             undoAction: undo,
             saveAction: save
@@ -105,34 +122,34 @@ struct SmokingStatusForm: View {
     }
     
     func setDismissDisabled() {
-        dismissDisabled = isPast && isEditing && isDirty
+        dismissDisabled = isLegacy && isEditing && isDirty
     }
 
     func undo() {
-        self.smokingStatus = healthProvider.healthDetails.smokingStatus
+        self.smokingStatus = initialSmokingStatus
     }
     
     func handleChanges() {
         setIsDirty()
-        if !isPast {
+        if !isLegacy {
             save()
         }
     }
     
     func save() {
-        healthProvider.saveSmokingStatus(smokingStatus)
+        saveHandler(smokingStatus)
     }
     
     var isDisabled: Bool {
-        isPast && !isEditing
+        isLegacy && !isEditing
     }
     
     var controlColor: Color {
         isDisabled ? .secondary : .primary
     }
     
-    var isPast: Bool {
-        pastDate != nil
+    var isLegacy: Bool {
+        date.startOfDay < Date.now.startOfDay
     }
     
     var explanation: some View {

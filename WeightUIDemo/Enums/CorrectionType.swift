@@ -1,7 +1,7 @@
 import Foundation
 
-enum CorrectionType: CaseIterable {
-    case add
+enum CorrectionType: Int, Codable, CaseIterable {
+    case add = 1
     case subtract
     case multiply
     case divide
