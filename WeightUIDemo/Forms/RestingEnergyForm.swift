@@ -2,6 +2,8 @@ import SwiftUI
 
 struct RestingEnergyForm: View {
 
+    @Environment(\.dismiss) var dismiss
+    
     @Bindable var healthProvider: HealthProvider
     
     @Binding var restingEnergyInKcal: Double?
@@ -26,7 +28,6 @@ struct RestingEnergyForm: View {
 
     @State var isEditing: Bool
     @State var isDirty: Bool = false
-    @Binding var isPresented: Bool
     @Binding var dismissDisabled: Bool
 
     @State var hasFocusedCustomField = false
@@ -34,11 +35,9 @@ struct RestingEnergyForm: View {
     init(
         healthProvider: HealthProvider,
         restingEnergyInKcal: Binding<Double?> = .constant(nil),
-        isPresented: Binding<Bool> = .constant(true),
         dismissDisabled: Binding<Bool> = .constant(false)
     ) {
         self.healthProvider = healthProvider
-        _isPresented = isPresented
         _dismissDisabled = dismissDisabled
         _isEditing = State(initialValue: healthProvider.isCurrent)
 
@@ -150,7 +149,7 @@ struct RestingEnergyForm: View {
             isEditing: $isEditing,
             isDirty: $isDirty,
             isPast: isPast,
-            dismissAction: { isPresented = false },
+            dismissAction: { dismiss() },
             undoAction: undo,
             saveAction: save
         )
@@ -171,7 +170,14 @@ struct RestingEnergyForm: View {
             healthProvider: healthProvider,
             pastDate: pastDate,
             isEditing: $isEditing,
-            isPresented: $isPresented,
+            isPresented: Binding<Bool>(
+                get: { true },
+                set: { newValue in
+                    if !newValue {
+                        dismiss()
+                    }
+                }
+            ),
             dismissDisabled: $dismissDisabled
         )
     }
@@ -297,9 +303,10 @@ struct RestingEnergyForm: View {
         func handleCustomValue() {
             withAnimation {
                 restingEnergyInKcal = customInput.double
-                setIsDirty()
             }
+            handleChanges()
         }
+        
         return SingleUnitMeasurementTextField(
             type: .energy,
             doubleInput: $customInput,

@@ -79,7 +79,6 @@ struct EstimatedMaintenanceForm: View {
                 RestingEnergyForm(
                     healthProvider: healthProvider,
                     restingEnergyInKcal: $restingEnergyInKcal,
-                    isPresented: $isPresented,
                     dismissDisabled: $dismissDisabled
                 )
             }
