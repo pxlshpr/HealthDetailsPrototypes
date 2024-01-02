@@ -53,49 +53,64 @@ struct EstimatedMaintenanceForm: View {
         )
     }
     
+    @State var showingRestingEnergyForm = false
+    @State var showingActiveEnergyForm = false
+    
     var restingEnergyLink: some View {
         Section {
-            NavigationLink {
+            HStack {
+                Text("Resting Energy")
+                Spacer()
+                if let restingEnergyInKcal {
+                    Text("\(restingEnergyInKcal.formattedEnergy) kcal")
+                } else {
+                    Text("Not Set")
+                        .foregroundStyle(.secondary)
+                }
+                Button {
+                    showingRestingEnergyForm = true
+                } label: {
+                    Image(systemName: "pencil")
+                }
+            }
+        }
+        .sheet(isPresented: $showingRestingEnergyForm) {
+            NavigationView {
                 RestingEnergyForm(
                     healthProvider: healthProvider,
                     restingEnergyInKcal: $restingEnergyInKcal,
                     isPresented: $isPresented,
                     dismissDisabled: $dismissDisabled
                 )
-            } label: {
-                HStack {
-                    Text("Resting Energy")
-                    Spacer()
-                    if let restingEnergyInKcal {
-                        Text("\(restingEnergyInKcal.formattedEnergy) kcal")
-                    } else {
-                        Text("Not Set")
-                            .foregroundStyle(.secondary)
-                    }
-                }
             }
         }
     }
 
     var activeEnergyLink: some View {
         Section {
-            NavigationLink {
+            HStack {
+                Text("Active Energy")
+                Spacer()
+                if let activeEnergyInKcal {
+                    Text("\(activeEnergyInKcal.formattedEnergy) kcal")
+                } else {
+                    Text("Not Set")
+                        .foregroundStyle(.secondary)
+                }
+                Button {
+                    showingActiveEnergyForm = true
+                } label: {
+                    Image(systemName: "pencil")
+                }
+            }
+        }
+        .sheet(isPresented: $showingActiveEnergyForm) {
+            NavigationView {
                 ActiveEnergyForm(
                     pastDate: pastDate,
                     isPresented: $isPresented,
                     dismissDisabled: $dismissDisabled
                 )
-            } label: {
-                HStack {
-                    Text("Active Energy")
-                    Spacer()
-                    if let activeEnergyInKcal {
-                        Text("\(activeEnergyInKcal.formattedEnergy) kcal")
-                    } else {
-                        Text("Not Set")
-                            .foregroundStyle(.secondary)
-                    }
-                }
             }
         }
     }

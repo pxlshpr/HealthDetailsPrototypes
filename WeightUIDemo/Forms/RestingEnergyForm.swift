@@ -31,8 +31,6 @@ struct RestingEnergyForm: View {
 
     @State var hasFocusedCustomField = false
     
-    @State var focusDelay: Double = 0.05
-    
     init(
         healthProvider: HealthProvider,
         restingEnergyInKcal: Binding<Double?> = .constant(nil),
@@ -62,9 +60,9 @@ struct RestingEnergyForm: View {
         }
         
         /// If the source is manual, delay focus until push transition completes
-        if restingEnergy.source == .userEntered {
-            _focusDelay = State(initialValue: restingEnergyInKcal.wrappedValue == nil ? 0.4 : 0.6)
-        }
+//        if restingEnergy.source == .userEntered {
+//            _focusDelay = State(initialValue: restingEnergyInKcal.wrappedValue == nil ? 1.0 : 0.6)
+//        }
     }
     
     var pastDate: Date? {
@@ -92,13 +90,6 @@ struct RestingEnergyForm: View {
         .sheet(isPresented: $showingEquationsInfo) { equationExplanations }
         .sheet(isPresented: $showingRestingEnergyInfo) {
             RestingEnergyInfo()
-        }
-        .onAppear {
-            if source == .userEntered {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
-                    focusDelay = 0.05
-                }
-            }
         }
 //        .alert("Enter your Resting Energy", isPresented: $showingAlert) {
 //            TextField("kcal", text: customInput.binding)
@@ -314,7 +305,6 @@ struct RestingEnergyForm: View {
             doubleInput: $customInput,
             hasFocused: $hasFocusedCustomField,
             delayFocus: true,
-            focusDelay: $focusDelay,
             footer: nil,
             handleChanges: handleCustomValue
         )
