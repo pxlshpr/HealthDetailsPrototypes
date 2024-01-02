@@ -21,7 +21,7 @@ struct BiologicalSexForm: View {
         _dismissDisabled = dismissDisabled
         _isEditing = State(initialValue: healthProvider.isCurrent)
         
-        _sex = State(initialValue: healthProvider.healthDetails.sex)
+        _sex = State(initialValue: healthProvider.healthDetails.biologicalSex)
     }
 
     var pastDate: Date? {
@@ -91,7 +91,7 @@ struct BiologicalSexForm: View {
     }
 
     func undo() {
-        self.sex = healthProvider.healthDetails.sex
+        self.sex = healthProvider.healthDetails.biologicalSex
     }
     
     var isDisabled: Bool {

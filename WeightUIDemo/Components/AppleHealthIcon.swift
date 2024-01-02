@@ -17,3 +17,16 @@ struct AppleHealthIcon: View {
             )
     }
 }
+
+struct ScalableIcon: View {
+    
+    let systemName: String
+    
+    @ScaledMetric var scale: CGFloat = 1
+    let imageScale: CGFloat = 24
+
+    var body: some View {
+        Image(systemName: systemName)
+            .frame(width: imageScale * scale, height: imageScale * scale)
+    }
+}

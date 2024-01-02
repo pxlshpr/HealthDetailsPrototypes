@@ -4,8 +4,9 @@ import PrepShared
 struct HealthDetails: Hashable, Codable {
  
     let date: Date
-    var sex: BiologicalSex = .notSet
-    var age: Age? = nil
+    var biologicalSex: BiologicalSex = .notSet
+//    var age: Age? = nil
+    var dateOfBirthComponents: DateComponents?
     var smokingStatus: SmokingStatus = .notSet
     var pregnancyStatus: PregnancyStatus = .notSet
     var height = Height()
@@ -86,25 +87,38 @@ extension HealthDetails {
 
 //MARK: - Age
 
+//extension HealthDetails {
+//    struct Age: Hashable, Codable {
+//        var years: Int?
+//        var dateOfBirthComponents: DateComponents?
+//        
+//        init(years: Int) {
+//            self.years = years
+//            self.dateOfBirthComponents = years.dateOfBirth.dateComponentsWithoutTime
+//        }
+//        
+//        init(dateOfBirth: Date) {
+//            self.years = dateOfBirth.age
+//            self.dateOfBirthComponents = dateOfBirth.dateComponentsWithoutTime
+//        }
+//    }
+//}
+
 extension HealthDetails {
-    struct Age: Hashable, Codable {
-        var years: Int?
-        var dateOfBirthComponents: DateComponents?
-        
-        init(years: Int) {
-            self.years = years
-            self.dateOfBirthComponents = years.dateOfBirth.dateComponentsWithoutTime
+    
+    var years: Int? {
+        get {
+            self.dateOfBirth?.age
         }
-        
-        init(dateOfBirth: Date) {
-            self.years = dateOfBirth.age
-            self.dateOfBirthComponents = dateOfBirth.dateComponentsWithoutTime
+        set {
+            guard let newValue else {
+                self.dateOfBirthComponents = nil
+                return
+            }
+            self.dateOfBirthComponents = newValue.dateOfBirth.dateComponentsWithoutTime
         }
-
     }
-}
-
-extension HealthDetails.Age {
+    
     var dateOfBirth: Date? {
         get {
             guard let dateOfBirthComponents else { return nil }
@@ -120,7 +134,6 @@ extension HealthDetails.Age {
                 return
             }
             dateOfBirthComponents = newValue.dateComponentsWithoutTime
-            years = newValue.age
         }
     }
 }

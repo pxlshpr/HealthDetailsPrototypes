@@ -75,7 +75,7 @@ let MockCurrentProvider = HealthProvider(
     isCurrent: true,
     healthDetails: HealthDetails(
         date: Date.now,
-        sex: .notSet
+        biologicalSex: .notSet
     )
 )
 
@@ -83,8 +83,8 @@ let MockPastProvider = HealthProvider(
     isCurrent: false,
     healthDetails: HealthDetails(
         date: Date.now.moveDayBy(-1),
-        sex: .male,
-        age: .init(years: 20),
+        biologicalSex: .male,
+        dateOfBirthComponents: 20.dateOfBirthComponents,
         smokingStatus: .nonSmoker,
         pregnancyStatus: .notSet
     )

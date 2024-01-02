@@ -53,12 +53,12 @@ extension HealthProvider {
     }
     
     func saveSex(_ sex: BiologicalSex) {
-        healthDetails.sex = sex
+        healthDetails.biologicalSex = sex
         save()
     }
     
-    func saveAge(_ age: HealthDetails.Age?) {
-        healthDetails.age = age
+    func saveDateOfBirth(_ date: Date?) {
+        healthDetails.dateOfBirth = date
         save()
     }
 

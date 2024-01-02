@@ -99,6 +99,10 @@ extension Int {
     var dateOfBirth: Date {
         Date.now.moveYearBy(-self)
     }
+    
+    var dateOfBirthComponents: DateComponents {
+        dateOfBirth.dateComponentsWithoutTime
+    }
 }
 
 extension Double {

@@ -55,7 +55,7 @@ struct WeightForm: View {
             weight: healthProvider.healthDetails.weight,
             isPresented: isPresented,
             dismissDisabled: dismissDisabled,
-            save: healthProvider.saveWeight(_:)
+            save: healthProvider.saveWeight
         )
     }
     

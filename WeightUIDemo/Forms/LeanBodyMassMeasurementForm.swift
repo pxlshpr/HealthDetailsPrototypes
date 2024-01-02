@@ -2,13 +2,6 @@ import SwiftUI
 import PrepShared
 import SwiftUIIntrospect
 
-//TODO: Next
-/// [ ] Change Lean Body Mass Form to not need HealthProvider
-/// [ ] Have LeanBodymassMeasurementsForm save value when added
-/// [ ] Make all other forms not need HealthProvider
-/// [ ] Put all the code for value string for BodyMassUnit and HeightUnit in one place and use that in all forms
-/// [ ] Show HealthDetails values in cells themselves
-/// [ ] Start working on MaintenanceEnergy sections
 struct LeanBodyMassMeasurementForm: View {
     
     @Environment(SettingsProvider.self) var settingsProvider
@@ -18,7 +11,7 @@ struct LeanBodyMassMeasurementForm: View {
     
     @State var time = Date.now
 
-    @State var source: LeanBodyMassSource = .userEntered
+    @State var source: LeanBodyMassSource = .equation
     @State var equation: LeanBodyMassEquation = .boer
     
     @State var leanBodyMassInKg: Double?

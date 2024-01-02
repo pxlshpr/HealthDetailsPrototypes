@@ -3,44 +3,58 @@ import SwiftSugar
 
 struct AgeForm: View {
     
-    @Bindable var healthProvider: HealthProvider
-    
+    let date: Date
+    let initialDateOfBirth: Date?
+
     @State var years: Int?
     @State var dateOfBirth: Date
     @State var customInput: IntInput
 
     @State var showingAgeAlert = false
     @State var showingDateOfBirthAlert = false
-    @ScaledMetric var scale: CGFloat = 1
-    let imageScale: CGFloat = 24
 
     @State var isEditing: Bool
     @State var isDirty: Bool = false
     @Binding var isPresented: Bool
     @Binding var dismissDisabled: Bool
     
+    let saveHandler: (Date?) -> ()
+
+    init(
+        date: Date,
+        dateOfBirth: Date?,
+        isPresented: Binding<Bool> = .constant(true),
+        dismissDisabled: Binding<Bool> = .constant(false),
+        save: @escaping (Date?) -> ()
+    ) {
+        self.date = date
+        self.initialDateOfBirth = dateOfBirth
+        _isPresented = isPresented
+        _dismissDisabled = dismissDisabled
+        _isEditing = State(initialValue: date.isToday)
+        
+        let years = dateOfBirth?.age
+        _years = State(initialValue: years)
+        _customInput = State(initialValue: IntInput(int: years))
+        
+        _dateOfBirth = State(initialValue: dateOfBirth ?? DefaultDateOfBirth)
+        
+        self.saveHandler = save
+    }
+    
     init(
         healthProvider: HealthProvider,
         isPresented: Binding<Bool> = .constant(true),
         dismissDisabled: Binding<Bool> = .constant(false)
     ) {
-        self.healthProvider = healthProvider
-        _isPresented = isPresented
-        _dismissDisabled = dismissDisabled
-        _isEditing = State(initialValue: healthProvider.isCurrent)
-        
-        let years = healthProvider.healthDetails.age?.years
-        _years = State(initialValue: years)
-        _customInput = State(initialValue: IntInput(int: years))
-        
-        let dateOfBirth = healthProvider.healthDetails.age?.dateOfBirth
-        _dateOfBirth = State(initialValue: dateOfBirth ?? DefaultDateOfBirth)
+        self.init(
+            date: healthProvider.healthDetails.date,
+            dateOfBirth: healthProvider.healthDetails.dateOfBirth,
+            isPresented: isPresented,
+            dismissDisabled: dismissDisabled,
+            save: healthProvider.saveDateOfBirth
+        )
     }
-    
-    var pastDate: Date? {
-        healthProvider.pastDate
-    }
-    
     var body: some View {
         Form {
             notice
@@ -55,13 +69,13 @@ struct AgeForm: View {
         .navigationBarTitleDisplayMode(.large)
         .toolbar { toolbarContent }
         .alert("Enter your age", isPresented: $showingAgeAlert) {
-            TextField("Enter your age", text: customInput.binding)
+            TextField("years", text: customInput.binding)
                 .keyboardType(.numberPad)
             Button("OK", action: submitAge)
             Button("Cancel") { }
         }
         .safeAreaInset(edge: .bottom) { bottomValue }
-        .navigationBarBackButtonHidden(isPast && isEditing)
+        .navigationBarBackButtonHidden(isLegacy && isEditing)
         .onChange(of: isEditing) { _, _ in setDismissDisabled() }
         .onChange(of: isDirty) { _, _ in setDismissDisabled() }
         .sheet(isPresented: $showingDateOfBirthAlert) { datePickerSheet }
@@ -119,7 +133,7 @@ struct AgeForm: View {
         topToolbarContent(
             isEditing: $isEditing,
             isDirty: $isDirty,
-            isPast: isPast,
+            isPast: isLegacy,
             dismissAction: { isPresented = false },
             undoAction: undo,
             saveAction: save
@@ -132,50 +146,43 @@ struct AgeForm: View {
     }
     
     func setDismissDisabled() {
-        dismissDisabled = isPast && isEditing && isDirty
+        dismissDisabled = isLegacy && isEditing && isDirty
     }
 
     func undo() {
-        let years = healthProvider.healthDetails.age?.years
-        self.years = years
+        self.dateOfBirth = initialDateOfBirth ?? DefaultDateOfBirth
+        self.years = initialDateOfBirth?.age
         customInput = IntInput(int: years)
-        
-        let dateOfBirth = healthProvider.healthDetails.age?.dateOfBirth
-        self.dateOfBirth = dateOfBirth ?? DefaultDateOfBirth
     }
     
     func handleChanges() {
         setIsDirty()
-        if !isPast {
+        if !isLegacy {
             save()
         }
     }
     
-    var age: HealthDetails.Age? {
-        guard years != nil else { return nil }
-        return HealthDetails.Age(dateOfBirth: dateOfBirth)
-    }
-    
     func save() {
-        healthProvider.saveAge(age)
+        let dateOfBirth = years != nil ? self.dateOfBirth : nil
+        saveHandler(dateOfBirth)
     }
 
     var isDisabled: Bool {
-        isPast && !isEditing
+        isLegacy && !isEditing
     }
     
     var controlColor: Color {
         isDisabled ? Color(.secondaryLabel) : Color(.label)
     }
     
-    var isPast: Bool {
-        pastDate != nil
+    var isLegacy: Bool {
+        date.startOfDay < Date.now.startOfDay
     }
     
     @ViewBuilder
     var notice: some View {
-        if let pastDate {
-            NoticeSection.legacy(pastDate, isEditing: $isEditing)
+        if isLegacy {
+            NoticeSection.legacy(date, isEditing: $isEditing)
         }
     }
     
@@ -208,21 +215,16 @@ struct AgeForm: View {
     var healthSection: some View {
         Section {
             HStack {
-                Text("Read from Apple Health")
+                Text("Import from Apple Health")
                     .foregroundStyle(isDisabled ? Color(.secondaryLabel) : Color.accentColor)
                 Spacer()
                 Button {
                     setDateOfBirth(DefaultDateOfBirth)
                     handleChanges()
                 } label: {
-                    Image("AppleHealthIcon")
-                        .resizable()
-                        .frame(width: imageScale * scale, height: imageScale * scale)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 5)
-                                .stroke(Color(.systemGray3), lineWidth: 0.5)
-                        )
-                        .grayscale(isDisabled ? 1 : 0)
+                    AppleHealthIcon()
+//                    Image("AppleHealthIcon")
+//                        .grayscale(isDisabled ? 1 : 0)
                 }
                 .disabled(isDisabled)
             }
@@ -233,7 +235,8 @@ struct AgeForm: View {
         Section {
             HStack {
                 if years == nil {
-                    Text("Choose Date of Birth")
+                    Text("Set Date of Birth")
+                        .foregroundStyle(Color.accentColor)
                 } else {
                     Text("Date of Birth")
                         .foregroundStyle(controlColor)
@@ -246,8 +249,9 @@ struct AgeForm: View {
                 Button {
                     showingDateOfBirthAlert = true
                 } label: {
-                    Image(systemName: "calendar")
-                        .frame(width: imageScale * scale, height: imageScale * scale)
+                    ScalableIcon(systemName: "calendar")
+//                    Image(systemName: "calendar")
+//                        .frame(width: imageScale * scale, height: imageScale * scale)
                 }
                 .disabled(isDisabled)
             }
@@ -259,6 +263,7 @@ struct AgeForm: View {
             HStack {
                 if years == nil {
                     Text("Set Age")
+                        .foregroundStyle(Color.accentColor)
                 } else {
                     Text("Age")
                         .foregroundStyle(controlColor)
@@ -271,8 +276,9 @@ struct AgeForm: View {
                 Button {
                     showingAgeAlert = true
                 } label: {
-                    Image(systemName: "pencil")
-                        .frame(width: imageScale * scale, height: imageScale * scale)
+                    ScalableIcon(systemName: "pencil")
+//                    Image(systemName: "pencil")
+//                        .frame(width: imageScale * scale, height: imageScale * scale)
                 }
                 .disabled(isDisabled)
             }
@@ -292,6 +298,6 @@ struct AgeForm: View {
     }
 }
 
-#Preview("DemoView") {
+#Preview("DemoView ") {
     DemoView()
 }
