@@ -1,5 +1,6 @@
 import SwiftUI
 
+
 struct RestingEnergyForm: View {
 
     @Environment(\.dismiss) var dismiss
@@ -74,7 +75,7 @@ struct RestingEnergyForm: View {
 
     func appeared() {
         if isEditing {
-            /// Recalculate if we pop back from an equation variable
+            /// Triggers equations to re-calculate or HealthKit to resync when we pop back from an equation variable. Delay this if not the first appearance so that we get to see the animation of the value changing.
             DispatchQueue.main.asyncAfter(deadline: .now() + (hasAppeared ? 0.3 : 0)) {
                 handleChanges()
             }
