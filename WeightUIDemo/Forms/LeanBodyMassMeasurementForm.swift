@@ -42,10 +42,19 @@ struct LeanBodyMassMeasurementForm: View {
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar { toolbarContent }
                 .safeAreaInset(edge: .bottom) { bottomValue }
+                .onAppear(perform: appeared)
         }
         .scrollDismissesKeyboard(.immediately)
         .interactiveDismissDisabled(dismissDisabled)
         .onChange(of: isDirty) { _, _ in setDismissDisabled() }
+    }
+    
+    func appeared() {
+        print("appeared")
+        if source == .equation {
+            calculateEquation()
+            setIsDirty()
+        }
     }
     
     var form: some View {
