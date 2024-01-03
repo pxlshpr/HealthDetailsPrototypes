@@ -33,6 +33,8 @@ struct RestingEnergyForm: View {
 
     @State var hasFocusedCustomField = false
     
+    @State var calculateTask: Task<Void, Error>? = nil
+    
     init(
         healthProvider: HealthProvider,
         restingEnergyInKcal: Binding<Double?> = .constant(nil),
@@ -92,8 +94,9 @@ struct RestingEnergyForm: View {
                 healthSections
             }
         }
-        .navigationTitle("Kareem Hello")
+        .navigationTitle("Resting Energy")
         .toolbar { toolbarContent }
+        .onAppear(perform: appeared)
         .sheet(isPresented: $showingEquationsInfo) { equationExplanations }
         .sheet(isPresented: $showingRestingEnergyInfo) {
             RestingEnergyInfo()
@@ -140,7 +143,7 @@ struct RestingEnergyForm: View {
     func submitCorrection() {
         withAnimation {
             correctionInput.submitValue()
-            setIsDirty()
+            handleChanges()
         }
     }
 
@@ -148,7 +151,7 @@ struct RestingEnergyForm: View {
         withAnimation {
             customInput.submitValue()
             restingEnergyInKcal = customInput.double
-            setIsDirty()
+            handleChanges()
         }
     }
 
@@ -214,22 +217,38 @@ struct RestingEnergyForm: View {
     }
     
     func handleChanges() {
-        if source == .equation {
-            calculateEquation()
-        }
-        setIsDirty()
-        if !isPast {
-            save()
+        calculateTask?.cancel()
+        calculateTask = Task {
+            if source == .equation {
+                try await calculateEquations()
+            }
+            try Task.checkCancellation()
+            await MainActor.run {
+                setIsDirty()
+                if !isPast {
+                    save()
+                }
+            }
         }
     }
     
-    func calculateEquation() {
-        let restingEnergyInKcal = healthProvider.calculateRestingEnergy(
-            using: equation,
-            energyUnit: settingsProvider.energyUnit
-        )
-        withAnimation {
-            self.restingEnergyInKcal = restingEnergyInKcal
+    @State var equationCalculationsInKcal: [RestingEnergyEquation: Double] = [:]
+    
+    func calculateEquations() async throws {
+        var dict: [RestingEnergyEquation: Double] = [:]
+        for equation in RestingEnergyEquation.allCases {
+            let kcal = await healthProvider.calculateRestingEnergy(
+                using: equation,
+                energyUnit: settingsProvider.energyUnit
+            )
+            dict[equation] = kcal
+        }
+        try Task.checkCancellation()
+        await MainActor.run { [dict] in
+            self.equationCalculationsInKcal = dict
+            withAnimation {
+                self.restingEnergyInKcal = equationCalculationsInKcal[equation]
+            }
         }
     }
     
@@ -365,8 +384,8 @@ struct RestingEnergyForm: View {
             set: { newValue in
                 withAnimation {
                     equation = newValue
-                    setIsDirty()
                 }
+                handleChanges()
             }
         )
         
@@ -382,13 +401,22 @@ struct RestingEnergyForm: View {
             }
         }
         
-        return Section(footer: footer) {
+        func string(for equation: RestingEnergyEquation) -> String {
+            var string = equation.name
+            if let kcal = equationCalculationsInKcal[equation] {
+                string += " • \(kcal.formattedEnergy) kcal"
+            }
+            return string
+        }
+        
+        return Section(header: Text("Equation"), footer: footer) {
             Picker("Equation", selection: binding) {
                 ForEach(RestingEnergyEquation.allCases, id: \.self) {
-                    Text($0.name).tag($0)
+                    Text(string(for: $0)).tag($0)
                 }
             }
-            .pickerStyle(.menu)
+//            .pickerStyle(.menu)
+            .pickerStyle(.wheel)
             .disabled(isDisabled)
             .foregroundStyle(controlColor)
         }

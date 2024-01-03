@@ -33,13 +33,50 @@ struct DemoView: View {
     var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .topBarTrailing) {
             Menu {
-                Button("Reset Data") {
+                Button("Clear Data") {
                     deleteAllFilesInDocuments()
+                }
+                Button("Reset Current") {
+                    setCurrentHealthDetails()
                 }
             } label: {
                 Image(systemName: "ellipsis.circle")
             }
         }
+    }
+    
+    func setCurrentHealthDetails() {
+        deleteAllFilesInDocuments()
+        var healthDetails = fetchHealthDetailsFromDocuments(Date.now)
+        healthDetails.dateOfBirth = Date(fromDateString: "1987_06_04")!
+        healthDetails.biologicalSex = .male
+        healthDetails.weight = .init(
+            weightInKg: 96.2,
+            dailyValueType: .average,
+            measurements: [.init(date: Date.now, weightInKg: 96.2)],
+            deletedHealthKitMeasurements: [],
+            isSynced: false
+        )
+        healthDetails.height = .init(
+            heightInCm: 177,
+            measurements: [.init(date: Date.now, heightInCm: 177)],
+            deletedHealthKitMeasurements: [],
+            isSynced: false
+        )
+        healthDetails.leanBodyMass = .init(
+            leanBodyMassInKg: 75.2,
+            fatPercentage: 21.8,
+            dailyValueType: .average,
+            measurements: [.init(
+                date: Date.now,
+                leanBodyMassInKg: 75.2,
+                fatPercentage: 21.8,
+                source: .fatPercentage)
+            ],
+            deletedHealthKitMeasurements: [],
+            isSynced: false
+        )
+        saveHealthDetailsInDocuments(healthDetails)
     }
     
     var settingsForm: some View {
