@@ -6,7 +6,7 @@ struct AgeForm: View {
     let date: Date
     let initialDateOfBirth: Date?
 
-    @State var years: Int?
+    @State var ageInYears: Int?
     @State var dateOfBirth: Date
     @State var customInput: IntInput
 
@@ -33,9 +33,9 @@ struct AgeForm: View {
         _dismissDisabled = dismissDisabled
         _isEditing = State(initialValue: date.isToday)
         
-        let years = dateOfBirth?.age
-        _years = State(initialValue: years)
-        _customInput = State(initialValue: IntInput(int: years))
+        let ageInYears = dateOfBirth?.ageInYears
+        _ageInYears = State(initialValue: ageInYears)
+        _customInput = State(initialValue: IntInput(int: ageInYears))
         
         _dateOfBirth = State(initialValue: dateOfBirth ?? DefaultDateOfBirth)
         
@@ -69,7 +69,7 @@ struct AgeForm: View {
         .navigationBarTitleDisplayMode(.large)
         .toolbar { toolbarContent }
         .alert("Enter your age", isPresented: $showingAgeAlert) {
-            TextField("years", text: customInput.binding)
+            TextField("Age in years", text: customInput.binding)
                 .keyboardType(.numberPad)
             Button("OK", action: submitAge)
             Button("Cancel") { }
@@ -94,8 +94,8 @@ struct AgeForm: View {
     func setDateOfBirth(_ dateOfBirth: Date) {
         self.dateOfBirth = dateOfBirth
         withAnimation {
-            let age = dateOfBirth.age
-            self.years = age
+            let age = dateOfBirth.ageInYears
+            self.ageInYears = age
             customInput.setNewValue(age)
         }
     }
@@ -103,9 +103,9 @@ struct AgeForm: View {
     var bottomValue: some View {
         HStack(alignment: .firstTextBaseline, spacing: 5) {
             Spacer()
-            if let years {
-                Text("\(years)")
-                    .contentTransition(.numericText(value: Double(years)))
+            if let ageInYears {
+                Text("\(ageInYears)")
+                    .contentTransition(.numericText(value: Double(ageInYears)))
                     .font(LargeNumberFont)
                 Text("years")
                     .font(LargeUnitFont)
@@ -141,7 +141,7 @@ struct AgeForm: View {
     }
     
     func setIsDirty() {
-        isDirty = years != nil
+        isDirty = ageInYears != nil
         || dateOfBirth != DefaultDateOfBirth
     }
     
@@ -151,8 +151,8 @@ struct AgeForm: View {
 
     func undo() {
         self.dateOfBirth = initialDateOfBirth ?? DefaultDateOfBirth
-        self.years = initialDateOfBirth?.age
-        customInput = IntInput(int: years)
+        self.ageInYears = initialDateOfBirth?.ageInYears
+        customInput = IntInput(int: ageInYears)
     }
     
     func handleChanges() {
@@ -163,7 +163,7 @@ struct AgeForm: View {
     }
     
     func save() {
-        let dateOfBirth = years != nil ? self.dateOfBirth : nil
+        let dateOfBirth = ageInYears != nil ? self.dateOfBirth : nil
         saveHandler(dateOfBirth)
     }
 
@@ -189,9 +189,9 @@ struct AgeForm: View {
     func submitAge() {
         withAnimation {
             customInput.submitValue()
-            years = customInput.int
-            if let years {
-                dateOfBirth = years.dateOfBirth
+            ageInYears = customInput.int
+            if let ageInYears {
+                dateOfBirth = ageInYears.dateOfBirth
             }
             handleChanges()
         }
@@ -234,7 +234,7 @@ struct AgeForm: View {
     var dateOfBirthSection: some View {
         Section {
             HStack {
-                if years == nil {
+                if ageInYears == nil {
                     Text("Set Date of Birth")
                         .foregroundStyle(Color.accentColor)
                 } else {
@@ -242,7 +242,7 @@ struct AgeForm: View {
                         .foregroundStyle(controlColor)
                 }
                 Spacer()
-                if years != nil {
+                if ageInYears != nil {
                     Text(dateOfBirth.shortDateString)
                         .foregroundStyle(controlColor)
                 }
@@ -261,7 +261,7 @@ struct AgeForm: View {
     var customSection: some View {
         Section {
             HStack {
-                if years == nil {
+                if ageInYears == nil {
                     Text("Set Age")
                         .foregroundStyle(Color.accentColor)
                 } else {
@@ -269,8 +269,8 @@ struct AgeForm: View {
                         .foregroundStyle(controlColor)
                 }
                 Spacer()
-                if let years {
-                    Text("\(years)")
+                if let ageInYears {
+                    Text("\(ageInYears)")
                         .foregroundStyle(controlColor)
                 }
                 Button {

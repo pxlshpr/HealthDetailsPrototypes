@@ -3,7 +3,8 @@ import SwiftUI
 struct RestingEnergyForm: View {
 
     @Environment(\.dismiss) var dismiss
-    
+
+    @Environment(SettingsProvider.self) var settingsProvider
     @Bindable var healthProvider: HealthProvider
     
     @Binding var restingEnergyInKcal: Double?
@@ -66,6 +67,13 @@ struct RestingEnergyForm: View {
     
     var pastDate: Date? {
         healthProvider.pastDate
+    }
+
+    func appeared() {
+        if isEditing {
+            /// Recalculate if we pop back from an equation variable
+            handleChanges()
+        }
     }
 
     var body: some View {
@@ -206,9 +214,22 @@ struct RestingEnergyForm: View {
     }
     
     func handleChanges() {
+        if source == .equation {
+            calculateEquation()
+        }
         setIsDirty()
         if !isPast {
             save()
+        }
+    }
+    
+    func calculateEquation() {
+        let restingEnergyInKcal = healthProvider.calculateRestingEnergy(
+            using: equation,
+            energyUnit: settingsProvider.energyUnit
+        )
+        withAnimation {
+            self.restingEnergyInKcal = restingEnergyInKcal
         }
     }
     

@@ -205,9 +205,9 @@ extension HealthDetails {
 
 extension HealthDetails {
     
-    var years: Int? {
+    var ageInYears: Int? {
         get {
-            self.dateOfBirth?.age
+            self.dateOfBirth?.ageInYears
         }
         set {
             guard let newValue else {

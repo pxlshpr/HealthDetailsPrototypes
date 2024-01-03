@@ -36,8 +36,13 @@ extension LeanBodyMassEquation {
     }
     
     /// Equations taken from: [here](https://www.calculator.net/lean-body-mass-calculator.html)
-    func calculateInKg(biologicalSex: BiologicalSex, weightInKg weight: Double, heightInCm height: Double) -> Double? {
-        guard weight > 0, height > 0 else { return nil }
+    func calculateInKg(biologicalSex: BiologicalSex, weightInKg weight: Double?, heightInCm height: Double?) -> Double? {
+        guard 
+            let weight, let height,
+                weight > 0, height > 0,
+                biologicalSex != .notSet
+        else { return nil }
+        
         let lbm: Double? = switch biologicalSex {
         case .female:
             /// female

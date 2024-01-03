@@ -127,3 +127,226 @@ extension RestingEnergyEquation {
         [.harrisBenedict, .cunningham, .rozaShizgal, .schofield, .mifflinStJeor, .katchMcardle, .henryOxford]
     }
 }
+
+
+extension HealthProvider {
+    func calculateRestingEnergy(
+        using equation: RestingEnergyEquation,
+        energyUnit: EnergyUnit
+    ) -> Double? {
+        equation.calculate(
+            ageInYears: ageInYears,
+            biologicalSex: biologicalSex,
+            weightInKg: currentOrLatestWeightInKg,
+            leanBodyMassInKg: currentOrLatestLeanBodyMassInKg,
+            heightInCm: currentOrLatestHeightInCm,
+            energyUnit: energyUnit
+        )
+
+    }
+}
+extension RestingEnergyEquation {
+    
+    func calculate(
+        ageInYears: Int?,
+        biologicalSex: BiologicalSex,
+        weightInKg: Double?,
+        leanBodyMassInKg: Double?,
+        heightInCm: Double?,
+        energyUnit: EnergyUnit
+    ) -> Double? {
+        
+        var kcal: Double? {
+            switch self {
+                
+            case .katchMcardle:
+                guard let leanBodyMassInKg else { return nil }
+                return 370 + (21.6 * leanBodyMassInKg)
+
+            case .cunningham:
+                guard let leanBodyMassInKg else { return nil }
+                return 500 + (22.0 * leanBodyMassInKg)
+                
+            case .henryOxford:
+                guard let ageInYears, let weightInKg, biologicalSex != .notSet else { return nil }
+                let ageGroup = AgeGroup(ageInYears)
+                guard
+                    let a = OxfordCoefficients.a(biologicalSex, ageGroup),
+                    let c = OxfordCoefficients.c(biologicalSex, ageGroup)
+                else { return nil }
+                return (a * weightInKg) + c
+                
+            case .schofield:
+                guard let ageInYears, let weightInKg, biologicalSex != .notSet else { return nil }
+                let ageGroup = AgeGroup(ageInYears)
+                guard
+                    let a = SchofieldCoefficients.a(biologicalSex, ageGroup),
+                    let c = SchofieldCoefficients.c(biologicalSex, ageGroup)
+                else { return nil }
+                return (a * weightInKg) + c
+                
+            case .mifflinStJeor:
+                guard let ageInYears, let weightInKg, let heightInCm else { return nil }
+                return switch biologicalSex {
+                case .female:   (9.99 * weightInKg) + (6.25 * heightInCm) - (4.92 * Double(ageInYears)) - 161
+                case .male:     (9.99 * weightInKg) + (6.25 * heightInCm) - (4.92 * Double(ageInYears)) + 5
+                case .notSet:   nil
+                }
+                
+            case .rozaShizgal:
+                guard let ageInYears, let weightInKg, let heightInCm else { return nil }
+                return switch biologicalSex {
+                case .female:   447.593 + (9.247 * weightInKg) + (3.098 * heightInCm) - (4.33 * Double(ageInYears))
+                case .male:     88.362 + (13.397 * weightInKg) + (4.799 * heightInCm) - (5.677 * Double(ageInYears))
+                case .notSet:   nil
+                }
+                
+            case .harrisBenedict:
+                guard let ageInYears, let weightInKg, let heightInCm else { return nil }
+                return switch biologicalSex {
+                case .female:   655.0955 + (9.5634 * weightInKg) + (1.8496 * heightInCm) - (4.6756 * Double(ageInYears))
+                case .male:     66.4730 + (13.7516 * weightInKg) + (5.0033 * heightInCm) - (6.7550 * Double(ageInYears))
+                case .notSet:   nil
+                }
+            }
+        }
+        
+        guard let kcal else { return nil }
+        let value = EnergyUnit.kcal.convert(kcal, to: energyUnit)
+        return max(value, 0)
+    }
+}
+
+import Foundation
+
+public enum AgeGroup {
+    case zeroToTwo
+    case threeToNine
+    case tenToSeventeen
+    case eighteenToTwentyNine
+    case thirtyToFiftyNine
+    case sixtyAndOver
+    
+    public init(_ ageInYears: Int) {
+        switch ageInYears {
+        case 0..<3:
+            self = .zeroToTwo
+        case 3..<9:
+            self = .threeToNine
+        case 10..<17:
+            self = .tenToSeventeen
+        case 18..<29:
+            self = .eighteenToTwentyNine
+        case 30..<59:
+            self = .thirtyToFiftyNine
+        default:
+            self = .sixtyAndOver
+        }
+    }
+}
+
+
+import Foundation
+
+struct OxfordCoefficients {
+    
+    static func a(_ biologicalSex: BiologicalSex, _ ageGroup: AgeGroup) -> Double? {
+        switch biologicalSex {
+        case .female:
+            switch ageGroup {
+            case .zeroToTwo:            58.9
+            case .threeToNine:          20.1
+            case .tenToSeventeen:       11.1
+            case .eighteenToTwentyNine: 13.1
+            case .thirtyToFiftyNine:    9.74
+            case .sixtyAndOver:         10.1
+            }
+        case .male:
+            switch ageGroup {
+            case .zeroToTwo:            61.0
+            case .threeToNine:          23.3
+            case .tenToSeventeen:       18.4
+            case .eighteenToTwentyNine: 16.0
+            case .thirtyToFiftyNine:    14.2
+            case .sixtyAndOver:         13.5
+            }
+        case .notSet: nil
+        }
+    }
+    
+    static func c(_ biologicalSex: BiologicalSex, _ ageGroup: AgeGroup) -> Double? {
+        switch biologicalSex {
+        case .female:
+            switch ageGroup {
+            case .zeroToTwo:            -23.1
+            case .threeToNine:          507
+            case .tenToSeventeen:       761
+            case .eighteenToTwentyNine: 558
+            case .thirtyToFiftyNine:    694
+            case .sixtyAndOver:         569
+            }
+        case .male:
+            switch ageGroup {
+            case .zeroToTwo:            -33.7
+            case .threeToNine:          514
+            case .tenToSeventeen:       581
+            case .eighteenToTwentyNine: 545
+            case .thirtyToFiftyNine:    593
+            case .sixtyAndOver:         514
+            }
+        case .notSet: nil
+        }
+    }
+}
+
+import Foundation
+
+struct SchofieldCoefficients {
+    static func a(_ biologicalSex: BiologicalSex, _ ageGroup: AgeGroup) -> Double? {
+        switch biologicalSex {
+        case .female:
+            switch ageGroup {
+            case .zeroToTwo:            58.317
+            case .threeToNine:          20.315
+            case .tenToSeventeen:       13.384
+            case .eighteenToTwentyNine: 14.818
+            case .thirtyToFiftyNine:    8.126
+            case .sixtyAndOver:         9.082
+            }
+        case .male:
+            switch ageGroup {
+            case .zeroToTwo:            59.512
+            case .threeToNine:          22.706
+            case .tenToSeventeen:       17.686
+            case .eighteenToTwentyNine: 15.057
+            case .thirtyToFiftyNine:    11.472
+            case .sixtyAndOver:         11.711
+            }
+        case .notSet: nil
+        }
+    }
+    
+    static func c(_ biologicalSex: BiologicalSex, _ ageGroup: AgeGroup) -> Double? {
+        switch biologicalSex {
+        case .female:
+            switch ageGroup {
+            case .zeroToTwo:            -31.1
+            case .threeToNine:          485.9
+            case .tenToSeventeen:       692.6
+            case .eighteenToTwentyNine: 486.6
+            case .thirtyToFiftyNine:    845.6
+            case .sixtyAndOver:         658.5
+            }
+        case .male:
+            switch ageGroup {
+            case .zeroToTwo:            -30.4
+            case .threeToNine:          504.3
+            case .tenToSeventeen:       658.2
+            case .eighteenToTwentyNine: 692.2
+            case .thirtyToFiftyNine:    873.1
+            case .sixtyAndOver:         587.7
+            }
+        case .notSet: nil
+        }
+    }
+}

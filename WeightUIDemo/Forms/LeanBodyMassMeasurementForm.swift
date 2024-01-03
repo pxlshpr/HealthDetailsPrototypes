@@ -50,7 +50,7 @@ struct LeanBodyMassMeasurementForm: View {
     }
     
     func appeared() {
-        print("appeared")
+        /// Recalculate if we pop back from an equation variable
         if source == .equation {
             calculateEquation()
             setIsDirty()
@@ -412,21 +412,17 @@ struct LeanBodyMassMeasurementForm: View {
     var currentOrLatestWeightInKg: Double? {
         healthProvider.currentOrLatestWeightInKg
     }
+    
     func calculateEquation() {
-        //TODO: Fetch weight, height and sex from healthProvider
-        /// [ ] First write a function that provides us with the healthDetails we're after. For temporal ones, it should first check its own HealthDetails, then look at the Latest struct
         let heightInCm = healthProvider.currentOrLatestHeightInCm
         let biologicalSex = healthProvider.biologicalSex
         
-        let leanBodyMassInKg: Double? = if let currentOrLatestWeightInKg, let heightInCm {
-            equation.calculateInKg(
-                biologicalSex: biologicalSex,
-                weightInKg: currentOrLatestWeightInKg,
-                heightInCm: heightInCm
-            )
-        } else {
-            nil
-        }
+        let leanBodyMassInKg: Double? = equation.calculateInKg(
+            biologicalSex: biologicalSex,
+            weightInKg: currentOrLatestWeightInKg,
+            heightInCm: heightInCm
+        )
+        
         withAnimation {
             setLeanBodyMassInKg(leanBodyMassInKg)
             calculateFatPercentage()

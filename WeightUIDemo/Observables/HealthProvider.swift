@@ -11,12 +11,20 @@ import SwiftUI
         healthDetails.weight.weightInKg ?? latest.weight?.weight.weightInKg
     }
 
+    var currentOrLatestLeanBodyMassInKg: Double? {
+        healthDetails.leanBodyMass.leanBodyMassInKg ?? latest.leanBodyMass?.leanBodyMass.leanBodyMassInKg
+    }
+
     var currentOrLatestHeightInCm: Double? {
         healthDetails.height.heightInCm ?? latest.height?.height.heightInCm
     }
     
     var biologicalSex: BiologicalSex {
         healthDetails.biologicalSex
+    }
+    
+    var ageInYears: Int? {
+        healthDetails.ageInYears
     }
 
     struct LatestHealthDetails {
@@ -93,7 +101,7 @@ extension HealthDetails {
 //        case .maintenance:
 //            <#code#>
         case .age:
-            years != nil
+            ageInYears != nil
         case .sex:
             biologicalSex != .notSet
         case .weight:
@@ -130,8 +138,8 @@ extension HealthDetails {
 //        case .maintenance:
 //            <#code#>
         case .age:
-            if let years {
-                "\(years)"
+            if let ageInYears {
+                "\(ageInYears)"
             } else {
                 "Not Set"
             }

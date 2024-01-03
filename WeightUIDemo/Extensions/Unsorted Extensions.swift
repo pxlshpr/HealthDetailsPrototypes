@@ -82,12 +82,12 @@ extension Date {
         )
     }
     
-    var age: Int {
-        dateComponentsWithoutTime.age
+    var ageInYears: Int {
+        dateComponentsWithoutTime.ageInYears
     }
 }
 public extension DateComponents {
-    var age: Int {
+    var ageInYears: Int {
         let calendar = Calendar.current
         let now = Date().dateComponentsWithoutTime
         let ageComponents = calendar.dateComponents([.year], from: self, to: now)
