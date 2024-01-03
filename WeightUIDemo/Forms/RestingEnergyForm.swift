@@ -84,7 +84,7 @@ struct RestingEnergyForm: View {
                 healthSections
             }
         }
-        .navigationTitle("Resting Energy")
+        .navigationTitle("Kareem Hello")
         .toolbar { toolbarContent }
         .sheet(isPresented: $showingEquationsInfo) { equationExplanations }
         .sheet(isPresented: $showingRestingEnergyInfo) {
