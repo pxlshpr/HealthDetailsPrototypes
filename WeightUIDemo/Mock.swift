@@ -3,60 +3,74 @@ import SwiftUI
 var CurrentHealthDetails: HealthDetails {
     fetchHealthDetailsFromDocuments(Date.now)
 }
-var PreviousHealthDetails: HealthDetails {
-    fetchHealthDetailsFromDocuments(Date(fromDateString: "2023_12_01")!)
+
+extension Array where Element == HealthDetail {
+    var containsAllCases: Bool {
+        HealthDetail.allCases.allSatisfy { contains($0) }
+    }
 }
 
-struct MockCurrentHealthDetailsForm: View {
+func latestHealthDetails(to date: Date = Date.now) -> HealthProvider.LatestHealthDetails {
+    let start = CFAbsoluteTimeGetCurrent()
+    print("-- starting latestHealthDetails")
+    var latest = HealthProvider.LatestHealthDetails()
+    
+    let numberOfDays = Date.now.numberOfDaysFrom(PreviousMockDate)
+    var setDetails: [HealthDetail] = []
+    for i in 0...numberOfDays {
+        let date = Date.now.moveDayBy(-i)
+        print("-- fetching for \(date)")
+        let healthDetails = fetchHealthDetailsFromDocuments(date)
+        print("-- healthDetails.weight.weightInKg: \(healthDetails.weight.weightInKg)")
+
+        if healthDetails.hasSet(.weight) {
+            latest.weight = .init(date: date, weight: healthDetails.weight)
+            setDetails.append(.weight)
+        }
+
+        if healthDetails.hasSet(.height) {
+            latest.height = .init(date: date, height: healthDetails.height)
+            setDetails.append(.height)
+        }
+
+        if healthDetails.hasSet(.leanBodyMass) {
+            latest.leanBodyMass = .init(date: date, leanBodyMass: healthDetails.leanBodyMass)
+            setDetails.append(.leanBodyMass)
+        }
+
+        /// Once we get all HealthDetails, stop searching
+        if setDetails.containsAllCases {
+            break
+        }
+    }
+    
+    print("** latestHealthDetails took: \(CFAbsoluteTimeGetCurrent()-start)s")
+    return latest
+}
+
+struct MockHealthDetailsForm: View {
     
     @Environment(SettingsProvider.self) var settingsProvider
 
     @State var healthProvider: HealthProvider
     @Binding var isPresented: Bool
-
-    init(isPresented: Binding<Bool> = .constant(true)) {
+    
+    init(
+        date: Date,
+        isPresented: Binding<Bool> = .constant(true)
+    ) {
         _isPresented = isPresented
         
-        var latest = HealthProvider.LatestHealthDetails()
-        latest.weight = .init(
-            date: PreviousHealthDetails.date,
-            weight: PreviousHealthDetails.weight
-        )
-        latest.height = .init(
-            date: PreviousHealthDetails.date,
-            height: PreviousHealthDetails.height
-        )
+        let healthDetails = fetchHealthDetailsFromDocuments(date)
+
+        let latest = latestHealthDetails(to: date)
+        print("Latest HealthDetails for \(date.shortDateString):")
+        print(latest)
         
         let healthProvider = HealthProvider(
-            isCurrent: true,
-            healthDetails: CurrentHealthDetails,
+            isCurrent: date.isToday,
+            healthDetails: healthDetails,
             latest: latest
-        )
-        _healthProvider = State(initialValue: healthProvider)
-    }
-
-    var body: some View {
-        HealthDetailsForm(
-            healthProvider: healthProvider,
-            isPresented: $isPresented
-        )
-        .environment(settingsProvider)
-    }
-}
-
-struct MockPastHealthDetailsForm: View {
-    
-    @Environment(SettingsProvider.self) var settingsProvider
-
-    @State var healthProvider: HealthProvider
-    @Binding var isPresented: Bool
-    
-    init(isPresented: Binding<Bool> = .constant(true)) {
-        _isPresented = isPresented
-        
-        let healthProvider = HealthProvider(
-            isCurrent: false,
-            healthDetails: PreviousHealthDetails
         )
         _healthProvider = State(initialValue: healthProvider)
     }

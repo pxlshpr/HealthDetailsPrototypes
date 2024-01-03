@@ -74,16 +74,11 @@ struct AdaptiveMaintenanceForm: View {
         }
     }
 
+    @State var showingWeightChange = false
+    @State var showingDietaryEnergy = false
+
     var weightChangeLink: some View {
-        var destination: some View {
-            WeightChangeForm(
-                pastDate: pastDate,
-                isPresented: $isPresented,
-                dismissDisabled: $dismissDisabled
-            )
-        }
-        
-        var label: some View {
+        Section {
             HStack {
                 Text("Weight Change")
                 Spacer()
@@ -93,32 +88,28 @@ struct AdaptiveMaintenanceForm: View {
                     Text("Not Set")
                         .foregroundStyle(.secondary)
                 }
+                
+                Button {
+                    showingWeightChange = true
+                } label: {
+                    Image(systemName: "pencil")
+                }
             }
-        }
-        
-        var navigationViewLink: some View {
-            NavigationLink {
-                destination
-            } label: {
-                label
+            .disabled(isPast && isEditing)
+            .sheet(isPresented: $showingWeightChange) {
+                NavigationView {
+                    WeightChangeForm(
+                        pastDate: pastDate,
+                        isPresented: $isPresented,
+                        dismissDisabled: $dismissDisabled
+                    )
+                }
             }
-        }
-        
-        return Section {
-            navigationViewLink
-                .disabled(isPast && isEditing)
         }
     }
 
     var dietaryEnergyLink: some View {
-        var destination: some View {
-            DietaryEnergyForm(
-                pastDate: pastDate,
-                isPresented: $isPresented,
-                dismissDisabled: $dismissDisabled
-            )
-        }
-        var label: some View {
+        Section {
             HStack {
                 Text("Dietary Energy")
                 Spacer()
@@ -128,19 +119,23 @@ struct AdaptiveMaintenanceForm: View {
                     Text("Not Set")
                         .foregroundStyle(.secondary)
                 }
+                
+                Button {
+                    showingDietaryEnergy = true
+                } label: {
+                    Image(systemName: "pencil")
+                }
             }
-        }
-        var navigationViewLink: some View {
-            NavigationLink {
-                destination
-            } label: {
-                label
+            .disabled(isPast && isEditing)
+            .sheet(isPresented: $showingDietaryEnergy) {
+                NavigationView {
+                    DietaryEnergyForm(
+                        pastDate: pastDate,
+                        isPresented: $isPresented,
+                        dismissDisabled: $dismissDisabled
+                    )
+                }
             }
-        }
-        
-        return Section {
-            navigationViewLink
-                .disabled(isPast && isEditing)
         }
     }
 

@@ -44,19 +44,38 @@ struct DietaryEnergyForm: View {
         )
     }
     
+    @State var dataBeingPresented: ListData? = nil
+    
     var list: some View {
         Section {
             ForEach(listData, id: \.self) { data in
-                NavigationLink {
-                    DietaryEnergyPointForm(
-                        dateString: data.dateString,
-                        pastDate: pastDate,
-                        isPresented: $isPresented,
-                        dismissDisabled: $dismissDisabled
-                    )
-                } label: {
+                HStack {
                     DietaryEnergyCell(listData: data)
+                    Button {
+                        dataBeingPresented = data
+                    } label: {
+                        Image(systemName: "pencil")
+                    }
                 }
+//                NavigationLink {
+//                    DietaryEnergyPointForm(
+//                        dateString: data.dateString,
+//                        pastDate: pastDate,
+//                        isPresented: $isPresented,
+//                        dismissDisabled: $dismissDisabled
+//                    )
+//                } label: {
+//                }
+            }
+        }
+        .sheet(item: $dataBeingPresented) { data in
+            NavigationView {
+                DietaryEnergyPointForm(
+                    dateString: data.dateString,
+                    pastDate: pastDate,
+                    isPresented: $isPresented,
+                    dismissDisabled: $dismissDisabled
+                )
             }
         }
     }
@@ -134,10 +153,10 @@ struct DietaryEnergyCell: View {
     let listData: DietaryEnergyForm.ListData
     var body: some View {
         HStack {
+            image
             dateText
             Spacer()
             detail
-            image
         }
     }
     
@@ -152,8 +171,8 @@ struct DietaryEnergyCell: View {
                     RoundedRectangle(cornerRadius: 5)
                         .stroke(Color(.systemGray3), lineWidth: 0.5)
                 )
-        case .useAverage:
-            EmptyView()
+//        case .useAverage:
+//            EmptyView()
 //            Color.clear
 //                .frame(width: 24, height: 24)
 //                .opacity(0)
@@ -172,7 +191,8 @@ struct DietaryEnergyCell: View {
     var detail: some View {
         if listData.type == .useAverage {
 //            Text("Not Included")
-            Text("Exclude and Use Average")
+//            Text("Exclude and Use Average")
+            Text("2,235 kcal")
 //                .foregroundStyle(Color(.label))
                 .foregroundStyle(Color(.secondaryLabel))
         } else {
@@ -198,4 +218,8 @@ struct DietaryEnergyCell: View {
     NavigationView {
         DietaryEnergyForm(pastDate: MockPastDate)
     }
+}
+
+#Preview("DemoView") {
+    DemoView()
 }

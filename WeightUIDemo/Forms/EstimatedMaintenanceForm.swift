@@ -20,6 +20,9 @@ struct EstimatedMaintenanceForm: View {
         _isPresented = isPresented
         _dismissDisabled = dismissDisabled
         _isEditing = State(initialValue: true)
+        
+        let restingEnergy = healthProvider.healthDetails.maintenance.estimate.restingEnergy
+        _restingEnergyInKcal = State(initialValue: restingEnergy.kcal)
     }
 
     var pastDate: Date? {

@@ -177,6 +177,29 @@ struct EquationVariablesSections: View {
                     }
                     .disabled(isEditing && isPast)
                 }
+            case .leanBodyMass:
+                if let latestLeanBodyMass = healthProvider.latest.leanBodyMass {
+                    NavigationLink {
+                        LeanBodyMassForm(
+                            date: latestLeanBodyMass.date,
+                            leanBodyMass: latestLeanBodyMass.leanBodyMass,
+                            healthProvider: healthProvider,
+                            isPresented: $isPresented,
+                            dismissDisabled: $dismissDisabled,
+                            save: { leanBodyMass in
+                                //TODO: Save
+                                healthProvider.updateLatestLeanBodyMass(leanBodyMass)
+                            }
+                        )
+                    } label: {
+                        HStack {
+                            Text(latestLeanBodyMass.date.shortDateString)
+                            Spacer()
+                            Text(latestLeanBodyMass.leanBodyMass.valueString(in: settingsProvider.bodyMassUnit))
+                        }
+                    }
+                    .disabled(isEditing && isPast)
+                }
             case .height:
                 if let latestHeight = healthProvider.latest.height {
                     NavigationLink {

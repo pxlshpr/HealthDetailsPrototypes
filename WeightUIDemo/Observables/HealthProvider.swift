@@ -11,7 +11,13 @@ import SwiftUI
     struct LatestHealthDetails {
         var weight: Weight?
         var height: Height?
+        var leanBodyMass: LeanBodyMass?
 
+        struct LeanBodyMass {
+            let date: Date
+            var leanBodyMass: HealthDetails.LeanBodyMass
+        }
+        
         struct Weight {
             let date: Date
             var weight: HealthDetails.Weight
@@ -174,6 +180,16 @@ extension HealthProvider {
         healthDetails.height = height
         saveHealthDetailsInDocuments(healthDetails)
     }
+    
+    func updateLatestLeanBodyMass(_ leanBodyMass: HealthDetails.LeanBodyMass) {
+        guard let latestLeanBodyMass = latest.leanBodyMass else { return }
+        latest.leanBodyMass?.leanBodyMass = leanBodyMass
+        
+        var healthDetails = fetchHealthDetailsFromDocuments(latestLeanBodyMass.date)
+        healthDetails.leanBodyMass = leanBodyMass
+        saveHealthDetailsInDocuments(healthDetails)
+    }
+
 }
 
 //TODO: Replace this with actual backend manipulation in Prep

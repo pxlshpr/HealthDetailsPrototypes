@@ -9,7 +9,7 @@ struct RestingEnergyForm: View {
     @Binding var restingEnergyInKcal: Double?
 
     @State var source: RestingEnergySource = .equation
-    @State var equation: RestingEnergyEquation = .katchMcardle
+    @State var equation: RestingEnergyEquation = .henryOxford
     
     @State var intervalType: HealthIntervalType = .average
     @State var interval: HealthInterval = .init(3, .day)
