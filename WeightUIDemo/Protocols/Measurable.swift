@@ -28,7 +28,7 @@ extension Measurable {
     }
     
     var timeString: String {
-        date.shortTime
+        date.healthTimeString
     }
     
     var isFromHealthKit: Bool {

@@ -26,7 +26,7 @@ struct LeanBodyMassData: Codable, Hashable, Identifiable {
     }
     
     var dateString: String {
-        date.shortTime
+        date.healthTimeString
     }
     
     func fatPercentage(forWeight weight: Double) -> Double {

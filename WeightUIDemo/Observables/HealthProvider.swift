@@ -12,6 +12,11 @@ import SwiftUI
         var weight: Weight?
         var height: Height?
         var leanBodyMass: LeanBodyMass?
+        var pregnancyStatus: PregnancyStatus?
+
+//        var age: Age?
+//        var biologicalSex: BiologicalSex?
+//        var smokingStatus: SmokingStatus?
 
         struct LeanBodyMass {
             let date: Date
@@ -27,6 +32,27 @@ import SwiftUI
             let date: Date
             var height: HealthDetails.Height
         }
+        
+        struct PregnancyStatus {
+            let date: Date
+            let pregnancyStatus: WeightUIDemo.PregnancyStatus
+        }
+
+//        struct Age {
+//            let date: Date
+//            let dateOfBirthComponents: DateComponents
+//        }
+//        
+//        struct BiologicalSex {
+//            let date: Date
+//            let biologicalSex: WeightUIDemo.BiologicalSex
+//        }
+        
+//        struct SmokingStatus {
+//            let date: Date
+//            let smokingStatus: WeightUIDemo.SmokingStatus
+//        }
+
     }
 
     init(
@@ -47,6 +73,10 @@ import SwiftUI
 }
 
 extension HealthDetails {
+    var missingNonTemporalHealthDetails: [HealthDetail] {
+        HealthDetail.allNonTemporalHealthDetails.filter { !hasSet($0) }
+    }
+
     func hasSet(_ healthDetail: HealthDetail) -> Bool {
         switch healthDetail {
 //        case .maintenance:

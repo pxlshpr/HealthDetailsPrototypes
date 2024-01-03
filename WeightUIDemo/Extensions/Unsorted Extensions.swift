@@ -314,6 +314,14 @@ extension Double {
     }
 }
 
+extension Date {
+    var healthTimeString: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "h:mm a"
+        return formatter.string(from: self).lowercased()
+    }
+}
+
 import SwiftUI
 
 public extension Color {

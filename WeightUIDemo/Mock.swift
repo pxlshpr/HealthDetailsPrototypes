@@ -4,12 +4,6 @@ var CurrentHealthDetails: HealthDetails {
     fetchHealthDetailsFromDocuments(Date.now)
 }
 
-extension Array where Element == HealthDetail {
-    var containsAllCases: Bool {
-        HealthDetail.allCases.allSatisfy { contains($0) }
-    }
-}
-
 func latestHealthDetails(to date: Date = Date.now) -> HealthProvider.LatestHealthDetails {
     let start = CFAbsoluteTimeGetCurrent()
     print("-- starting latestHealthDetails")
@@ -17,11 +11,9 @@ func latestHealthDetails(to date: Date = Date.now) -> HealthProvider.LatestHealt
     
     let numberOfDays = Date.now.numberOfDaysFrom(PreviousMockDate)
     var setDetails: [HealthDetail] = []
-    for i in 0...numberOfDays {
+    for i in 1...numberOfDays {
         let date = Date.now.moveDayBy(-i)
-        print("-- fetching for \(date)")
         let healthDetails = fetchHealthDetailsFromDocuments(date)
-        print("-- healthDetails.weight.weightInKg: \(healthDetails.weight.weightInKg)")
 
         if healthDetails.hasSet(.weight) {
             latest.weight = .init(date: date, weight: healthDetails.weight)
@@ -37,6 +29,22 @@ func latestHealthDetails(to date: Date = Date.now) -> HealthProvider.LatestHealt
             latest.leanBodyMass = .init(date: date, leanBodyMass: healthDetails.leanBodyMass)
             setDetails.append(.leanBodyMass)
         }
+        
+        if healthDetails.hasSet(.preganancyStatus) {
+            latest.pregnancyStatus = .init(date: date, pregnancyStatus: healthDetails.pregnancyStatus)
+        }
+
+//        if let dateOfBirthComponents = healthDetails.dateOfBirthComponents {
+//            latest.age = .init(date: date, dateOfBirthComponents: dateOfBirthComponents)
+//        }
+//
+//        if healthDetails.hasSet(.sex) {
+//            latest.biologicalSex = .init(date: date, biologicalSex: healthDetails.biologicalSex)
+//        }
+
+//        if healthDetails.hasSet(.smokingStatus) {
+//            latest.smokingStatus = .init(date: date, smokingStatus: healthDetails.smokingStatus)
+//        }
 
         /// Once we get all HealthDetails, stop searching
         if setDetails.containsAllCases {
@@ -46,6 +54,40 @@ func latestHealthDetails(to date: Date = Date.now) -> HealthProvider.LatestHealt
     
     print("** latestHealthDetails took: \(CFAbsoluteTimeGetCurrent()-start)s")
     return latest
+}
+
+extension HealthProvider {
+    //TODO: To be replaced in Prep with a function that asks backend for the earliest Days that contain age, sex, or smokingStatus
+    func bringForwardNonTemporalHealthDetails() {
+        guard !healthDetails.missingNonTemporalHealthDetails.isEmpty else { return }
+        let start = CFAbsoluteTimeGetCurrent()
+        print("-- starting bringForwardNonTemporalHealthDetails")
+        
+        let numberOfDays = healthDetails.date.numberOfDaysFrom(PreviousMockDate)
+        for i in 0...numberOfDays {
+            let date = healthDetails.date.moveDayBy(-i)
+            let pastHealthDetails = fetchHealthDetailsFromDocuments(date)
+
+            if !healthDetails.hasSet(.age), let dateOfBirthComponents = pastHealthDetails.dateOfBirthComponents {
+                healthDetails.dateOfBirthComponents = dateOfBirthComponents
+            }
+            
+            if !healthDetails.hasSet(.sex), pastHealthDetails.hasSet(.sex) {
+                healthDetails.biologicalSex = pastHealthDetails.biologicalSex
+            }
+            
+            if !healthDetails.hasSet(.smokingStatus), pastHealthDetails.hasSet(.smokingStatus) {
+                healthDetails.smokingStatus = pastHealthDetails.smokingStatus
+            }
+
+            /// Once we get all non-temporal HealthDetails, stop searching early
+            if healthDetails.missingNonTemporalHealthDetails.isEmpty {
+                break
+            }
+        }
+        
+        print("** bringForwardNonTemporalHealthDetails took: \(CFAbsoluteTimeGetCurrent()-start)s")
+    }
 }
 
 struct MockHealthDetailsForm: View {
@@ -64,14 +106,16 @@ struct MockHealthDetailsForm: View {
         let healthDetails = fetchHealthDetailsFromDocuments(date)
 
         let latest = latestHealthDetails(to: date)
-        print("Latest HealthDetails for \(date.shortDateString):")
-        print(latest)
         
         let healthProvider = HealthProvider(
             isCurrent: date.isToday,
             healthDetails: healthDetails,
             latest: latest
         )
+        
+        /// Get HealthProvider to bring forward any non-temporal HealthDetails (age, sex, smokingStatus)
+        healthProvider.bringForwardNonTemporalHealthDetails()
+        
         _healthProvider = State(initialValue: healthProvider)
     }
 
@@ -105,6 +149,21 @@ let MockPastProvider = HealthProvider(
 )
 
 //MARK: Reusable
+
+func deleteAllFilesInDocuments() {
+    do {
+        let fileURLs = try FileManager.default.contentsOfDirectory(
+            at: getDocumentsDirectory(),
+            includingPropertiesForKeys: nil,
+            options: .skipsHiddenFiles
+        )
+        for fileURL in fileURLs {
+            try FileManager.default.removeItem(at: fileURL)
+        }
+    } catch  {
+        print(error)
+    }
+}
 
 func getDocumentsDirectory() -> URL {
     FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]

@@ -33,18 +33,32 @@ enum HealthDetail: Int, Identifiable, CaseIterable {
         }
     }
     
-    var isCharacteristic: Bool {
+    /// Not related to time—once set, the value is brought forward to every future HealthDetail until changed
+    var isNonTemporal: Bool {
         switch self {
-        case .age, .sex: true
-        default: false
+        case .age, .sex, .smokingStatus:
+            true
+        default: 
+            false
         }
     }
     
-    var isMeasurement: Bool {
+    /// Directly related to the date it's set on. When referenced, the date is displayed for these as they can potentially change on any future date.
+    var isTemporal: Bool {
         switch self {
-        case .height, .weight, .leanBodyMass: true
-        default: false
+        case .height, .weight, .leanBodyMass, .preganancyStatus, .maintenance:
+            true
+        default: 
+            false
         }
+    }
+    
+    static var allNonTemporalHealthDetails: [HealthDetail] {
+        allCases.filter{ $0.isNonTemporal }.sorted()
+    }
+    
+    static var allTemporalHealthDetails: [HealthDetail] {
+        allCases.filter{ $0.isTemporal }.sorted()
     }
 }
 
@@ -55,11 +69,16 @@ extension HealthDetail: Comparable {
 }
 
 extension Array where Element == HealthDetail {
-    var characteristics: [HealthDetail] {
-        filter{ $0.isCharacteristic }.sorted()
+    var nonTemporalHealthDetails: [HealthDetail] {
+        filter{ $0.isNonTemporal }.sorted()
     }
     
-    var measurements: [HealthDetail] {
-        filter{ $0.isMeasurement }.sorted()
+    var temporalHealthDetails: [HealthDetail] {
+        filter{ $0.isTemporal }.sorted()
+    }
+    
+    var containsAllCases: Bool {
+        HealthDetail.allCases.allSatisfy { contains($0) }
     }
 }
+

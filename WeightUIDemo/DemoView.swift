@@ -24,20 +24,37 @@ struct DemoView: View {
                 healthDetailsSection
             }
             .navigationTitle("Demo")
+            .toolbar { toolbarContent }
         }
-        .sheet(item: $pastDateBeingShown) { date in
-            MockHealthDetailsForm(
-                date: date,
-                isPresented: Binding<Bool>(
-                    get: { true },
-                    set: { if !$0 { pastDateBeingShown = nil } }
-                )
+        .sheet(item: $pastDateBeingShown) { healthDetailsForm(for: $0) }
+        .sheet(isPresented: $showingSettings) { settingsForm }
+    }
+    
+    var toolbarContent: some ToolbarContent {
+        ToolbarItem(placement: .topBarTrailing) {
+            Menu {
+                Button("Reset Data") {
+                    deleteAllFilesInDocuments()
+                }
+            } label: {
+                Image(systemName: "ellipsis.circle")
+            }
+        }
+    }
+    
+    var settingsForm: some View {
+        SettingsForm(settingsProvider, isPresented: $showingSettings)
+    }
+    
+    func healthDetailsForm(for date: Date) -> some View {
+        MockHealthDetailsForm(
+            date: date,
+            isPresented: Binding<Bool>(
+                get: { true },
+                set: { if !$0 { pastDateBeingShown = nil } }
             )
-            .environment(settingsProvider)
-        }
-        .sheet(isPresented: $showingSettings) {
-            SettingsForm(settingsProvider, isPresented: $showingSettings)
-        }
+        )
+        .environment(settingsProvider)
     }
     
     var healthDetailsSection: some View {
