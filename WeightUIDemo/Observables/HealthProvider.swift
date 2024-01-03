@@ -7,7 +7,18 @@ import SwiftUI
     
     var latest: LatestHealthDetails
     
+    var currentOrLatestWeightInKg: Double? {
+        healthDetails.weight.weightInKg ?? latest.weight?.weight.weightInKg
+    }
+
+    var currentOrLatestHeightInCm: Double? {
+        healthDetails.height.heightInCm ?? latest.height?.height.heightInCm
+    }
     
+    var biologicalSex: BiologicalSex {
+        healthDetails.biologicalSex
+    }
+
     struct LatestHealthDetails {
         var weight: Weight?
         var height: Height?

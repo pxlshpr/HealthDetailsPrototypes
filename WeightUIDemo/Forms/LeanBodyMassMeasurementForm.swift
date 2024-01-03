@@ -400,16 +400,19 @@ struct LeanBodyMassMeasurementForm: View {
 //        }
 //    }
     
+    var currentOrLatestWeightInKg: Double? {
+        healthProvider.currentOrLatestWeightInKg
+    }
     func calculateEquation() {
-        let weightInKg: Double? = 95.7
-        let heightInCm: Double? = 177
-//        let heightInCm: Double? = nil
-        let sexIsFemale: Bool? = false
+        //TODO: Fetch weight, height and sex from healthProvider
+        /// [ ] First write a function that provides us with the healthDetails we're after. For temporal ones, it should first check its own HealthDetails, then look at the Latest struct
+        let heightInCm = healthProvider.currentOrLatestHeightInCm
+        let biologicalSex = healthProvider.biologicalSex
         
-        let leanBodyMassInKg: Double? = if let weightInKg, let heightInCm, let sexIsFemale {
+        let leanBodyMassInKg: Double? = if let currentOrLatestWeightInKg, let heightInCm {
             equation.calculateInKg(
-                sexIsFemale: sexIsFemale,
-                weightInKg: weightInKg,
+                biologicalSex: biologicalSex,
+                weightInKg: currentOrLatestWeightInKg,
                 heightInCm: heightInCm
             )
         } else {
@@ -422,21 +425,25 @@ struct LeanBodyMassMeasurementForm: View {
     }
     
     func calculateFatPercentage(forLeanBodyMass leanBodyMassInKg: Double? = nil) {
-        guard let leanBodyMassInKg = leanBodyMassInKg ?? self.leanBodyMassInKg else {
+        guard let leanBodyMassInKg = leanBodyMassInKg ?? self.leanBodyMassInKg,
+            let currentOrLatestWeightInKg
+        else {
             setFatPercentage(nil)
             return
         }
-        let weight = 95.7
+        let weight = currentOrLatestWeightInKg
         let p = ((max(0, (weight - leanBodyMassInKg)) / weight) * 100)
         setFatPercentage(p.rounded(toPlaces: 1))
     }
     
     func calculateLeanBodyMass(forFatPercentage p: Double? = nil) {
-        guard let p = p ?? self.fatPercentageInput.double else {
+        guard let p = p ?? self.fatPercentageInput.double,
+              let currentOrLatestWeightInKg
+        else {
             setLeanBodyMassInKg(nil)
             return
         }
-        let weight = 95.7
+        let weight = currentOrLatestWeightInKg
         let kg = weight - ((p / 100.0) * weight)
         setLeanBodyMassInKg(kg)
     }

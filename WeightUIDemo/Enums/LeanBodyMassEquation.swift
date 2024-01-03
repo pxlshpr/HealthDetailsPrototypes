@@ -36,31 +36,27 @@ extension LeanBodyMassEquation {
     }
     
     /// Equations taken from: [here](https://www.calculator.net/lean-body-mass-calculator.html)
-    func calculateInKg(sexIsFemale: Bool, weightInKg weight: Double, heightInCm height: Double) -> Double {
-        guard weight > 0, height > 0 else { return 0 }
-        let lbm: Double
-        switch sexIsFemale {
-        case true:
+    func calculateInKg(biologicalSex: BiologicalSex, weightInKg weight: Double, heightInCm height: Double) -> Double? {
+        guard weight > 0, height > 0 else { return nil }
+        let lbm: Double? = switch biologicalSex {
+        case .female:
             /// female
             switch self {
-            case .boer:
-                lbm = (0.252 * weight) + (0.473 * height) - 48.3
-            case .james:
-                lbm = (1.07 * weight) - (148.0 * pow((weight/height), 2.0))
-            case .hume:
-                lbm = (0.29569 * weight) + (0.41813 * height) - 43.2933
+            case .boer:     (0.252 * weight) + (0.473 * height) - 48.3
+            case .james:    (1.07 * weight) - (148.0 * pow((weight/height), 2.0))
+            case .hume:     (0.29569 * weight) + (0.41813 * height) - 43.2933
             }
-        case false:
+        case .male:
             /// male
             switch self {
-            case .boer:
-                lbm = (0.407 * weight) + (0.267 * height) - 19.2
-            case .james:
-                lbm = (1.1 * weight) - (128.0 * pow((weight/height), 2.0))
-            case .hume:
-                lbm = (0.32810 * weight) + (0.33929 * height) - 29.5336
+            case .boer:     (0.407 * weight) + (0.267 * height) - 19.2
+            case .james:    (1.1 * weight) - (128.0 * pow((weight/height), 2.0))
+            case .hume:     (0.32810 * weight) + (0.33929 * height) - 29.5336
             }
+        default:            nil
         }
+        
+        guard let lbm else { return nil }
         return max(lbm, 0)
     }
 }

@@ -160,13 +160,13 @@ struct HealthDetailsForm: View {
     }
 }
 
-//#Preview("Current") {
-//    MockCurrentHealthDetailsForm()
-//}
-//
-//#Preview("Past") {
-//    MockPastHealthDetailsForm()
-//}
+#Preview("Current") {
+    MockCurrentHealthDetailsForm()
+}
+
+#Preview("Past") {
+    MockPastHealthDetailsForm()
+}
 
 #Preview("DemoView") {
     DemoView()

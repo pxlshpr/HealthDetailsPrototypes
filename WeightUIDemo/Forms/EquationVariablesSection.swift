@@ -47,33 +47,12 @@ struct EquationVariablesSections: View {
     }
     
     func link(for characteristic: HealthDetail) -> some View {
-        Group {
-            switch characteristic {
-            case .age:
-                NavigationLink {
-                    AgeForm(healthProvider: healthProvider)
-                } label: {
-                    HStack {
-                        Text(characteristic.name)
-                        Spacer()
-                        Text(healthProvider.healthDetails.valueString(for: .age, settingsProvider))
-                    }
-                }
-            case .sex:
-                NavigationLink {
-                    BiologicalSexForm(healthProvider: healthProvider)
-                } label: {
-                    HStack {
-                        Text(characteristic.name)
-                        Spacer()
-                        Text(healthProvider.healthDetails.valueString(for: .sex, settingsProvider))
-                    }
-                }
-            default:
-                EmptyView()
-            }
-        }
-        .disabled(isEditing && isPast)
+        EquationVariableNonTemporalLink(
+            healthProvider: healthProvider,
+            characteristic: characteristic,
+            pastDate: pastDate,
+            isEditing: $isEditing
+        )
     }
     
     @ViewBuilder
@@ -112,172 +91,56 @@ struct EquationVariablesSections: View {
         )
     }
     
-//    func measurementSection(for healthDetail: HealthDetail, index: Int) -> some View {
-//        
-//        var header: some View {
-//            let shouldShowMainHeader = characteristics.isEmpty && index == 0
-//            return VStack(alignment: .leading, spacing: 10) {
-//                if shouldShowMainHeader {
-//                    mainHeader
-//                }
-//                Text(healthDetail.name)
-//            }
-//        }
-//        
-//        var formDate: Date {
-//            pastDate ?? Date.now
-//        }
-//        
-//        var hasData: Bool {
-//            switch healthDetail {
-//            case .weight:
-//                healthProvider.latest.weight != nil
-//            case .height:
-//                healthProvider.latest.height != nil
-//            case .leanBodyMass:
-//                healthProvider.latest.leanBodyMass != nil
-//            default:
-//                false
-//            }
-//        }
-//        
-//        @ViewBuilder
-//        var footer: some View {
-//            if hasData {
-//                if let pastDate, !pastDate.isToday {
-//                    Text("Since no \(healthDetail.name.lowercased()) data has been set for \(pastDate.shortDateString), the most recent entry prior to that is being used.")
-//                } else {
-//                    Text("Since no \(healthDetail.name.lowercased()) data has been set for today, the most recent entry is being used.")
-//                }
-//            } else if isRequired {
-//                Text("Your \(healthDetail.name.lowercased()) is required for this calculation.")
-//            }
-//        }
-//        
-//        @ViewBuilder
-//        var pastLink: some View {
-//            switch healthDetail {
-//            case .weight:
-//                if let latestWeight = healthProvider.latest.weight {
-//                    NavigationLink {
-//                        WeightForm(
-//                            date: latestWeight.date,
-//                            weight: latestWeight.weight,
-//                            isPresented: $isPresented,
-//                            dismissDisabled: $dismissDisabled,
-//                            save: { newWeight in
-//                                //TODO: Save
-//                                healthProvider.updateLatestWeight(newWeight)
-//                            }
-//                        )
-//                    } label: {
-//                        HStack {
-//                            Text(latestWeight.date.shortDateString)
-//                            Spacer()
-//                            Text(latestWeight.weight.valueString(in: settingsProvider.bodyMassUnit))
-//                        }
-//                    }
-//                    .disabled(isEditing && isPast)
-//                }
-//            case .leanBodyMass:
-//                if let latestLeanBodyMass = healthProvider.latest.leanBodyMass {
-//                    NavigationLink {
-//                        LeanBodyMassForm(
-//                            date: latestLeanBodyMass.date,
-//                            leanBodyMass: latestLeanBodyMass.leanBodyMass,
-//                            healthProvider: healthProvider,
-//                            isPresented: $isPresented,
-//                            dismissDisabled: $dismissDisabled,
-//                            save: { leanBodyMass in
-//                                //TODO: Save
-//                                healthProvider.updateLatestLeanBodyMass(leanBodyMass)
-//                            }
-//                        )
-//                    } label: {
-//                        HStack {
-//                            Text(latestLeanBodyMass.date.shortDateString)
-//                            Spacer()
-//                            Text(latestLeanBodyMass.leanBodyMass.valueString(in: settingsProvider.bodyMassUnit))
-//                        }
-//                    }
-//                    .disabled(isEditing && isPast)
-//                }
-//            case .height:
-//                if let latestHeight = healthProvider.latest.height {
-//                    NavigationLink {
-//                        HeightForm(
-//                            date: latestHeight.date,
-//                            height: latestHeight.height,
-//                            isPresented: $isPresented,
-//                            dismissDisabled: $dismissDisabled,
-//                            save: { newHeight in
-//                                //TODO: Save
-//                                healthProvider.updateLatestHeight(newHeight)
-//                            }
-//                        )
-//                    } label: {
-//                        HStack {
-//                            Text(latestHeight.date.shortDateString)
-//                            Spacer()
-//                            Text(latestHeight.height.valueString(in: settingsProvider.heightUnit))
-//                        }
-//                    }
-//                    .disabled(isEditing && isPast)
-//                }
-//            default:
-//                EmptyView()
-//            }
-//        }
-//        
-//        @ViewBuilder
-//        var currentLink: some View {
-//            if !healthProvider.healthDetails.hasSet(healthDetail) {
-//                NavigationLink {
-//                    switch healthDetail {
-//                    case .height:
-//                        HeightForm(
-//                            healthProvider: healthProvider,
-//                            isPresented: $isPresented
-//                        )
-//                    case .weight:
-//                        WeightForm(
-//                            healthProvider: healthProvider,
-//                            isPresented: $isPresented,
-//                            dismissDisabled: $dismissDisabled
-//                        )
-//                    case .leanBodyMass:
-//                        LeanBodyMassForm(
-//                            healthProvider: healthProvider,
-//                            isPresented: $isPresented,
-//                            dismissDisabled: $dismissDisabled
-//                        )
-//                    default:
-//                        EmptyView()
-//                    }
-//                } label: {
-//                    HStack {
-//                        Text(formDate.shortDateString)
-//                        Spacer()
-//                        Text("Not Set")
-//                            .foregroundStyle(.secondary)
-//                    }
-//                }
-//                .disabled(isEditing && isPast)
-//            }
-//        }
-//        
-//        return Section(header: header, footer: footer) {
-//            pastLink
-//            currentLink
-//        }
-//    }
-    
     var characteristics: [HealthDetail] {
         healthDetails.nonTemporalHealthDetails
     }
     
     var measurements: [HealthDetail] {
         healthDetails.temporalHealthDetails
+    }
+    
+    var isPast: Bool {
+        pastDate != nil
+    }
+}
+
+struct EquationVariableNonTemporalLink: View {
+    
+    @Environment(SettingsProvider.self) var settingsProvider
+    @Bindable var healthProvider: HealthProvider
+
+    let characteristic: HealthDetail
+    let pastDate: Date?
+    @Binding var isEditing: Bool
+
+    var body: some View {
+        NavigationLink {
+            form
+        } label: {
+            label
+        }
+        .disabled(isEditing && isPast)
+    }
+    
+    @ViewBuilder
+    var form: some View {
+        switch characteristic {
+        case .age:
+            AgeForm(healthProvider: healthProvider)
+        case .sex:
+            BiologicalSexForm(healthProvider: healthProvider)
+        default:
+            EmptyView()
+        }
+    }
+    
+    var label: some View {
+        HStack {
+            Text(characteristic.name)
+            Spacer()
+            Text(healthProvider.healthDetails.valueString(for: characteristic, settingsProvider))
+                .foregroundStyle(healthProvider.healthDetails.hasSet(characteristic) ? .primary : .secondary)
+        }
     }
     
     var isPast: Bool {
