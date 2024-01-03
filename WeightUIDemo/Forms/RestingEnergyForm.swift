@@ -32,7 +32,8 @@ struct RestingEnergyForm: View {
     @Binding var dismissDisabled: Bool
 
     @State var hasFocusedCustomField = false
-    
+    @State var hasAppeared = false
+
     @State var calculateTask: Task<Void, Error>? = nil
     
     init(
@@ -74,7 +75,9 @@ struct RestingEnergyForm: View {
     func appeared() {
         if isEditing {
             /// Recalculate if we pop back from an equation variable
-            handleChanges()
+            DispatchQueue.main.asyncAfter(deadline: .now() + (hasAppeared ? 0.3 : 0)) {
+                handleChanges()
+            }
         }
     }
 
@@ -245,8 +248,8 @@ struct RestingEnergyForm: View {
         }
         try Task.checkCancellation()
         await MainActor.run { [dict] in
-            self.equationCalculationsInKcal = dict
             withAnimation {
+                self.equationCalculationsInKcal = dict
                 self.restingEnergyInKcal = equationCalculationsInKcal[equation]
             }
         }
@@ -341,10 +344,14 @@ struct RestingEnergyForm: View {
     
     var customSection: some View {
         func handleCustomValue() {
-            withAnimation {
-                restingEnergyInKcal = customInput.double
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                withAnimation {
+                    restingEnergyInKcal = customInput.double
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    handleChanges()
+                }
             }
-            handleChanges()
         }
         
         return SingleUnitMeasurementTextField(
