@@ -11,7 +11,7 @@ struct EnergyAppleHealthSections: View {
     @Binding var correctionType: CorrectionType
     @Binding var correctionInput: DoubleInput
 
-    let setIsDirty: () -> ()
+    let handleChanges: () -> ()
     let isRestingEnergy: Bool
 
     @State var showingHealthIntervalInfo = false
@@ -31,7 +31,7 @@ struct EnergyAppleHealthSections: View {
             set: { newValue in
                 withAnimation {
                     intervalType = newValue
-                    setIsDirty()
+                    handleChanges()
                 }
             }
         )
@@ -94,7 +94,7 @@ struct EnergyAppleHealthSections: View {
                 set: { newValue in
                     withAnimation {
                         interval = newValue
-                        setIsDirty()
+                        handleChanges()
                     }
                 }
             )
@@ -172,7 +172,7 @@ extension EnergyAppleHealthSections {
                 set: { newValue in
                     withAnimation {
                         applyCorrection = newValue
-                        setIsDirty()
+                        handleChanges()
                     }
                 }
             )
@@ -192,7 +192,7 @@ extension EnergyAppleHealthSections {
                     withAnimation {
                         correctionType = newValue
 //                        value = valueForActivityLevel(newValue)
-                        setIsDirty()
+                        handleChanges()
                     }
                 }
             )

@@ -175,7 +175,20 @@ public extension HealthInterval {
         }
         return intervals
     }
-    
+
+    static var healthKitEnergyIntervals: [HealthInterval] {
+        [
+            .init(1, .day),
+            .init(2, .day),
+            .init(3, .day),
+            .init(4, .day),
+            .init(5, .day),
+            .init(6, .day),
+            .init(1, .week),
+            .init(2, .week),
+        ]
+    }
+
     var intervalType: HealthIntervalType {
         get {
             switch period {

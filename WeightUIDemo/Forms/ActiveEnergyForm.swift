@@ -114,7 +114,7 @@ struct ActiveEnergyForm: View {
             applyCorrection: $applyCorrection,
             correctionType: $correctionType,
             correctionInput: $correctionInput,
-            setIsDirty: setIsDirty,
+            handleChanges: setIsDirty,
             isRestingEnergy: true,
             showingCorrectionAlert: $showingCorrectionAlert
         )

@@ -4,6 +4,7 @@ import SwiftUI
 struct RestingEnergyForm: View {
 
     @Environment(\.dismiss) var dismiss
+    @Environment(\.scenePhase) var scenePhase
 
     @Environment(SettingsProvider.self) var settingsProvider
     @Bindable var healthProvider: HealthProvider
@@ -34,9 +35,11 @@ struct RestingEnergyForm: View {
 
     @State var hasFocusedCustomField = false
     @State var hasAppeared = false
-
-    @State var calculateTask: Task<Void, Error>? = nil
     
+    @State var equationValuesInKcal: [RestingEnergyEquation: Double] = [:]
+    @State var healthKitValuesInKcal: [HealthInterval: Double] = [:]
+    @State var handleChangesTask: Task<Void, Error>? = nil
+
     init(
         healthProvider: HealthProvider,
         restingEnergyInKcal: Binding<Double?> = .constant(nil),
@@ -75,6 +78,12 @@ struct RestingEnergyForm: View {
 
     func appeared() {
         if isEditing {
+            if !hasAppeared {
+                Task {
+                    try await fetchHealthKitValues()
+                }
+            }
+
             /// Triggers equations to re-calculate or HealthKit to resync when we pop back from an equation variable. Delay this if not the first appearance so that we get to see the animation of the value changing.
             DispatchQueue.main.asyncAfter(deadline: .now() + (hasAppeared ? 0.3 : 0)) {
                 handleChanges()
@@ -101,6 +110,7 @@ struct RestingEnergyForm: View {
         .navigationTitle("Resting Energy")
         .toolbar { toolbarContent }
         .onAppear(perform: appeared)
+        .onChange(of: scenePhase, scenePhaseChanged)
         .sheet(isPresented: $showingEquationsInfo) { equationExplanations }
         .sheet(isPresented: $showingRestingEnergyInfo) {
             RestingEnergyInfo()
@@ -123,6 +133,17 @@ struct RestingEnergyForm: View {
         .navigationBarBackButtonHidden(isPast && isEditing)
         .onChange(of: isEditing) { _, _ in setDismissDisabled() }
         .onChange(of: isDirty) { _, _ in setDismissDisabled() }
+    }
+    
+    func scenePhaseChanged(old: ScenePhase, new: ScenePhase) {
+        switch new {
+        case .active:
+            Task {
+                try await fetchHealthKitValues()
+            }
+        default:
+            break
+        }
     }
     
     func setDismissDisabled() {
@@ -221,12 +242,26 @@ struct RestingEnergyForm: View {
     }
     
     func handleChanges() {
-        calculateTask?.cancel()
-        calculateTask = Task {
+        handleChangesTask?.cancel()
+        handleChangesTask = Task {
+            
+            /// Equation Values
             if source == .equation {
-                try await calculateEquations()
+                try await calculateEquationValues()
+                try Task.checkCancellation()
+                await MainActor.run {
+                    setEquationValue()
+                }
+                try Task.checkCancellation()
             }
-            try Task.checkCancellation()
+            
+            /// HealthKit Values
+            if source == .healthKit {
+                await MainActor.run {
+                    setHealthKitValue()
+                }
+            }
+
             await MainActor.run {
                 setIsDirty()
                 if !isPast {
@@ -236,9 +271,7 @@ struct RestingEnergyForm: View {
         }
     }
     
-    @State var equationCalculationsInKcal: [RestingEnergyEquation: Double] = [:]
-    
-    func calculateEquations() async throws {
+    func calculateEquationValues() async throws {
         var dict: [RestingEnergyEquation: Double] = [:]
         for equation in RestingEnergyEquation.allCases {
             let kcal = await healthProvider.calculateRestingEnergy(
@@ -247,12 +280,54 @@ struct RestingEnergyForm: View {
             )
             dict[equation] = kcal
         }
-        try Task.checkCancellation()
         await MainActor.run { [dict] in
             withAnimation {
-                self.equationCalculationsInKcal = dict
-                self.restingEnergyInKcal = equationCalculationsInKcal[equation]
+                equationValuesInKcal = dict
             }
+        }
+    }
+    
+    func fetchHealthKitValues() async throws {
+        let dict = try await withThrowingTaskGroup(
+            of: (HealthInterval, Double?).self,
+            returning: [HealthInterval: Double].self
+        ) { taskGroup in
+            
+            for interval in HealthInterval.healthKitEnergyIntervals {
+                taskGroup.addTask {
+                    let kcal = try await HealthStore.restingEnergy(
+                        for: interval,
+                        on: self.pastDate ?? Date.now,
+                        in: .kcal
+                    )
+                    return (interval, kcal)
+                }
+            }
+
+            var dict = [HealthInterval : Double]()
+
+            while let tuple = try await taskGroup.next() {
+                dict[tuple.0] = tuple.1
+            }
+            return dict
+        }
+        
+        await MainActor.run { [dict] in
+            withAnimation {
+                healthKitValuesInKcal = dict
+            }
+        }
+    }
+    
+    func setHealthKitValue() {
+        withAnimation {
+            restingEnergyInKcal = healthKitValuesInKcal[interval]
+        }
+    }
+    
+    func setEquationValue() {
+        withAnimation {
+            restingEnergyInKcal = equationValuesInKcal[equation]
         }
     }
     
@@ -313,7 +388,7 @@ struct RestingEnergyForm: View {
             applyCorrection: $applyCorrection,
             correctionType: $correctionType,
             correctionInput: $correctionInput,
-            setIsDirty: setIsDirty,
+            handleChanges: handleChanges,
             isRestingEnergy: true,
             showingCorrectionAlert: $showingCorrectionAlert
         )
@@ -411,7 +486,7 @@ struct RestingEnergyForm: View {
         
         func string(for equation: RestingEnergyEquation) -> String {
             var string = equation.name
-            if let kcal = equationCalculationsInKcal[equation] {
+            if let kcal = equationValuesInKcal[equation] {
                 string += " • \(kcal.formattedEnergy) kcal"
             }
             return string
