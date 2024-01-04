@@ -39,6 +39,8 @@ struct RestingEnergyForm: View {
     @State var hasAppeared = false
     
     @State var equationValuesInKcal: [RestingEnergyEquation: Double] = [:]
+    
+    @State var hasFetchedHealthKitValues: Bool = false
     @State var healthKitAverageValuesInKcal: [HealthInterval: Double] = [:]
     @State var healthKitSameDayValueInKcal: Double? = nil
     @State var healthKitPreviousDayValueInKcal: Double? = nil
@@ -258,6 +260,9 @@ struct RestingEnergyForm: View {
             
             /// HealthKit Values
             if source == .healthKit {
+                if !hasFetchedHealthKitValues {
+                    try await fetchHealthKitValues()
+                }
                 await MainActor.run {
                     setHealthKitValue()
                 }
@@ -310,6 +315,7 @@ struct RestingEnergyForm: View {
             while let tuple = try await taskGroup.next() {
                 dict[tuple.0] = tuple.1
             }
+            
             return dict
         }
         
@@ -327,6 +333,7 @@ struct RestingEnergyForm: View {
             if source == .healthKit {
                 setHealthKitValue()
             }
+            hasFetchedHealthKitValues = true
         }
     }
     
