@@ -63,7 +63,10 @@ extension HealthKitEnergyRequest {
         
         let sum = sumQuantities
             .values
-            .map { $0.doubleValue(for: unit) }
+            .map {
+                $0.doubleValue(for: unit)
+                    .rounded(.towardZero) /// Use Health App's rounding (towards zero)
+            }
             .reduce(0, +)
         
         /// Average by the number of `sumQuantities`, to filter out days that may not have been logged (by not wearing the Apple Watch, for instance)—which would otherwise skew the results to be lower.

@@ -11,6 +11,8 @@ struct RestingEnergyForm: View {
     
     @Binding var restingEnergyInKcal: Double?
 
+    let date: Date
+
     @State var source: RestingEnergySource = .equation
     @State var equation: RestingEnergyEquation = .henryOxford
     
@@ -37,7 +39,9 @@ struct RestingEnergyForm: View {
     @State var hasAppeared = false
     
     @State var equationValuesInKcal: [RestingEnergyEquation: Double] = [:]
-    @State var healthKitValuesInKcal: [HealthInterval: Double] = [:]
+    @State var healthKitAverageValuesInKcal: [HealthInterval: Double] = [:]
+    @State var healthKitSameDayValueInKcal: Double? = nil
+    @State var healthKitPreviousDayValueInKcal: Double? = nil
     @State var handleChangesTask: Task<Void, Error>? = nil
 
     init(
@@ -45,9 +49,10 @@ struct RestingEnergyForm: View {
         restingEnergyInKcal: Binding<Double?> = .constant(nil),
         dismissDisabled: Binding<Bool> = .constant(false)
     ) {
+        self.date = healthProvider.healthDetails.date
         self.healthProvider = healthProvider
         _dismissDisabled = dismissDisabled
-        _isEditing = State(initialValue: healthProvider.isCurrent)
+        _isEditing = State(initialValue: healthProvider.healthDetails.date.isToday)
 
         _restingEnergyInKcal = restingEnergyInKcal
         _customInput = State(initialValue: DoubleInput(double: restingEnergyInKcal.wrappedValue, automaticallySubmitsValues: true))
@@ -72,10 +77,6 @@ struct RestingEnergyForm: View {
 //        }
     }
     
-    var pastDate: Date? {
-        healthProvider.pastDate
-    }
-
     func appeared() {
         if isEditing {
             if !hasAppeared {
@@ -130,7 +131,7 @@ struct RestingEnergyForm: View {
             Button("Cancel") { correctionInput.cancel() }
         }
         .safeAreaInset(edge: .bottom) { bottomValue }
-        .navigationBarBackButtonHidden(isPast && isEditing)
+        .navigationBarBackButtonHidden(isLegacy && isEditing)
         .onChange(of: isEditing) { _, _ in setDismissDisabled() }
         .onChange(of: isDirty) { _, _ in setDismissDisabled() }
     }
@@ -147,7 +148,7 @@ struct RestingEnergyForm: View {
     }
     
     func setDismissDisabled() {
-        dismissDisabled = isPast && isEditing && isDirty
+        dismissDisabled = isLegacy && isEditing && isDirty
     }
 
     var bottomValue: some View {
@@ -184,7 +185,7 @@ struct RestingEnergyForm: View {
         topToolbarContent(
             isEditing: $isEditing,
             isDirty: $isDirty,
-            isPast: isPast,
+            isPast: isLegacy,
             dismissAction: { dismiss() },
             undoAction: undo,
             saveAction: save
@@ -204,7 +205,7 @@ struct RestingEnergyForm: View {
                 set: { _ in }
             ),
             healthProvider: healthProvider,
-            pastDate: pastDate,
+            pastDate: date,
             isEditing: $isEditing,
             isPresented: Binding<Bool>(
                 get: { true },
@@ -220,8 +221,8 @@ struct RestingEnergyForm: View {
 
     @ViewBuilder
     var notice: some View {
-        if let pastDate {
-            NoticeSection.legacy(pastDate, isEditing: $isEditing)
+        if isLegacy {
+            NoticeSection.legacy(date, isEditing: $isEditing)
         }
     }
     
@@ -264,7 +265,7 @@ struct RestingEnergyForm: View {
 
             await MainActor.run {
                 setIsDirty()
-                if !isPast {
+                if !isLegacy {
                     save()
                 }
             }
@@ -297,7 +298,7 @@ struct RestingEnergyForm: View {
                 taskGroup.addTask {
                     let kcal = try await HealthStore.restingEnergy(
                         for: interval,
-                        on: self.pastDate ?? Date.now,
+                        on: date,
                         in: .kcal
                     )
                     return (interval, kcal)
@@ -312,9 +313,16 @@ struct RestingEnergyForm: View {
             return dict
         }
         
-        await MainActor.run { [dict] in
+        let sameDayValue = try await HealthStore.restingEnergy(on: date, in: .kcal)
+        let previousDayValue = try await HealthStore.restingEnergy(on: date.moveDayBy(-1), in: .kcal)
+
+        await MainActor.run { [dict, sameDayValue, previousDayValue] in
             withAnimation {
-                healthKitValuesInKcal = dict
+                healthKitAverageValuesInKcal = dict
+                healthKitSameDayValueInKcal = sameDayValue?
+                    .rounded(.towardZero) /// Use Health App's rounding (towards zero)
+                healthKitPreviousDayValueInKcal = previousDayValue?
+                    .rounded(.towardZero) /// Use Health App's rounding (towards zero)
             }
             if source == .healthKit {
                 setHealthKitValue()
@@ -324,7 +332,14 @@ struct RestingEnergyForm: View {
     
     func setHealthKitValue() {
         withAnimation {
-            restingEnergyInKcal = healthKitValuesInKcal[interval]
+            switch intervalType {
+            case .average:
+                restingEnergyInKcal = healthKitAverageValuesInKcal[interval]
+            case .sameDay:
+                restingEnergyInKcal = healthKitSameDayValueInKcal
+            case .previousDay:
+                restingEnergyInKcal = healthKitPreviousDayValueInKcal
+            }
         }
     }
     
@@ -386,7 +401,7 @@ struct RestingEnergyForm: View {
         EnergyAppleHealthSections(
             intervalType: $intervalType,
             interval: $interval,
-            pastDate: pastDate,
+            pastDate: date,
             isEditing: $isEditing,
             applyCorrection: $applyCorrection,
             correctionType: $correctionType,
@@ -511,15 +526,15 @@ struct RestingEnergyForm: View {
     //MARK: - Convenience
 
     var isDisabled: Bool {
-        isPast && !isEditing
+        isLegacy && !isEditing
     }
     
     var controlColor: Color {
         isDisabled ? .secondary : .primary
     }
     
-    var isPast: Bool {
-        pastDate != nil
+    var isLegacy: Bool {
+        date.startOfDay < Date.now.startOfDay
     }
     
     //MARK: - Actions
