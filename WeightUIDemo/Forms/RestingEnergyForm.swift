@@ -316,6 +316,9 @@ struct RestingEnergyForm: View {
             withAnimation {
                 healthKitValuesInKcal = dict
             }
+            if source == .healthKit {
+                setHealthKitValue()
+            }
         }
     }
     
