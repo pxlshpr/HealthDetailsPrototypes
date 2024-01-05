@@ -37,7 +37,7 @@ extension HealthKitEnergyRequest {
 
 extension HealthKitEnergyRequest {
     
-    func dailyAverage() async throws -> Double? {
+    func dailyAverage() async throws -> Double {
         
         let statisticsCollection = try await HealthStore.dailyStatistics(
             for: typeIdentifier,
@@ -58,7 +58,8 @@ extension HealthKitEnergyRequest {
         
         guard !sumQuantities.isEmpty else {
             /// This indicates that there is no data—or permissions haven't been granted
-            return nil
+            return 0
+//            return nil
         }
         
         let sum = sumQuantities

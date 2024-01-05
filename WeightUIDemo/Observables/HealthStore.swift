@@ -226,7 +226,7 @@ extension HealthStore {
         to endDate: Date
     ) async throws -> HKStatisticsCollection {
         
-        /// Request for permissions. **Note:** an error is not thrown here is permissions are not granted/ later revoked.
+        /// Request for permissions. **Note:** an error is not thrown here if permissions are not granted or later revoked.
         try await HealthStore.requestPermissions(quantityTypeIdentifiers: [typeIdentifier])
         
         /// Always get samples up to the start of the next day, so that we get all of `date`'s results too

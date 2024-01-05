@@ -326,9 +326,9 @@ struct RestingEnergyForm: View {
         await MainActor.run { [dict, sameDayValue, previousDayValue] in
             withAnimation {
                 healthKitAverageValuesInKcal = dict
-                healthKitSameDayValueInKcal = sameDayValue?
+                healthKitSameDayValueInKcal = sameDayValue
                     .rounded(.towardZero) /// Use Health App's rounding (towards zero)
-                healthKitPreviousDayValueInKcal = previousDayValue?
+                healthKitPreviousDayValueInKcal = previousDayValue
                     .rounded(.towardZero) /// Use Health App's rounding (towards zero)
             }
             if source == .healthKit {
@@ -347,7 +347,7 @@ struct RestingEnergyForm: View {
         if applyCorrection, let correction = correctionInput.double, let v = value {
             value = switch correctionType {
             case .add:      v + correction
-            case .subtract: min(v - correction, 0)
+            case .subtract: max(v - correction, 0)
             case .multiply: v * correction
             case .divide:   correction == 0 ? nil : v / correction
             }
@@ -422,7 +422,8 @@ struct RestingEnergyForm: View {
             correctionInput: $correctionInput,
             handleChanges: handleChanges,
             isRestingEnergy: true,
-            showingCorrectionAlert: $showingCorrectionAlert
+            showingCorrectionAlert: $showingCorrectionAlert,
+            restingEnergyInKcal: $restingEnergyInKcal
         )
     }
 

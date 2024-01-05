@@ -19,12 +19,14 @@ struct EnergyAppleHealthSections: View {
     @State var showingHealthIntervalInfo = false
     @State var showingCorrectionInfo = false
     @Binding var showingCorrectionAlert: Bool
-
+    @Binding var restingEnergyInKcal: Double?
+    
     @State var hasFocusedCorrectionField = false
     
     var body: some View {
         Group {
             intervalTypeSection
+            missingDataSection
             correctionSection
         }
     }
@@ -215,15 +217,7 @@ extension EnergyAppleHealthSections {
         var correctionRow: some View {
             func handleCustomValue() {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                    if correctionInput.double == 0  {
-                        correctionInput.double = 1
-                    }
-
                     handleChanges()
-
-//                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-//                        handleChanges()
-//                    }
                 }
             }
             
@@ -248,20 +242,49 @@ extension EnergyAppleHealthSections {
             )
         }
         
-        return Section(header: Text("Correction"), footer: footer) {
-            toggleRow
-            if applyCorrection {
-                correctionTypeRow
-                if correction != nil || !isDisabled {
-                    correctionRow
+        var section: some View {
+            Section(header: Text("Correction"), footer: footer) {
+                toggleRow
+                if applyCorrection {
+                    correctionTypeRow
+                    if correction != nil || !isDisabled {
+                        correctionRow
+                    }
                 }
             }
+            .sheet(isPresented: $showingCorrectionInfo) {
+                AppleHealthCorrectionInfo()
+            }
         }
-        .sheet(isPresented: $showingCorrectionInfo) {
-            AppleHealthCorrectionInfo()
+        
+        return Group {
+            if hasData {
+                section
+            }
         }
     }
     
+    var hasData: Bool {
+        guard let restingEnergyInKcal else { return true }
+        return restingEnergyInKcal > 0
+    }
+    
+    @ViewBuilder
+    var missingDataSection: some View {
+        if !hasData {
+            NoticeSection(
+                style: .plain,
+                notice: .init(
+                    title: "Missing Data or Permissions",
+                    message: "No data was fetched from Apple Health. This could be because there isn't any data available for \(intervalType.dateDescription(pastDate, interval: interval)) or you have not provided permission to read it.",
+                    imageName: "questionmark.app.dashed",
+                    isEditing: $isEditing
+                )
+//                primaryAction: <#T##NoticeAction?#>,
+//                secondaryAction: <#T##NoticeAction?#>
+            )
+        }
+    }
 }
 
 #Preview("Current") {
