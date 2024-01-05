@@ -2,6 +2,8 @@ import SwiftUI
 
 struct EnergyAppleHealthSections: View {
     
+    @Environment(SettingsProvider.self) var settingsProvider
+    
     @Binding var intervalType: HealthIntervalType
     @Binding var interval: HealthInterval
     let pastDate: Date?
@@ -18,6 +20,8 @@ struct EnergyAppleHealthSections: View {
     @State var showingCorrectionInfo = false
     @Binding var showingCorrectionAlert: Bool
 
+    @State var hasFocusedCorrectionField = false
+    
     var body: some View {
         Group {
             intervalTypeSection
@@ -209,30 +213,39 @@ extension EnergyAppleHealthSections {
         }
         
         var correctionRow: some View {
-            HStack {
-                if let correction {
-                    Group {
-                        Text(correctionType.label)
-                        Spacer()
-                        Text(correction.clean)
-                        if let unit = correctionType.unit {
-                            Text(unit)
-                        }
+            func handleCustomValue() {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                    if correctionInput.double == 0  {
+                        correctionInput.double = 1
                     }
-                    .foregroundStyle(controlColor)
-                    if !isDisabled {
-                        Button {
-                            showingCorrectionAlert = true
-                        } label: {
-                            Image(systemName: "pencil")
-                        }
-                    }
-                } else {
-                    Button("Set Correction") {
-                        showingCorrectionAlert = true
-                    }
+
+                    handleChanges()
+
+//                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+//                        handleChanges()
+//                    }
                 }
             }
+            
+            var title: String {
+                switch correctionType {
+                case .add, .subtract:
+                    settingsProvider.unitString(for: .energy)
+                case .divide:
+                    "Divide by"
+                case .multiply:
+                    "Multiply by"
+                }
+            }
+            
+            return SingleUnitMeasurementTextField(
+                title: title,
+                doubleInput: $correctionInput,
+                hasFocused: $hasFocusedCorrectionField,
+                delayFocus: true,
+                footer: nil,
+                handleChanges: handleCustomValue
+            )
         }
         
         return Section(header: Text("Correction"), footer: footer) {
@@ -249,4 +262,11 @@ extension EnergyAppleHealthSections {
         }
     }
     
+}
+
+#Preview("Current") {
+    NavigationView {
+        RestingEnergyForm(healthProvider: MockCurrentProvider)
+            .environment(SettingsProvider())
+    }
 }

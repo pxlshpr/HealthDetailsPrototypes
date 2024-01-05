@@ -136,6 +136,7 @@ struct RestingEnergyForm: View {
         .navigationBarBackButtonHidden(isLegacy && isEditing)
         .onChange(of: isEditing) { _, _ in setDismissDisabled() }
         .onChange(of: isDirty) { _, _ in setDismissDisabled() }
+        .scrollDismissesKeyboard(.interactively)
     }
     
     func scenePhaseChanged(old: ScenePhase, new: ScenePhase) {
@@ -338,15 +339,21 @@ struct RestingEnergyForm: View {
     }
     
     func setHealthKitValue() {
-        withAnimation {
-            switch intervalType {
-            case .average:
-                restingEnergyInKcal = healthKitAverageValuesInKcal[interval]
-            case .sameDay:
-                restingEnergyInKcal = healthKitSameDayValueInKcal
-            case .previousDay:
-                restingEnergyInKcal = healthKitPreviousDayValueInKcal
+        var value = switch intervalType {
+        case .average:      healthKitAverageValuesInKcal[interval]
+        case .sameDay:      healthKitSameDayValueInKcal
+        case .previousDay:  healthKitPreviousDayValueInKcal
+        }
+        if applyCorrection, let correction = correctionInput.double, let v = value {
+            value = switch correctionType {
+            case .add:      v + correction
+            case .subtract: min(v - correction, 0)
+            case .multiply: v * correction
+            case .divide:   correction == 0 ? nil : v / correction
             }
+        }
+        withAnimation {
+            restingEnergyInKcal = value
         }
     }
     
@@ -456,34 +463,13 @@ struct RestingEnergyForm: View {
         }
         
         return SingleUnitMeasurementTextField(
-            type: .energy,
+            title: settingsProvider.unitString(for: .energy),
             doubleInput: $customInput,
             hasFocused: $hasFocusedCustomField,
             delayFocus: true,
             footer: nil,
             handleChanges: handleCustomValue
         )
-//        return MeasurementInputSection(
-//            type: type,
-//            doubleInput: $doubleInput,
-//            intInput: $intInput,
-//            hasFocused: $hasFocusedCustom,
-//            handleChanges: handleCustomValue
-//        )
-
-//        InputSection(
-//            name: "Resting Energy",
-//            valueString: Binding<String?>(
-//                get: { restingEnergyInKcal?.formattedEnergy },
-//                set: { _ in }
-//            ),
-//            showingAlert: $showingAlert,
-//            isDisabled: Binding<Bool>(
-//                get: { !isEditing },
-//                set: { _ in }
-//            ),
-//            unitString: "kcal"
-//        )
     }
     
     var equationSection: some View {

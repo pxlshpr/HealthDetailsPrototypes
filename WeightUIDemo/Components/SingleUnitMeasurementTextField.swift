@@ -2,9 +2,7 @@ import SwiftUI
 
 struct SingleUnitMeasurementTextField: View {
     
-    @Environment(SettingsProvider.self) var settingsProvider
-    
-    let type: MeasurementType
+    let title: String
     let footerString: String?
 
     @Binding var doubleInput: DoubleInput
@@ -14,7 +12,7 @@ struct SingleUnitMeasurementTextField: View {
     let handleChanges: () -> ()
 
     init(
-        type: MeasurementType,
+        title: String,
         doubleInput: Binding<DoubleInput>,
         hasFocused: Binding<Bool>,
         delayFocus: Bool = false,
@@ -22,7 +20,7 @@ struct SingleUnitMeasurementTextField: View {
         footer: String? = nil,
         handleChanges: @escaping () -> Void
     ) {
-        self.type = type
+        self.title = title
         _focusDelay = focusDelay
         _doubleInput = doubleInput
         _hasFocused = hasFocused
@@ -34,7 +32,7 @@ struct SingleUnitMeasurementTextField: View {
     var body: some View {
         Section(footer: footer) {
             HStack {
-                Text(unitString)
+                Text(title)
                 Spacer()
                 TextField("", text: binding)
                     .keyboardType(.decimalPad)
@@ -61,10 +59,6 @@ struct SingleUnitMeasurementTextField: View {
         )
     }
     
-    var unitString: String {
-        settingsProvider.unitString(for: type)
-    }
-
     func introspect(_ textField: UITextField) {
         guard !hasFocused else { return }
         hasFocused = true

@@ -55,7 +55,7 @@ struct MeasurementInputSection: View {
     
     var singleUnit: some View {
         SingleUnitMeasurementTextField(
-            type: type,
+            title: settingsProvider.unitString(for: type),
             doubleInput: $doubleInput,
             hasFocused: $hasFocused,
             delayFocus: delayFocus,

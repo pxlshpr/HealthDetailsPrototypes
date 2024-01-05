@@ -188,7 +188,7 @@ struct LeanBodyMassMeasurementForm: View {
     
     var fatPercentageEnterSection: some View {
         SingleUnitMeasurementTextField(
-            type: .fatPercentage,
+            title: settingsProvider.unitString(for: .fatPercentage),
             doubleInput: $fatPercentageInput,
             hasFocused: $hasFocusedFatPercentage,
             delayFocus: true,
