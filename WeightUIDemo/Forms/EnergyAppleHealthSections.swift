@@ -18,7 +18,6 @@ struct EnergyAppleHealthSections: View {
 
     @State var showingHealthIntervalInfo = false
     @State var showingCorrectionInfo = false
-    @Binding var showingCorrectionAlert: Bool
     @Binding var restingEnergyInKcal: Double?
     
     @State var hasFocusedCorrectionField = false
@@ -109,7 +108,10 @@ struct EnergyAppleHealthSections: View {
         return IntervalPicker(
             interval: binding,
             periods: [.day, .week],
-            ranges: [.week: 1...2],
+            ranges: [
+                .day: 2...6,
+                .week: 1...2
+            ],
             title: "of previous",
             isDisabled: Binding<Bool>(
                 get: { isDisabled },
@@ -265,7 +267,7 @@ extension EnergyAppleHealthSections {
     }
     
     var hasData: Bool {
-        guard let restingEnergyInKcal else { return true }
+        guard let restingEnergyInKcal else { return false }
         return restingEnergyInKcal > 0
     }
     
@@ -276,12 +278,10 @@ extension EnergyAppleHealthSections {
                 style: .plain,
                 notice: .init(
                     title: "Missing Data or Permissions",
-                    message: "No data was fetched from Apple Health. This could be because there isn't any data available for \(intervalType.dateDescription(pastDate, interval: interval)) or you have not provided permission to read it.",
+                    message: "No data was fetched from Apple Health. This could be because there isn't any data available for \(intervalType.dateDescription(pastDate, interval: interval)) or you have not provided permission to read it.\n\nYou can check for permissions in:\nSettings > Privacy & Security > Health > Prep",
                     imageName: "questionmark.app.dashed",
                     isEditing: $isEditing
                 )
-//                primaryAction: <#T##NoticeAction?#>,
-//                secondaryAction: <#T##NoticeAction?#>
             )
         }
     }

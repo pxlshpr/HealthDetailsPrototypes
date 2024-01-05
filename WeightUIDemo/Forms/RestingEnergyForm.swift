@@ -13,8 +13,8 @@ struct RestingEnergyForm: View {
 
     let date: Date
 
-    @State var source: RestingEnergySource = .equation
-    @State var equation: RestingEnergyEquation = .henryOxford
+    @State var source: RestingEnergySource = .healthKit
+    @State var equation: RestingEnergyEquation = .katchMcardle
     
     @State var intervalType: HealthIntervalType = .average
     @State var interval: HealthInterval = .init(3, .day)
@@ -25,11 +25,8 @@ struct RestingEnergyForm: View {
 
     @State var customInput = DoubleInput(automaticallySubmitsValues: true)
     
-//    @State var showingAlert = false
-    
     @State var showingEquationsInfo = false
     @State var showingRestingEnergyInfo = false
-    @State var showingCorrectionAlert = false
 
     @State var isEditing: Bool
     @State var isDirty: Bool = false
@@ -117,20 +114,6 @@ struct RestingEnergyForm: View {
         .sheet(isPresented: $showingEquationsInfo) { equationExplanations }
         .sheet(isPresented: $showingRestingEnergyInfo) {
             RestingEnergyInfo()
-        }
-//        .alert("Enter your Resting Energy", isPresented: $showingAlert) {
-//            TextField("kcal", text: customInput.binding)
-//                .keyboardType(.decimalPad)
-//            Button("OK", action: submitCustomValue)
-//            Button("Cancel") { 
-//                customInput.cancel()
-//            }
-//        }
-        .alert("Enter a correction", isPresented: $showingCorrectionAlert) {
-            TextField(correctionType.textFieldPlaceholder, text: correctionInput.binding)
-                .keyboardType(.decimalPad)
-            Button("OK", action: submitCorrection)
-            Button("Cancel") { correctionInput.cancel() }
         }
         .safeAreaInset(edge: .bottom) { bottomValue }
         .navigationBarBackButtonHidden(isLegacy && isEditing)
@@ -353,7 +336,7 @@ struct RestingEnergyForm: View {
             }
         }
         withAnimation {
-            restingEnergyInKcal = value
+            restingEnergyInKcal = value == 0 ? nil : value
         }
     }
     
@@ -422,7 +405,6 @@ struct RestingEnergyForm: View {
             correctionInput: $correctionInput,
             handleChanges: handleChanges,
             isRestingEnergy: true,
-            showingCorrectionAlert: $showingCorrectionAlert,
             restingEnergyInKcal: $restingEnergyInKcal
         )
     }

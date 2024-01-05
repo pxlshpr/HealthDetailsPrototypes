@@ -19,7 +19,7 @@ public enum HealthIntervalType: Int16, Codable, CaseIterable {
     func dateDescription(_ pastDate: Date?, interval: HealthInterval) -> String {
         switch self {
         case .average:
-            "\(interval.description)"
+            "the past \(interval.description)"
         case .sameDay:
             if let pastDate {
                 "\(pastDate.shortDateString)"
@@ -39,7 +39,7 @@ public enum HealthIntervalType: Int16, Codable, CaseIterable {
         let dateDescription = dateDescription(pastDate, interval: interval)
         return switch self {
         case .average:
-            "Using the average Resting Energy of the past \(dateDescription)."
+            "Using the average Resting Energy of \(dateDescription)."
         default:
             "Using the Resting Energy recorded for \(dateDescription)."
         }
