@@ -97,12 +97,9 @@ struct EstimatedMaintenanceForm: View {
         func saveRestingEnergy(_ restingEnergy: HealthDetails.Maintenance.Estimate.RestingEnergy) {
             self.restingEnergyInKcal = restingEnergy.kcal
             updateEstimate()
-            
-            if isLegacy {
-                //TODO: Save resting energy for legacy date in backend here
-            } else {
-                healthProvider.saveRestingEnergy(restingEnergy)
-            }
+
+            //TODO: When using this via a VariableSection we should pass in another save handler that the VariableSection handles by manually saving for the specific date
+            healthProvider.saveRestingEnergy(restingEnergy)
         }
         
         return Section {

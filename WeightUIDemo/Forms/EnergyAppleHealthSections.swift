@@ -99,8 +99,8 @@ struct EnergyAppleHealthSections: View {
                 set: { newValue in
                     withAnimation {
                         interval = newValue
-                        handleChanges()
                     }
+                    handleChanges()
                 }
             )
         }
@@ -178,10 +178,13 @@ extension EnergyAppleHealthSections {
             let binding = Binding<Bool>(
                 get: { applyCorrection },
                 set: { newValue in
+                    if newValue {
+                        hasFocusedCorrectionField = false
+                    }
                     withAnimation {
                         applyCorrection = newValue
-                        handleChanges()
                     }
+                    handleChanges()
                 }
             )
             return HStack {
@@ -199,8 +202,8 @@ extension EnergyAppleHealthSections {
                 set: { newValue in
                     withAnimation {
                         correctionType = newValue
-                        handleChanges()
                     }
+                    handleChanges()
                 }
             )
             return Section {
@@ -217,9 +220,34 @@ extension EnergyAppleHealthSections {
         
         var correctionRow: some View {
             func handleCustomValue() {
+//                validateCorrection()
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
                     handleChanges()
                 }
+            }
+            
+            func validateCorrection() {
+                guard let double = correctionInput.double,
+                      double > 0
+                else {
+                    let double: Double? = switch correctionType {
+                    case .add, .subtract:
+                        50
+                    case .multiply:
+                        2
+                    case .divide: 
+                        2
+                    }
+                    correctionInput.setDouble(double)
+//                    applyCorrection = false
+//                    correctionInput.double = nil
+                    handleChanges()
+                    return
+                }
+            }
+            
+            func handleLostFocus() {
+//                validateCorrection()
             }
             
             var title: String {
@@ -239,7 +267,8 @@ extension EnergyAppleHealthSections {
                 hasFocused: $hasFocusedCorrectionField,
                 delayFocus: true,
                 footer: nil,
-                handleChanges: handleCustomValue
+                handleChanges: handleCustomValue,
+                handleLostFocus: handleLostFocus
             )
         }
         

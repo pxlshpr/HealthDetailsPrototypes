@@ -393,7 +393,8 @@ struct RestingEnergyForm: View {
     func setCustomInput() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             customInput.setDouble(
-                restingEnergyInKcal?.convertEnergy(from: .kcal, to: energyUnit)
+                restingEnergyInKcal?
+                    .convertEnergy(from: .kcal, to: energyUnit)
                     .rounded(.towardZero)
             )
         }
