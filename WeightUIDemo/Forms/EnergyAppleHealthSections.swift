@@ -199,7 +199,6 @@ extension EnergyAppleHealthSections {
                 set: { newValue in
                     withAnimation {
                         correctionType = newValue
-//                        value = valueForActivityLevel(newValue)
                         handleChanges()
                     }
                 }

@@ -245,6 +245,15 @@ struct RestingEnergyForm: View {
         }
     }
     
+    var correctionValueInKcalIfEnergy: Double? {
+        guard let double = correctionInput.double else { return nil }
+
+        return switch correctionType {
+        case .add, .subtract:       double.convertEnergy(from: energyUnit, to: .kcal)
+        case .multiply, .divide:    double
+        }
+    }
+    
     var restingEnergy: HealthDetails.Maintenance.Estimate.RestingEnergy {
         .init(
             kcal: restingEnergyInKcal,
@@ -255,7 +264,7 @@ struct RestingEnergyForm: View {
                 interval: interval,
                 correctionValue: CorrectionValue(
                     type: correctionType,
-                    double: correctionInput.double
+                    double: correctionValueInKcalIfEnergy
                 )
             )
         )
@@ -362,21 +371,19 @@ struct RestingEnergyForm: View {
         case .sameDay:      healthKitSameDayValueInKcal
         case .previousDay:  healthKitPreviousDayValueInKcal
         }
-        if applyCorrection, let correction = correctionInput.double, let v = value {
-            let kcal = correction.convertEnergy(from: energyUnit, to: .kcal)
+        
+        if applyCorrection, let correction = correctionValueInKcalIfEnergy, let v = value {
             value = switch correctionType {
-            case .add:      v + kcal
-            case .subtract: max(v - kcal, 0)
+            case .add:      v + correction
+            case .subtract: max(v - correction, 0)
             case .multiply: v * correction
             case .divide:   correction == 0 ? nil : v / correction
             }
         }
-//        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            withAnimation {
-                restingEnergyInKcal = value == 0 ? nil : value
-            }
-            setCustomInput()
-//        }
+        withAnimation {
+            restingEnergyInKcal = value == 0 ? nil : value
+        }
+        setCustomInput()
     }
     
     func setEquationValue() {
