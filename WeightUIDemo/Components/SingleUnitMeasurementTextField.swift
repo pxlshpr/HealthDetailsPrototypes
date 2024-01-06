@@ -38,6 +38,8 @@ struct SingleUnitMeasurementTextField: View {
                     .keyboardType(.decimalPad)
                     .multilineTextAlignment(.trailing)
                     .introspect(.textField, on: .iOS(.v17)) { introspect($0) }
+                    .simultaneousGesture(textSelectionTapGesture)
+
             }
         }
     }
@@ -66,7 +68,10 @@ struct SingleUnitMeasurementTextField: View {
         let deadline: DispatchTime = .now() + (delayFocus ? focusDelay : 0)
         DispatchQueue.main.asyncAfter(deadline: deadline) {
             textField.becomeFirstResponder()
-            textField.selectedTextRange = textField.textRange(from: textField.beginningOfDocument, to: textField.endOfDocument)
+            textField.selectedTextRange = textField.textRange(
+                from: textField.beginningOfDocument,
+                to: textField.endOfDocument
+            )
         }
     }
 }

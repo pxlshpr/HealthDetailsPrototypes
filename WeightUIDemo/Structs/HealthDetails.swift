@@ -151,14 +151,16 @@ extension HealthDetails.Height {
 extension Double {
     
     func convertEnergy(from fromUnit: EnergyUnit, to toUnit: EnergyUnit) -> Double {
-        fromUnit.convert(self, to: toUnit).rounded(.towardZero)
+        fromUnit.convert(self, to: toUnit)
+//            .rounded(.towardZero)
     }
 }
 extension Optional where Wrapped == Double {
     
     func convertEnergy(from fromUnit: EnergyUnit, to toUnit: EnergyUnit) -> Double? {
         guard let self else { return nil }
-        return fromUnit.convert(self, to: toUnit).rounded(.towardZero)
+        return fromUnit.convert(self, to: toUnit)
+//            .rounded(.towardZero)
     }
     
     func valueString(convertedFrom fromUnit: BodyMassUnit, to unit: BodyMassUnit) -> String {

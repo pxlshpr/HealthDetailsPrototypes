@@ -36,8 +36,8 @@ struct RestingEnergyForm: View {
     @State var isDirty: Bool = false
     @Binding var dismissDisabled: Bool
 
-//    @State var hasFocusedCustomField = false
-    @State var hasFocusedCustomField = true
+    @State var hasFocusedCustomField = false
+//    @State var hasFocusedCustomField = true
     @State var hasAppeared = false
     
     @State var equationValuesInKcal: [RestingEnergyEquation: Double] = [:]
@@ -388,7 +388,10 @@ struct RestingEnergyForm: View {
     
     func setCustomInput() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            customInput.setDouble(restingEnergyInKcal?.convertEnergy(from: .kcal, to: energyUnit))
+            customInput.setDouble(
+                restingEnergyInKcal?.convertEnergy(from: .kcal, to: energyUnit)
+                    .rounded(.towardZero)
+            )
         }
     }
     
@@ -397,9 +400,9 @@ struct RestingEnergyForm: View {
             get: { source },
             set: { newValue in
                 /// Reset this immediately to make sure the text field gets focused
-//                if newValue == .userEntered {
-//                    hasFocusedCustomField = false
-//                }
+                if newValue == .userEntered {
+                    hasFocusedCustomField = false
+                }
                 withAnimation {
                     source = newValue
                 }

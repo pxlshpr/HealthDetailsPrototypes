@@ -105,6 +105,7 @@ struct MeasurementInputSection: View {
                 TextField("", text: firstComponent)
                     .keyboardType(.numberPad)
                     .multilineTextAlignment(.trailing)
+                    .simultaneousGesture(textSelectionTapGesture)
                     .introspect(.textField, on: .iOS(.v17)) { introspect($0) }
             }
             HStack {
@@ -112,6 +113,7 @@ struct MeasurementInputSection: View {
                 Spacer()
                 TextField("", text: secondComponent)
                     .keyboardType(.decimalPad)
+                    .simultaneousGesture(textSelectionTapGesture)
                     .multilineTextAlignment(.trailing)
             }
         }
