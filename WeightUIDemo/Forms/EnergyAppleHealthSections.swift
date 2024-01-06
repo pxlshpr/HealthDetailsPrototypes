@@ -20,7 +20,7 @@ struct EnergyAppleHealthSections: View {
     @State var showingCorrectionInfo = false
     @Binding var restingEnergyInKcal: Double?
     
-    @State var hasFocusedCorrectionField = false
+    @State var hasFocusedCorrectionField = true
     
     var body: some View {
         Group {

@@ -1,10 +1,6 @@
 import SwiftUI
 import PrepShared
 
-public var isPreview: Bool {
-    return ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
-}
-
 struct RestingEnergyForm: View {
 
     @Environment(\.dismiss) var dismiss
@@ -13,63 +9,60 @@ struct RestingEnergyForm: View {
     @Bindable var settingsProvider: SettingsProvider
     @Bindable var healthProvider: HealthProvider
     
-    @Binding var restingEnergyInKcal: Double?
-
     let date: Date
 
+    @State var restingEnergyInKcal: Double?
     @State var source: RestingEnergySource = .healthKit
     @State var equation: RestingEnergyEquation = .katchMcardle
-    
     @State var intervalType: HealthIntervalType = .average
     @State var interval: HealthInterval = .init(3, .day)
-
     @State var applyCorrection: Bool = true
     @State var correctionType: CorrectionType = .divide
     @State var correctionInput = DoubleInput(automaticallySubmitsValues: true)
-
     @State var customInput = DoubleInput(automaticallySubmitsValues: true)
-    
-    @State var showingEquationsInfo = false
-    @State var showingRestingEnergyInfo = false
 
-    @State var isEditing: Bool
-    @State var isDirty: Bool = false
-    @Binding var dismissDisabled: Bool
-
-    @State var hasFocusedCustomField = false
-//    @State var hasFocusedCustomField = true
-    @State var hasAppeared = false
-    
     @State var equationValuesInKcal: [RestingEnergyEquation: Double] = [:]
-    
     @State var hasFetchedHealthKitValues: Bool = false
     @State var healthKitAverageValuesInKcal: [HealthInterval: Double] = [:]
     @State var healthKitSameDayValueInKcal: Double? = nil
     @State var healthKitPreviousDayValueInKcal: Double? = nil
     @State var handleChangesTask: Task<Void, Error>? = nil
 
+    @State var showingEquationsInfo = false
+    @State var showingRestingEnergyInfo = false
+    @State var hasFocusedCustomField = false
+    @State var hasAppeared = false
+
+    @State var isEditing: Bool
+    @State var isDirty: Bool = false
+    @Binding var isPresented: Bool
+    @Binding var dismissDisabled: Bool
+
     init(
+        date: Date,
         settingsProvider: SettingsProvider,
         healthProvider: HealthProvider,
-        restingEnergyInKcal: Binding<Double?> = .constant(nil),
-        dismissDisabled: Binding<Bool> = .constant(false)
+        isPresented: Binding<Bool> = .constant(true),
+        dismissDisabled: Binding<Bool> = .constant(false),
+        save: @escaping (HealthDetails.Maintenance.Estimate.RestingEnergy) -> ()
     ) {
-        self.date = healthProvider.healthDetails.date
+        self.date = date
         self.healthProvider = healthProvider
         self.settingsProvider = settingsProvider
+        _isPresented = isPresented
         _dismissDisabled = dismissDisabled
-        _isEditing = State(initialValue: healthProvider.healthDetails.date.isToday)
+        _isEditing = State(initialValue: date.isToday)
 
-        _restingEnergyInKcal = restingEnergyInKcal
+        let restingEnergy = healthProvider.healthDetails.maintenance.estimate.restingEnergy
+        _restingEnergyInKcal = State(initialValue: restingEnergy.kcal)
         _customInput = State(initialValue: DoubleInput(
-            double: restingEnergyInKcal.wrappedValue.convertEnergy(
+            double: restingEnergy.kcal.convertEnergy(
                 from: .kcal,
                 to: settingsProvider.energyUnit
             ),
             automaticallySubmitsValues: true
         ))
 
-        let restingEnergy = healthProvider.healthDetails.maintenance.estimate.restingEnergy
         _source = State(initialValue: restingEnergy.source)
         _equation = State(initialValue: restingEnergy.equation)
         _intervalType = State(initialValue: restingEnergy.healthKitSyncSettings.intervalType)
@@ -80,11 +73,12 @@ struct RestingEnergyForm: View {
             _correctionType = State(initialValue: correction.type)
             
             let correctionDouble = switch correction.type {
-            case .add, .subtract: correction.double.convertEnergy(
-                from: .kcal,
-                to: settingsProvider.energyUnit
-            )
-            case .multiply, .divide:    
+            case .add, .subtract:
+                correction.double.convertEnergy(
+                    from: .kcal,
+                    to: settingsProvider.energyUnit
+                )
+            case .multiply, .divide:
                 correction.double
             }
             _correctionInput = State(initialValue: DoubleInput(
@@ -94,11 +88,22 @@ struct RestingEnergyForm: View {
         } else {
             _applyCorrection = State(initialValue: false)
         }
-        
-        /// If the source is manual, delay focus until push transition completes
-//        if restingEnergy.source == .userEntered {
-//            _focusDelay = State(initialValue: restingEnergyInKcal.wrappedValue == nil ? 1.0 : 0.6)
-//        }
+    }
+    
+    init(
+        settingsProvider: SettingsProvider,
+        healthProvider: HealthProvider,
+        isPresented: Binding<Bool> = .constant(true),
+        dismissDisabled: Binding<Bool> = .constant(false)
+    ) {
+        self.init(
+            date: healthProvider.healthDetails.date,
+            settingsProvider: settingsProvider,
+            healthProvider: healthProvider,
+            isPresented: isPresented,
+            dismissDisabled: dismissDisabled,
+            save: healthProvider.saveRestingEnergy
+        )
     }
     
     func appeared() {

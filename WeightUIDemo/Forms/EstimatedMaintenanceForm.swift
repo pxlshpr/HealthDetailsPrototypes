@@ -1,9 +1,12 @@
 import SwiftUI
+import PrepShared
 
 struct EstimatedMaintenanceForm: View {
 
     @Environment(SettingsProvider.self) var settingsProvider
     @Bindable var healthProvider: HealthProvider
+    
+    let date: Date
     @State var estimatedMaintenanceInKcal: Double? = nil
     @State var restingEnergyInKcal: Double? = nil
     @State var activeEnergyInKcal: Double? = nil
@@ -12,22 +15,43 @@ struct EstimatedMaintenanceForm: View {
     @Binding var isPresented: Bool
     @Binding var dismissDisabled: Bool
 
+    @State var showingRestingEnergyForm = false
+    @State var showingActiveEnergyForm = false
+    
     init(
+        date: Date,
         healthProvider: HealthProvider,
         isPresented: Binding<Bool> = .constant(true),
         dismissDisabled: Binding<Bool> = .constant(false)
     ) {
+        self.date = date
         self.healthProvider = healthProvider
         _isPresented = isPresented
         _dismissDisabled = dismissDisabled
         _isEditing = State(initialValue: true)
         
-        let restingEnergy = healthProvider.healthDetails.maintenance.estimate.restingEnergy
-        _restingEnergyInKcal = State(initialValue: restingEnergy.kcal)
+        _restingEnergyInKcal = State(initialValue: healthProvider
+            .healthDetails.maintenance.estimate.restingEnergy.kcal
+        )
+        _activeEnergyInKcal = State(initialValue: healthProvider
+            .healthDetails.maintenance.estimate.activeEnergy.kcal
+        )
+        _estimatedMaintenanceInKcal = State(initialValue: healthProvider
+            .healthDetails.maintenance.estimate.kcal
+        )
     }
-
-    var pastDate: Date? {
-        healthProvider.pastDate
+    
+    init(
+        healthProvider: HealthProvider,
+        isPresented: Binding<Bool> = .constant(true),
+        dismissDisabled: Binding<Bool> = .constant(false)
+    ) {
+        self.init(
+            date: healthProvider.healthDetails.date,
+            healthProvider: healthProvider,
+            isPresented: isPresented,
+            dismissDisabled: dismissDisabled
+        )
     }
 
     var body: some View {
@@ -40,6 +64,24 @@ struct EstimatedMaintenanceForm: View {
         .navigationTitle("Estimated")
         .toolbar { toolbarContent }
         .safeAreaInset(edge: .bottom) { bottomValue }
+        .onChange(of: showingRestingEnergyForm) { oldValue, newValue in
+            if !newValue {
+                updateValues()
+            }
+        }
+        .onChange(of: showingActiveEnergyForm) { oldValue, newValue in
+            if !newValue {
+                updateValues()
+            }
+        }
+    }
+    
+    func updateValues() {
+        withAnimation {
+            self.restingEnergyInKcal = healthProvider.healthDetails.maintenance.estimate.restingEnergy.kcal
+            self.activeEnergyInKcal = healthProvider.healthDetails.maintenance.estimate.activeEnergy.kcal
+            self.estimatedMaintenanceInKcal = healthProvider.healthDetails.maintenance.kcal
+        }
     }
     
     var bottomValue: some View {
@@ -51,22 +93,32 @@ struct EstimatedMaintenanceForm: View {
             ),
             doubleUnitString: "kcal",
             isDisabled: Binding<Bool>(
-                get: { isEditing && isPast },
+                get: { isEditing && isLegacy },
                 set: { _ in }
             )
         )
     }
     
-    @State var showingRestingEnergyForm = false
-    @State var showingActiveEnergyForm = false
-    
     var restingEnergyLink: some View {
-        Section {
+        var energyValue: Double? {
+            guard let restingEnergyInKcal else { return nil }
+            return EnergyUnit.kcal.convert(restingEnergyInKcal, to: settingsProvider.energyUnit)
+        }
+        
+        func saveRestingEnergy(_ restingEnergy: HealthDetails.Maintenance.Estimate.RestingEnergy) {
+            if isLegacy {
+                //TODO: Save resting energy for legacy date here
+            } else {
+                healthProvider.saveRestingEnergy(restingEnergy)
+            }
+        }
+        
+        return Section {
             HStack {
                 Text("Resting Energy")
                 Spacer()
-                if let restingEnergyInKcal {
-                    Text("\(restingEnergyInKcal.formattedEnergy) kcal")
+                if let energyValue {
+                    Text("\(energyValue.formattedEnergy) \(settingsProvider.energyUnit.abbreviation)")
                 } else {
                     Text("Not Set")
                         .foregroundStyle(.secondary)
@@ -81,22 +133,28 @@ struct EstimatedMaintenanceForm: View {
         .sheet(isPresented: $showingRestingEnergyForm) {
             NavigationView {
                 RestingEnergyForm(
+                    date: date,
                     settingsProvider: settingsProvider,
                     healthProvider: healthProvider,
-                    restingEnergyInKcal: $restingEnergyInKcal,
-                    dismissDisabled: $dismissDisabled
+                    dismissDisabled: $dismissDisabled,
+                    save: saveRestingEnergy
                 )
             }
         }
     }
 
     var activeEnergyLink: some View {
-        Section {
+        var energyValue: Double? {
+            guard let activeEnergyInKcal else { return nil }
+            return EnergyUnit.kcal.convert(activeEnergyInKcal, to: settingsProvider.energyUnit)
+        }
+
+        return Section {
             HStack {
                 Text("Active Energy")
                 Spacer()
-                if let activeEnergyInKcal {
-                    Text("\(activeEnergyInKcal.formattedEnergy) kcal")
+                if let energyValue {
+                    Text("\(energyValue.formattedEnergy) \(settingsProvider.energyUnit.abbreviation)")
                 } else {
                     Text("Not Set")
                         .foregroundStyle(.secondary)
@@ -111,7 +169,7 @@ struct EstimatedMaintenanceForm: View {
         .sheet(isPresented: $showingActiveEnergyForm) {
             NavigationView {
                 ActiveEnergyForm(
-                    pastDate: pastDate,
+                    pastDate: date,
                     isPresented: $isPresented,
                     dismissDisabled: $dismissDisabled
                 )
@@ -127,14 +185,14 @@ struct EstimatedMaintenanceForm: View {
         }
     }
     
-    var isPast: Bool {
-        pastDate != nil
+    var isLegacy: Bool {
+        date.startOfDay < Date.now.startOfDay
     }
 
     @ViewBuilder
     var notice: some View {
-        if let pastDate {
-            NoticeSection.legacy(pastDate, isEditing: .constant(false))
+        if isLegacy {
+            NoticeSection.legacy(date, isEditing: .constant(false))
         }
     }
 
