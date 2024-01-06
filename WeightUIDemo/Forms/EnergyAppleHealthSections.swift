@@ -4,9 +4,9 @@ struct EnergyAppleHealthSections: View {
     
     @Environment(SettingsProvider.self) var settingsProvider
     
+    let date: Date
     @Binding var intervalType: HealthIntervalType
     @Binding var interval: HealthInterval
-    let pastDate: Date?
     @Binding var isEditing: Bool
 
     @Binding var applyCorrection: Bool
@@ -48,7 +48,7 @@ struct EnergyAppleHealthSections: View {
             }
             
             var description: String {
-                intervalType.footerDescription(pastDate, interval: interval)
+                intervalType.footerDescription(date, interval: interval)
             }
             
             return VStack(alignment: .leading) {
@@ -120,12 +120,12 @@ struct EnergyAppleHealthSections: View {
         )
     }
     
-    var isPast: Bool {
-        pastDate != nil
+    var isLegacy: Bool {
+        date.startOfDay < Date.now.startOfDay
     }
-    
+
     var isDisabled: Bool {
-        isPast && !isEditing
+        isLegacy && !isEditing
     }
 
     var controlColor: Color {
@@ -220,7 +220,6 @@ extension EnergyAppleHealthSections {
         
         var correctionRow: some View {
             func handleCustomValue() {
-//                validateCorrection()
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
                     handleChanges()
                 }
@@ -230,24 +229,15 @@ extension EnergyAppleHealthSections {
                 guard let double = correctionInput.double,
                       double > 0
                 else {
-                    let double: Double? = switch correctionType {
-                    case .add, .subtract:
-                        50
-                    case .multiply:
-                        2
-                    case .divide: 
-                        2
-                    }
-                    correctionInput.setDouble(double)
-//                    applyCorrection = false
-//                    correctionInput.double = nil
+                    correctionInput.setDouble(nil)
+                    applyCorrection = false
                     handleChanges()
                     return
                 }
             }
             
             func handleLostFocus() {
-//                validateCorrection()
+                validateCorrection()
             }
             
             var title: String {
@@ -267,6 +257,10 @@ extension EnergyAppleHealthSections {
                 hasFocused: $hasFocusedCorrectionField,
                 delayFocus: true,
                 footer: nil,
+                isDisabled: Binding<Bool>(
+                    get: { isDisabled },
+                    set: { _ in }
+                ),
                 handleChanges: handleCustomValue,
                 handleLostFocus: handleLostFocus
             )
@@ -306,7 +300,7 @@ extension EnergyAppleHealthSections {
                 style: .plain,
                 notice: .init(
                     title: "Missing Data or Permissions",
-                    message: "No data was fetched from Apple Health. This could be because there isn't any data available for \(intervalType.dateDescription(pastDate, interval: interval)) or you have not provided permission to read it.\n\nYou can check for permissions in:\nSettings > Privacy & Security > Health > Prep",
+                    message: "No data was fetched from Apple Health. This could be because there isn't any data available for \(intervalType.dateDescription(date, interval: interval)) or you have not provided permission to read it.\n\nYou can check for permissions in:\nSettings > Privacy & Security > Health > Prep",
                     imageName: "questionmark.app.dashed",
                     isEditing: $isEditing
                 )

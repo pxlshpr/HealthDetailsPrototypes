@@ -369,12 +369,15 @@ struct RestingEnergyForm: View {
         case .previousDay:  healthKitPreviousDayValueInKcal
         }
         
-        if applyCorrection, let correction = correctionValueInKcalIfEnergy, let v = value {
+        if applyCorrection, 
+            let correction = correctionValueInKcalIfEnergy,
+            let v = value
+        {
             value = switch correctionType {
             case .add:      v + correction
             case .subtract: max(v - correction, 0)
-            case .multiply: v * correction
-            case .divide:   correction == 0 ? nil : v / correction
+            case .multiply: correction > 0 ? v * correction : v
+            case .divide:   correction > 0 ? v / correction : v
             }
         }
         withAnimation {
@@ -450,9 +453,9 @@ struct RestingEnergyForm: View {
     
     var healthSections: some View {
         EnergyAppleHealthSections(
+            date: date,
             intervalType: $intervalType,
             interval: $interval,
-            pastDate: date,
             isEditing: $isEditing,
             applyCorrection: $applyCorrection,
             correctionType: $correctionType,

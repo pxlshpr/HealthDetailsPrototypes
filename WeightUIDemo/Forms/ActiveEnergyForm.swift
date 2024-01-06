@@ -107,9 +107,9 @@ struct ActiveEnergyForm: View {
 
     var healthSections: some View {
         EnergyAppleHealthSections(
+            date: pastDate ?? Date.now,
             intervalType: $intervalType,
             interval: $interval,
-            pastDate: pastDate,
             isEditing: $isEditing,
             applyCorrection: $applyCorrection,
             correctionType: $correctionType,

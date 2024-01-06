@@ -8,9 +8,12 @@ struct SingleUnitMeasurementTextField: View {
     @Binding var doubleInput: DoubleInput
     @Binding var hasFocused: Bool
     @Binding var focusDelay: Double
+    @Binding var isDisabled: Bool
     let delayFocus: Bool
     let handleChanges: () -> ()
     let handleLostFocus: (() -> ())?
+    
+    @FocusState var focused: Bool
     
     init(
         title: String,
@@ -19,6 +22,7 @@ struct SingleUnitMeasurementTextField: View {
         delayFocus: Bool = false,
         focusDelay: Binding<Double> = .constant(0.05),
         footer: String? = nil,
+        isDisabled: Binding<Bool> = .constant(false),
         handleChanges: @escaping () -> (),
         handleLostFocus: (() -> ())? = nil
     ) {
@@ -26,13 +30,12 @@ struct SingleUnitMeasurementTextField: View {
         _focusDelay = focusDelay
         _doubleInput = doubleInput
         _hasFocused = hasFocused
+        _isDisabled = isDisabled
         self.delayFocus = delayFocus
         self.footerString = footer
         self.handleChanges = handleChanges
         self.handleLostFocus = handleLostFocus
     }
-    
-    @FocusState var focused: Bool
     
     var body: some View {
         Section(footer: footer) {
@@ -45,7 +48,9 @@ struct SingleUnitMeasurementTextField: View {
                     .introspect(.textField, on: .iOS(.v17)) { introspect($0) }
                     .simultaneousGesture(textSelectionTapGesture)
                     .focused($focused)
+                    .disabled(isDisabled)
             }
+            .foregroundStyle(isDisabled ? .secondary : .primary)
         }
         .onChange(of: focused) { oldValue, newValue in
             if !newValue {
