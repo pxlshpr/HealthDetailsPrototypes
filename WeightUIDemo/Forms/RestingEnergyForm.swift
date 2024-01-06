@@ -39,6 +39,8 @@ struct RestingEnergyForm: View {
     @Binding var isPresented: Bool
     @Binding var dismissDisabled: Bool
 
+    let saveHandler: (HealthDetails.Maintenance.Estimate.RestingEnergy) -> ()
+
     init(
         date: Date,
         restingEnergy: HealthDetails.Maintenance.Estimate.RestingEnergy,
@@ -52,6 +54,7 @@ struct RestingEnergyForm: View {
         self.initialRestingEnergy = restingEnergy
         self.healthProvider = healthProvider
         self.settingsProvider = settingsProvider
+        self.saveHandler = save
         _isPresented = isPresented
         _dismissDisabled = dismissDisabled
         _isEditing = State(initialValue: date.isToday)
@@ -569,31 +572,48 @@ struct RestingEnergyForm: View {
     //MARK: - Actions
     
     func undo() {
-        isDirty = false
-        source = .equation
-        equation = .mifflinStJeor
-        intervalType = .average
-        interval = .init(3, .day)
-        applyCorrection = true
-        correctionType = .divide
-        correctionInput = DoubleInput(double: 2)
-        restingEnergyInKcal = 2798
-        customInput = DoubleInput(double: 2798)
+        restingEnergyInKcal = initialRestingEnergy.kcal
+        customInput = DoubleInput(
+            double: initialRestingEnergy.kcal.convertEnergy(
+                from: .kcal,
+                to: settingsProvider.energyUnit
+            ),
+            automaticallySubmitsValues: true
+        )
+
+        source = initialRestingEnergy.source
+        equation = initialRestingEnergy.equation
+        intervalType = initialRestingEnergy.healthKitSyncSettings.intervalType
+        interval = initialRestingEnergy.healthKitSyncSettings.interval
+   
+        if let correction = initialRestingEnergy.healthKitSyncSettings.correctionValue {
+            applyCorrection = true
+            correctionType = correction.type
+            
+            let correctionDouble = switch correction.type {
+            case .add, .subtract:
+                correction.double.convertEnergy(
+                    from: .kcal,
+                    to: settingsProvider.energyUnit
+                )
+            case .multiply, .divide:
+                correction.double
+            }
+            correctionInput = DoubleInput(
+                double: correctionDouble,
+                automaticallySubmitsValues: true
+            )
+        } else {
+            applyCorrection = false
+        }
     }
     
     func setIsDirty() {
-        isDirty = source != .equation
-        || equation != .mifflinStJeor
-        || intervalType != .average
-        || interval != .init(3, .day)
-        || applyCorrection != true
-        || correctionType != .divide
-        || restingEnergyInKcal != 2798
-        || correctionInput.double != 2
+        isDirty = restingEnergy != initialRestingEnergy
     }
     
     func save() {
-        healthProvider.saveRestingEnergy(restingEnergy)
+        saveHandler(restingEnergy)
     }
 }
 
