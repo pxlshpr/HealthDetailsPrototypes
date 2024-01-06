@@ -7,7 +7,9 @@ struct EstimatedMaintenanceForm: View {
     @Bindable var healthProvider: HealthProvider
     
     let date: Date
-    @State var estimatedMaintenanceInKcal: Double? = nil
+    let estimate: HealthDetails.Maintenance.Estimate
+    
+    @State var estimateInKcal: Double? = nil
     @State var restingEnergyInKcal: Double? = nil
     @State var activeEnergyInKcal: Double? = nil
     
@@ -20,25 +22,21 @@ struct EstimatedMaintenanceForm: View {
     
     init(
         date: Date,
+        estimate: HealthDetails.Maintenance.Estimate,
         healthProvider: HealthProvider,
         isPresented: Binding<Bool> = .constant(true),
         dismissDisabled: Binding<Bool> = .constant(false)
     ) {
         self.date = date
+        self.estimate = estimate
         self.healthProvider = healthProvider
         _isPresented = isPresented
         _dismissDisabled = dismissDisabled
         _isEditing = State(initialValue: true)
         
-        _restingEnergyInKcal = State(initialValue: healthProvider
-            .healthDetails.maintenance.estimate.restingEnergy.kcal
-        )
-        _activeEnergyInKcal = State(initialValue: healthProvider
-            .healthDetails.maintenance.estimate.activeEnergy.kcal
-        )
-        _estimatedMaintenanceInKcal = State(initialValue: healthProvider
-            .healthDetails.maintenance.estimate.kcal
-        )
+        _restingEnergyInKcal = State(initialValue: estimate.restingEnergy.kcal)
+        _activeEnergyInKcal = State(initialValue: estimate.activeEnergy.kcal)
+        _estimateInKcal = State(initialValue: estimate.kcal)
     }
     
     init(
@@ -48,6 +46,7 @@ struct EstimatedMaintenanceForm: View {
     ) {
         self.init(
             date: healthProvider.healthDetails.date,
+            estimate: healthProvider.healthDetails.maintenance.estimate,
             healthProvider: healthProvider,
             isPresented: isPresented,
             dismissDisabled: dismissDisabled
@@ -64,39 +63,29 @@ struct EstimatedMaintenanceForm: View {
         .navigationTitle("Estimated")
         .toolbar { toolbarContent }
         .safeAreaInset(edge: .bottom) { bottomValue }
-        .onChange(of: showingRestingEnergyForm) { oldValue, newValue in
-            if !newValue {
-                updateValues()
-            }
-        }
-        .onChange(of: showingActiveEnergyForm) { oldValue, newValue in
-            if !newValue {
-                updateValues()
-            }
-        }
-    }
-    
-    func updateValues() {
-        withAnimation {
-            self.restingEnergyInKcal = healthProvider.healthDetails.maintenance.estimate.restingEnergy.kcal
-            self.activeEnergyInKcal = healthProvider.healthDetails.maintenance.estimate.activeEnergy.kcal
-            self.estimatedMaintenanceInKcal = healthProvider.healthDetails.maintenance.kcal
-        }
     }
     
     var bottomValue: some View {
         MeasurementBottomBar(
-            double: $estimatedMaintenanceInKcal,
+            double: $estimateInKcal,
             doubleString: Binding<String?>(
-                get: { estimatedMaintenanceInKcal?.formattedEnergy },
+                get: { estimateInKcal?.formattedEnergy },
                 set: { _ in }
             ),
-            doubleUnitString: "kcal",
+            doubleUnitString: energyUnitString,
             isDisabled: Binding<Bool>(
                 get: { isEditing && isLegacy },
                 set: { _ in }
             )
         )
+    }
+    
+    func updateEstimate() {
+        guard let restingEnergyInKcal, let activeEnergyInKcal else {
+            self.estimateInKcal = nil
+            return
+        }
+        self.estimateInKcal = restingEnergyInKcal + activeEnergyInKcal
     }
     
     var restingEnergyLink: some View {
@@ -106,8 +95,11 @@ struct EstimatedMaintenanceForm: View {
         }
         
         func saveRestingEnergy(_ restingEnergy: HealthDetails.Maintenance.Estimate.RestingEnergy) {
+            self.restingEnergyInKcal = restingEnergy.kcal
+            updateEstimate()
+            
             if isLegacy {
-                //TODO: Save resting energy for legacy date here
+                //TODO: Save resting energy for legacy date in backend here
             } else {
                 healthProvider.saveRestingEnergy(restingEnergy)
             }
@@ -118,7 +110,11 @@ struct EstimatedMaintenanceForm: View {
                 Text("Resting Energy")
                 Spacer()
                 if let energyValue {
-                    Text("\(energyValue.formattedEnergy) \(settingsProvider.energyUnit.abbreviation)")
+                    HStack {
+                        Text("\(energyValue.formattedEnergy)")
+                            .contentTransition(.numericText(value: energyValue))
+                        Text(energyUnitString)
+                    }
                 } else {
                     Text("Not Set")
                         .foregroundStyle(.secondary)
@@ -134,6 +130,7 @@ struct EstimatedMaintenanceForm: View {
             NavigationView {
                 RestingEnergyForm(
                     date: date,
+                    restingEnergy: estimate.restingEnergy,
                     settingsProvider: settingsProvider,
                     healthProvider: healthProvider,
                     dismissDisabled: $dismissDisabled,
@@ -141,6 +138,10 @@ struct EstimatedMaintenanceForm: View {
                 )
             }
         }
+    }
+    
+    var energyUnitString: String {
+        settingsProvider.energyUnit.abbreviation
     }
 
     var activeEnergyLink: some View {
@@ -154,7 +155,11 @@ struct EstimatedMaintenanceForm: View {
                 Text("Active Energy")
                 Spacer()
                 if let energyValue {
-                    Text("\(energyValue.formattedEnergy) \(settingsProvider.energyUnit.abbreviation)")
+                    HStack {
+                        Text("\(energyValue.formattedEnergy)")
+                            .contentTransition(.numericText(value: energyValue))
+                        Text(energyUnitString)
+                    }
                 } else {
                     Text("Not Set")
                         .foregroundStyle(.secondary)

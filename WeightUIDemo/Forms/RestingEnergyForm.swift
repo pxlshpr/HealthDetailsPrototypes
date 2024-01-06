@@ -10,6 +10,7 @@ struct RestingEnergyForm: View {
     @Bindable var healthProvider: HealthProvider
     
     let date: Date
+    let initialRestingEnergy: HealthDetails.Maintenance.Estimate.RestingEnergy
 
     @State var restingEnergyInKcal: Double?
     @State var source: RestingEnergySource = .healthKit
@@ -40,6 +41,7 @@ struct RestingEnergyForm: View {
 
     init(
         date: Date,
+        restingEnergy: HealthDetails.Maintenance.Estimate.RestingEnergy,
         settingsProvider: SettingsProvider,
         healthProvider: HealthProvider,
         isPresented: Binding<Bool> = .constant(true),
@@ -47,6 +49,7 @@ struct RestingEnergyForm: View {
         save: @escaping (HealthDetails.Maintenance.Estimate.RestingEnergy) -> ()
     ) {
         self.date = date
+        self.initialRestingEnergy = restingEnergy
         self.healthProvider = healthProvider
         self.settingsProvider = settingsProvider
         _isPresented = isPresented
@@ -98,6 +101,7 @@ struct RestingEnergyForm: View {
     ) {
         self.init(
             date: healthProvider.healthDetails.date,
+            restingEnergy: healthProvider.healthDetails.maintenance.estimate.restingEnergy,
             settingsProvider: settingsProvider,
             healthProvider: healthProvider,
             isPresented: isPresented,
@@ -189,21 +193,6 @@ struct RestingEnergyForm: View {
         )
     }
     
-//    func submitCorrection() {
-//        withAnimation {
-//            correctionInput.submitValue()
-//            handleChanges()
-//        }
-//    }
-//
-//    func submitCustomValue() {
-//        withAnimation {
-//            customInput.submitValue()
-//            restingEnergyInKcal = customInput.double
-//            handleChanges()
-//        }
-//    }
-
     var toolbarContent: some ToolbarContent {
         topToolbarContent(
             isEditing: $isEditing,
@@ -557,7 +546,6 @@ struct RestingEnergyForm: View {
                     Text(string(for: $0)).tag($0)
                 }
             }
-//            .pickerStyle(.menu)
             .pickerStyle(.wheel)
             .disabled(isDisabled)
             .foregroundStyle(controlColor)
