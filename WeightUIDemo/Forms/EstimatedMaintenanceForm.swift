@@ -2,6 +2,7 @@ import SwiftUI
 
 struct EstimatedMaintenanceForm: View {
 
+    @Environment(SettingsProvider.self) var settingsProvider
     @Bindable var healthProvider: HealthProvider
     @State var estimatedMaintenanceInKcal: Double? = nil
     @State var restingEnergyInKcal: Double? = nil
@@ -80,6 +81,7 @@ struct EstimatedMaintenanceForm: View {
         .sheet(isPresented: $showingRestingEnergyForm) {
             NavigationView {
                 RestingEnergyForm(
+                    settingsProvider: settingsProvider,
                     healthProvider: healthProvider,
                     restingEnergyInKcal: $restingEnergyInKcal,
                     dismissDisabled: $dismissDisabled

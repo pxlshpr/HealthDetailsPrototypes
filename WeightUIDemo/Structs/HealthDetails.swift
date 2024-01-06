@@ -87,12 +87,12 @@ extension HealthDetails {
             struct HealthKitSyncSettings: Hashable, Codable {
                 var intervalType: HealthIntervalType = .average
                 var interval: HealthInterval = .init(3, .day)
-                var correction: Correction? = nil
+                var correctionValue: CorrectionValue? = nil
                 
-                struct Correction: Hashable, Codable {
-                    var type: CorrectionType = .divide
-                    var correction: Double?
-                }
+//                struct Correction: Hashable, Codable {
+//                    var type: CorrectionType = .divide
+//                    var correction: Double?
+//                }
             }
 
         }
@@ -148,7 +148,19 @@ extension HealthDetails.Height {
     }
 }
 
+extension Double {
+    
+    func convertEnergy(from fromUnit: EnergyUnit, to toUnit: EnergyUnit) -> Double {
+        fromUnit.convert(self, to: toUnit).rounded(.towardZero)
+    }
+}
 extension Optional where Wrapped == Double {
+    
+    func convertEnergy(from fromUnit: EnergyUnit, to toUnit: EnergyUnit) -> Double? {
+        guard let self else { return nil }
+        return fromUnit.convert(self, to: toUnit).rounded(.towardZero)
+    }
+    
     func valueString(convertedFrom fromUnit: BodyMassUnit, to unit: BodyMassUnit) -> String {
         guard let self else { return "Not Set" }
         let converted = fromUnit.convert(self, to: unit)

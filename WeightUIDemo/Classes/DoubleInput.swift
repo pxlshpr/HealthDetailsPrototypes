@@ -20,6 +20,12 @@ import SwiftUI
         self.automaticallySubmitsValues = automaticallySubmitsValues
     }
     
+    func setDouble(_ double: Double?) {
+        self.double = double
+        self.stringAsDouble = double
+        self.string = double?.clean ?? ""
+    }
+    
     var binding: Binding<String> {
         Binding<String>(
             get: { self.string },

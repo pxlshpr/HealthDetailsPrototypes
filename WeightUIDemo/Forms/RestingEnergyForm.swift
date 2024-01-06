@@ -1,12 +1,16 @@
 import SwiftUI
+import PrepShared
 
+public var isPreview: Bool {
+    return ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
+}
 
 struct RestingEnergyForm: View {
 
     @Environment(\.dismiss) var dismiss
     @Environment(\.scenePhase) var scenePhase
 
-    @Environment(SettingsProvider.self) var settingsProvider
+    @Bindable var settingsProvider: SettingsProvider
     @Bindable var healthProvider: HealthProvider
     
     @Binding var restingEnergyInKcal: Double?
@@ -32,7 +36,8 @@ struct RestingEnergyForm: View {
     @State var isDirty: Bool = false
     @Binding var dismissDisabled: Bool
 
-    @State var hasFocusedCustomField = false
+//    @State var hasFocusedCustomField = false
+    @State var hasFocusedCustomField = true
     @State var hasAppeared = false
     
     @State var equationValuesInKcal: [RestingEnergyEquation: Double] = [:]
@@ -44,17 +49,25 @@ struct RestingEnergyForm: View {
     @State var handleChangesTask: Task<Void, Error>? = nil
 
     init(
+        settingsProvider: SettingsProvider,
         healthProvider: HealthProvider,
         restingEnergyInKcal: Binding<Double?> = .constant(nil),
         dismissDisabled: Binding<Bool> = .constant(false)
     ) {
         self.date = healthProvider.healthDetails.date
         self.healthProvider = healthProvider
+        self.settingsProvider = settingsProvider
         _dismissDisabled = dismissDisabled
         _isEditing = State(initialValue: healthProvider.healthDetails.date.isToday)
 
         _restingEnergyInKcal = restingEnergyInKcal
-        _customInput = State(initialValue: DoubleInput(double: restingEnergyInKcal.wrappedValue, automaticallySubmitsValues: true))
+        _customInput = State(initialValue: DoubleInput(
+            double: restingEnergyInKcal.wrappedValue.convertEnergy(
+                from: .kcal,
+                to: settingsProvider.energyUnit
+            ),
+            automaticallySubmitsValues: true
+        ))
 
         let restingEnergy = healthProvider.healthDetails.maintenance.estimate.restingEnergy
         _source = State(initialValue: restingEnergy.source)
@@ -62,10 +75,22 @@ struct RestingEnergyForm: View {
         _intervalType = State(initialValue: restingEnergy.healthKitSyncSettings.intervalType)
         _interval = State(initialValue: restingEnergy.healthKitSyncSettings.interval)
    
-        if let correction = restingEnergy.healthKitSyncSettings.correction {
+        if let correction = restingEnergy.healthKitSyncSettings.correctionValue {
             _applyCorrection = State(initialValue: true)
             _correctionType = State(initialValue: correction.type)
-            _correctionInput = State(initialValue: DoubleInput(double: correction.correction, automaticallySubmitsValues: true))
+            
+            let correctionDouble = switch correction.type {
+            case .add, .subtract: correction.double.convertEnergy(
+                from: .kcal,
+                to: settingsProvider.energyUnit
+            )
+            case .multiply, .divide:    
+                correction.double
+            }
+            _correctionInput = State(initialValue: DoubleInput(
+                double: correctionDouble,
+                automaticallySubmitsValues: true
+            ))
         } else {
             _applyCorrection = State(initialValue: false)
         }
@@ -99,7 +124,6 @@ struct RestingEnergyForm: View {
             switch source {
             case .userEntered:
                 customSection
-//                EmptyView()
             case .equation:
                 equationSection
                 variablesSections
@@ -136,15 +160,23 @@ struct RestingEnergyForm: View {
     func setDismissDisabled() {
         dismissDisabled = isLegacy && isEditing && isDirty
     }
+    
+    var energyUnit: EnergyUnit { settingsProvider.energyUnit }
 
     var bottomValue: some View {
-        MeasurementBottomBar(
-            double: $restingEnergyInKcal,
-            doubleString: Binding<String?>(
-                get: { restingEnergyInKcal?.formattedEnergy },
+        var double: Double? {
+            restingEnergyInKcal?.convertEnergy(from: .kcal, to: energyUnit)
+        }
+        return MeasurementBottomBar(
+            double: Binding<Double?>(
+                get: { double },
                 set: { _ in }
             ),
-            doubleUnitString: "kcal",
+            doubleString: Binding<String?>(
+                get: { double?.formattedEnergy },
+                set: { _ in }
+            ),
+            doubleUnitString: energyUnit.abbreviation,
             isDisabled: Binding<Bool>(
                 get: { !isEditing },
                 set: { _ in }
@@ -152,20 +184,20 @@ struct RestingEnergyForm: View {
         )
     }
     
-    func submitCorrection() {
-        withAnimation {
-            correctionInput.submitValue()
-            handleChanges()
-        }
-    }
-
-    func submitCustomValue() {
-        withAnimation {
-            customInput.submitValue()
-            restingEnergyInKcal = customInput.double
-            handleChanges()
-        }
-    }
+//    func submitCorrection() {
+//        withAnimation {
+//            correctionInput.submitValue()
+//            handleChanges()
+//        }
+//    }
+//
+//    func submitCustomValue() {
+//        withAnimation {
+//            customInput.submitValue()
+//            restingEnergyInKcal = customInput.double
+//            handleChanges()
+//        }
+//    }
 
     var toolbarContent: some ToolbarContent {
         topToolbarContent(
@@ -203,6 +235,7 @@ struct RestingEnergyForm: View {
             ),
             dismissDisabled: $dismissDisabled
         )
+        .environment(settingsProvider)
     }
 
     @ViewBuilder
@@ -220,9 +253,9 @@ struct RestingEnergyForm: View {
             healthKitSyncSettings: .init(
                 intervalType: intervalType,
                 interval: interval,
-                correction: .init(
+                correctionValue: CorrectionValue(
                     type: correctionType,
-                    correction: correctionInput.double
+                    double: correctionInput.double
                 )
             )
         )
@@ -266,7 +299,7 @@ struct RestingEnergyForm: View {
         for equation in RestingEnergyEquation.allCases {
             let kcal = await healthProvider.calculateRestingEnergy(
                 using: equation,
-                energyUnit: settingsProvider.energyUnit
+                energyUnit: .kcal
             )
             dict[equation] = kcal
         }
@@ -278,6 +311,8 @@ struct RestingEnergyForm: View {
     }
     
     func fetchHealthKitValues() async throws {
+//        guard !isPreview else { return }
+        
         let dict = try await withThrowingTaskGroup(
             of: (HealthInterval, Double?).self,
             returning: [HealthInterval: Double].self
@@ -328,21 +363,32 @@ struct RestingEnergyForm: View {
         case .previousDay:  healthKitPreviousDayValueInKcal
         }
         if applyCorrection, let correction = correctionInput.double, let v = value {
+            let kcal = correction.convertEnergy(from: energyUnit, to: .kcal)
             value = switch correctionType {
-            case .add:      v + correction
-            case .subtract: max(v - correction, 0)
+            case .add:      v + kcal
+            case .subtract: max(v - kcal, 0)
             case .multiply: v * correction
             case .divide:   correction == 0 ? nil : v / correction
             }
         }
-        withAnimation {
-            restingEnergyInKcal = value == 0 ? nil : value
-        }
+//        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            withAnimation {
+                restingEnergyInKcal = value == 0 ? nil : value
+            }
+            setCustomInput()
+//        }
     }
     
     func setEquationValue() {
         withAnimation {
             restingEnergyInKcal = equationValuesInKcal[equation]
+        }
+        setCustomInput()
+    }
+    
+    func setCustomInput() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            customInput.setDouble(restingEnergyInKcal?.convertEnergy(from: .kcal, to: energyUnit))
         }
     }
     
@@ -351,9 +397,9 @@ struct RestingEnergyForm: View {
             get: { source },
             set: { newValue in
                 /// Reset this immediately to make sure the text field gets focused
-                if newValue == .userEntered {
-                    hasFocusedCustomField = false
-                }
+//                if newValue == .userEntered {
+//                    hasFocusedCustomField = false
+//                }
                 withAnimation {
                     source = newValue
                 }
@@ -407,6 +453,7 @@ struct RestingEnergyForm: View {
             isRestingEnergy: true,
             restingEnergyInKcal: $restingEnergyInKcal
         )
+        .environment(settingsProvider)
     }
 
     var explanation: some View {
@@ -435,9 +482,11 @@ struct RestingEnergyForm: View {
     
     var customSection: some View {
         func handleCustomValue() {
+            guard source == .userEntered else { return }
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                let kcal = customInput.double?.convertEnergy(from: energyUnit, to: .kcal)
                 withAnimation {
-                    restingEnergyInKcal = customInput.double
+                    restingEnergyInKcal = kcal
                 }
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                     handleChanges()
@@ -481,7 +530,8 @@ struct RestingEnergyForm: View {
         func string(for equation: RestingEnergyEquation) -> String {
             var string = equation.name
             if let kcal = equationValuesInKcal[equation] {
-                string += " • \(kcal.formattedEnergy) kcal"
+                let value = kcal.convertEnergy(from: .kcal, to: energyUnit)
+                string += " • \(value.formattedEnergy) \(energyUnit.abbreviation)"
             }
             return string
         }
@@ -548,15 +598,19 @@ struct RestingEnergyForm: View {
 
 #Preview("Current") {
     NavigationView {
-        RestingEnergyForm(healthProvider: MockCurrentProvider)
-            .environment(SettingsProvider())
+        RestingEnergyForm(
+            settingsProvider: SettingsProvider(),
+            healthProvider: MockCurrentProvider
+        )
     }
 }
 
 #Preview("Past") {
     NavigationView {
-        RestingEnergyForm(healthProvider: MockPastProvider)
-            .environment(SettingsProvider())
+        RestingEnergyForm(
+            settingsProvider: SettingsProvider(),
+            healthProvider: MockPastProvider
+        )
     }
 }
 

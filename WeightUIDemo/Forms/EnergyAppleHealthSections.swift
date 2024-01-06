@@ -154,9 +154,9 @@ extension EnergyAppleHealthSections {
                     case .multiply:
                         "Your \(name) from Apple Health is being multiplied by \(correction.clean) before being used."
                     case .add:
-                        "\(correction.clean) kcal is being added to your \(name) from Apple Health before being used."
+                        "\(correction.clean) \(settingsProvider.energyUnit.abbreviation) is being added to your \(name) from Apple Health before being used."
                     case .subtract:
-                        "\(correction.clean) kcal is being subtracted from your \(name) from Apple Health before being used."
+                        "\(correction.clean) \(settingsProvider.energyUnit.abbreviation) is being subtracted from your \(name) from Apple Health before being used."
                     }
                 } else {
                     "If you have reason to believe that the data from Apple Health may be inaccurate, use a correction to account for this."
@@ -289,7 +289,9 @@ extension EnergyAppleHealthSections {
 
 #Preview("Current") {
     NavigationView {
-        RestingEnergyForm(healthProvider: MockCurrentProvider)
-            .environment(SettingsProvider())
+        RestingEnergyForm(
+            settingsProvider: SettingsProvider(),
+            healthProvider: MockCurrentProvider
+        )
     }
 }
