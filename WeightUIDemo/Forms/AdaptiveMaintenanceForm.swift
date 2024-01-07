@@ -10,7 +10,7 @@ struct AdaptiveMaintenanceForm: View {
     
     @State var showingInfo = false
 
-    let pastDate: Date?
+    let date: Date
     @State var isEditing: Bool
     @State var isDirty: Bool = false
     
@@ -18,14 +18,14 @@ struct AdaptiveMaintenanceForm: View {
     @Binding var dismissDisabled: Bool
     
     init(
-        pastDate: Date? = nil,
+        date: Date = Date.now,
         isPresented: Binding<Bool> = .constant(true),
         dismissDisabled: Binding<Bool> = .constant(false)
     ) {
-        self.pastDate = pastDate
+        self.date = date
         _isPresented = isPresented
         _dismissDisabled = dismissDisabled
-        _isEditing = State(initialValue: pastDate == nil)
+        _isEditing = State(initialValue: date.isToday)
     }
 
     var body: some View {
@@ -43,13 +43,13 @@ struct AdaptiveMaintenanceForm: View {
             AdaptiveMaintenanceInfo(weeks: $weeks)
         }
         .safeAreaInset(edge: .bottom) { bottomValue }
-        .navigationBarBackButtonHidden(isPast && isEditing)
+        .navigationBarBackButtonHidden(isLegacy && isEditing)
         .onChange(of: isEditing) { _, _ in setDismissDisabled() }
         .onChange(of: isDirty) { _, _ in setDismissDisabled() }
     }
     
     func setDismissDisabled() {
-        dismissDisabled = isPast && isEditing && isDirty
+        dismissDisabled = isLegacy && isEditing && isDirty
     }
 
     var bottomValue: some View {
@@ -69,73 +69,56 @@ struct AdaptiveMaintenanceForm: View {
     
     @ViewBuilder
     var notice: some View {
-        if let pastDate {
-            NoticeSection.legacy(pastDate, isEditing: $isEditing)
+        if isLegacy {
+            NoticeSection.legacy(date, isEditing: $isEditing)
         }
     }
 
-    @State var showingWeightChange = false
-    @State var showingDietaryEnergy = false
-
     var weightChangeLink: some View {
         Section {
-            HStack {
-                Text("Weight Change")
-                Spacer()
-                if let weightChangeInKg {
-                    Text("\(weightChangeInKg.cleanHealth) kg")
-                } else {
-                    Text("Not Set")
-                        .foregroundStyle(.secondary)
-                }
-                
-                Button {
-                    showingWeightChange = true
-                } label: {
-                    Image(systemName: "pencil")
-                }
-            }
-            .disabled(isPast && isEditing)
-            .sheet(isPresented: $showingWeightChange) {
-                NavigationView {
-                    WeightChangeForm(
-                        pastDate: pastDate,
-                        isPresented: $isPresented,
-                        dismissDisabled: $dismissDisabled
-                    )
+            NavigationLink {
+                WeightChangeForm(
+                    date: date,
+                    isPresented: $isPresented,
+                    dismissDisabled: $dismissDisabled
+                )
+            } label: {
+                HStack {
+                    Text("Weight Change")
+                    Spacer()
+                    if let weightChangeInKg {
+                        Text("\(weightChangeInKg.cleanHealth) kg")
+                    } else {
+                        Text("Not Set")
+                            .foregroundStyle(.secondary)
+                    }
                 }
             }
+            .disabled(isLegacy && isEditing)
         }
     }
 
     var dietaryEnergyLink: some View {
         Section {
-            HStack {
-                Text("Dietary Energy")
-                Spacer()
-                if let dietaryEnergyInKcalPerDay {
-                    Text("\(dietaryEnergyInKcalPerDay.formattedEnergy) kcal / day")
-                } else {
-                    Text("Not Set")
-                        .foregroundStyle(.secondary)
-                }
-                
-                Button {
-                    showingDietaryEnergy = true
-                } label: {
-                    Image(systemName: "pencil")
-                }
-            }
-            .disabled(isPast && isEditing)
-            .sheet(isPresented: $showingDietaryEnergy) {
-                NavigationView {
-                    DietaryEnergyForm(
-                        pastDate: pastDate,
-                        isPresented: $isPresented,
-                        dismissDisabled: $dismissDisabled
-                    )
+            NavigationLink {
+                DietaryEnergyForm(
+                    date: date,
+                    isPresented: $isPresented,
+                    dismissDisabled: $dismissDisabled
+                )
+            } label: {
+                HStack {
+                    Text("Dietary Energy")
+                    Spacer()
+                    if let dietaryEnergyInKcalPerDay {
+                        Text("\(dietaryEnergyInKcalPerDay.formattedEnergy) kcal / day")
+                    } else {
+                        Text("Not Set")
+                            .foregroundStyle(.secondary)
+                    }
                 }
             }
+            .disabled(isLegacy && isEditing)
         }
     }
 
@@ -169,8 +152,8 @@ struct AdaptiveMaintenanceForm: View {
         }
     }
     
-    var isPast: Bool {
-        pastDate != nil
+    var isLegacy: Bool {
+        date.startOfDay < Date.now.startOfDay
     }
 
     var toolbarContent: some ToolbarContent {
@@ -178,7 +161,7 @@ struct AdaptiveMaintenanceForm: View {
             topToolbarContent(
                 isEditing: $isEditing,
                 isDirty: $isDirty,
-                isPast: isPast,
+                isPast: isLegacy,
                 dismissAction: { isPresented = false },
                 undoAction: undo,
                 saveAction: save
@@ -201,7 +184,7 @@ struct AdaptiveMaintenanceForm: View {
     }
     
     var isDisabled: Bool {
-        isPast && !isEditing
+        isLegacy && !isEditing
     }
     
     var explanation: some View {
@@ -233,7 +216,7 @@ struct AdaptiveMaintenanceForm: View {
 
 #Preview("Past") {
     NavigationView {
-        AdaptiveMaintenanceForm(pastDate: MockPastDate)
+        AdaptiveMaintenanceForm(date: MockPastDate)
     }
 }
 struct DismissTest: View {
@@ -248,7 +231,7 @@ struct DismissTest: View {
             .sheet(isPresented: $presented) {
                 NavigationView {
                     AdaptiveMaintenanceForm(
-                        pastDate: MockPastDate,
+                        date: MockPastDate,
                         isPresented: $presented
                     )
                 }

@@ -60,7 +60,7 @@ import SwiftUI
 
         struct PregnancyStatus {
             let date: Date
-            let pregnancyStatus: WeightUIDemo.PregnancyStatus
+            var pregnancyStatus: WeightUIDemo.PregnancyStatus
         }
     }
 
@@ -153,7 +153,12 @@ extension HealthDetails {
 /// [ ] Send a notification so that DailyValues set on this day get updated too if dependent on the HealthDetail
 
 extension HealthProvider {
-    
+
+    func saveMaintenance(_ maintenance: HealthDetails.Maintenance) {
+        healthDetails.maintenance = maintenance
+        save()
+    }
+
     func saveRestingEnergy(_ restingEnergy: HealthDetails.Maintenance.Estimate.RestingEnergy) {
         healthDetails.maintenance.estimate.restingEnergy = restingEnergy
         save()
@@ -222,6 +227,15 @@ extension HealthProvider {
         
         var healthDetails = fetchHealthDetailsFromDocuments(latestMaintenance.date)
         healthDetails.maintenance = maintenance
+        saveHealthDetailsInDocuments(healthDetails)
+    }
+
+    func updateLatestPregnancyStatus(_ pregnancyStatus: PregnancyStatus) {
+        guard let latestPregnancyStatus = latest.pregnancyStatus else { return }
+        latest.pregnancyStatus?.pregnancyStatus = pregnancyStatus
+        
+        var healthDetails = fetchHealthDetailsFromDocuments(latestPregnancyStatus.date)
+        healthDetails.pregnancyStatus = pregnancyStatus
         saveHealthDetailsInDocuments(healthDetails)
     }
 

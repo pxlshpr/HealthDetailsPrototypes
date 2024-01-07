@@ -3,7 +3,12 @@ import SwiftSugar
 
 struct MaintenanceForm: View {
     
+    @Environment(SettingsProvider.self) var settingsProvider
+    
     @Bindable var healthProvider: HealthProvider
+    
+    let date: Date
+    let initialMaintenance: HealthDetails.Maintenance
     
     @State var maintenancetype: MaintenanceType = .adaptive
     @State var valueInKcal: Double? = nil
@@ -20,22 +25,42 @@ struct MaintenanceForm: View {
     @Binding var isPresented: Bool
     @Binding var dismissDisabled: Bool
 
+    let saveHandler: (HealthDetails.Maintenance) -> ()
+    
+    init(
+        date: Date,
+        maintenance: HealthDetails.Maintenance,
+        healthProvider: HealthProvider,
+        isPresented: Binding<Bool> = .constant(true),
+        dismissDisabled: Binding<Bool> = .constant(false),
+        saveHandler: @escaping (HealthDetails.Maintenance) -> ()
+    ) {
+        self.date = date
+        self.initialMaintenance = maintenance
+        self.saveHandler = saveHandler
+        self.healthProvider = healthProvider
+        _isPresented = isPresented
+        _dismissDisabled = dismissDisabled
+        _isEditing = State(initialValue: date.isToday)
+    }
+    
     init(
         healthProvider: HealthProvider,
         isPresented: Binding<Bool> = .constant(true),
         dismissDisabled: Binding<Bool> = .constant(false)
     ) {
-        self.healthProvider = healthProvider
-        _isPresented = isPresented
-        _dismissDisabled = dismissDisabled
-        _isEditing = State(initialValue: healthProvider.isCurrent)
+        self.init(
+            date: healthProvider.healthDetails.date,
+            maintenance: healthProvider.healthDetails.maintenance,
+            healthProvider: healthProvider,
+            isPresented: isPresented,
+            dismissDisabled: dismissDisabled,
+            saveHandler: healthProvider.saveMaintenance
+        )
     }
     
-    var pastDate: Date? {
-        healthProvider.pastDate
-    }
-
     var body: some View {
+//        let _ = Self._printChanges()
         List {
             notice
             about
@@ -51,13 +76,13 @@ struct MaintenanceForm: View {
             MaintenanceInfo()
         }
         .safeAreaInset(edge: .bottom) { bottomValue }
-        .navigationBarBackButtonHidden(isPast && isEditing)
+        .navigationBarBackButtonHidden(isLegacy && isEditing)
         .onChange(of: isEditing) { _, _ in setDismissDisabled() }
         .onChange(of: isDirty) { _, _ in setDismissDisabled() }
     }
     
     func setDismissDisabled() {
-        dismissDisabled = isPast && isEditing && isDirty
+        dismissDisabled = isLegacy && isEditing && isDirty
     }
     
     var bottomValue: some View {
@@ -92,14 +117,14 @@ struct MaintenanceForm: View {
         }
     }
     
-    var isPast: Bool {
-        pastDate != nil
+    var isLegacy: Bool {
+        date.startOfDay < Date.now.startOfDay
     }
     
     @ViewBuilder
     var notice: some View {
-        if let pastDate {
-            NoticeSection.legacy(pastDate, isEditing: $isEditing)
+        if isLegacy {
+            NoticeSection.legacy(date, isEditing: $isEditing)
         }
     }
     
@@ -107,8 +132,10 @@ struct MaintenanceForm: View {
         topToolbarContent(
             isEditing: $isEditing,
             isDirty: $isDirty,
-            isPast: isPast,
-            dismissAction: { isPresented = false },
+            isPast: isLegacy,
+            dismissAction: { 
+                isPresented = false
+            },
             undoAction: undo,
             saveAction: save
         )
@@ -148,8 +175,9 @@ struct MaintenanceForm: View {
         
         var destination: some View {
             AdaptiveMaintenanceForm(
-                pastDate: pastDate,
+                date: date,
                 isPresented: $isPresented,
+//                isPresented: .constant(true),
                 dismissDisabled: $dismissDisabled
             )
         }
@@ -174,7 +202,7 @@ struct MaintenanceForm: View {
         return Section {
 //            NavigationViewLink
             navigationViewLink
-                .disabled(isPast && isEditing)
+                .disabled(isLegacy && isEditing)
         }
     }
 
@@ -194,10 +222,19 @@ struct MaintenanceForm: View {
         
         var destination: some View {
             EstimatedMaintenanceForm(
+                date: date,
+                estimate: initialMaintenance.estimate,
                 healthProvider: healthProvider,
                 isPresented: $isPresented,
+//                isPresented: .constant(true),
                 dismissDisabled: $dismissDisabled
             )
+            .environment(settingsProvider)
+//            EstimatedMaintenanceForm(
+//                healthProvider: healthProvider,
+//                isPresented: $isPresented,
+//                dismissDisabled: $dismissDisabled
+//            )
         }
         
         var NavigationViewLink: some View {
@@ -220,7 +257,7 @@ struct MaintenanceForm: View {
         return Section {
 //            NavigationViewLink
             navigationViewLink
-                .disabled(isPast && isEditing)
+                .disabled(isLegacy && isEditing)
         }
     }
 

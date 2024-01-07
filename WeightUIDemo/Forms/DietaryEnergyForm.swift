@@ -2,7 +2,7 @@ import SwiftUI
 
 struct DietaryEnergyForm: View {
     
-    let pastDate: Date?
+    let date: Date
     @State var isEditing: Bool
     
     @State var value: Double? = 2893
@@ -11,11 +11,11 @@ struct DietaryEnergyForm: View {
     @Binding var dismissDisabled: Bool
 
     init(
-        pastDate: Date? = nil,
+        date: Date = Date.now,
         isPresented: Binding<Bool> = .constant(true),
         dismissDisabled: Binding<Bool> = .constant(false)
     ) {
-        self.pastDate = pastDate
+        self.date = date
         _isPresented = isPresented
         _dismissDisabled = dismissDisabled
         _isEditing = State(initialValue: true)
@@ -44,53 +44,31 @@ struct DietaryEnergyForm: View {
         )
     }
     
-    @State var dataBeingPresented: ListData? = nil
-    
     var list: some View {
         Section {
             ForEach(listData, id: \.self) { data in
-                HStack {
+                NavigationLink {
+                    DietaryEnergyPointForm(
+                        healthDetailsDate: date,
+                        dietaryEnergyDate: data.date,
+                        isPresented: $isPresented,
+                        dismissDisabled: $dismissDisabled
+                    )
+                } label: {
                     DietaryEnergyCell(listData: data)
-                    Button {
-                        dataBeingPresented = data
-                    } label: {
-                        Image(systemName: "pencil")
-                    }
                 }
-//                NavigationLink {
-//                    DietaryEnergyPointForm(
-//                        dateString: data.dateString,
-//                        pastDate: pastDate,
-//                        isPresented: $isPresented,
-//                        dismissDisabled: $dismissDisabled
-//                    )
-//                } label: {
-//                }
-            }
-        }
-        .sheet(item: $dataBeingPresented) { data in
-            NavigationView {
-                DietaryEnergyPointForm(
-                    dateString: data.dateString,
-                    pastDate: pastDate,
-                    isPresented: $isPresented,
-                    dismissDisabled: $dismissDisabled
-                )
             }
         }
     }
     
-    var isPast: Bool {
-        pastDate != nil
+    var isLegacy: Bool {
+        date.startOfDay < Date.now.startOfDay
     }
     
     @ViewBuilder
     var notice: some View {
-        if let pastDate {
-            NoticeSection.legacy(
-                pastDate,
-                isEditing: $isEditing
-            )
+        if isLegacy {
+            NoticeSection.legacy(date, isEditing: $isEditing)
         }
     }
     
@@ -101,10 +79,6 @@ struct DietaryEnergyForm: View {
             } label: {
                 CloseButtonLabel()
             }
-//            Button("Done") {
-//                isPresented = false
-//            }
-//            .fontWeight(.semibold)
         }
     }
     
@@ -125,27 +99,29 @@ struct DietaryEnergyForm: View {
     struct ListData: Hashable, Identifiable {
         
         let type: DietaryEnergyPointType
-        let dateString: String
+        let date: Date
         let valueString: String
         
-        init(_ type: DietaryEnergyPointType, _ dateString: String, _ valueString: String) {
+        init(_ type: DietaryEnergyPointType, _ date: Date, _ valueString: String) {
             self.type = type
-            self.dateString = dateString
+            self.date = date
             self.valueString = valueString
         }
         
-        var id: String { dateString }
+        var id: Date { date }
     }
     
-    let listData: [ListData] = [
-        .init(.log, "22 Dec", "2,345 kcal"),
-        .init(.log, "20 Dec", "3,012 kcal"),
-        .init(.custom, "19 Dec", "0 kcal"),
-        .init(.useAverage, "18 Dec", "1,983 kcal"),
-        .init(.healthKit, "17 Dec", "1,725 kcal"),
-        .init(.useAverage, "16 Dec", "1,983 kcal"),
-        .init(.log, "15 Dec", "2,831 kcal"),
-    ]
+    var listData: [ListData] {
+        [
+            .init(.log, date.moveDayBy(-1), "2,345 kcal"),
+            .init(.log, date.moveDayBy(-2), "3,012 kcal"),
+            .init(.custom, date.moveDayBy(-3), "0 kcal"),
+            .init(.useAverage, date.moveDayBy(-4), "1,983 kcal"),
+            .init(.healthKit, date.moveDayBy(-5), "1,725 kcal"),
+            .init(.useAverage, date.moveDayBy(-6), "1,983 kcal"),
+            .init(.log, date.moveDayBy(-7), "2,831 kcal"),
+        ]
+    }
 }
 
 struct DietaryEnergyCell: View {
@@ -202,7 +178,7 @@ struct DietaryEnergyCell: View {
     }
     
     var dateText: some View {
-        Text(listData.dateString)
+        Text(listData.date.shortDateString)
             .foregroundStyle(Color(.label))
     }
 }
@@ -216,7 +192,7 @@ struct DietaryEnergyCell: View {
 
 #Preview("Past") {
     NavigationView {
-        DietaryEnergyForm(pastDate: MockPastDate)
+        DietaryEnergyForm(date: MockPastDate)
     }
 }
 

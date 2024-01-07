@@ -31,7 +31,7 @@ struct RestingEnergyForm: View {
 
     @State var showingEquationsInfo = false
     @State var showingRestingEnergyInfo = false
-    @State var hasFocusedCustomField = false
+    @State var hasFocusedCustomField: Bool
     @State var hasAppeared = false
 
     @State var isEditing: Bool
@@ -59,7 +59,6 @@ struct RestingEnergyForm: View {
         _dismissDisabled = dismissDisabled
         _isEditing = State(initialValue: date.isToday)
 
-        let restingEnergy = healthProvider.healthDetails.maintenance.estimate.restingEnergy
         _restingEnergyInKcal = State(initialValue: restingEnergy.kcal)
         _customInput = State(initialValue: DoubleInput(
             double: restingEnergy.kcal.convertEnergy(
@@ -94,6 +93,8 @@ struct RestingEnergyForm: View {
         } else {
             _applyCorrection = State(initialValue: false)
         }
+        
+        _hasFocusedCustomField = State(initialValue: !date.isToday)
     }
     
     init(
@@ -217,11 +218,14 @@ struct RestingEnergyForm: View {
         VariablesSections(
             subject: .equation,
             healthDetails: Binding<[HealthDetail]>(
-                get: { equation.requiredHealthDetails },
+                get: { 
+//                    [.maintenance]
+                    equation.requiredHealthDetails
+                },
                 set: { _ in }
             ),
             healthProvider: healthProvider,
-            pastDate: date,
+            date: date,
             isEditing: $isEditing,
             isPresented: Binding<Bool>(
                 get: { true },
@@ -512,6 +516,10 @@ struct RestingEnergyForm: View {
             hasFocused: $hasFocusedCustomField,
             delayFocus: true,
             footer: nil,
+            isDisabled: Binding<Bool>(
+                get: { isDisabled },
+                set: { _ in }
+            ),
             handleChanges: handleCustomValue
         )
     }

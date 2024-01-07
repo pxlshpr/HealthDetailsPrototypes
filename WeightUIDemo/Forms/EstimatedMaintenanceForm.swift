@@ -17,9 +17,6 @@ struct EstimatedMaintenanceForm: View {
     @Binding var isPresented: Bool
     @Binding var dismissDisabled: Bool
 
-    @State var showingRestingEnergyForm = false
-    @State var showingActiveEnergyForm = false
-    
     init(
         date: Date,
         estimate: HealthDetails.Maintenance.Estimate,
@@ -88,43 +85,22 @@ struct EstimatedMaintenanceForm: View {
         self.estimateInKcal = restingEnergyInKcal + activeEnergyInKcal
     }
     
+    func saveRestingEnergy(_ restingEnergy: HealthDetails.Maintenance.Estimate.RestingEnergy) {
+        self.restingEnergyInKcal = restingEnergy.kcal
+        updateEstimate()
+
+        //TODO: When using this via a VariableSection we should pass in another save handler that the VariableSection handles by manually saving for the specific date
+        healthProvider.saveRestingEnergy(restingEnergy)
+    }
+    
     var restingEnergyLink: some View {
         var energyValue: Double? {
             guard let restingEnergyInKcal else { return nil }
             return EnergyUnit.kcal.convert(restingEnergyInKcal, to: settingsProvider.energyUnit)
         }
         
-        func saveRestingEnergy(_ restingEnergy: HealthDetails.Maintenance.Estimate.RestingEnergy) {
-            self.restingEnergyInKcal = restingEnergy.kcal
-            updateEstimate()
-
-            //TODO: When using this via a VariableSection we should pass in another save handler that the VariableSection handles by manually saving for the specific date
-            healthProvider.saveRestingEnergy(restingEnergy)
-        }
-        
         return Section {
-            HStack {
-                Text("Resting Energy")
-                Spacer()
-                if let energyValue {
-                    HStack {
-                        Text("\(energyValue.formattedEnergy)")
-                            .contentTransition(.numericText(value: energyValue))
-                        Text(energyUnitString)
-                    }
-                } else {
-                    Text("Not Set")
-                        .foregroundStyle(.secondary)
-                }
-                Button {
-                    showingRestingEnergyForm = true
-                } label: {
-                    Image(systemName: "pencil")
-                }
-            }
-        }
-        .sheet(isPresented: $showingRestingEnergyForm) {
-            NavigationView {
+            NavigationLink {
                 RestingEnergyForm(
                     date: date,
                     restingEnergy: estimate.restingEnergy,
@@ -133,6 +109,21 @@ struct EstimatedMaintenanceForm: View {
                     dismissDisabled: $dismissDisabled,
                     save: saveRestingEnergy
                 )
+            } label: {
+                HStack {
+                    Text("Resting Energy")
+                    Spacer()
+                    if let energyValue {
+                        HStack {
+                            Text("\(energyValue.formattedEnergy)")
+                                .contentTransition(.numericText(value: energyValue))
+                            Text(energyUnitString)
+                        }
+                    } else {
+                        Text("Not Set")
+                            .foregroundStyle(.secondary)
+                    }
+                }
             }
         }
     }
@@ -148,33 +139,27 @@ struct EstimatedMaintenanceForm: View {
         }
 
         return Section {
-            HStack {
-                Text("Active Energy")
-                Spacer()
-                if let energyValue {
-                    HStack {
-                        Text("\(energyValue.formattedEnergy)")
-                            .contentTransition(.numericText(value: energyValue))
-                        Text(energyUnitString)
-                    }
-                } else {
-                    Text("Not Set")
-                        .foregroundStyle(.secondary)
-                }
-                Button {
-                    showingActiveEnergyForm = true
-                } label: {
-                    Image(systemName: "pencil")
-                }
-            }
-        }
-        .sheet(isPresented: $showingActiveEnergyForm) {
-            NavigationView {
+            NavigationLink {
                 ActiveEnergyForm(
                     pastDate: date,
                     isPresented: $isPresented,
                     dismissDisabled: $dismissDisabled
                 )
+            } label: {
+                HStack {
+                    Text("Active Energy")
+                    Spacer()
+                    if let energyValue {
+                        HStack {
+                            Text("\(energyValue.formattedEnergy)")
+                                .contentTransition(.numericText(value: energyValue))
+                            Text(energyUnitString)
+                        }
+                    } else {
+                        Text("Not Set")
+                            .foregroundStyle(.secondary)
+                    }
+                }
             }
         }
     }

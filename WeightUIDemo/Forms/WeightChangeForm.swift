@@ -17,21 +17,21 @@ struct WeightChangeForm: View {
     
     @State var customInput = DoubleInput()
 
-    let pastDate: Date?
+    let date: Date
     @State var isEditing: Bool
     @State var isDirty: Bool = false
     @Binding var isPresented: Bool
     @Binding var dismissDisabled: Bool
 
     init(
-        pastDate: Date? = nil,
+        date: Date = Date.now,
         isPresented: Binding<Bool> = .constant(true),
         dismissDisabled: Binding<Bool> = .constant(false)
     ) {
-        self.pastDate = pastDate
+        self.date = date
         _isPresented = isPresented
         _dismissDisabled = dismissDisabled
-        _isEditing = State(initialValue: pastDate == nil)
+        _isEditing = State(initialValue: date.isToday)
     }
 
     var body: some View {
@@ -55,13 +55,13 @@ struct WeightChangeForm: View {
             Button("Cancel") { customInput.cancel() }
         }
         .safeAreaInset(edge: .bottom) { bottomValue }
-        .navigationBarBackButtonHidden(isPast && isEditing)
+        .navigationBarBackButtonHidden(isLegacy && isEditing)
         .onChange(of: isEditing) { _, _ in setDismissDisabled() }
         .onChange(of: isDirty) { _, _ in setDismissDisabled() }
     }
     
     func setDismissDisabled() {
-        dismissDisabled = isPast && isEditing && isDirty
+        dismissDisabled = isLegacy && isEditing && isDirty
     }
 
     var bottomValue: some View {
@@ -79,14 +79,14 @@ struct WeightChangeForm: View {
         )
     }
     
-    var isPast: Bool {
-        pastDate != nil
+    var isLegacy: Bool {
+        date.startOfDay < Date.now.startOfDay
     }
     
     @ViewBuilder
     var notice: some View {
-        if let pastDate {
-            NoticeSection.legacy(pastDate, isEditing: $isEditing)
+        if isLegacy {
+            NoticeSection.legacy(date, isEditing: $isEditing)
         }
     }
     
@@ -103,7 +103,7 @@ struct WeightChangeForm: View {
         topToolbarContent(
             isEditing: $isEditing,
             isDirty: $isDirty,
-            isPast: isPast,
+            isPast: isLegacy,
             dismissAction: { isPresented = false },
             undoAction: undo,
             saveAction: save
@@ -130,41 +130,41 @@ struct WeightChangeForm: View {
     
     var weightSections: some View {
         Group {
-            Section {
+            Section("Ending Weight") {
                 NavigationLink {
                     WeightChangePointForm(
-                        pastDate: pastDate,
+                        healthDetailsDate: date,
+                        weightDate: date,
                         isPresented: $isPresented,
                         dismissDisabled: $dismissDisabled,
-                        dateString: "24 Dec",
                         isCurrent: true
                     )
                 } label: {
                     HStack {
-                        Text("24 Dec")
+                        Text(date.shortDateString)
                         Spacer()
-                        Text("93.4 kg")
+                        Text("93.2 kg")
                     }
                 }
-                .disabled(isEditing && isPast)
+                .disabled(isEditing && isLegacy)
             }
-            Section {
+            Section("Starting Weight") {
                 NavigationLink {
                     WeightChangePointForm(
-                        pastDate: pastDate,
+                        healthDetailsDate: date,
+                        weightDate: date.moveDayBy(-7),
                         isPresented: $isPresented,
                         dismissDisabled: $dismissDisabled,
-                        dateString: "17 Dec",
                         isCurrent: false
                     )
                 } label: {
                     HStack {
-                        Text("17 Dec")
+                        Text(date.moveDayBy(-7).shortDateString)
                         Spacer()
                         Text("94.2 kg")
                     }
                 }
-                .disabled(isEditing && isPast)
+                .disabled(isEditing && isLegacy)
             }
         }
     }
@@ -248,7 +248,7 @@ struct WeightChangeForm: View {
 
     var explanation: some View {
         Section {
-            Text("This represents the change in your weight from 17-24 December, which is used to calculate your Adaptive Maintenance Energy.")
+            Text("This represents the change in your weight from \(date.moveDayBy(-7).shortDateString) to \(date.shortDateString), which is used to calculate your Adaptive Maintenance Energy.")
         }
     }
 
@@ -266,8 +266,10 @@ struct WeightChangeForm: View {
                     }
                 }
             )) {
-                Text("Use Weights").tag(false)
-                Text("Enter Manually").tag(true)
+//                Text("Use Weights").tag(false)
+//                Text("Enter Manually").tag(true)
+                Text("Weights").tag(false)
+                Text("Manual").tag(true)
             }
             .pickerStyle(.segmented)
             .disabled(!isEditing)
@@ -277,7 +279,7 @@ struct WeightChangeForm: View {
         var description: String {
             switch isCustom {
             case true: "Enter your weight change manually."
-            case false: "Use your current and previous weights to calculate your weight change."
+            case false: "Use your starting and ending weights to calculate your weight change."
             }
         }
         return Section {
@@ -295,7 +297,7 @@ struct WeightChangeForm: View {
 
 #Preview("Past") {
     NavigationView {
-        WeightChangeForm(pastDate: MockPastDate)
+        WeightChangeForm(date: MockPastDate)
     }
 }
 

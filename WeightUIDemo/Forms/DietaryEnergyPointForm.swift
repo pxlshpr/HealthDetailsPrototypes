@@ -13,21 +13,23 @@ struct DietaryEnergyPointForm: View {
 
     @State var showingInfo = false
     
-    let pastDate: Date?
+    let healthDetailsDate: Date
+    let dietaryEnergyDate: Date
     @State var isEditing: Bool
     @State var isDirty: Bool = false
     @Binding var isPresented: Bool
     @Binding var dismissDisabled: Bool
 
     init(
-        dateString: String,
-        pastDate: Date? = nil,
+        healthDetailsDate: Date = Date.now,
+        dietaryEnergyDate: Date = Date.now.moveDayBy(-1),
         isPresented: Binding<Bool> = .constant(true),
         dismissDisabled: Binding<Bool> = .constant(false)
     ) {
-        self.pastDate = pastDate
-        _isEditing = State(initialValue: pastDate == nil)
-        self.dateString = dateString
+        self.healthDetailsDate = healthDetailsDate
+        self.dietaryEnergyDate = dietaryEnergyDate
+        _isEditing = State(initialValue: healthDetailsDate.isToday)
+        self.dateString = healthDetailsDate.shortDateString
         _isPresented = isPresented
         _dismissDisabled = dismissDisabled
     }
@@ -42,8 +44,8 @@ struct DietaryEnergyPointForm: View {
             }
             explanation
         }
-        .navigationTitle("Dietary Energy")
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationTitle(dietaryEnergyDate.shortDateString)
+        .navigationBarTitleDisplayMode(.large)
         .toolbar { toolbarContent }
         .alert("Enter your dietary energy", isPresented: $showingAlert) {
             TextField("kcal", text: customInput.binding)
@@ -55,36 +57,36 @@ struct DietaryEnergyPointForm: View {
             AdaptiveDietaryEnergyInfo()
         }
         .safeAreaInset(edge: .bottom) { bottomValue }
-        .navigationBarBackButtonHidden(isPast && isEditing)
+        .navigationBarBackButtonHidden(isLegacy && isEditing)
         .onChange(of: isEditing) { _, _ in setDismissDisabled() }
         .onChange(of: isDirty) { _, _ in setDismissDisabled() }
     }
     
     func setDismissDisabled() {
-        dismissDisabled = isPast && isEditing && isDirty
+        dismissDisabled = isLegacy && isEditing && isDirty
     }
 
+    @ViewBuilder
     var dateSection: some View {
-        Section {
-            HStack {
-                Text("Date")
-                Spacer()
-                Text(dateString)
+        if !isLegacy {
+            Section {
+                HStack {
+                    Text("Date")
+                    Spacer()
+                    Text(dateString)
+                }
             }
         }
     }
     
-    var isPast: Bool {
-        pastDate != nil
+    var isLegacy: Bool {
+        healthDetailsDate.startOfDay < Date.now.startOfDay
     }
     
     @ViewBuilder
     var notice: some View {
-        if let pastDate {
-            NoticeSection.legacy(
-                pastDate,
-                isEditing: $isEditing
-            )
+        if isLegacy {
+            NoticeSection.legacy(healthDetailsDate, isEditing: $isEditing)
         }
     }
     
@@ -122,7 +124,7 @@ struct DietaryEnergyPointForm: View {
             topToolbarContent(
                 isEditing: $isEditing,
                 isDirty: $isDirty,
-                isPast: isPast,
+                isPast: isLegacy,
                 dismissAction: { isPresented = false },
                 undoAction: undo,
                 saveAction: save
@@ -290,7 +292,7 @@ struct DietaryEnergyPointForm: View {
     }
     
     var isDisabled: Bool {
-        isPast && !isEditing
+        isLegacy && !isEditing
     }
     
     var explanation: some View {
@@ -314,12 +316,12 @@ struct DietaryEnergyPointForm: View {
 
 #Preview("Current") {
     NavigationView {
-        DietaryEnergyPointForm(dateString: "22 Dec")
+        DietaryEnergyPointForm()
     }
 }
 
 #Preview("Past") {
     NavigationView {
-        DietaryEnergyPointForm(dateString: "22 Dec", pastDate: MockPastDate)
+        DietaryEnergyPointForm(healthDetailsDate: MockPastDate)
     }
 }

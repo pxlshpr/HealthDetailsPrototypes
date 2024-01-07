@@ -129,7 +129,32 @@ let MockCurrentProvider = HealthProvider(
     isCurrent: true,
     healthDetails: HealthDetails(
         date: Date.now,
-        biologicalSex: .notSet
+        biologicalSex: .notSet,
+        smokingStatus: .smoker
+    ),
+    latest: HealthProvider.LatestHealthDetails(
+        maintenance: .init(
+            date: Date.now.moveDayBy(-1),
+            maintenance: .init(
+                type: .estimated,
+                kcal: 2500,
+                estimate: .init(
+                    kcal: 2500,
+                    restingEnergy: .init(
+                        kcal: 2000,
+                        source: .userEntered
+                    ),
+                    activeEnergy: .init(
+                        kcal: 500,
+                        source: .userEntered
+                    )
+                )
+            )
+        ),
+        pregnancyStatus: .init(
+            date: Date.now.moveDayBy(-150),
+            pregnancyStatus: .pregnant
+        )
     )
 )
 

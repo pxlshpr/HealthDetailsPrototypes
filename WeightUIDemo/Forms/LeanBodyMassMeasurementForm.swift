@@ -209,7 +209,7 @@ struct LeanBodyMassMeasurementForm: View {
                 set: { _ in }
             ),
             healthProvider: healthProvider,
-            pastDate: date,
+            date: date,
             isEditing: .constant(false),
             isPresented: Binding<Bool>(
                 get: { true },
@@ -232,7 +232,7 @@ struct LeanBodyMassMeasurementForm: View {
                 set: { _ in }
             ),
             healthProvider: healthProvider,
-            pastDate: date,
+            date: date,
             isEditing: .constant(false),
             isPresented: Binding<Bool>(
                 get: { true },

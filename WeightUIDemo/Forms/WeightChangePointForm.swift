@@ -12,48 +12,61 @@ struct WeightChangePointForm: View {
     @ScaledMetric var scale: CGFloat = 1
     let imageScale: CGFloat = 24
 
-    let dateString: String
     let isCurrent: Bool
     
-    let pastDate: Date?
+    let healthDetailsDate: Date
+    let weightDate: Date
     @State var isEditing: Bool
     @State var isDirty: Bool = false
     @Binding var isPresented: Bool
     @Binding var dismissDisabled: Bool
 
     init(
-        pastDate: Date? = nil,
+        healthDetailsDate: Date = Date.now,
+        weightDate: Date = Date.now.moveDayBy(-1),
         isPresented: Binding<Bool> = .constant(true),
         dismissDisabled: Binding<Bool> = .constant(false),
-        dateString: String = MockPastDate.shortDateString,
         isCurrent: Bool = false
     ) {
-        self.pastDate = pastDate
-        self.dateString = dateString
+        self.healthDetailsDate = healthDetailsDate
+        self.weightDate = weightDate
         self.isCurrent = isCurrent
         _isPresented = isPresented
         _dismissDisabled = dismissDisabled
-        _isEditing = State(initialValue: pastDate == nil)
+        _isEditing = State(initialValue: healthDetailsDate.isToday)
     }
 
     var body: some View {
         Form {
             notice
+            dateSection
             movingAverageToggle
             weights
             explanation
         }
-        .navigationTitle(dateString)
+        .navigationTitle(title)
         .navigationBarTitleDisplayMode(.large)
         .toolbar { toolbarContent }
         .safeAreaInset(edge: .bottom) { bottomValue }
-        .navigationBarBackButtonHidden(isPast && isEditing)
+        .navigationBarBackButtonHidden(isLegacy && isEditing)
         .onChange(of: isEditing) { _, _ in setDismissDisabled() }
         .onChange(of: isDirty) { _, _ in setDismissDisabled() }
     }
     
+    var dateSection: some View {
+        HStack {
+            Text("Weight for")
+            Spacer()
+            Text(weightDate.shortDateString)
+        }
+    }
+    
+    var title: String {
+        "\(isCurrent ? "Ending" : "Starting") Weight"
+    }
+    
     func setDismissDisabled() {
-        dismissDisabled = isPast && isEditing && isDirty
+        dismissDisabled = isLegacy && isEditing && isDirty
     }
 
     var bottomValue: some View {
@@ -87,7 +100,7 @@ struct WeightChangePointForm: View {
                     }
                 }
             }
-            .disabled(isPast && isEditing)
+            .disabled(isLegacy && isEditing)
         }
         
         func weight(for date: Date) -> Double? {
@@ -123,32 +136,32 @@ struct WeightChangePointForm: View {
     }
     
     
-    var isPast: Bool {
-        pastDate != nil
+    var isLegacy: Bool {
+        healthDetailsDate.startOfDay < Date.now.startOfDay
     }
     
     @ViewBuilder
     var notice: some View {
-        if let pastDate {
-            NoticeSection.legacy(pastDate, isEditing: $isEditing)
+        if isLegacy {
+            NoticeSection.legacy(healthDetailsDate, isEditing: $isEditing)
         }
     }
     
     var toolbarContent: some ToolbarContent {
-        Group {
+//        Group {
             topToolbarContent(
                 isEditing: $isEditing,
                 isDirty: $isDirty,
-                isPast: isPast,
+                isPast: isLegacy,
                 dismissAction: { isPresented = false },
                 undoAction: undo,
                 saveAction: save
             )
-            ToolbarItem(placement: .principal) {
-                Text("\(isCurrent ? "Current" : "Previous") Weight")
-                    .font(.headline)
-            }
-        }
+//            ToolbarItem(placement: .principal) {
+//                Text("\(isCurrent ? "Ending" : "Starting") Weight")
+//                    .font(.headline)
+//            }
+//        }
     }
     
     func save() {
@@ -231,6 +244,8 @@ struct WeightChangePointForm: View {
 
 #Preview("Past") {
     NavigationView {
-        WeightChangePointForm(pastDate: MockPastDate)
+        WeightChangePointForm(
+            healthDetailsDate: MockPastDate
+        )
     }
 }
