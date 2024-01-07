@@ -14,44 +14,36 @@ func latestHealthDetails(to date: Date = Date.now) -> HealthProvider.LatestHealt
     var latest = HealthProvider.LatestHealthDetails()
     
     let numberOfDays = Date.now.numberOfDaysFrom(PreviousMockDate)
-    var setDetails: [HealthDetail] = []
+    var retrievedDetails: [HealthDetail] = []
     for i in 1...numberOfDays {
         let date = Date.now.moveDayBy(-i)
         let healthDetails = fetchHealthDetailsFromDocuments(date)
 
         if healthDetails.hasSet(.weight) {
             latest.weight = .init(date: date, weight: healthDetails.weight)
-            setDetails.append(.weight)
+            retrievedDetails.append(.weight)
         }
 
         if healthDetails.hasSet(.height) {
             latest.height = .init(date: date, height: healthDetails.height)
-            setDetails.append(.height)
+            retrievedDetails.append(.height)
         }
 
         if healthDetails.hasSet(.leanBodyMass) {
             latest.leanBodyMass = .init(date: date, leanBodyMass: healthDetails.leanBodyMass)
-            setDetails.append(.leanBodyMass)
+            retrievedDetails.append(.leanBodyMass)
         }
         
         if healthDetails.hasSet(.preganancyStatus) {
             latest.pregnancyStatus = .init(date: date, pregnancyStatus: healthDetails.pregnancyStatus)
         }
+        
+        if healthDetails.hasSet(.maintenance) {
+            latest.maintenance = .init(date: date, maintenance: healthDetails.maintenance)
+        }
 
-//        if let dateOfBirthComponents = healthDetails.dateOfBirthComponents {
-//            latest.age = .init(date: date, dateOfBirthComponents: dateOfBirthComponents)
-//        }
-//
-//        if healthDetails.hasSet(.sex) {
-//            latest.biologicalSex = .init(date: date, biologicalSex: healthDetails.biologicalSex)
-//        }
-
-//        if healthDetails.hasSet(.smokingStatus) {
-//            latest.smokingStatus = .init(date: date, smokingStatus: healthDetails.smokingStatus)
-//        }
-
-        /// Once we get all HealthDetails, stop searching
-        if setDetails.containsAllCases {
+        /// Once we get all (temporal) HealthDetails, stop searching
+        if retrievedDetails.containsAllTemporalCases {
             break
         }
     }

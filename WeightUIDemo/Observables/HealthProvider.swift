@@ -11,6 +11,10 @@ import SwiftUI
         healthDetails.weight.weightInKg ?? latest.weight?.weight.weightInKg
     }
 
+    var currentOrLatestMaintenanceInKcal: Double? {
+        healthDetails.maintenance.kcal ?? latest.maintenance?.maintenance.kcal
+    }
+
     var currentOrLatestLeanBodyMassInKg: Double? {
         healthDetails.leanBodyMass.leanBodyMassInKg ?? latest.leanBodyMass?.leanBodyMass.leanBodyMassInKg
     }
@@ -31,11 +35,8 @@ import SwiftUI
         var weight: Weight?
         var height: Height?
         var leanBodyMass: LeanBodyMass?
+        var maintenance: Maintenance?
         var pregnancyStatus: PregnancyStatus?
-
-//        var age: Age?
-//        var biologicalSex: BiologicalSex?
-//        var smokingStatus: SmokingStatus?
 
         struct LeanBodyMass {
             let date: Date
@@ -51,27 +52,16 @@ import SwiftUI
             let date: Date
             var height: HealthDetails.Height
         }
-        
+
+        struct Maintenance {
+            let date: Date
+            var maintenance: HealthDetails.Maintenance
+        }
+
         struct PregnancyStatus {
             let date: Date
             let pregnancyStatus: WeightUIDemo.PregnancyStatus
         }
-
-//        struct Age {
-//            let date: Date
-//            let dateOfBirthComponents: DateComponents
-//        }
-//        
-//        struct BiologicalSex {
-//            let date: Date
-//            let biologicalSex: WeightUIDemo.BiologicalSex
-//        }
-        
-//        struct SmokingStatus {
-//            let date: Date
-//            let smokingStatus: WeightUIDemo.SmokingStatus
-//        }
-
     }
 
     init(
@@ -98,8 +88,8 @@ extension HealthDetails {
 
     func hasSet(_ healthDetail: HealthDetail) -> Bool {
         switch healthDetail {
-//        case .maintenance:
-//            <#code#>
+        case .maintenance:
+            maintenance.kcal != nil
         case .age:
             ageInYears != nil
         case .sex:
@@ -114,8 +104,6 @@ extension HealthDetails {
             pregnancyStatus != .notSet
         case .smokingStatus:
             smokingStatus != .notSet
-        default:
-            false
         }
     }
 
@@ -135,8 +123,6 @@ extension HealthDetails {
         _ settingsProvider: SettingsProvider
     ) -> String {
         switch healthDetail {
-//        case .maintenance:
-//            <#code#>
         case .age:
             if let ageInYears {
                 "\(ageInYears)"
@@ -155,8 +141,8 @@ extension HealthDetails {
             pregnancyStatus.name
         case .smokingStatus:
             smokingStatus.name
-        default:
-            ""
+        case .maintenance:
+            maintenance.valueString(in: settingsProvider.energyUnit)
         }
     }
 }
@@ -229,7 +215,16 @@ extension HealthProvider {
         healthDetails.height = height
         saveHealthDetailsInDocuments(healthDetails)
     }
-    
+
+    func updateLatestMaintenance(_ maintenance: HealthDetails.Maintenance) {
+        guard let latestMaintenance = latest.maintenance else { return }
+        latest.maintenance?.maintenance = maintenance
+        
+        var healthDetails = fetchHealthDetailsFromDocuments(latestMaintenance.date)
+        healthDetails.maintenance = maintenance
+        saveHealthDetailsInDocuments(healthDetails)
+    }
+
     func updateLatestLeanBodyMass(_ leanBodyMass: HealthDetails.LeanBodyMass) {
         guard let latestLeanBodyMass = latest.leanBodyMass else { return }
         latest.leanBodyMass?.leanBodyMass = leanBodyMass

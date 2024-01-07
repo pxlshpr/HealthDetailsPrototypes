@@ -214,7 +214,8 @@ struct RestingEnergyForm: View {
     //MARK: - Sections
 
     var variablesSections: some View {
-        EquationVariablesSections(
+        VariablesSections(
+            subject: .equation,
             healthDetails: Binding<[HealthDetail]>(
                 get: { equation.requiredHealthDetails },
                 set: { _ in }

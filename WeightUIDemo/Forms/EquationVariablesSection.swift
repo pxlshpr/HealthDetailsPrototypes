@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct EquationVariablesSections: View {
+struct VariablesSections: View {
     
     @Environment(SettingsProvider.self) var settingsProvider
     @Bindable var healthProvider: HealthProvider
@@ -13,7 +13,29 @@ struct EquationVariablesSections: View {
     let showHeader: Bool
     @Binding var isRequired: Bool
     
+    /// The subject that the variables are for
+    enum Subject {
+        case equation
+        case goal
+        
+        var name: String {
+            switch self {
+            case .equation: "calculation"
+            case .goal:     "goal"
+            }
+        }
+        
+        var title: String {
+            switch self {
+            case .equation: "Equation Variables"
+            case .goal:     "Goal Variables"
+            }
+        }
+    }
+    let subject: Subject
+    
     init(
+        subject: Subject,
         healthDetails: Binding<[HealthDetail]>,
         isRequired: Binding<Bool> = .constant(true),
         healthProvider: HealthProvider,
@@ -24,6 +46,7 @@ struct EquationVariablesSections: View {
         showHeader: Bool = true
     ) {
         self.healthProvider = healthProvider
+        self.subject = subject
         _isRequired = isRequired
         _healthDetails = healthDetails
         self.pastDate = pastDate
@@ -34,49 +57,58 @@ struct EquationVariablesSections: View {
     }
     
     var body: some View {
-        characteristicsSection
-        measurementSections
+        nonTemporalSection
+        temporalSections
     }
     
     @ViewBuilder
     var mainHeader: some View {
         if showHeader {
-            Text("Equation Variables")
+            Text(subject.title)
                 .formTitleStyle()
         }
     }
     
     func link(for characteristic: HealthDetail) -> some View {
-        EquationVariableNonTemporalLink(
+        NonTemporalVariableLink(
             healthProvider: healthProvider,
+            subject: subject,
             characteristic: characteristic,
             pastDate: pastDate,
             isEditing: $isEditing
         )
     }
     
-    @ViewBuilder
-    var characteristicsSection: some View {
-        if !characteristics.isEmpty {
-            Section(header: mainHeader) {
-                ForEach(characteristics) {
-                    link(for: $0)
+    var nonTemporalSection: some View {
+        @ViewBuilder
+        var footer: some View {
+            if isRequired {
+                Text("These are required for this \(subject.name).")
+            }
+        }
+        return Group {
+            if !nonTemporalHealthDetails.isEmpty {
+                Section(header: mainHeader, footer: footer) {
+                    ForEach(nonTemporalHealthDetails) {
+                        link(for: $0)
+                    }
                 }
             }
         }
     }
     
-    var measurementSections: some View {
+    var temporalSections: some View {
         Group {
-            ForEach(Array(measurements.enumerated()), id: \.offset) { index, healthDetail in
-                measurementSection(for: healthDetail, index: index)
+            ForEach(Array(temporalHealthDetails.enumerated()), id: \.offset) { index, healthDetail in
+                temporalVariableSection(for: healthDetail, index: index)
             }
         }
     }
     
-    func measurementSection(for healthDetail: HealthDetail, index: Int) -> some View {
-        EquationVariableTemporalSection(
+    func temporalVariableSection(for healthDetail: HealthDetail, index: Int) -> some View {
+        TemporalVariableSection(
             healthProvider: healthProvider,
+            subject: subject,
             healthDetail: healthDetail,
             pastDate: pastDate,
             isEditing: $isEditing,
@@ -84,18 +116,18 @@ struct EquationVariablesSections: View {
             dismissDisabled: $dismissDisabled,
             isRequired: $isRequired,
             shouldShowMainHeader: Binding<Bool>(
-                get: { characteristics.isEmpty && index == 0 },
+                get: { nonTemporalHealthDetails.isEmpty && index == 0 },
                 set: { _ in }
             ),
             showHeader: showHeader
         )
     }
     
-    var characteristics: [HealthDetail] {
+    var nonTemporalHealthDetails: [HealthDetail] {
         healthDetails.nonTemporalHealthDetails
     }
     
-    var measurements: [HealthDetail] {
+    var temporalHealthDetails: [HealthDetail] {
         healthDetails.temporalHealthDetails
     }
     
@@ -104,11 +136,12 @@ struct EquationVariablesSections: View {
     }
 }
 
-struct EquationVariableNonTemporalLink: View {
+struct NonTemporalVariableLink: View {
     
     @Environment(SettingsProvider.self) var settingsProvider
     @Bindable var healthProvider: HealthProvider
 
+    let subject: VariablesSections.Subject
     let characteristic: HealthDetail
     let pastDate: Date?
     @Binding var isEditing: Bool
@@ -148,11 +181,12 @@ struct EquationVariableNonTemporalLink: View {
     }
 }
 
-struct EquationVariableTemporalSection: View {
+struct TemporalVariableSection: View {
     
     @Environment(SettingsProvider.self) var settingsProvider
     @Bindable var healthProvider: HealthProvider
 
+    let subject: VariablesSections.Subject
     let healthDetail: HealthDetail
     let pastDate: Date?
     @Binding var isEditing: Bool
@@ -176,6 +210,7 @@ struct EquationVariableTemporalSection: View {
             case .weight:       pastWeight
             case .leanBodyMass: pastLeanBodyMass
             case .height:       pastHeight
+            case .maintenance:  pastMaintenance
             default:            EmptyView()
             }
         }
@@ -273,6 +308,31 @@ struct EquationVariableTemporalSection: View {
     }
     
     @ViewBuilder
+    var pastMaintenance: some View {
+        if let latestMaintenance = healthProvider.latest.maintenance {
+            NavigationLink {
+                MaintenanceForm(
+                    date: latestMaintenance.date,
+                    maintenance: latestMaintenance.maintenance,
+                    healthProvider: healthProvider,
+                    isPresented: $isPresented,
+                    dismissDisabled: $dismissDisabled,
+                    save: { maintenance in
+                        //TODO: Save
+                        healthProvider.updateLatestMaintenance(maintenance)
+                    }
+                )
+            } label: {
+                HStack {
+                    Text(latestMaintenance.date.shortDateString)
+                    Spacer()
+                    Text(latestMaintenance.maintenance.valueString(in: settingsProvider.energyUnit))
+                }
+            }
+            .disabled(isEditing && isPast)
+        }
+    }
+    @ViewBuilder
     var pastHeight: some View {
         if let latestHeight = healthProvider.latest.height {
             NavigationLink {
@@ -303,7 +363,7 @@ struct EquationVariableTemporalSection: View {
     @ViewBuilder
     var mainHeader: some View {
         if showHeader {
-            Text("Equation Variables")
+            Text(subject.title)
                 .formTitleStyle()
         }
     }
@@ -335,7 +395,7 @@ struct EquationVariableTemporalSection: View {
                 }
                 return "Since no \(healthDetail.name.lowercased()) data has been set for \(dateString), the most recent entry \(suffix)is being used."
             } else if isRequired {
-                return "Your \(healthDetail.name.lowercased()) is required for this calculation."
+                return "Your \(healthDetail.name.lowercased()) is required for this \(subject.name)."
             } else {
                 return nil
             }
@@ -369,5 +429,63 @@ struct EquationVariableTemporalSection: View {
         
     var isPast: Bool {
         pastDate != nil
+    }
+}
+
+#Preview("Equation") {
+    NavigationView {
+        Form {
+            VariablesSections(
+                subject: .equation,
+                healthDetails: Binding<[HealthDetail]>(
+                    get: { [.weight, .height, .age, .leanBodyMass, .sex] },
+                    set: { _ in }
+                ),
+                isRequired: Binding<Bool>(
+                    get: { true },
+                    set: { _ in }
+                ),
+                healthProvider: MockCurrentProvider,
+                pastDate: Date.now,
+                isEditing: .constant(false),
+                isPresented: Binding<Bool>(
+                    get: { true },
+                    set: { newValue in
+                    }
+                ),
+                dismissDisabled: .constant(false),
+                showHeader: true
+            )
+            .environment(SettingsProvider())
+        }
+    }
+}
+
+#Preview("Goal") {
+    NavigationView {
+        Form {
+            VariablesSections(
+                subject: .goal,
+                healthDetails: Binding<[HealthDetail]>(
+                    get: { [.maintenance] },
+                    set: { _ in }
+                ),
+                isRequired: Binding<Bool>(
+                    get: { true },
+                    set: { _ in }
+                ),
+                healthProvider: MockCurrentProvider,
+                pastDate: Date.now,
+                isEditing: .constant(false),
+                isPresented: Binding<Bool>(
+                    get: { true },
+                    set: { newValue in
+                    }
+                ),
+                dismissDisabled: .constant(false),
+                showHeader: true
+            )
+            .environment(SettingsProvider())
+        }
     }
 }

@@ -80,5 +80,9 @@ extension Array where Element == HealthDetail {
     var containsAllCases: Bool {
         HealthDetail.allCases.allSatisfy { contains($0) }
     }
+    
+    var containsAllTemporalCases: Bool {
+        HealthDetail.allTemporalHealthDetails.allSatisfy { contains($0) }
+    }
 }
 

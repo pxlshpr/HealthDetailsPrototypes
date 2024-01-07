@@ -129,6 +129,12 @@ extension HealthDetails.Weight {
     }
 }
 
+extension HealthDetails.Maintenance {
+    func valueString(in unit: EnergyUnit) -> String {
+        kcal.valueString(convertedFrom: .kcal, to: unit)
+    }
+}
+
 extension HealthDetails.LeanBodyMass {
     func secondaryValueString() -> String? {
         if let fatPercentage {
@@ -161,6 +167,12 @@ extension Optional where Wrapped == Double {
         guard let self else { return nil }
         return fromUnit.convert(self, to: toUnit)
 //            .rounded(.towardZero)
+    }
+
+    func valueString(convertedFrom fromUnit: EnergyUnit, to unit: EnergyUnit) -> String {
+        guard let self else { return "Not Set" }
+        let converted = fromUnit.convert(self, to: unit)
+        return "\(converted.formattedEnergy) \(unit.doubleUnitString)"
     }
     
     func valueString(convertedFrom fromUnit: BodyMassUnit, to unit: BodyMassUnit) -> String {
