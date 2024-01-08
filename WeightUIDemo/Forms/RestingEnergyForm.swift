@@ -13,11 +13,11 @@ struct RestingEnergyForm: View {
     let initialRestingEnergy: HealthDetails.Maintenance.Estimate.RestingEnergy
 
     @State var restingEnergyInKcal: Double?
-    @State var source: RestingEnergySource = .healthKit
+    @State var source: RestingEnergySource = .equation
     @State var equation: RestingEnergyEquation = .katchMcardle
     @State var intervalType: HealthIntervalType = .average
     @State var interval: HealthInterval = .init(3, .day)
-    @State var applyCorrection: Bool = true
+    @State var applyCorrection: Bool = false
     @State var correctionType: CorrectionType = .divide
     @State var correctionInput = DoubleInput(automaticallySubmitsValues: true)
     @State var customInput = DoubleInput(automaticallySubmitsValues: true)
@@ -114,21 +114,6 @@ struct RestingEnergyForm: View {
         )
     }
     
-    func appeared() {
-        if isEditing {
-            if !hasAppeared {
-                Task {
-                    try await fetchHealthKitValues()
-                }
-            }
-
-            /// Triggers equations to re-calculate or HealthKit to resync when we pop back from an equation variable. Delay this if not the first appearance so that we get to see the animation of the value changing.
-            DispatchQueue.main.asyncAfter(deadline: .now() + (hasAppeared ? 0.3 : 0)) {
-                handleChanges()
-            }
-        }
-    }
-
     var body: some View {
         Form {
             notice
@@ -148,10 +133,8 @@ struct RestingEnergyForm: View {
         .toolbar { toolbarContent }
         .onAppear(perform: appeared)
         .onChange(of: scenePhase, scenePhaseChanged)
-        .sheet(isPresented: $showingEquationsInfo) { equationExplanations }
-        .sheet(isPresented: $showingRestingEnergyInfo) {
-            RestingEnergyInfo()
-        }
+        .sheet(isPresented: $showingEquationsInfo) { RestingEnergyEquationsInfo() }
+        .sheet(isPresented: $showingRestingEnergyInfo) { RestingEnergyInfo() }
         .safeAreaInset(edge: .bottom) { bottomValue }
         .navigationBarBackButtonHidden(isLegacy && isEditing)
         .onChange(of: isEditing) { _, _ in setDismissDisabled() }
@@ -159,6 +142,21 @@ struct RestingEnergyForm: View {
         .scrollDismissesKeyboard(.interactively)
     }
     
+    func appeared() {
+        if isEditing {
+            if !hasAppeared {
+                Task {
+                    try await fetchHealthKitValues()
+                }
+            }
+
+            /// Triggers equations to re-calculate or HealthKit to resync when we pop back from an equation variable. Delay this if not the first appearance so that we get to see the animation of the value changing.
+            DispatchQueue.main.asyncAfter(deadline: .now() + (hasAppeared ? 0.3 : 0)) {
+                handleChanges()
+            }
+        }
+    }
+
     func scenePhaseChanged(old: ScenePhase, new: ScenePhase) {
         switch new {
         case .active:
@@ -202,16 +200,12 @@ struct RestingEnergyForm: View {
             isEditing: $isEditing,
             isDirty: $isDirty,
             isPast: isLegacy,
-            dismissAction: { dismiss() },
+            dismissAction: { isPresented = false },
             undoAction: undo,
             saveAction: save
         )
     }
     
-    var equationExplanations: some View {
-        RestingEnergyEquationsInfo()
-    }
-
     //MARK: - Sections
 
     var variablesSections: some View {
@@ -467,7 +461,7 @@ struct RestingEnergyForm: View {
             correctionInput: $correctionInput,
             handleChanges: handleChanges,
             isRestingEnergy: true,
-            restingEnergyInKcal: $restingEnergyInKcal
+            energyInKcal: $restingEnergyInKcal
         )
         .environment(settingsProvider)
     }

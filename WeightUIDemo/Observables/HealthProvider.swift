@@ -163,7 +163,12 @@ extension HealthProvider {
         healthDetails.maintenance.estimate.restingEnergy = restingEnergy
         save()
     }
-    
+
+    func saveActiveEnergy(_ activeEnergy: HealthDetails.Maintenance.Estimate.ActiveEnergy) {
+        healthDetails.maintenance.estimate.activeEnergy = activeEnergy
+        save()
+    }
+
     func savePregnancyStatus(_ pregnancyStatus: PregnancyStatus) {
         healthDetails.pregnancyStatus = pregnancyStatus
         save()

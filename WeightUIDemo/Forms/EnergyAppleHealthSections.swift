@@ -18,7 +18,7 @@ struct EnergyAppleHealthSections: View {
 
     @State var showingHealthIntervalInfo = false
     @State var showingCorrectionInfo = false
-    @Binding var restingEnergyInKcal: Double?
+    @Binding var energyInKcal: Double?
     
     @State var hasFocusedCorrectionField = true
     
@@ -289,8 +289,8 @@ extension EnergyAppleHealthSections {
     }
     
     var hasData: Bool {
-        guard let restingEnergyInKcal else { return false }
-        return restingEnergyInKcal > 0
+        guard let energyInKcal else { return false }
+        return energyInKcal > 0
     }
     
     @ViewBuilder
