@@ -33,7 +33,7 @@ struct ActiveEnergyForm: View {
     @State var showingActivityLevelInfo = false
     @State var showingActiveEnergyInfo = false
 
-    @State var hasFocusedCustomField: Bool = false
+    @State var hasFocusedCustomField: Bool = true
     @State var hasAppeared = false
 
     @State var isEditing: Bool

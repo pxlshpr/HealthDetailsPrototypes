@@ -63,10 +63,18 @@ struct EstimatedMaintenanceForm: View {
     }
     
     var bottomValue: some View {
-        MeasurementBottomBar(
-            double: $estimateInKcal,
+        var energyValue: Double? {
+            guard let estimateInKcal else { return nil }
+            return EnergyUnit.kcal.convert(estimateInKcal, to: settingsProvider.energyUnit)
+        }
+
+        return MeasurementBottomBar(
+            double: Binding<Double?>(
+                get: { energyValue },
+                set: { _ in }
+            ),
             doubleString: Binding<String?>(
-                get: { estimateInKcal?.formattedEnergy },
+                get: { energyValue?.formattedEnergy },
                 set: { _ in }
             ),
             doubleUnitString: energyUnitString,
