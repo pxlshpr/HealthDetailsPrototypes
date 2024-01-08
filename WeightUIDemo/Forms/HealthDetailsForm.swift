@@ -27,7 +27,8 @@ struct HealthDetailsForm: View {
                 .navigationBarTitleDisplayMode(.large)
                 .toolbar { toolbarContent }
         }
-        .interactiveDismissDisabled(dismissDisabled)
+//        .interactiveDismissDisabled(dismissDisabled)
+        .interactiveDismissDisabled(true)
     }
     
     var form: some View {
