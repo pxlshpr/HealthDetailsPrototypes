@@ -114,6 +114,7 @@ struct EstimatedMaintenanceForm: View {
                     restingEnergy: estimate.restingEnergy,
                     settingsProvider: settingsProvider,
                     healthProvider: healthProvider,
+                    isPresented: $isPresented,
                     dismissDisabled: $dismissDisabled,
                     save: saveRestingEnergy
                 )
@@ -154,6 +155,7 @@ struct EstimatedMaintenanceForm: View {
                     restingEnergyInKcal: estimate.restingEnergy.kcal,
                     settingsProvider: settingsProvider,
                     healthProvider: healthProvider,
+                    isPresented: $isPresented,
                     dismissDisabled: $dismissDisabled,
                     save: saveActiveEnergy
                 )

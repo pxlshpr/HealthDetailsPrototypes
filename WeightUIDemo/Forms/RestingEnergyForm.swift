@@ -31,7 +31,7 @@ struct RestingEnergyForm: View {
 
     @State var showingEquationsInfo = false
     @State var showingRestingEnergyInfo = false
-    @State var hasFocusedCustomField: Bool
+    @State var hasFocusedCustomField: Bool = true
     @State var hasAppeared = false
 
     @State var isEditing: Bool
@@ -94,7 +94,7 @@ struct RestingEnergyForm: View {
             _applyCorrection = State(initialValue: false)
         }
         
-        _hasFocusedCustomField = State(initialValue: !date.isToday)
+//        _hasFocusedCustomField = State(initialValue: true)
     }
     
     init(
@@ -154,6 +154,11 @@ struct RestingEnergyForm: View {
             DispatchQueue.main.asyncAfter(deadline: .now() + (hasAppeared ? 0.3 : 0)) {
                 handleChanges()
             }
+//            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+//                if !hasAppeared {
+//                    hasFocusedCustomField = false
+//                }
+//            }
         }
     }
 

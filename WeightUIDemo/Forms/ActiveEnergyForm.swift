@@ -33,7 +33,7 @@ struct ActiveEnergyForm: View {
     @State var showingActivityLevelInfo = false
     @State var showingActiveEnergyInfo = false
 
-    @State var hasFocusedCustomField: Bool
+    @State var hasFocusedCustomField: Bool = false
     @State var hasAppeared = false
 
     @State var isEditing: Bool
@@ -98,7 +98,7 @@ struct ActiveEnergyForm: View {
             _applyCorrection = State(initialValue: false)
         }
         
-        _hasFocusedCustomField = State(initialValue: !date.isToday)
+//        _hasFocusedCustomField = State(initialValue: !date.isToday)
     }
     
     init(
