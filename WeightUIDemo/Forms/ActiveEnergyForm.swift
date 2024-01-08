@@ -51,14 +51,14 @@ struct ActiveEnergyForm: View {
         healthProvider: HealthProvider,
         isPresented: Binding<Bool> = .constant(true),
         dismissDisabled: Binding<Bool> = .constant(false),
-        save: @escaping (HealthDetails.Maintenance.Estimate.ActiveEnergy) -> ()
+        saveHandler: @escaping (HealthDetails.Maintenance.Estimate.ActiveEnergy) -> ()
     ) {
         self.date = date
         self.initialActiveEnergy = activeEnergy
         self.restingEnergyInKcal = restingEnergyInKcal
         self.healthProvider = healthProvider
         self.settingsProvider = settingsProvider
-        self.saveHandler = save
+        self.saveHandler = saveHandler
         _isPresented = isPresented
         _dismissDisabled = dismissDisabled
         _isEditing = State(initialValue: date.isToday)
@@ -97,26 +97,6 @@ struct ActiveEnergyForm: View {
         } else {
             _applyCorrection = State(initialValue: false)
         }
-        
-//        _hasFocusedCustomField = State(initialValue: !date.isToday)
-    }
-    
-    init(
-        settingsProvider: SettingsProvider,
-        healthProvider: HealthProvider,
-        isPresented: Binding<Bool> = .constant(true),
-        dismissDisabled: Binding<Bool> = .constant(false)
-    ) {
-        self.init(
-            date: healthProvider.healthDetails.date,
-            activeEnergy: healthProvider.healthDetails.maintenance.estimate.activeEnergy,
-            restingEnergyInKcal: healthProvider.healthDetails.maintenance.estimate.restingEnergy.kcal,
-            settingsProvider: settingsProvider,
-            healthProvider: healthProvider,
-            isPresented: isPresented,
-            dismissDisabled: dismissDisabled,
-            save: healthProvider.saveActiveEnergy
-        )
     }
     
     var body: some View {
@@ -141,9 +121,12 @@ struct ActiveEnergyForm: View {
         .sheet(isPresented: $showingActiveEnergyInfo) { ActiveEnergyInfo() }
         .safeAreaInset(edge: .bottom) { bottomValue }
         .navigationBarBackButtonHidden(isLegacy && isEditing)
-        .onChange(of: isEditing) { _, _ in setDismissDisabled() }
-        .onChange(of: isDirty) { _, _ in setDismissDisabled() }
         .scrollDismissesKeyboard(.interactively)
+        .onChange(of: isDirty) { _, _ in setDismissDisabled() }
+        .onChange(of: isEditing) { _, _ in
+            handleChanges()
+            setDismissDisabled()
+        }
     }
     
     func setDismissDisabled() {
@@ -151,13 +134,14 @@ struct ActiveEnergyForm: View {
     }
 
     func appeared() {
-        if isEditing {
-            if !hasAppeared {
-                Task {
-                    try await fetchHealthKitValues()
-                }
+        if !hasAppeared {
+            Task {
+                try await calculateActivityLevelValues()
+                try await fetchHealthKitValues()
             }
+        }
 
+        if isEditing {
             /// Triggers equations to re-calculate or HealthKit to resync when we pop back from an equation variable. Delay this if not the first appearance so that we get to see the animation of the value changing.
             DispatchQueue.main.asyncAfter(deadline: .now() + (hasAppeared ? 0.3 : 0)) {
                 handleChanges()
@@ -257,6 +241,8 @@ struct ActiveEnergyForm: View {
     }
     
     func handleChanges() {
+        guard isEditing else { return }
+
         handleChangesTask?.cancel()
         handleChangesTask = Task {
             
@@ -557,22 +543,22 @@ struct ActiveEnergyForm: View {
     //MARK: - Actions
     
     func undo() {
-        let initial = initialActiveEnergy
-        activeEnergyInKcal = initial.kcal
+        print("Undo – Setting activeEnergyInKcal to: \(initialActiveEnergy.kcal)")
+        activeEnergyInKcal = initialActiveEnergy.kcal
         customInput = DoubleInput(
-            double: initial.kcal.convertEnergy(
+            double: initialActiveEnergy.kcal.convertEnergy(
                 from: .kcal,
                 to: settingsProvider.energyUnit
             ),
             automaticallySubmitsValues: true
         )
 
-        source = initial.source
-        activityLevel = initial.activityLevel
-        intervalType = initial.healthKitSyncSettings.intervalType
-        interval = initial.healthKitSyncSettings.interval
+        source = initialActiveEnergy.source
+        activityLevel = initialActiveEnergy.activityLevel
+        intervalType = initialActiveEnergy.healthKitSyncSettings.intervalType
+        interval = initialActiveEnergy.healthKitSyncSettings.interval
    
-        if let correction = initial.healthKitSyncSettings.correctionValue {
+        if let correction = initialActiveEnergy.healthKitSyncSettings.correctionValue {
             applyCorrection = true
             correctionType = correction.type
             
@@ -602,24 +588,24 @@ struct ActiveEnergyForm: View {
         saveHandler(activeEnergy)
     }
 }
-
-#Preview("Current") {
-    NavigationView {
-        ActiveEnergyForm(
-            settingsProvider: SettingsProvider(),
-            healthProvider: MockCurrentProvider
-        )
-    }
-}
-
-#Preview("Past") {
-    NavigationView {
-        ActiveEnergyForm(
-            settingsProvider: SettingsProvider(),
-            healthProvider: MockPastProvider
-        )
-    }
-}
+//
+//#Preview("Current") {
+//    NavigationView {
+//        ActiveEnergyForm(
+//            settingsProvider: SettingsProvider(),
+//            healthProvider: MockCurrentProvider
+//        )
+//    }
+//}
+//
+//#Preview("Past") {
+//    NavigationView {
+//        ActiveEnergyForm(
+//            settingsProvider: SettingsProvider(),
+//            healthProvider: MockPastProvider
+//        )
+//    }
+//}
 
 #Preview("Demo") {
     DemoView()

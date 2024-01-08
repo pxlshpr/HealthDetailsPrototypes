@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftSugar
+import PrepShared
 
 struct MaintenanceForm: View {
     
@@ -10,18 +11,16 @@ struct MaintenanceForm: View {
     let date: Date
     let initialMaintenance: HealthDetails.Maintenance
     
-    @State var maintenancetype: MaintenanceType = .adaptive
-    @State var valueInKcal: Double? = nil
-    @State var adaptiveValueInKcal: Double? = nil
-    @State var estimatedValueInKcal: Double? = nil
-
-    @State var useEstimateAsFallback = true
+    @State var estimate: HealthDetails.Maintenance.Estimate
+    @State var adaptive: HealthDetails.Maintenance.Adaptive
+    @State var maintenancetype: MaintenanceType
+    @State var maintenanceInKcal: Double?
+    @State var useEstimateAsFallback: Bool
 
     @State var showingMaintenanceInfo = false
     
     @State var isEditing: Bool
     @State var isDirty: Bool = false
-    
     @Binding var isPresented: Bool
     @Binding var dismissDisabled: Bool
 
@@ -42,6 +41,12 @@ struct MaintenanceForm: View {
         _isPresented = isPresented
         _dismissDisabled = dismissDisabled
         _isEditing = State(initialValue: date.isToday)
+
+        _maintenanceInKcal = State(initialValue: maintenance.kcal)
+        _maintenancetype = State(initialValue: maintenance.type)
+        _useEstimateAsFallback = State(initialValue: maintenance.useEstimateAsFallback)
+        _estimate = State(initialValue: maintenance.estimate)
+        _adaptive = State(initialValue: maintenance.adaptive)
     }
     
     init(
@@ -60,13 +65,12 @@ struct MaintenanceForm: View {
     }
     
     var body: some View {
-//        let _ = Self._printChanges()
         List {
             notice
             about
             valuePicker
             adaptiveLink
-            estimatedLink
+            estimateLink
             fallbackToggle
             explanation
         }
@@ -86,13 +90,21 @@ struct MaintenanceForm: View {
     }
     
     var bottomValue: some View {
-        MeasurementBottomBar(
-            double: $valueInKcal,
-            doubleString: Binding<String?>(
-                get: { valueInKcal?.formattedEnergy },
+        var value: Double? {
+            guard let maintenanceInKcal else { return nil }
+            return EnergyUnit.kcal.convert(maintenanceInKcal, to: settingsProvider.energyUnit)
+        }
+        
+        return MeasurementBottomBar(
+            double: Binding<Double?>(
+                get: { value },
                 set: { _ in }
             ),
-            doubleUnitString: "kcal",
+            doubleString: Binding<String?>(
+                get: { value?.formattedEnergy },
+                set: { _ in }
+            ),
+            doubleUnitString: settingsProvider.energyUnit.abbreviation,
             isDisabled: Binding<Bool>(
                 get: { !isEditing },
                 set: { _ in }
@@ -103,13 +115,29 @@ struct MaintenanceForm: View {
     var fallbackToggle: some View {
         
         var footer: some View {
-            Text("Your Estimated Maintenance Energy will be used when there is not enough Weight or Dietary Energy data to calculate your Adaptive Maintenance.")
+//            Text("Your Estimated Maintenance Energy will be used when there is not enough Weight or Dietary Energy data to calculate your Adaptive Maintenance.")
+            Text("The Estimate will be used as a fallback when the Adaptive calcuation cannot be made.")
+        }
+        
+        let binding = Binding<Bool>(
+            get: { useEstimateAsFallback },
+            set: { newValue in
+                withAnimation {
+                    useEstimateAsFallback = newValue
+                }
+                handleChanges()
+            }
+        )
+        
+        var title: String {
+//            "Use Estimate when Adaptive calculation cannot be made"
+            "Use Estimate as fallback"
         }
         
         return Group {
             if maintenancetype == .adaptive {
                 Section(footer: footer) {
-                    Toggle("Use Estimate when Adaptive calculation cannot be made", isOn: $useEstimateAsFallback)
+                    Toggle(title, isOn: binding)
                         .disabled(!isEditing)
                         .foregroundColor(isEditing ? .primary : .secondary)
                 }
@@ -142,30 +170,34 @@ struct MaintenanceForm: View {
     }
     
     func save() {
-        
+        saveHandler(maintenance)
+    }
+    
+    var maintenance: HealthDetails.Maintenance {
+        .init(
+            type: maintenancetype,
+            kcal: maintenanceInKcal,
+            adaptive: adaptive,
+            estimate: estimate,
+            useEstimateAsFallback: useEstimateAsFallback
+        )
     }
     
     func undo() {
-        isDirty = false
-        maintenancetype = .adaptive
-        valueInKcal = adaptiveValueInKcal
+        maintenanceInKcal = initialMaintenance.kcal
+        maintenancetype = initialMaintenance.type
+        useEstimateAsFallback = initialMaintenance.useEstimateAsFallback
+        estimate = initialMaintenance.estimate
+        adaptive = initialMaintenance.adaptive
     }
 
-    enum AdaptiveRoute {
-        case form
-    }
-    
-    enum EstimatedRoute {
-        case form
-    }
-    
     var adaptiveLink: some View {
         var label: some View {
             HStack {
                 Text("Adaptive")
                 Spacer()
-                if let adaptiveValueInKcal {
-                    Text("\(adaptiveValueInKcal.formattedEnergy) kcal")
+                if let kcal = adaptive.kcal {
+                    Text("\(EnergyUnit.kcal.convert(kcal, to: settingsProvider.energyUnit).formattedEnergy) \(settingsProvider.energyUnit.abbreviation)")
                 } else {
                     Text("Not Set")
                         .foregroundStyle(.secondary)
@@ -177,18 +209,8 @@ struct MaintenanceForm: View {
             AdaptiveMaintenanceForm(
                 date: date,
                 isPresented: $isPresented,
-//                isPresented: .constant(true),
                 dismissDisabled: $dismissDisabled
             )
-        }
-        
-        var NavigationViewLink: some View {
-            NavigationLink(value: AdaptiveRoute.form) {
-                label
-            }
-            .navigationDestination(for: AdaptiveRoute.self) { _ in
-                destination
-            }
         }
         
         var navigationViewLink: some View {
@@ -200,19 +222,18 @@ struct MaintenanceForm: View {
 
         }
         return Section {
-//            NavigationViewLink
             navigationViewLink
                 .disabled(isLegacy && isEditing)
         }
     }
 
-    var estimatedLink: some View {
+    var estimateLink: some View {
         var label: some View {
             HStack {
-                Text("Estimated")
+                Text("Estimate")
                 Spacer()
-                if let estimatedValueInKcal {
-                    Text("\(estimatedValueInKcal.formattedEnergy) kcal")
+                if let kcal = estimate.kcal {
+                    Text("\(EnergyUnit.kcal.convert(kcal, to: settingsProvider.energyUnit).formattedEnergy) \(settingsProvider.energyUnit.abbreviation)")
                 } else {
                     Text("Not Set")
                         .foregroundStyle(.secondary)
@@ -226,24 +247,13 @@ struct MaintenanceForm: View {
                 estimate: initialMaintenance.estimate,
                 healthProvider: healthProvider,
                 isPresented: $isPresented,
-//                isPresented: .constant(true),
-                dismissDisabled: $dismissDisabled
+                dismissDisabled: $dismissDisabled,
+                saveHandler: { estimate in
+                    self.estimate = estimate
+                    handleChanges(forceSave: true)
+                }
             )
             .environment(settingsProvider)
-//            EstimatedMaintenanceForm(
-//                healthProvider: healthProvider,
-//                isPresented: $isPresented,
-//                dismissDisabled: $dismissDisabled
-//            )
-        }
-        
-        var NavigationViewLink: some View {
-            NavigationLink(value: EstimatedRoute.form) {
-                label
-            }
-            .navigationDestination(for: AdaptiveRoute.self) { _ in
-                label
-            }
         }
         
         var navigationViewLink: some View {
@@ -255,21 +265,47 @@ struct MaintenanceForm: View {
 
         }
         return Section {
-//            NavigationViewLink
             navigationViewLink
                 .disabled(isLegacy && isEditing)
         }
     }
 
+    func handleChanges(forceSave: Bool = false) {
+        
+        let maintenanceInKcal: Double? = switch maintenancetype {
+        case .adaptive:
+            if let kcal = adaptive.kcal {
+                kcal
+            } else if useEstimateAsFallback {
+                estimate.kcal
+            } else {
+                nil
+            }
+        case .estimated:
+            estimate.kcal
+        }
+        withAnimation {
+            self.maintenanceInKcal = maintenanceInKcal
+        }
+
+        setIsDirty()
+        if !isLegacy || forceSave {
+            save()
+        }
+    }
+    
+    func setIsDirty() {
+        isDirty = maintenance != initialMaintenance
+    }
+    
     var valuePicker: some View {
         let binding = Binding<MaintenanceType>(
             get: { maintenancetype },
             set: { newValue in
                 withAnimation {
                     maintenancetype = newValue
-                    valueInKcal = maintenancetype == .adaptive ? adaptiveValueInKcal : estimatedValueInKcal
-                    isDirty = maintenancetype != .adaptive
                 }
+                handleChanges()
             }
         )
         

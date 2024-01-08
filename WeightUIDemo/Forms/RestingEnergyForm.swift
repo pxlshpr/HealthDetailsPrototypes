@@ -48,13 +48,13 @@ struct RestingEnergyForm: View {
         healthProvider: HealthProvider,
         isPresented: Binding<Bool> = .constant(true),
         dismissDisabled: Binding<Bool> = .constant(false),
-        save: @escaping (HealthDetails.Maintenance.Estimate.RestingEnergy) -> ()
+        saveHandler: @escaping (HealthDetails.Maintenance.Estimate.RestingEnergy) -> ()
     ) {
         self.date = date
         self.initialRestingEnergy = restingEnergy
         self.healthProvider = healthProvider
         self.settingsProvider = settingsProvider
-        self.saveHandler = save
+        self.saveHandler = saveHandler
         _isPresented = isPresented
         _dismissDisabled = dismissDisabled
         _isEditing = State(initialValue: date.isToday)
@@ -93,25 +93,6 @@ struct RestingEnergyForm: View {
         } else {
             _applyCorrection = State(initialValue: false)
         }
-        
-//        _hasFocusedCustomField = State(initialValue: true)
-    }
-    
-    init(
-        settingsProvider: SettingsProvider,
-        healthProvider: HealthProvider,
-        isPresented: Binding<Bool> = .constant(true),
-        dismissDisabled: Binding<Bool> = .constant(false)
-    ) {
-        self.init(
-            date: healthProvider.healthDetails.date,
-            restingEnergy: healthProvider.healthDetails.maintenance.estimate.restingEnergy,
-            settingsProvider: settingsProvider,
-            healthProvider: healthProvider,
-            isPresented: isPresented,
-            dismissDisabled: dismissDisabled,
-            save: healthProvider.saveRestingEnergy
-        )
     }
     
     var body: some View {
@@ -137,28 +118,27 @@ struct RestingEnergyForm: View {
         .sheet(isPresented: $showingRestingEnergyInfo) { RestingEnergyInfo() }
         .safeAreaInset(edge: .bottom) { bottomValue }
         .navigationBarBackButtonHidden(isLegacy && isEditing)
-        .onChange(of: isEditing) { _, _ in setDismissDisabled() }
-        .onChange(of: isDirty) { _, _ in setDismissDisabled() }
         .scrollDismissesKeyboard(.interactively)
+        .onChange(of: isDirty) { _, _ in setDismissDisabled() }
+        .onChange(of: isEditing) { _, _ in
+            handleChanges()
+            setDismissDisabled()
+        }
     }
     
     func appeared() {
-        if isEditing {
-            if !hasAppeared {
-                Task {
-                    try await fetchHealthKitValues()
-                }
+        if !hasAppeared {
+            Task {
+                try await calculateEquationValues()
+                try await fetchHealthKitValues()
             }
+        }
 
+        if isEditing {
             /// Triggers equations to re-calculate or HealthKit to resync when we pop back from an equation variable. Delay this if not the first appearance so that we get to see the animation of the value changing.
             DispatchQueue.main.asyncAfter(deadline: .now() + (hasAppeared ? 0.3 : 0)) {
                 handleChanges()
             }
-//            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-//                if !hasAppeared {
-//                    hasFocusedCustomField = false
-//                }
-//            }
         }
     }
 
@@ -630,24 +610,24 @@ struct RestingEnergyForm: View {
 }
 
 //MARK: - Previews
-
-#Preview("Current") {
-    NavigationView {
-        RestingEnergyForm(
-            settingsProvider: SettingsProvider(),
-            healthProvider: MockCurrentProvider
-        )
-    }
-}
-
-#Preview("Past") {
-    NavigationView {
-        RestingEnergyForm(
-            settingsProvider: SettingsProvider(),
-            healthProvider: MockPastProvider
-        )
-    }
-}
+ 
+//#Preview("Current") {
+//    NavigationView {
+//        RestingEnergyForm(
+//            settingsProvider: SettingsProvider(),
+//            healthProvider: MockCurrentProvider
+//        )
+//    }
+//}
+//
+//#Preview("Past") {
+//    NavigationView {
+//        RestingEnergyForm(
+//            settingsProvider: SettingsProvider(),
+//            healthProvider: MockPastProvider
+//        )
+//    }
+//}
 
 #Preview("Demo") {
     DemoView()

@@ -310,11 +310,11 @@ extension EnergyAppleHealthSections {
     }
 }
 
-#Preview("Current") {
-    NavigationView {
-        RestingEnergyForm(
-            settingsProvider: SettingsProvider(),
-            healthProvider: MockCurrentProvider
-        )
-    }
-}
+//#Preview("Current") {
+//    NavigationView {
+//        RestingEnergyForm(
+//            settingsProvider: SettingsProvider(),
+//            healthProvider: MockCurrentProvider
+//        )
+//    }
+//}

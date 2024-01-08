@@ -7,49 +7,40 @@ struct EstimatedMaintenanceForm: View {
     @Bindable var healthProvider: HealthProvider
     
     let date: Date
-    let estimate: HealthDetails.Maintenance.Estimate
+    let initialEstimate: HealthDetails.Maintenance.Estimate
     
     @State var estimateInKcal: Double? = nil
-    @State var restingEnergyInKcal: Double? = nil
-    @State var activeEnergyInKcal: Double? = nil
+    @State var restingEnergy: HealthDetails.Maintenance.Estimate.RestingEnergy
+    @State var activeEnergy: HealthDetails.Maintenance.Estimate.ActiveEnergy
     
     @State var isEditing: Bool
     @Binding var isPresented: Bool
     @Binding var dismissDisabled: Bool
+
+    let saveHandler: (HealthDetails.Maintenance.Estimate) -> ()
 
     init(
         date: Date,
         estimate: HealthDetails.Maintenance.Estimate,
         healthProvider: HealthProvider,
         isPresented: Binding<Bool> = .constant(true),
-        dismissDisabled: Binding<Bool> = .constant(false)
+        dismissDisabled: Binding<Bool> = .constant(false),
+        saveHandler: @escaping (HealthDetails.Maintenance.Estimate) -> ()
     ) {
         self.date = date
-        self.estimate = estimate
+        self.initialEstimate = estimate
         self.healthProvider = healthProvider
+        self.saveHandler = saveHandler
         _isPresented = isPresented
         _dismissDisabled = dismissDisabled
         _isEditing = State(initialValue: true)
         
-        _restingEnergyInKcal = State(initialValue: estimate.restingEnergy.kcal)
-        _activeEnergyInKcal = State(initialValue: estimate.activeEnergy.kcal)
+        
+        _restingEnergy = State(initialValue: estimate.restingEnergy)
+        _activeEnergy = State(initialValue: estimate.activeEnergy)
         _estimateInKcal = State(initialValue: estimate.kcal)
     }
     
-    init(
-        healthProvider: HealthProvider,
-        isPresented: Binding<Bool> = .constant(true),
-        dismissDisabled: Binding<Bool> = .constant(false)
-    ) {
-        self.init(
-            date: healthProvider.healthDetails.date,
-            estimate: healthProvider.healthDetails.maintenance.estimate,
-            healthProvider: healthProvider,
-            isPresented: isPresented,
-            dismissDisabled: dismissDisabled
-        )
-    }
-
     var body: some View {
         Form {
             notice
@@ -85,46 +76,54 @@ struct EstimatedMaintenanceForm: View {
         )
     }
     
-    func updateEstimate() {
-        guard let restingEnergyInKcal, let activeEnergyInKcal else {
-            self.estimateInKcal = nil
-            return
+    var estimate: HealthDetails.Maintenance.Estimate {
+        .init(
+            kcal: estimateInKcal,
+            restingEnergy: restingEnergy,
+            activeEnergy: activeEnergy
+        )
+    }
+    
+    func handleChanges() {
+        let estimateInKcal: Double? = if let restingEnergyInKcal = restingEnergy.kcal, let activeEnergyInKcal = activeEnergy.kcal {
+            restingEnergyInKcal + activeEnergyInKcal
+        } else {
+            nil
         }
-        self.estimateInKcal = restingEnergyInKcal + activeEnergyInKcal
+        self.estimateInKcal = estimateInKcal
+        save()
+    }
+    
+    func save() {
+        saveHandler(estimate)
     }
     
     func saveRestingEnergy(_ restingEnergy: HealthDetails.Maintenance.Estimate.RestingEnergy) {
-        self.restingEnergyInKcal = restingEnergy.kcal
-        updateEstimate()
-
-        //TODO: When using this via a VariableSection we should pass in another save handler that the VariableSection handles by manually saving for the specific date
-        healthProvider.saveRestingEnergy(restingEnergy)
+        self.restingEnergy = restingEnergy
+        handleChanges()
     }
 
     func saveActiveEnergy(_ activeEnergy: HealthDetails.Maintenance.Estimate.ActiveEnergy) {
-        self.activeEnergyInKcal = activeEnergy.kcal
-        updateEstimate()
-
-        //TODO: When using this via a VariableSection we should pass in another save handler that the VariableSection handles by manually saving for the specific date
-        healthProvider.saveActiveEnergy(activeEnergy)
+        self.activeEnergy = activeEnergy
+        handleChanges()
     }
 
     var restingEnergyLink: some View {
         var energyValue: Double? {
-            guard let restingEnergyInKcal else { return nil }
-            return EnergyUnit.kcal.convert(restingEnergyInKcal, to: settingsProvider.energyUnit)
+            guard let kcal = restingEnergy.kcal else { return nil }
+            return EnergyUnit.kcal.convert(kcal, to: settingsProvider.energyUnit)
         }
         
         return Section {
             NavigationLink {
                 RestingEnergyForm(
                     date: date,
-                    restingEnergy: estimate.restingEnergy,
+                    restingEnergy: restingEnergy,
                     settingsProvider: settingsProvider,
                     healthProvider: healthProvider,
                     isPresented: $isPresented,
                     dismissDisabled: $dismissDisabled,
-                    save: saveRestingEnergy
+                    saveHandler: saveRestingEnergy
                 )
             } label: {
                 HStack {
@@ -151,21 +150,21 @@ struct EstimatedMaintenanceForm: View {
 
     var activeEnergyLink: some View {
         var energyValue: Double? {
-            guard let activeEnergyInKcal else { return nil }
-            return EnergyUnit.kcal.convert(activeEnergyInKcal, to: settingsProvider.energyUnit)
+            guard let kcal = activeEnergy.kcal else { return nil }
+            return EnergyUnit.kcal.convert(kcal, to: settingsProvider.energyUnit)
         }
 
         return Section {
             NavigationLink {
                 ActiveEnergyForm(
                     date: date,
-                    activeEnergy: estimate.activeEnergy,
-                    restingEnergyInKcal: estimate.restingEnergy.kcal,
+                    activeEnergy: activeEnergy,
+                    restingEnergyInKcal: restingEnergy.kcal,
                     settingsProvider: settingsProvider,
                     healthProvider: healthProvider,
                     isPresented: $isPresented,
                     dismissDisabled: $dismissDisabled,
-                    save: saveActiveEnergy
+                    saveHandler: saveActiveEnergy
                 )
             } label: {
                 HStack {
@@ -227,14 +226,18 @@ struct EstimatedMaintenanceForm: View {
 
 }
 
-#Preview("Current") {
-    NavigationView {
-        EstimatedMaintenanceForm(healthProvider: MockCurrentProvider)
-    }
-}
+//#Preview("Current") {
+//    NavigationView {
+//        EstimatedMaintenanceForm(healthProvider: MockCurrentProvider)
+//    }
+//}
+//
+//#Preview("Past") {
+//    NavigationView {
+//        EstimatedMaintenanceForm(healthProvider: MockPastProvider)
+//    }
+//}
 
-#Preview("Past") {
-    NavigationView {
-        EstimatedMaintenanceForm(healthProvider: MockPastProvider)
-    }
+#Preview("Demo") {
+    DemoView()
 }
