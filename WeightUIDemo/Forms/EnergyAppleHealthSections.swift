@@ -48,7 +48,7 @@ struct EnergyAppleHealthSections: View {
             }
             
             var description: String {
-                intervalType.footerDescription(date, interval: interval)
+                intervalType.footerDescription(date, interval: interval, isResting: isRestingEnergy)
             }
             
             return VStack(alignment: .leading) {
@@ -71,7 +71,8 @@ struct EnergyAppleHealthSections: View {
                     Text($0.name).tag($0)
                 }
             }
-            .pickerStyle(.menu)
+//            .pickerStyle(.menu)
+            .pickerStyle(.wheel)
             .disabled(isDisabled)
             .foregroundStyle(controlColor)
         }

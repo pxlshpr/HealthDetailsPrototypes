@@ -293,7 +293,8 @@ struct ActiveEnergyForm: View {
         guard let restingEnergyInKcal else { return }
         var dict: [ActivityLevel: Double] = [:]
         for activityLevel in ActivityLevel.allCases {
-            let kcal = activityLevel.scaleFactor * restingEnergyInKcal
+            let total = activityLevel.scaleFactor * restingEnergyInKcal
+            let kcal = total - restingEnergyInKcal
             dict[activityLevel] = kcal
         }
         await MainActor.run { [dict] in
@@ -313,7 +314,7 @@ struct ActiveEnergyForm: View {
             
             for interval in HealthInterval.healthKitEnergyIntervals {
                 taskGroup.addTask {
-                    let kcal = try await HealthStore.restingEnergy(
+                    let kcal = try await HealthStore.activeEnergy(
                         for: interval,
                         on: date,
                         in: .kcal
@@ -331,8 +332,8 @@ struct ActiveEnergyForm: View {
             return dict
         }
         
-        let sameDayValue = try await HealthStore.restingEnergy(on: date, in: .kcal)
-        let previousDayValue = try await HealthStore.restingEnergy(on: date.moveDayBy(-1), in: .kcal)
+        let sameDayValue = try await HealthStore.activeEnergy(on: date, in: .kcal)
+        let previousDayValue = try await HealthStore.activeEnergy(on: date.moveDayBy(-1), in: .kcal)
 
         await MainActor.run { [dict, sameDayValue, previousDayValue] in
             withAnimation {
@@ -431,7 +432,9 @@ struct ActiveEnergyForm: View {
 
         func string(for activityLevel: ActivityLevel) -> String {
             var string = activityLevel.name
-            if let kcal = activityLevelValuesInKcal[activityLevel] {
+            if let restingEnergyInKcal,
+               let kcal = activityLevelValuesInKcal[activityLevel]
+            {
                 let value = kcal.convertEnergy(from: .kcal, to: energyUnit)
                 string += " • \(value.formattedEnergy) \(energyUnit.abbreviation)"
             }

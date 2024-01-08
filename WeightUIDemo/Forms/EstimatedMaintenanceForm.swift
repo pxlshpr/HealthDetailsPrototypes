@@ -92,7 +92,15 @@ struct EstimatedMaintenanceForm: View {
         //TODO: When using this via a VariableSection we should pass in another save handler that the VariableSection handles by manually saving for the specific date
         healthProvider.saveRestingEnergy(restingEnergy)
     }
-    
+
+    func saveActiveEnergy(_ activeEnergy: HealthDetails.Maintenance.Estimate.ActiveEnergy) {
+        self.activeEnergyInKcal = activeEnergy.kcal
+        updateEstimate()
+
+        //TODO: When using this via a VariableSection we should pass in another save handler that the VariableSection handles by manually saving for the specific date
+        healthProvider.saveActiveEnergy(activeEnergy)
+    }
+
     var restingEnergyLink: some View {
         var energyValue: Double? {
             guard let restingEnergyInKcal else { return nil }
@@ -141,9 +149,13 @@ struct EstimatedMaintenanceForm: View {
         return Section {
             NavigationLink {
                 ActiveEnergyForm(
-                    pastDate: date,
-                    isPresented: $isPresented,
-                    dismissDisabled: $dismissDisabled
+                    date: date,
+                    activeEnergy: estimate.activeEnergy,
+                    restingEnergyInKcal: estimate.restingEnergy.kcal,
+                    settingsProvider: settingsProvider,
+                    healthProvider: healthProvider,
+                    dismissDisabled: $dismissDisabled,
+                    save: saveActiveEnergy
                 )
             } label: {
                 HStack {

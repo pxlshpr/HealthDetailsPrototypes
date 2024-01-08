@@ -16,50 +16,59 @@ public enum HealthIntervalType: Int16, Codable, CaseIterable {
         }
     }
 
-    func dateDescription(_ pastDate: Date?, interval: HealthInterval) -> String {
-        switch self {
+    func dateDescription(_ date: Date, interval: HealthInterval) -> String {
+        let isPast = !date.isToday
+        return switch self {
         case .average:
             "the past \(interval.description)"
         case .sameDay:
-            if let pastDate {
-                "\(pastDate.shortDateString)"
+            if isPast {
+                "\(date.shortDateString)"
             } else {
                 "today"
             }
         case .previousDay:
-            if let pastDate {
-                "\(pastDate.moveDayBy(-1).shortDateString)"
+            if isPast {
+                "\(date.moveDayBy(-1).shortDateString)"
             } else {
                 "yesterday"
             }
         }
     }
 
-    func footerDescription_(_ pastDate: Date?, interval: HealthInterval) -> String {
-        let dateDescription = dateDescription(pastDate, interval: interval)
+//    func footerDescription_(_ pastDate: Date?, interval: HealthInterval, isResting: Bool = false) -> String {
+//        let energyType = isResting ? "Resting" : "Active"
+//        let dateDescription = dateDescription(pastDate, interval: interval)
+//        return switch self {
+//        case .average:
+//            "Using the average \(energyType) Energy of \(dateDescription)."
+//        default:
+//            "Using the Resting \(energyType) recorded for \(dateDescription)."
+//        }
+//    }
+    
+    func footerDescription(_ date: Date, interval: HealthInterval, isResting: Bool) -> String {
+        let energyType = isResting ? "Resting" : "Active"
+        let isPast = !date.isToday
         return switch self {
         case .average:
-            "Using the average Resting Energy of \(dateDescription)."
-        default:
-            "Using the Resting Energy recorded for \(dateDescription)."
-        }
-    }
-    
-    func footerDescription(_ pastDate: Date?, interval: HealthInterval) -> String {
-        switch self {
-        case .average:
-            "Using the average Resting Energy of the past \(interval.description)."
+//            "Using the average \(energyType) Energy of the past \(interval.description)."
+            "This will always use the average \(energyType) Energy of the previoius \(interval.description)."
         case .sameDay:
-            if let pastDate {
-                "Using the Resting Energy recorded for \(pastDate.shortDateString)."
+            if isPast {
+//                "Using the Resting Energy recorded for \(pastDate.shortDateString)."
+                "This will always use the \(energyType) energy recorded on the same day, which–for this date–is \(date.shortDateString)."
             } else {
-                "Using the Resting Energy recorded for today."
+//                "Using the Resting Energy recorded for today."
+                "This will always use the \(energyType) energy recorded on the same day."
             }
         case .previousDay:
-            if let pastDate {
-                "Using the Resting Energy recorded for \(pastDate.moveDayBy(-1).shortDateString)."
+            if isPast {
+//                "Using the Resting Energy recorded for \(pastDate.moveDayBy(-1).shortDateString)."
+                "This will always use the \(energyType) Energy recorded for the previous day, which–for this date–is \(date.moveDayBy(-1).shortDateString)."
             } else {
-                "Using the Resting Energy recorded for yesterday."
+//                "Using the Resting Energy recorded for yesterday."
+                "This will always use the \(energyType) Energy recorded for the previous day."
             }
         }
     }
