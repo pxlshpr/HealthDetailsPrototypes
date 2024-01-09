@@ -70,7 +70,10 @@ struct EstimatedMaintenanceForm: View {
             ),
             doubleUnitString: energyUnitString,
             isDisabled: Binding<Bool>(
-                get: { isEditing && isLegacy },
+                get: {
+                    //TODO: Test this, as it's probably wrong
+                    isEditing && isLegacy
+                },
                 set: { _ in }
             )
         )

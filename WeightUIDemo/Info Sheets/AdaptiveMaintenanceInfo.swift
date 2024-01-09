@@ -4,7 +4,7 @@ struct AdaptiveMaintenanceInfo: View {
     
     @Environment(\.dismiss) var dismiss
 
-    @Binding var weeks: Int
+    @Binding var interval: HealthInterval
     
     var body: some View {
         NavigationView {
@@ -40,6 +40,10 @@ struct AdaptiveMaintenanceInfo: View {
         }
     }
     
+    var weeks: Int {
+        interval.weeks ?? 1
+    }
+    
     var section: some View {
         Group {
             Section {
@@ -73,8 +77,4 @@ struct AdaptiveMaintenanceInfo: View {
         }
         
     }
-}
-
-#Preview {
-    AdaptiveMaintenanceInfo(weeks: .constant(1))
 }

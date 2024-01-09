@@ -1,31 +1,49 @@
 import SwiftUI
 import SwiftSugar
+import PrepShared
 
 struct AdaptiveMaintenanceForm: View {
     
-    @State var value: Double? = 3225
-    @State var weeks: Int = 1
-    @State var dietaryEnergyInKcalPerDay: Double? = 3456
-    @State var weightChangeInKg: Double? = -1.42
+    @Environment(SettingsProvider.self) var settingsProvider
+    @Bindable var healthProvider: HealthProvider
+
+    let date: Date
+    let initialAdaptive: HealthDetails.Maintenance.Adaptive
+    
+    @State var adaptiveInKcal: Double?
+    @State var interval: HealthInterval
+    @State var dietaryEnergy: HealthDetails.Maintenance.Adaptive.DietaryEnergy
+    @State var weightChange: HealthDetails.Maintenance.Adaptive.WeightChange
+    
+    @State var isEditing: Bool
+    @State var isDirty: Bool = false
+    @Binding var isPresented: Bool
+    @Binding var dismissDisabled: Bool
+
+    let saveHandler: (HealthDetails.Maintenance.Adaptive) -> ()
     
     @State var showingInfo = false
 
-    let date: Date
-    @State var isEditing: Bool
-    @State var isDirty: Bool = false
-    
-    @Binding var isPresented: Bool
-    @Binding var dismissDisabled: Bool
-    
     init(
         date: Date = Date.now,
+        adaptive: HealthDetails.Maintenance.Adaptive,
+        healthProvider: HealthProvider,
         isPresented: Binding<Bool> = .constant(true),
-        dismissDisabled: Binding<Bool> = .constant(false)
+        dismissDisabled: Binding<Bool> = .constant(false),
+        saveHandler: @escaping (HealthDetails.Maintenance.Adaptive) -> ()
     ) {
         self.date = date
+        self.initialAdaptive = adaptive
+        self.healthProvider = healthProvider
+        self.saveHandler = saveHandler
         _isPresented = isPresented
         _dismissDisabled = dismissDisabled
         _isEditing = State(initialValue: date.isToday)
+        
+        _adaptiveInKcal = State(initialValue: adaptive.kcal)
+        _interval = State(initialValue: adaptive.interval)
+        _dietaryEnergy = State(initialValue: adaptive.dietaryEnergy)
+        _weightChange = State(initialValue: adaptive.weightChange)
     }
 
     var body: some View {
@@ -40,7 +58,7 @@ struct AdaptiveMaintenanceForm: View {
         .navigationBarTitleDisplayMode(.large)
         .toolbar { toolbarContent }
         .sheet(isPresented: $showingInfo) {
-            AdaptiveMaintenanceInfo(weeks: $weeks)
+            AdaptiveMaintenanceInfo(interval: $interval)
         }
         .safeAreaInset(edge: .bottom) { bottomValue }
         .navigationBarBackButtonHidden(isLegacy && isEditing)
@@ -53,13 +71,21 @@ struct AdaptiveMaintenanceForm: View {
     }
 
     var bottomValue: some View {
-        MeasurementBottomBar(
-            double: $value,
-            doubleString: Binding<String?>(
-                get: { value?.formattedEnergy },
+        var energyValue: Double? {
+            guard let adaptiveInKcal else { return nil }
+            return EnergyUnit.kcal.convert(adaptiveInKcal, to: settingsProvider.energyUnit)
+        }
+
+        return MeasurementBottomBar(
+            double: Binding<Double?>(
+                get: { energyValue },
                 set: { _ in }
             ),
-            doubleUnitString: "kcal",
+            doubleString: Binding<String?>(
+                get: { energyValue?.formattedEnergy },
+                set: { _ in }
+            ),
+            doubleUnitString: settingsProvider.energyUnit.abbreviation,
             isDisabled: Binding<Bool>(
                 get: { !isEditing },
                 set: { _ in }
@@ -75,7 +101,12 @@ struct AdaptiveMaintenanceForm: View {
     }
 
     var weightChangeLink: some View {
-        Section {
+        var weightChangeValue: Double? {
+            guard let kg = weightChange.kg else { return nil }
+            return BodyMassUnit.kg.convert(kg, to: settingsProvider.bodyMassUnit)
+        }
+        
+        return Section {
             NavigationLink {
                 WeightChangeForm(
                     date: date,
@@ -86,8 +117,8 @@ struct AdaptiveMaintenanceForm: View {
                 HStack {
                     Text("Weight Change")
                     Spacer()
-                    if let weightChangeInKg {
-                        Text("\(weightChangeInKg.cleanHealth) kg")
+                    if let weightChangeValue {
+                        Text("\(weightChangeValue.cleanHealth) \(settingsProvider.bodyMassUnit.abbreviation)")
                     } else {
                         Text("Not Set")
                             .foregroundStyle(.secondary)
@@ -99,7 +130,13 @@ struct AdaptiveMaintenanceForm: View {
     }
 
     var dietaryEnergyLink: some View {
-        Section {
+        
+        var dailyAverageValue: Double? {
+            guard let kcal = dietaryEnergy.kcalPerDay else { return nil }
+            return EnergyUnit.kcal.convert(kcal, to: settingsProvider.energyUnit)
+        }
+        
+        return Section {
             NavigationLink {
                 DietaryEnergyForm(
                     date: date,
@@ -110,8 +147,8 @@ struct AdaptiveMaintenanceForm: View {
                 HStack {
                     Text("Dietary Energy")
                     Spacer()
-                    if let dietaryEnergyInKcalPerDay {
-                        Text("\(dietaryEnergyInKcalPerDay.formattedEnergy) kcal / day")
+                    if let dailyAverageValue {
+                        Text("\(dailyAverageValue.formattedEnergy) \(settingsProvider.energyUnit.abbreviation) / day")
                     } else {
                         Text("Not Set")
                             .foregroundStyle(.secondary)
@@ -123,22 +160,23 @@ struct AdaptiveMaintenanceForm: View {
     }
 
     var intervalSection: some View {
-        let binding = Binding<Int>(
-            get: { weeks },
+        let weeksBinding = Binding<Int>(
+            get: { interval.weeks ?? 1 },
             set: { newValue in
                 withAnimation {
-                    weeks = newValue
+                    interval.weeks = newValue
                 }
-                
-                isDirty = weeks != 1
+                handleChanges()
             }
         )
+        
+        let weeks = weeksBinding.wrappedValue
 
         return Section("Use Data from past") {
             HStack(spacing: 3) {
                 Stepper(
                     "",
-                    value: binding,
+                    value: weeksBinding,
                     in: 1...2
                 )
                 .fixedSize()
@@ -174,13 +212,35 @@ struct AdaptiveMaintenanceForm: View {
     }
 
     func save() {
-        
+        saveHandler(adaptive)
     }
     
     func undo() {
-        isDirty = false
-        value = 3225
-        weeks = 1
+        adaptiveInKcal = initialAdaptive.kcal
+        interval = initialAdaptive.interval
+        dietaryEnergy = initialAdaptive.dietaryEnergy
+        weightChange = initialAdaptive.weightChange
+    }
+    
+    var adaptive: HealthDetails.Maintenance.Adaptive {
+        .init(
+            kcal: adaptiveInKcal,
+            interval: interval,
+            dietaryEnergy: dietaryEnergy,
+            weightChange: weightChange
+        )
+    }
+    
+    func handleChanges() {
+        //TODO: Set adaptiveInKcal
+        setIsDirty()
+        if !isLegacy {
+            save()
+        }
+    }
+    
+    func setIsDirty() {
+        isDirty = adaptive != initialAdaptive
     }
     
     var isDisabled: Bool {
@@ -208,41 +268,42 @@ struct AdaptiveMaintenanceForm: View {
     }
 }
 
-#Preview("Current") {
-    NavigationView {
-        AdaptiveMaintenanceForm()
-    }
-}
+//#Preview("Current") {
+//    NavigationView {
+//        AdaptiveMaintenanceForm()
+//    }
+//}
+//
+//#Preview("Past") {
+//    NavigationView {
+//        AdaptiveMaintenanceForm(date: MockPastDate)
+//    }
+//}
 
-#Preview("Past") {
-    NavigationView {
-        AdaptiveMaintenanceForm(date: MockPastDate)
-    }
-}
-struct DismissTest: View {
-    @State var presented: Bool = false
-    var body: some View {
-        NavigationView {
-            Form {
-                Button("Present") {
-                    presented = true
-                }
-            }
-            .sheet(isPresented: $presented) {
-                NavigationView {
-                    AdaptiveMaintenanceForm(
-                        date: MockPastDate,
-                        isPresented: $presented
-                    )
-                }
-            }
-        }
-    }
-}
-
-#Preview("Dismiss Test") {
-    DismissTest()
-}
+//struct DismissTest: View {
+//    @State var presented: Bool = false
+//    var body: some View {
+//        NavigationView {
+//            Form {
+//                Button("Present") {
+//                    presented = true
+//                }
+//            }
+//            .sheet(isPresented: $presented) {
+//                NavigationView {
+//                    AdaptiveMaintenanceForm(
+//                        date: MockPastDate,
+//                        isPresented: $presented
+//                    )
+//                }
+//            }
+//        }
+//    }
+//}
+//
+//#Preview("Dismiss Test") {
+//    DismissTest()
+//}
 
 #Preview("DemoView") {
     DemoView()

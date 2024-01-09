@@ -140,6 +140,21 @@ public struct HealthInterval: Hashable, Codable, Equatable {
 }
 
 public extension HealthInterval {
+    
+    var weeks: Int? {
+        get {
+            guard period == .week else { return nil }
+            return value
+        }
+        set {
+            guard let newValue else {
+                return
+            }
+            self.value = newValue
+            self.period = .week
+        }
+    }
+    
     var numberOfDays: Int {
         switch period {
         case .day:      value

@@ -208,8 +208,14 @@ struct MaintenanceForm: View {
         var destination: some View {
             AdaptiveMaintenanceForm(
                 date: date,
+                adaptive: initialMaintenance.adaptive,
+                healthProvider: healthProvider,
                 isPresented: $isPresented,
-                dismissDisabled: $dismissDisabled
+                dismissDisabled: $dismissDisabled,
+                saveHandler: { adaptive in
+                    self.adaptive = adaptive
+                    handleChanges(forceSave: true)
+                }
             )
         }
         
