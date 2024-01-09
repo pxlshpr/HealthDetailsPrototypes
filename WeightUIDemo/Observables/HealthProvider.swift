@@ -69,6 +69,8 @@ import SwiftUI
         healthDetails: HealthDetails,
         latest: LatestHealthDetails = LatestHealthDetails()
     ) {
+        var healthDetails = healthDetails
+        healthDetails.evaluate(date: healthDetails.date)
         self.isCurrent = isCurrent
         self.healthDetails = healthDetails
         self.latest = latest
@@ -82,6 +84,68 @@ import SwiftUI
 }
 
 extension HealthDetails {
+    mutating func evaluate(date: Date) {
+        let didModifyAdaptive = maintenance.adaptive.evaluate(date: date)
+        if didModifyAdaptive {
+            //TODO: Save this some other way
+            saveHealthDetailsInDocuments(self)
+        }
+    }
+}
+
+extension HealthDetails.Maintenance.Adaptive {
+    var numberOfDays: Int { interval.numberOfDays }
+    
+    mutating func evaluate(date: Date) -> Bool {
+        let didModifyDietaryEnergy = dietaryEnergy.evaluate(
+            numberOfDays: numberOfDays,
+            date: date
+        )
+        let didModifyWeightChange = weightChange.evaluate(
+            date: date
+        )
+        return didModifyWeightChange || didModifyDietaryEnergy
+    }
+}
+
+enum EvaluateResult {
+    case modified
+    case notModified
+}
+
+extension HealthDetails.Maintenance.Adaptive.WeightChange {
+    mutating func evaluate(date: Date) -> Bool {
+        return false
+    }
+}
+
+extension HealthDetails.Maintenance.Adaptive.DietaryEnergy {
+    mutating func evaluate(numberOfDays: Int, date: Date) -> Bool {
+        //TODO: Rewrite based on this
+        /// [ ] For each number of days, either grab the existing point from the array, or create a new one
+        /// [ ] Now for each point, evaluate it if needed (which grabs the current log value, healthKit value)
+        /// [ ] Now once that's done, calculate the average of all the non-average types and set those to the average types
+        /// [ ] Now calculate the kcalPerDay
+        /// [ ] Initial thought was to finally compare the points array to what we had initially and return true if not the same—but instead, let's just do a comparison of the final HealthDetails in the evalute() function and only call the method to save it if we actually changed it. And if we changed it, also send a notification that things like the PlansProvider will be notified of and update the plans with
+        /// [ ] Rename evaluate to something like update
+        guard points.count != numberOfDays else {
+            return false
+        }
+        var points: [HealthDetails.Maintenance.Adaptive.DietaryEnergy.Point] = []
+        for index in 0..<numberOfDays {
+            let date = date.moveDayBy(-(index + 1))
+            points.append(.init(
+                date: date,
+                type: .log
+            ))
+        }
+        self.points = points
+        return true
+    }
+}
+
+extension HealthDetails {
+    
     var missingNonTemporalHealthDetails: [HealthDetail] {
         HealthDetail.allNonTemporalHealthDetails.filter { !hasSet($0) }
     }

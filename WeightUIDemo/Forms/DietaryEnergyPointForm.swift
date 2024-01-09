@@ -2,49 +2,51 @@ import SwiftUI
 
 struct DietaryEnergyPointForm: View {
     
-    let dateString: String
+    let date: Date
+    let initialPoint: HealthDetails.Maintenance.Adaptive.DietaryEnergy.Point
     
     @State var type: DietaryEnergyPointType = .log
     @State var value: Double? = 2356
 
-    @State var showingAlert = false
-    
     @State var customInput = DoubleInput()
 
+    @State var showingAlert = false
     @State var showingInfo = false
     
-    let healthDetailsDate: Date
-    let dietaryEnergyDate: Date
     @State var isEditing: Bool
     @State var isDirty: Bool = false
     @Binding var isPresented: Bool
     @Binding var dismissDisabled: Bool
 
+    let saveHandler: (HealthDetails.Maintenance.Adaptive.DietaryEnergy.Point) -> ()
+
     init(
-        healthDetailsDate: Date = Date.now,
-        dietaryEnergyDate: Date = Date.now.moveDayBy(-1),
+        date: Date,
+        point: HealthDetails.Maintenance.Adaptive.DietaryEnergy.Point,
+        healthProvider: HealthProvider,
         isPresented: Binding<Bool> = .constant(true),
-        dismissDisabled: Binding<Bool> = .constant(false)
+        dismissDisabled: Binding<Bool> = .constant(false),
+        saveHandler: @escaping (HealthDetails.Maintenance.Adaptive.DietaryEnergy.Point) -> ()
     ) {
-        self.healthDetailsDate = healthDetailsDate
-        self.dietaryEnergyDate = dietaryEnergyDate
-        _isEditing = State(initialValue: healthDetailsDate.isToday)
-        self.dateString = healthDetailsDate.shortDateString
+        self.date = date
+        self.initialPoint = point
+        _isEditing = State(initialValue: date.isToday)
         _isPresented = isPresented
         _dismissDisabled = dismissDisabled
+        self.saveHandler = saveHandler
     }
 
     var body: some View {
         Form {
             notice
-            dateSection
+//            dateSection
             picker
             if type == .custom {
                 customSection
             }
             explanation
         }
-        .navigationTitle(dietaryEnergyDate.shortDateString)
+        .navigationTitle(initialPoint.date.shortDateString)
         .navigationBarTitleDisplayMode(.large)
         .toolbar { toolbarContent }
         .alert("Enter your dietary energy", isPresented: $showingAlert) {
@@ -66,27 +68,27 @@ struct DietaryEnergyPointForm: View {
         dismissDisabled = isLegacy && isEditing && isDirty
     }
 
-    @ViewBuilder
-    var dateSection: some View {
-        if !isLegacy {
-            Section {
-                HStack {
-                    Text("Date")
-                    Spacer()
-                    Text(dateString)
-                }
-            }
-        }
-    }
+//    @ViewBuilder
+//    var dateSection: some View {
+//        if !isLegacy {
+//            Section {
+//                HStack {
+//                    Text("Date")
+//                    Spacer()
+//                    Text(date.shortDateString)
+//                }
+//            }
+//        }
+//    }
     
     var isLegacy: Bool {
-        healthDetailsDate.startOfDay < Date.now.startOfDay
+        date.startOfDay < Date.now.startOfDay
     }
     
     @ViewBuilder
     var notice: some View {
         if isLegacy {
-            NoticeSection.legacy(healthDetailsDate, isEditing: $isEditing)
+            NoticeSection.legacy(date, isEditing: $isEditing)
         }
     }
     
@@ -314,14 +316,14 @@ struct DietaryEnergyPointForm: View {
     }
 }
 
-#Preview("Current") {
-    NavigationView {
-        DietaryEnergyPointForm()
-    }
-}
-
-#Preview("Past") {
-    NavigationView {
-        DietaryEnergyPointForm(healthDetailsDate: MockPastDate)
-    }
-}
+//#Preview("Current") {
+//    NavigationView {
+//        DietaryEnergyPointForm()
+//    }
+//}
+//
+//#Preview("Past") {
+//    NavigationView {
+//        DietaryEnergyPointForm(healthDetailsDate: MockPastDate)
+//    }
+//}

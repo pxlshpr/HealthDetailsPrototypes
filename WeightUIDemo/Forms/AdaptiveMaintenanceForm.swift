@@ -140,8 +140,13 @@ struct AdaptiveMaintenanceForm: View {
             NavigationLink {
                 DietaryEnergyForm(
                     date: date,
+                    dietaryEnergy: dietaryEnergy,
+                    healthProvider: healthProvider,
                     isPresented: $isPresented,
-                    dismissDisabled: $dismissDisabled
+                    dismissDisabled: $dismissDisabled,
+                    saveHandler: { dietaryEnergy in
+                        
+                    }
                 )
             } label: {
                 HStack {

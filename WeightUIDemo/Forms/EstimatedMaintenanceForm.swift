@@ -35,7 +35,6 @@ struct EstimatedMaintenanceForm: View {
         _dismissDisabled = dismissDisabled
         _isEditing = State(initialValue: true)
         
-        
         _restingEnergy = State(initialValue: estimate.restingEnergy)
         _activeEnergy = State(initialValue: estimate.activeEnergy)
         _estimateInKcal = State(initialValue: estimate.kcal)
