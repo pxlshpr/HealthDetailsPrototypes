@@ -122,6 +122,7 @@ extension HealthDetails.Maintenance.Adaptive.WeightChange {
 extension HealthDetails.Maintenance.Adaptive.DietaryEnergy {
     mutating func evaluate(numberOfDays: Int, date: Date) -> Bool {
         //TODO: Rewrite based on this
+        /// [ ] This needs to be an async func that gets called soon after init (and later, like when scenePhase changes etc)
         /// [ ] For each number of days, either grab the existing point from the array, or create a new one
         /// [ ] Now for each point, evaluate it if needed (which grabs the current log value, healthKit value)
         /// [ ] Now once that's done, calculate the average of all the non-average types and set those to the average types
