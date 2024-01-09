@@ -2,23 +2,39 @@ import SwiftUI
 
 struct DietaryEnergyForm: View {
     
-    let date: Date
-    @State var isEditing: Bool
+    @Environment(SettingsProvider.self) var settingsProvider
+    @Bindable var healthProvider: HealthProvider
     
-    @State var value: Double? = 2893
+    let date: Date
+    let initialDietaryEnergy: HealthDetails.Maintenance.Adaptive.DietaryEnergy
+    
+    @State var kcalsPerDay: Double?
+    @State var points: [HealthDetails.Maintenance.Adaptive.DietaryEnergy.Point]
 
+    @State var isEditing: Bool
     @Binding var isPresented: Bool
     @Binding var dismissDisabled: Bool
 
+    let saveHandler: (HealthDetails.Maintenance.Adaptive.DietaryEnergy) -> ()
+    
     init(
         date: Date = Date.now,
+        dietaryEnergy: HealthDetails.Maintenance.Adaptive.DietaryEnergy,
+        healthProvider: HealthProvider,
         isPresented: Binding<Bool> = .constant(true),
-        dismissDisabled: Binding<Bool> = .constant(false)
+        dismissDisabled: Binding<Bool> = .constant(false),
+        saveHandler: @escaping (HealthDetails.Maintenance.Adaptive.DietaryEnergy) -> ()
     ) {
         self.date = date
+        self.initialDietaryEnergy = dietaryEnergy
+        self.healthProvider = healthProvider
+        self.saveHandler = saveHandler
         _isPresented = isPresented
         _dismissDisabled = dismissDisabled
         _isEditing = State(initialValue: true)
+        
+        _kcalsPerDay = State(initialValue: dietaryEnergy.kcalPerDay)
+        _points = State(initialValue: dietaryEnergy.points)
     }
 
     var body: some View {
@@ -34,9 +50,9 @@ struct DietaryEnergyForm: View {
     
     var bottomValue: some View {
         MeasurementBottomBar(
-            double: $value,
+            double: $kcalsPerDay,
             doubleString: Binding<String?>(
-                get: { value?.formattedEnergy },
+                get: { kcalsPerDay?.formattedEnergy },
                 set: { _ in }
             ),
             doubleUnitString: "kcal/day",
@@ -87,7 +103,7 @@ struct DietaryEnergyForm: View {
     }
     
     func undo() {
-        value = 2893
+        kcalsPerDay = 2893
     }
 
     var explanation: some View {
