@@ -10,6 +10,7 @@ struct DietaryEnergyPointForm: View {
 
     let healthDetailsDate: Date
     let initialPoint: DietaryEnergyPoint
+    let averageEnergyInKcal: Double?
     
     @State var source: DietaryEnergyPointSource
     @State var energyInKcal: Double?
@@ -38,6 +39,7 @@ struct DietaryEnergyPointForm: View {
     init(
         date: Date,
         point: DietaryEnergyPoint,
+        averageEnergyInKcal: Double? = nil,
         settingsProvider: SettingsProvider,
         healthProvider: HealthProvider,
         isPresented: Binding<Bool> = .constant(true),
@@ -49,12 +51,13 @@ struct DietaryEnergyPointForm: View {
         self.saveHandler = saveHandler
         self.settingsProvider = settingsProvider
         self.healthProvider = healthProvider
+        self.averageEnergyInKcal = averageEnergyInKcal
         _isEditing = State(initialValue: date.isToday)
         _isPresented = isPresented
         _dismissDisabled = dismissDisabled
         
         _source = State(initialValue: point.source)
-        _energyInKcal = State(initialValue: point.kcal)
+        _energyInKcal = State(initialValue: point.source == .useAverage ? nil : point.kcal)
         _customInput = State(initialValue: DoubleInput(
             double: point.kcal.convertEnergy(
                 from: .kcal,
@@ -66,12 +69,15 @@ struct DietaryEnergyPointForm: View {
 
     var body: some View {
         Form {
-            notice
+            //TODO: Replace this with something specific to DietaryEnergyForm indicating that a change will affect any other places where this day's dietary energy point is used
+//            notice
             sourcePicker
             if source == .userEntered {
                 customSection
             }
-            explanation
+            healthKitErrorSection
+            notCountedSection
+//            explanation
         }
         .navigationTitle(initialPoint.date.shortDateString)
         .navigationBarTitleDisplayMode(.large)
@@ -85,6 +91,35 @@ struct DietaryEnergyPointForm: View {
         .onChange(of: isDirty) { _, _ in setDismissDisabled() }
     }
     
+    @ViewBuilder
+    var healthKitErrorSection: some View {
+        if source == .healthKit, energyInKcal == nil {
+            NoticeSection(
+                style: .plain,
+                notice: .init(
+                    title: "Missing Data or Permissions",
+                    message: "No data was fetched from Apple Health. This could be because there isn't any data available for \(pointDate.shortDateString) or you have not provided permission to read it.\n\nYou can check for permissions in:\nSettings > Privacy & Security > Health > Prep",
+                    imageName: "questionmark.app.dashed",
+                    isEditing: $isEditing
+                )
+            )
+        }
+    }
+    
+    @ViewBuilder
+    var notCountedSection: some View {
+        if source == .useAverage {
+            NoticeSection(
+                style: .plain,
+                notice: .init(
+                    title: "Not Counted",
+                    message: "This day's dietary energy is not being counted towards your average.",
+                    imageName: "pencil.slash",
+                    isEditing: $isEditing
+                )
+            )
+        }
+    }
     func appeared() {
         if !hasAppeared {
             Task {
@@ -122,7 +157,7 @@ struct DietaryEnergyPointForm: View {
     
     func setHealthKitValue() {
         withAnimation {
-            energyInKcal = healthKitValueInKcal == 0 ? nil : healthKitValueInKcal
+            energyInKcal = healthKitValueInKcal
         }
         setCustomInput()
     }
@@ -219,32 +254,57 @@ struct DietaryEnergyPointForm: View {
     }
     
     var bottomValue: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 5) {
-            Spacer()
-            if let energyInKcal {
-                Text("\(energyInKcal.formattedEnergy)")
-                    .contentTransition(.numericText(value: energyInKcal))
-                    .font(LargeNumberFont)
-                Text("kcal")
-                    .font(LargeUnitFont)
-                    .foregroundStyle(.secondary)
-            } else {
-                ZStack {
-                    
-                    /// dummy text placed to ensure height stays consistent
-                    Text("0")
-                        .font(LargeNumberFont)
-                        .opacity(0)
-
-                    Text(source == .userEntered ? "Not Set" : "Excluded")
-                        .font(LargeUnitFont)
-                        .foregroundStyle(.secondary)
-                }
-            }
+        
+        var energyValue: Double? {
+            guard let energyInKcal else { return nil }
+            return EnergyUnit.kcal.convert(energyInKcal, to: energyUnit)
         }
-        .padding(.horizontal, BottomValueHorizontalPadding)
-        .padding(.vertical, BottomValueVerticalPadding)
-        .background(.bar)
+        
+        return MeasurementBottomBar(
+            double: Binding<Double?>(
+                get: { energyValue },
+                set: { _ in }
+            ),
+            doubleString: Binding<String?>(
+                get: { energyValue?.formattedEnergy },
+                set: { _ in }
+            ),
+            doubleUnitString: energyUnit.abbreviation,
+            emptyValueString: Binding<String>(
+                get: { source.emptyValueString },
+                set: { _ in }
+            ),
+            isDisabled: Binding<Bool>(
+                get: { !isEditing },
+                set: { _ in }
+            )
+        )
+//        return HStack(alignment: .firstTextBaseline, spacing: 5) {
+//            Spacer()
+//            if let energyValue {
+//                Text("\(energyValue.formattedEnergy)")
+//                    .contentTransition(.numericText(value: energyValue))
+//                    .font(LargeNumberFont)
+//                Text("kcal")
+//                    .font(LargeUnitFont)
+//                    .foregroundStyle(.secondary)
+//            } else {
+//                ZStack {
+//                    
+//                    /// dummy text placed to ensure height stays consistent
+//                    Text("0")
+//                        .font(LargeNumberFont)
+//                        .opacity(0)
+//
+//                    Text(source == .userEntered ? "Not Set" : "Excluded")
+//                        .font(LargeUnitFont)
+//                        .foregroundStyle(.secondary)
+//                }
+//            }
+//        }
+//        .padding(.horizontal, BottomValueHorizontalPadding)
+//        .padding(.vertical, BottomValueVerticalPadding)
+//        .background(.bar)
     }
     
     var toolbarContent: some ToolbarContent {
@@ -284,6 +344,10 @@ struct DietaryEnergyPointForm: View {
     }
     
     func setIsDirty() {
+        var initialPoint = initialPoint
+        if initialPoint.source == .useAverage {
+            initialPoint.kcal = nil
+        }
         isDirty = dietaryEnergyPoint != initialPoint
     }
     

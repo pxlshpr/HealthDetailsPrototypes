@@ -10,7 +10,15 @@ enum DietaryEnergyPointSource: Int, Codable, CaseIterable, Identifiable {
     var id: Int {
         rawValue
     }
-    
+
+    var emptyValueString: String {
+        switch self {
+        case .useAverage:   "Not Counted"
+        case .healthKit:    "No Data"
+        default:            "Not Set"
+        }
+    }
+        
     var image: String {
         switch self {
         case .log:          "book.closed"

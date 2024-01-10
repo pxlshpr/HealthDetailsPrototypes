@@ -7,6 +7,7 @@ struct MeasurementBottomBar: View {
 
     @Binding var double: Double?
     @Binding var doubleString: String?
+    var emptyValueString: Binding<String>?
     @Binding var isDisabled: Bool
     
     let doubleUnitString: String
@@ -21,12 +22,15 @@ struct MeasurementBottomBar: View {
         doubleString: Binding<String?>,
         doubleUnitString: String,
 
+        emptyValueString: Binding<String>? = nil,
+        
         isDisabled: Binding<Bool>,
         
         isStyledAsBottomBar: Bool = true
     ) {
         self.int = int
         self.intUnitString = intUnitString
+        self.emptyValueString = emptyValueString
         _double = double
         _doubleString = doubleString
         _isDisabled = isDisabled
@@ -55,6 +59,7 @@ struct MeasurementBottomBar: View {
                 double: $double,
                 doubleString: $doubleString,
                 doubleUnitString: doubleUnitString,
+                emptyValueString: emptyValueString,
                 isDisabled: $isDisabled
             )
         }
@@ -71,7 +76,9 @@ struct MeasurementBottomText: View {
     @Binding var double: Double?
     @Binding var doubleString: String?
     @Binding var isDisabled: Bool
-    
+
+    var emptyValueString: Binding<String>?
+
     let doubleUnitString: String
 
     init(
@@ -82,10 +89,13 @@ struct MeasurementBottomText: View {
         doubleString: Binding<String?>,
         doubleUnitString: String,
 
+        emptyValueString: Binding<String>? = nil,
+
         isDisabled: Binding<Bool>
     ) {
         self.int = int
         self.intUnitString = intUnitString
+        self.emptyValueString = emptyValueString
         _double = double
         _doubleString = doubleString
         _isDisabled = isDisabled
@@ -123,7 +133,7 @@ struct MeasurementBottomText: View {
                     .font(LargeNumberFont)
                     .opacity(0)
 
-                Text("Not Set")
+                Text(emptyValueString?.wrappedValue ?? "Not Set")
                     .font(LargeUnitFont)
                     .foregroundStyle(isDisabled ? .tertiary : .secondary)
             }

@@ -256,6 +256,7 @@ extension HealthProvider {
     func saveDietaryEnergyPoint(_ point: DietaryEnergyPoint) {
         var day = fetchDayFromDocuments(point.date)
         day.dietaryEnergyPoint = point
+        //TODO: Get any other HealthDetails (other than the one in this HealthProvider) that uses this point and get them to update within an instantiated HealthProvider as well
         saveDayInDocuments(day)
     }
 
