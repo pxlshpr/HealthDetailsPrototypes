@@ -68,7 +68,14 @@ extension HealthDetails {
             
             struct DietaryEnergy: Hashable, Codable {
                 var kcalPerDay: Double?
-                var points: [DietaryEnergyPoint] = []
+                var points: [DietaryEnergyPoint]
+                
+                init(points: [DietaryEnergyPoint] = []) {
+                    var points = points
+                    points.fillAverages()
+                    self.points = points
+                    self.kcalPerDay = points.average
+                }
             }
             
             struct WeightChange: Hashable, Codable {

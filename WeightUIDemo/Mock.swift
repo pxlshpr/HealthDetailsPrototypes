@@ -10,7 +10,6 @@ var CurrentHealthDetails: HealthDetails {
 
 func latestHealthDetails(to date: Date = Date.now) -> HealthProvider.LatestHealthDetails {
     let start = CFAbsoluteTimeGetCurrent()
-    print("-- starting latestHealthDetails")
     var latest = HealthProvider.LatestHealthDetails()
     
     let numberOfDays = Date.now.numberOfDaysFrom(PreviousMockDate)
@@ -48,7 +47,6 @@ func latestHealthDetails(to date: Date = Date.now) -> HealthProvider.LatestHealt
         }
     }
     
-    print("** latestHealthDetails took: \(CFAbsoluteTimeGetCurrent()-start)s")
     return latest
 }
 
@@ -57,7 +55,6 @@ extension HealthProvider {
     func bringForwardNonTemporalHealthDetails() {
         guard !healthDetails.missingNonTemporalHealthDetails.isEmpty else { return }
         let start = CFAbsoluteTimeGetCurrent()
-        print("-- starting bringForwardNonTemporalHealthDetails")
         
         let numberOfDays = healthDetails.date.numberOfDaysFrom(PreviousMockDate)
         for i in 0...numberOfDays {
@@ -81,8 +78,6 @@ extension HealthProvider {
                 break
             }
         }
-        
-        print("** bringForwardNonTemporalHealthDetails took: \(CFAbsoluteTimeGetCurrent()-start)s")
     }
 }
 

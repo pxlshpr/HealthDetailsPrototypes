@@ -95,7 +95,6 @@ struct DietaryEnergyForm: View {
         guard let index = points.firstIndex(where: { $0.date == date }) else {
             fatalError()
         }
-        print("updating point at: \(index)")
         points[index] = point
         handleChanges()
     }
@@ -133,7 +132,6 @@ struct DietaryEnergyForm: View {
     
     var dietaryEnergy: HealthDetails.Maintenance.Adaptive.DietaryEnergy {
         .init(
-            kcalPerDay: kcalsPerDay,
             points: points
         )
     }

@@ -94,8 +94,8 @@ extension HealthProvider {
         /// [ ] Now once that's done, calculate the average of all the non-average types and set those to the average types
         /// [ ] Now calculate the kcalPerDay
         await fetchBackendData()
-//        await fetchHealthKitData()
-//        await recalculate()
+        await fetchHealthKitData()
+        await recalculate()
     }
     
     func fetchHealthKitData() async {
@@ -133,8 +133,7 @@ extension HealthProvider {
                 setBackendDietaryEnergyPoint(point, for: date)
             }
         }
-        print("Setting \(points.count) dietaryEnergyPoints")
-        healthDetails.maintenance.adaptive.dietaryEnergy.points = points
+        healthDetails.maintenance.adaptive.dietaryEnergy = .init(points: points)
         save()
 
         /// [ ] Weight
@@ -252,6 +251,12 @@ extension HealthProvider {
     func saveMaintenance(_ maintenance: HealthDetails.Maintenance) {
         healthDetails.maintenance = maintenance
         save()
+    }
+    
+    func saveDietaryEnergyPoint(_ point: DietaryEnergyPoint) {
+        var day = fetchDayFromDocuments(point.date)
+        day.dietaryEnergyPoint = point
+        saveDayInDocuments(day)
     }
 
     func saveRestingEnergy(_ restingEnergy: HealthDetails.Maintenance.Estimate.RestingEnergy) {

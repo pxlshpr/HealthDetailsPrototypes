@@ -8,7 +8,7 @@ struct DietaryEnergyPointForm: View {
     @Bindable var settingsProvider: SettingsProvider
     @Bindable var healthProvider: HealthProvider
 
-    let date: Date
+    let healthDetailsDate: Date
     let initialPoint: DietaryEnergyPoint
     
     @State var source: DietaryEnergyPointSource
@@ -44,7 +44,7 @@ struct DietaryEnergyPointForm: View {
         dismissDisabled: Binding<Bool> = .constant(false),
         saveHandler: @escaping (DietaryEnergyPoint) -> ()
     ) {
-        self.date = date
+        self.healthDetailsDate = date
         self.initialPoint = point
         self.saveHandler = saveHandler
         self.settingsProvider = settingsProvider
@@ -107,7 +107,7 @@ struct DietaryEnergyPointForm: View {
     }
     
     func fetchHealthKitValue() async throws {
-        let kcal = try await HealthStore.dietaryEnergyTotalInKcal(for: date)
+        let kcal = try await HealthStore.dietaryEnergyTotalInKcal(for: pointDate)
         await MainActor.run { [kcal] in
             withAnimation {
                 healthKitValueInKcal = kcal?
@@ -138,7 +138,7 @@ struct DietaryEnergyPointForm: View {
     }
 
     func fetchLogValue() async throws {
-        let point = healthProvider.fetchBackendDietaryEnergyPoint(for: date)
+        let point = healthProvider.fetchBackendDietaryEnergyPoint(for: pointDate)
         await MainActor.run { [point] in
             withAnimation {
                 logValueInKcal = point?.kcal?
@@ -207,13 +207,13 @@ struct DietaryEnergyPointForm: View {
     }
 
     var isLegacy: Bool {
-        date.startOfDay < Date.now.startOfDay
+        healthDetailsDate.startOfDay < Date.now.startOfDay
     }
     
     @ViewBuilder
     var notice: some View {
         if isLegacy {
-            NoticeSection.legacy(date, isEditing: $isEditing)
+            NoticeSection.legacy(healthDetailsDate, isEditing: $isEditing)
         }
     }
     
@@ -261,6 +261,13 @@ struct DietaryEnergyPointForm: View {
     
     func save() {
         saveHandler(dietaryEnergyPoint)
+        
+        /// Save the point in its date's `Day` as well
+        var point = dietaryEnergyPoint
+        if point.source == .useAverage {
+            point.kcal = nil
+        }
+        healthProvider.saveDietaryEnergyPoint(point)
     }
     
     func undo() {

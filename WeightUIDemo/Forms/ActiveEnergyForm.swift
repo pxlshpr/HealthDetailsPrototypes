@@ -263,7 +263,7 @@ struct ActiveEnergyForm: View {
                     await MainActor.run {
                         setHealthKitValue()
                     }
-                } else {                    
+                } else {
                     try await fetchHealthKitValues()
                 }
                 try Task.checkCancellation()
@@ -546,7 +546,6 @@ struct ActiveEnergyForm: View {
     //MARK: - Actions
     
     func undo() {
-        print("Undo – Setting activeEnergyInKcal to: \(initialActiveEnergy.kcal)")
         activeEnergyInKcal = initialActiveEnergy.kcal
         customInput = DoubleInput(
             double: initialActiveEnergy.kcal.convertEnergy(

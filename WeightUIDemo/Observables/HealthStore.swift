@@ -197,7 +197,10 @@ extension HealthStore {
     static func dailyDietaryEnergyTotalsInKcal(for dates: [Date]) async throws -> [Date: Double] {
         
         let sorted = dates.sorted()
-        guard let firstDate = sorted.first, let lastDate = sorted.last else { return [:] }
+        guard
+            let firstDate = sorted.first?.startOfDay,
+            let lastDate = sorted.last?.endOfDay
+        else { return [:] }
         
         let statisticsCollection = try await HealthStore.dailyStatistics(
             for: .dietaryEnergyConsumed,
