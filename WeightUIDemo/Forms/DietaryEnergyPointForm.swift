@@ -99,7 +99,7 @@ struct DietaryEnergyPointForm: View {
                 style: .plain,
                 notice: .init(
                     title: "No Logged Foods",
-                    message: "There are no foods logged on this date. Consider marking it as fasted if you hadn't consumed any dietary energy, so that it would be set at 0 \(energyUnit.abbreviation).",
+                    message: "There are no foods logged on this date.\n\nConsider marking it as fasted if you actually hadn't consumed anything, so that it would be set at 0 \(energyUnit.abbreviation).\n\nIf you can't accurately remember what you had consumed, choose 'Exclude this Day', to ignore this day and not count it towards your dail average.",
                     imageName: "questionmark.app.dashed",
                     isEditing: $isEditing
                 )
@@ -129,7 +129,7 @@ struct DietaryEnergyPointForm: View {
                 style: .plain,
                 notice: .init(
                     title: "Excluded",
-                    message: "This day's dietary energy is being ignored and will not count towards your average.",
+                    message: "This day's dietary energy is being ignored and will not count towards your daily average.",
                     imageName: "pencil.slash",
                     isEditing: $isEditing
                 )
