@@ -546,7 +546,7 @@ struct RestingEnergyForm: View {
             }
             .pickerStyle(.wheel)
             .disabled(isDisabled)
-            .foregroundStyle(controlColor)
+            .opacity(isDisabled ? 0.5 : 1)
         }
     }
 

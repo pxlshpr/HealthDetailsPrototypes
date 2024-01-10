@@ -71,10 +71,9 @@ struct EnergyAppleHealthSections: View {
                     Text($0.name).tag($0)
                 }
             }
-//            .pickerStyle(.menu)
             .pickerStyle(.wheel)
             .disabled(isDisabled)
-            .foregroundStyle(controlColor)
+            .opacity(isDisabled ? 0.5 : 1)
         }
         
         @ViewBuilder

@@ -173,10 +173,10 @@ struct DietaryEnergyPointForm: View {
     }
 
     func fetchLogValue() async throws {
-        let point = healthProvider.fetchBackendDietaryEnergyPoint(for: pointDate)
-        await MainActor.run { [point] in
+        let kcal = healthProvider.fetchBackendEnergyInKcal(for: pointDate)
+        await MainActor.run { [kcal] in
             withAnimation {
-                logValueInKcal = point?.kcal?
+                logValueInKcal = kcal?
                     .rounded(.towardZero)
             }
             if source == .log {
@@ -206,22 +206,51 @@ struct DietaryEnergyPointForm: View {
     var controlColor: Color {
         isDisabled ? .secondary : .primary
     }
+    
+    var healthKitValueInUserUnit: Double? {
+        guard let healthKitValueInKcal else { return nil }
+        return EnergyUnit.kcal.convert(healthKitValueInKcal, to: settingsProvider.energyUnit)
+    }
+
+    var logValueInUserUnit: Double? {
+        guard let logValueInKcal else { return nil }
+        return EnergyUnit.kcal.convert(logValueInKcal, to: settingsProvider.energyUnit)
+    }
 
     var sourcePicker: some View {
         let binding = Binding<DietaryEnergyPointSource>(
             get: { source },
             set: { setSource(to: $0) }
         )
+        
+        func string(for source: DietaryEnergyPointSource) -> String {
+            switch source {
+            case .log:
+                if let logValueInUserUnit {
+                    "\(source.name) • \(logValueInUserUnit.formattedEnergy) \(settingsProvider.energyUnit.abbreviation)"
+                } else {
+                    source.name
+                }
+            case .healthKit:
+                if let healthKitValueInUserUnit {
+                    "\(source.name) • \(healthKitValueInUserUnit.formattedEnergy) \(settingsProvider.energyUnit.abbreviation)"
+                } else {
+                    source.name
+                }
+            case .fasted, .useAverage, .userEntered:
+                source.name
+            }
+        }
         return Section {
             Picker("Source", selection: binding) {
                 ForEach(DietaryEnergyPointSource.allCases, id: \.self) {
-                    Text($0.name).tag($0)
+                    Text(string(for: $0)).tag($0)
                 }
             }
             .pickerStyle(.wheel)
             .disabled(isDisabled)
-            .foregroundStyle(controlColor)
-        }
+            .opacity(isDisabled ? 0.5 : 1)
+       }
     }
     
     var sourcePicker_: some View {
