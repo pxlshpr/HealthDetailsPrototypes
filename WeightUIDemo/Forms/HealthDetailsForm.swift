@@ -16,10 +16,6 @@ struct HealthDetailsForm: View {
         _isPresented = isPresented
     }
     
-    var pastDate: Date? {
-        healthProvider.pastDate
-    }
-    
     var body: some View {
         NavigationView {
             form
@@ -95,12 +91,12 @@ struct HealthDetailsForm: View {
     
     @ViewBuilder
     var dateSection: some View {
-        if let pastDate {
+        if !healthProvider.healthDetails.date.isToday {
             Section {
                 HStack {
                     Text("Date")
                     Spacer()
-                    Text(pastDate.shortDateString)
+                    Text(healthProvider.healthDetails.date.shortDateString)
                 }
             }
         }

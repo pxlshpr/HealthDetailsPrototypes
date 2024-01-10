@@ -10,15 +10,15 @@ import SwiftUI
     var currentOrLatestWeightInKg: Double? {
         healthDetails.weight.weightInKg ?? latest.weight?.weight.weightInKg
     }
-
+    
     var currentOrLatestMaintenanceInKcal: Double? {
         healthDetails.maintenance.kcal ?? latest.maintenance?.maintenance.kcal
     }
-
+    
     var currentOrLatestLeanBodyMassInKg: Double? {
         healthDetails.leanBodyMass.leanBodyMassInKg ?? latest.leanBodyMass?.leanBodyMass.leanBodyMassInKg
     }
-
+    
     var currentOrLatestHeightInCm: Double? {
         healthDetails.height.heightInCm ?? latest.height?.height.heightInCm
     }
@@ -30,14 +30,14 @@ import SwiftUI
     var ageInYears: Int? {
         healthDetails.ageInYears
     }
-
+    
     struct LatestHealthDetails {
         var weight: Weight?
         var height: Height?
         var leanBodyMass: LeanBodyMass?
         var maintenance: Maintenance?
         var pregnancyStatus: PregnancyStatus?
-
+        
         struct LeanBodyMass {
             let date: Date
             var leanBodyMass: HealthDetails.LeanBodyMass
@@ -52,96 +52,108 @@ import SwiftUI
             let date: Date
             var height: HealthDetails.Height
         }
-
+        
         struct Maintenance {
             let date: Date
             var maintenance: HealthDetails.Maintenance
         }
-
+        
         struct PregnancyStatus {
             let date: Date
             var pregnancyStatus: WeightUIDemo.PregnancyStatus
         }
     }
-
+    
     init(
         isCurrent: Bool,
         healthDetails: HealthDetails,
         latest: LatestHealthDetails = LatestHealthDetails()
     ) {
-        var healthDetails = healthDetails
-        healthDetails.evaluate(date: healthDetails.date)
         self.isCurrent = isCurrent
         self.healthDetails = healthDetails
         self.latest = latest
-    }
-    
-    /// Returns the date of the `HealthDetails` struct if not current, otherwise returns nil
-    var pastDate: Date? {
-        guard !isCurrent else { return nil }
-        return healthDetails.date
+        Task {
+            fillInMissingAdaptivePoints()
+            await self.update()
+        }
     }
 }
 
-extension HealthDetails {
-    mutating func evaluate(date: Date) {
-        let didModifyAdaptive = maintenance.adaptive.evaluate(date: date)
-        if didModifyAdaptive {
-            //TODO: Save this some other way
-            saveHealthDetailsInDocuments(self)
+extension HealthProvider {
+    
+    func fillInMissingAdaptivePoints() {
+        let initial = self.healthDetails
+        healthDetails.maintenance.adaptive.fillInMissingPoints(date: healthDetails.date)
+        if self.healthDetails != initial {
+            save()
         }
+    }
+    
+    func update() async {
+        /// [ ] This needs to be an async func that gets called soon after init (and later, like when scenePhase changes etc)
+        /// [ ] Now for each point, evaluate it if needed (which grabs the current log value, healthKit value)
+        /// [ ] Now once that's done, calculate the average of all the non-average types and set those to the average types
+        /// [ ] Now calculate the kcalPerDay
+        await fetchHealthKitData()
+        await fetchBackendData()
+        await recalculate()
+    }
+    
+    func fetchHealthKitData() async {
+        /// [ ] DietaryEnergy
+        let points = healthDetails.maintenance.adaptive.dietaryEnergy.points
+        for index in points.indices {
+            guard points[index].type == .healthKit else { continue }
+            
+        }
+    }
+
+    func fetchBackendData() async {
+        /// [ ] DietaryEnergy
+        let points = healthDetails.maintenance.adaptive.dietaryEnergy.points
+        for index in points.indices {
+            /// [ ] Fetch the `Day.DietaryEnergyPoint` from the backend
+            /// [ ] If it exists and set it here
+            /// [ ] If it doesn't exist, fetch the `.log`'s value
+            /// [ ] If it exists, set the `.log` value, saving the `Day.DietaryEnergyPoint`
+            /// [ ] If it doesn't exist, set is as `.useAverage`, saving the `Day.DietaryEnergyPoint` with the type and a value of `nil`, since the average would be different depending on the interval we're looking at
+        }
+
+        /// [ ] Weight
+    }
+
+    func recalculate() async {
+        
     }
 }
 
 extension HealthDetails.Maintenance.Adaptive {
     var numberOfDays: Int { interval.numberOfDays }
     
-    mutating func evaluate(date: Date) -> Bool {
-        let didModifyDietaryEnergy = dietaryEnergy.evaluate(
-            numberOfDays: numberOfDays,
-            date: date
-        )
-        let didModifyWeightChange = weightChange.evaluate(
-            date: date
-        )
-        return didModifyWeightChange || didModifyDietaryEnergy
+    mutating func fillInMissingPoints(date: Date) {
+        dietaryEnergy.fillInMissingPoints(numberOfDays: numberOfDays, date: date)
+        weightChange.fillInMissingPoints(date: date)
     }
 }
 
-enum EvaluateResult {
-    case modified
-    case notModified
-}
-
 extension HealthDetails.Maintenance.Adaptive.WeightChange {
-    mutating func evaluate(date: Date) -> Bool {
-        return false
+    mutating func fillInMissingPoints(date: Date) {
     }
 }
 
 extension HealthDetails.Maintenance.Adaptive.DietaryEnergy {
-    mutating func evaluate(numberOfDays: Int, date: Date) -> Bool {
-        //TODO: Rewrite based on this
-        /// [ ] This needs to be an async func that gets called soon after init (and later, like when scenePhase changes etc)
-        /// [ ] For each number of days, either grab the existing point from the array, or create a new one
-        /// [ ] Now for each point, evaluate it if needed (which grabs the current log value, healthKit value)
-        /// [ ] Now once that's done, calculate the average of all the non-average types and set those to the average types
-        /// [ ] Now calculate the kcalPerDay
-        /// [ ] Initial thought was to finally compare the points array to what we had initially and return true if not the same—but instead, let's just do a comparison of the final HealthDetails in the evalute() function and only call the method to save it if we actually changed it. And if we changed it, also send a notification that things like the PlansProvider will be notified of and update the plans with
-        /// [ ] Rename evaluate to something like update
-        guard points.count != numberOfDays else {
-            return false
-        }
+    mutating func fillInMissingPoints(numberOfDays: Int, date: Date) {
         var points: [HealthDetails.Maintenance.Adaptive.DietaryEnergy.Point] = []
         for index in 0..<numberOfDays {
-            let date = date.moveDayBy(-(index + 1))
-            points.append(.init(
-                date: date,
-                type: .log
-            ))
+            /// If a point already exists at this index, grab it, otherwise create one with `.log` type
+            if index < self.points.count {
+                points.append(self.points[index])
+            } else {
+                let date = date.moveDayBy(-(index + 1))
+                points.append(.init(date: date, type: .log))
+            }
         }
         self.points = points
-        return true
     }
 }
 
