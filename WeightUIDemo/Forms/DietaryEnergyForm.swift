@@ -230,7 +230,7 @@ struct DietaryEnergyCell: View {
     var detail: some View {
         var label: String {
             guard point.source != .useAverage else {
-                return "Not Counted"
+                return "Excluded"
             }
             guard let kcal = point.kcal else {
                 return "Not Set"

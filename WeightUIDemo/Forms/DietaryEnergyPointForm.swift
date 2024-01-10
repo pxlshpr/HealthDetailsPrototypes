@@ -112,8 +112,8 @@ struct DietaryEnergyPointForm: View {
             NoticeSection(
                 style: .plain,
                 notice: .init(
-                    title: "Not Counted",
-                    message: "This day's dietary energy is not being counted towards your average.",
+                    title: "Excluded",
+                    message: "This day's dietary energy is being ignored and will not count towards your average.",
                     imageName: "pencil.slash",
                     isEditing: $isEditing
                 )
@@ -192,17 +192,39 @@ struct DietaryEnergyPointForm: View {
         }
         setCustomInput()
     }
-    
-    var sourcePicker: some View {
-        func setSource(to newValue: DietaryEnergyPointSource) {
-            if newValue == .userEntered {
-                hasFocusedCustomField = false
-            }
-            withAnimation {
-                source = newValue
-            }
-            handleChanges()
+
+    func setSource(to newValue: DietaryEnergyPointSource) {
+        if newValue == .userEntered {
+            hasFocusedCustomField = false
         }
+        withAnimation {
+            source = newValue
+        }
+        handleChanges()
+    }
+
+    var controlColor: Color {
+        isDisabled ? .secondary : .primary
+    }
+
+    var sourcePicker: some View {
+        let binding = Binding<DietaryEnergyPointSource>(
+            get: { source },
+            set: { setSource(to: $0) }
+        )
+        return Section {
+            Picker("Source", selection: binding) {
+                ForEach(DietaryEnergyPointSource.allCases, id: \.self) {
+                    Text($0.name).tag($0)
+                }
+            }
+            .pickerStyle(.wheel)
+            .disabled(isDisabled)
+            .foregroundStyle(controlColor)
+        }
+    }
+    
+    var sourcePicker_: some View {
 
         func cell(for source: DietaryEnergyPointSource) -> some View {
             var checkmark: some View {

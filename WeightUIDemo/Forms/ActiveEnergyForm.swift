@@ -421,9 +421,7 @@ struct ActiveEnergyForm: View {
 
         func string(for activityLevel: ActivityLevel) -> String {
             var string = activityLevel.name
-            if let restingEnergyInKcal,
-               let kcal = activityLevelValuesInKcal[activityLevel]
-            {
+            if restingEnergyInKcal != nil, let kcal = activityLevelValuesInKcal[activityLevel] {
                 let value = kcal.convertEnergy(from: .kcal, to: energyUnit)
                 string += " • \(value.formattedEnergy) \(energyUnit.abbreviation)"
             }

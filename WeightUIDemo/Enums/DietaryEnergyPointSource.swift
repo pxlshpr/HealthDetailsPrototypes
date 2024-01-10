@@ -13,7 +13,7 @@ enum DietaryEnergyPointSource: Int, Codable, CaseIterable, Identifiable {
 
     var emptyValueString: String {
         switch self {
-        case .useAverage:   "Not Counted"
+        case .useAverage:   "Excluded"
         case .healthKit:    "No Data"
         default:            "Not Set"
         }
@@ -31,16 +31,26 @@ enum DietaryEnergyPointSource: Int, Codable, CaseIterable, Identifiable {
         }
     }
 
+//    var name: String {
+//        switch self {
+//        case .log:          "Use Log"
+//        case .healthKit:    "Use Apple Health"
+//        case .fasted:       "Set as Fasted"
+//        case .userEntered:  "Enter Manually"
+//        case .useAverage:   "Not Counted" /// "Exclude and Use Average"
+//        }
+//    }
+
     var name: String {
         switch self {
-        case .log:          "Use Log"
-        case .healthKit:    "Use Apple Health"
-        case .fasted:       "Set as Fasted"
+        case .log:          "Logged Energy"
+        case .healthKit:    "Apple Health Data"
+        case .fasted:       "Mark as Fasted"
         case .userEntered:  "Enter Manually"
-        case .useAverage:   "Not Counted" /// "Exclude and Use Average"
+        case .useAverage:   "Exclude this Day" /// "Exclude and Use Average"
         }
     }
-    
+
     var imageScale: CGFloat {
         switch self {
         case .useAverage:   0.85
