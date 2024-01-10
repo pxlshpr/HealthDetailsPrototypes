@@ -198,6 +198,7 @@ struct DietaryEnergyPointForm: View {
                 } label: {
                     cell(for: source)
                 }
+                .disabled(isDisabled)
             }
         }
     }

@@ -229,8 +229,11 @@ struct DietaryEnergyCell: View {
     
     var detail: some View {
         var label: String {
-            guard let kcal = point.kcal else {
+            guard point.source != .useAverage else {
                 return "Not Counted"
+            }
+            guard let kcal = point.kcal else {
+                return "Not Set"
             }
             let value = EnergyUnit.kcal.convert(kcal, to: settingsProvider.energyUnit)
             return "\(value.formattedEnergy) \(settingsProvider.energyUnit.abbreviation)"
