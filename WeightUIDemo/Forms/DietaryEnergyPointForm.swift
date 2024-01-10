@@ -98,8 +98,8 @@ struct DietaryEnergyPointForm: View {
             NoticeSection(
                 style: .plain,
                 notice: .init(
-                    title: "No Logged Data",
-                    message: "No data was logged on this date. Consider marking it as fasted if you hadn't consumed any dietary energy.",
+                    title: "No Logged Foods",
+                    message: "There are no foods logged on this date. Consider marking it as fasted if you hadn't consumed any dietary energy, so that it would be set at 0 \(energyUnit.abbreviation).",
                     imageName: "questionmark.app.dashed",
                     isEditing: $isEditing
                 )
@@ -225,12 +225,12 @@ struct DietaryEnergyPointForm: View {
     
     var healthKitValueInUserUnit: Double? {
         guard let healthKitValueInKcal else { return nil }
-        return EnergyUnit.kcal.convert(healthKitValueInKcal, to: settingsProvider.energyUnit)
+        return EnergyUnit.kcal.convert(healthKitValueInKcal, to: energyUnit)
     }
 
     var logValueInUserUnit: Double? {
         guard let logValueInKcal else { return nil }
-        return EnergyUnit.kcal.convert(logValueInKcal, to: settingsProvider.energyUnit)
+        return EnergyUnit.kcal.convert(logValueInKcal, to: energyUnit)
     }
 
     var sourcePicker: some View {
@@ -243,13 +243,13 @@ struct DietaryEnergyPointForm: View {
             switch source {
             case .log:
                 if let logValueInUserUnit {
-                    "\(source.name) • \(logValueInUserUnit.formattedEnergy) \(settingsProvider.energyUnit.abbreviation)"
+                    "\(source.name) • \(logValueInUserUnit.formattedEnergy) \(energyUnit.abbreviation)"
                 } else {
                     source.name
                 }
             case .healthKit:
                 if let healthKitValueInUserUnit {
-                    "\(source.name) • \(healthKitValueInUserUnit.formattedEnergy) \(settingsProvider.energyUnit.abbreviation)"
+                    "\(source.name) • \(healthKitValueInUserUnit.formattedEnergy) \(energyUnit.abbreviation)"
                 } else {
                     source.name
                 }
@@ -404,7 +404,7 @@ struct DietaryEnergyPointForm: View {
         customInput = DoubleInput(
             double: initialPoint.kcal.convertEnergy(
                 from: .kcal,
-                to: settingsProvider.energyUnit
+                to: energyUnit
             ),
             automaticallySubmitsValues: true
         )
