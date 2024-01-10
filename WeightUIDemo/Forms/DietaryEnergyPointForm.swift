@@ -75,7 +75,8 @@ struct DietaryEnergyPointForm: View {
             if source == .userEntered {
                 customSection
             }
-            healthKitErrorSection
+            missingLogDataSection
+            missingHealthKitDataSection
             notCountedSection
 //            explanation
         }
@@ -92,7 +93,22 @@ struct DietaryEnergyPointForm: View {
     }
     
     @ViewBuilder
-    var healthKitErrorSection: some View {
+    var missingLogDataSection: some View {
+        if source == .log, energyInKcal == nil {
+            NoticeSection(
+                style: .plain,
+                notice: .init(
+                    title: "No Logged Data",
+                    message: "No data was logged on this date. Consider marking it as fasted if you hadn't consumed any dietary energy.",
+                    imageName: "questionmark.app.dashed",
+                    isEditing: $isEditing
+                )
+            )
+        }
+    }
+    
+    @ViewBuilder
+    var missingHealthKitDataSection: some View {
         if source == .healthKit, energyInKcal == nil {
             NoticeSection(
                 style: .plain,
