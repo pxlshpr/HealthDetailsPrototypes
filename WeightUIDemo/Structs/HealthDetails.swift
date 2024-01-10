@@ -16,6 +16,40 @@ struct HealthDetails: Hashable, Codable {
 
 //MARK: - Maintenance
 
+struct DietaryEnergyPoint: Hashable, Codable {
+    var date: Date
+    var kcal: Double?
+    var source: DietaryEnergyPointSource
+}
+
+extension Array where Element == DietaryEnergyPoint {
+    mutating func fillAverages() {
+        guard let averageOfPointsNotUsingAverage else { return }
+        for i in 0..<count {
+            /// Only fill with average if there is no value for it or it already has a type of `average`
+            guard self[i].source == .useAverage else { continue }
+            self[i].kcal = averageOfPointsNotUsingAverage
+        }
+    }
+    
+    var averageOfPointsNotUsingAverage: Double? {
+        let values = self
+            .filter { $0.source != .useAverage }
+            .compactMap { $0.kcal }
+        guard !values.isEmpty else { return nil }
+        let sum = values.reduce(0) { $0 + $1 }
+        return Double(sum) / Double(values.count)
+    }
+    
+    var average: Double? {
+        let values = self
+            .compactMap { $0.kcal }
+        guard !values.isEmpty else { return nil }
+        let sum = values.reduce(0) { $0 + $1 }
+        return Double(sum) / Double(values.count)
+    }
+}
+
 extension HealthDetails {
     struct Maintenance: Hashable, Codable {
         
@@ -34,13 +68,7 @@ extension HealthDetails {
             
             struct DietaryEnergy: Hashable, Codable {
                 var kcalPerDay: Double?
-                var points: [Point] = []
-             
-                struct Point: Hashable, Codable {
-                    var date: Date
-                    var kcal: Double?
-                    var type: DietaryEnergyPointType
-                }
+                var points: [DietaryEnergyPoint] = []
             }
             
             struct WeightChange: Hashable, Codable {

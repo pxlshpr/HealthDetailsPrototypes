@@ -1,11 +1,11 @@
 import SwiftUI
 
-enum DietaryEnergyPointType: Int, Codable, CaseIterable, Identifiable {
+enum DietaryEnergyPointSource: Int, Codable, CaseIterable, Identifiable {
     case log = 1
     case healthKit
     case fasted
+    case userEntered
     case useAverage
-    case custom
 
     var id: Int {
         rawValue
@@ -16,8 +16,10 @@ enum DietaryEnergyPointType: Int, Codable, CaseIterable, Identifiable {
         case .log:          "book.closed"
         case .healthKit:    "pencil"
         case .fasted:       ""
-        case .custom:       "pencil"
-        case .useAverage:   "circle.slash"
+        case .userEntered:  "pencil"
+        case .useAverage:   "pencil.slash"
+//        case .useAverage:   "questionmark.square.dashed"
+//        case .useAverage:   "circle.slash"
         }
     }
 
@@ -26,8 +28,8 @@ enum DietaryEnergyPointType: Int, Codable, CaseIterable, Identifiable {
         case .log:          "Use Log"
         case .healthKit:    "Use Apple Health"
         case .fasted:       "Set as Fasted"
-        case .custom:       "Enter Manually"
-        case .useAverage:   "Exclude and Use Average"
+        case .userEntered:  "Enter Manually"
+        case .useAverage:   "Not Counted" /// "Exclude and Use Average"
         }
     }
     

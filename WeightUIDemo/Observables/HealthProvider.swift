@@ -73,7 +73,6 @@ import SwiftUI
         self.healthDetails = healthDetails
         self.latest = latest
         Task {
-            fillInMissingAdaptivePoints()
             await self.update()
         }
     }
@@ -81,43 +80,62 @@ import SwiftUI
 
 extension HealthProvider {
     
-    func fillInMissingAdaptivePoints() {
-        let initial = self.healthDetails
-        healthDetails.maintenance.adaptive.fillInMissingPoints(date: healthDetails.date)
-        if self.healthDetails != initial {
-            save()
-        }
-    }
+//    func fillInMissingAdaptivePoints() {
+//        let initial = self.healthDetails
+//        healthDetails.maintenance.adaptive.fillInMissingPoints(date: healthDetails.date)
+//        if self.healthDetails != initial {
+//            save()
+//        }
+//    }
     
     func update() async {
         /// [ ] This needs to be an async func that gets called soon after init (and later, like when scenePhase changes etc)
         /// [ ] Now for each point, evaluate it if needed (which grabs the current log value, healthKit value)
         /// [ ] Now once that's done, calculate the average of all the non-average types and set those to the average types
         /// [ ] Now calculate the kcalPerDay
-        await fetchHealthKitData()
         await fetchBackendData()
-        await recalculate()
+//        await fetchHealthKitData()
+//        await recalculate()
     }
     
     func fetchHealthKitData() async {
         /// [ ] DietaryEnergy
         let points = healthDetails.maintenance.adaptive.dietaryEnergy.points
         for index in points.indices {
-            guard points[index].type == .healthKit else { continue }
+            guard points[index].source == .healthKit else { continue }
             
         }
     }
 
     func fetchBackendData() async {
-        /// [ ] DietaryEnergy
-        let points = healthDetails.maintenance.adaptive.dietaryEnergy.points
-        for index in points.indices {
-            /// [ ] Fetch the `Day.DietaryEnergyPoint` from the backend
-            /// [ ] If it exists and set it here
-            /// [ ] If it doesn't exist, fetch the `.log`'s value
-            /// [ ] If it exists, set the `.log` value, saving the `Day.DietaryEnergyPoint`
-            /// [ ] If it doesn't exist, set is as `.useAverage`, saving the `Day.DietaryEnergyPoint` with the type and a value of `nil`, since the average would be different depending on the interval we're looking at
+        /// DietaryEnergy
+        var points: [DietaryEnergyPoint] = []
+        let numberOfDays = healthDetails.maintenance.adaptive.interval.numberOfDays
+        for index in 0..<numberOfDays {
+            let date = healthDetails.date.moveDayBy(-(index + 1))
+
+            if let point = fetchBackendDietaryEnergyPoint(for: date) {
+                points.append(point)
+            } else if let energyInKcal = fetchBackendEnergyInKcal(for: date) {
+                let point = DietaryEnergyPoint(
+                    date: date,
+                    kcal: energyInKcal,
+                    source: .log
+                )
+                points.append(point)
+                setBackendDietaryEnergyPoint(point, for: date)
+            } else {
+                let point = DietaryEnergyPoint(
+                    date: date,
+                    source: .useAverage
+                )
+                points.append(point)
+                setBackendDietaryEnergyPoint(point, for: date)
+            }
         }
+        print("Setting \(points.count) dietaryEnergyPoints")
+        healthDetails.maintenance.adaptive.dietaryEnergy.points = points
+        save()
 
         /// [ ] Weight
     }
@@ -127,35 +145,35 @@ extension HealthProvider {
     }
 }
 
-extension HealthDetails.Maintenance.Adaptive {
-    var numberOfDays: Int { interval.numberOfDays }
-    
-    mutating func fillInMissingPoints(date: Date) {
-        dietaryEnergy.fillInMissingPoints(numberOfDays: numberOfDays, date: date)
-        weightChange.fillInMissingPoints(date: date)
-    }
-}
-
-extension HealthDetails.Maintenance.Adaptive.WeightChange {
-    mutating func fillInMissingPoints(date: Date) {
-    }
-}
-
-extension HealthDetails.Maintenance.Adaptive.DietaryEnergy {
-    mutating func fillInMissingPoints(numberOfDays: Int, date: Date) {
-        var points: [HealthDetails.Maintenance.Adaptive.DietaryEnergy.Point] = []
-        for index in 0..<numberOfDays {
-            /// If a point already exists at this index, grab it, otherwise create one with `.log` type
-            if index < self.points.count {
-                points.append(self.points[index])
-            } else {
-                let date = date.moveDayBy(-(index + 1))
-                points.append(.init(date: date, type: .log))
-            }
-        }
-        self.points = points
-    }
-}
+//extension HealthDetails.Maintenance.Adaptive {
+//    var numberOfDays: Int { interval.numberOfDays }
+//    
+//    mutating func fillInMissingPoints(date: Date) {
+//        dietaryEnergy.fillInMissingPoints(numberOfDays: numberOfDays, date: date)
+//        weightChange.fillInMissingPoints(date: date)
+//    }
+//}
+//
+//extension HealthDetails.Maintenance.Adaptive.WeightChange {
+//    mutating func fillInMissingPoints(date: Date) {
+//    }
+//}
+//
+//extension HealthDetails.Maintenance.Adaptive.DietaryEnergy {
+//    mutating func fillInMissingPoints(numberOfDays: Int, date: Date) {
+//        var points: [DietaryEnergyPoint] = []
+//        for index in 0..<numberOfDays {
+//            /// If a point already exists at this index, grab it, otherwise create one with `.log` type
+//            if index < self.points.count {
+//                points.append(self.points[index])
+//            } else {
+//                let date = date.moveDayBy(-(index + 1))
+//                points.append(.init(date: date, type: .log))
+//            }
+//        }
+//        self.points = points
+//    }
+//}
 
 extension HealthDetails {
     
@@ -337,9 +355,29 @@ extension HealthProvider {
 
 }
 
-//TODO: Replace this with actual backend manipulation in Prep
+//TODO: Replace these with actual backend manipulation in Prep
+
 extension HealthProvider {
+    func setBackendDietaryEnergyPoint(_ point: DietaryEnergyPoint, for date: Date) {
+        var day = fetchDayFromDocuments(date)
+        day.dietaryEnergyPoint = point
+        saveDayInDocuments(day)
+    }
+    func fetchBackendDietaryEnergyPoint(for date: Date) -> DietaryEnergyPoint? {
+        let day = fetchDayFromDocuments(date)
+        return day.dietaryEnergyPoint
+    }
+    
+    func fetchBackendEnergyInKcal(for date: Date) -> Double? {
+        let day = fetchDayFromDocuments(date)
+        return day.energyInKcal
+    }
+    
     func save() {
         saveHealthDetailsInDocuments(healthDetails)
     }
+}
+
+#Preview("Demo") {
+    DemoView()
 }

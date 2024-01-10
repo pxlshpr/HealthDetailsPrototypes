@@ -145,7 +145,8 @@ struct AdaptiveMaintenanceForm: View {
                     isPresented: $isPresented,
                     dismissDisabled: $dismissDisabled,
                     saveHandler: { dietaryEnergy in
-                        
+                        self.dietaryEnergy = dietaryEnergy
+                        handleChanges()
                     }
                 )
             } label: {

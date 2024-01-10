@@ -139,6 +139,7 @@ struct ActiveEnergyForm: View {
                 try await calculateActivityLevelValues()
                 try await fetchHealthKitValues()
             }
+            hasAppeared = true
         }
 
         if isEditing {
@@ -258,12 +259,14 @@ struct ActiveEnergyForm: View {
             
             /// HealthKit Values
             if source == .healthKit {
-                if !hasFetchedHealthKitValues {
+                if hasFetchedHealthKitValues {
+                    await MainActor.run {
+                        setHealthKitValue()
+                    }
+                } else {                    
                     try await fetchHealthKitValues()
                 }
-                await MainActor.run {
-                    setHealthKitValue()
-                }
+                try Task.checkCancellation()
             }
 
             await MainActor.run {

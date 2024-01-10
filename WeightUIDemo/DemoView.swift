@@ -131,16 +131,6 @@ struct DemoView: View {
 
 let MockPastDate = Date.now.moveDayBy(-3)
 
-func valueForActivityLevel(_ activityLevel: ActivityLevel) -> Double {
-    switch activityLevel {
-    case .sedentary:            2442
-    case .lightlyActive:        2798.125
-    case .moderatelyActive:     3154.25
-    case .active:               3510.375
-    case .veryActive:           3866.5
-    }
-}
-
 extension Date: Identifiable {
     public var id: Date { return self }
 }

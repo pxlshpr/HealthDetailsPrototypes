@@ -190,29 +190,70 @@ func getDocumentsDirectory() -> URL {
     FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
 }
 
-func fetchHealthDetailsFromDocuments(_ date: Date) -> HealthDetails {
+struct Day: Codable {
+    let date: Date
+    var healthDetails: HealthDetails
+    var dietaryEnergyPoint: DietaryEnergyPoint?
+    var energyInKcal: Double?
+    
+    init(date: Date) {
+        self.date = date
+        self.healthDetails = HealthDetails(date: date)
+    }
+}
+
+func fetchDayFromDocuments(_ date: Date) -> Day {
     let filename = "\(date.dateString).json"
     let url = getDocumentsDirectory().appendingPathComponent(filename)
     do {
         let data = try Data(contentsOf: url)
-        let healthDetails = try JSONDecoder().decode(HealthDetails.self, from: data)
-        return healthDetails
+        let day = try JSONDecoder().decode(Day.self, from: data)
+        return day
     } catch {
-        let healthDetails = HealthDetails(date: date)
-        saveHealthDetailsInDocuments(healthDetails)
-        return healthDetails
+        let day = Day(date: date)
+        saveDayInDocuments(day)
+        return day
     }
 }
 
-func saveHealthDetailsInDocuments(_ healthDetails: HealthDetails) {
+func saveDayInDocuments(_ day: Day) {
     do {
-        let filename = "\(healthDetails.date.dateString).json"
+        let filename = "\(day.date.dateString).json"
         let url = getDocumentsDirectory().appendingPathComponent(filename)
-        let json = try JSONEncoder().encode(healthDetails)
+        let json = try JSONEncoder().encode(day)
         try json.write(to: url)
     } catch {
         fatalError()
     }
+}
+
+func fetchHealthDetailsFromDocuments(_ date: Date) -> HealthDetails {
+    fetchDayFromDocuments(date).healthDetails
+//    let filename = "\(date.dateString).json"
+//    let url = getDocumentsDirectory().appendingPathComponent(filename)
+//    do {
+//        let data = try Data(contentsOf: url)
+//        let healthDetails = try JSONDecoder().decode(HealthDetails.self, from: data)
+//        return healthDetails
+//    } catch {
+//        let healthDetails = HealthDetails(date: date)
+//        saveHealthDetailsInDocuments(healthDetails)
+//        return healthDetails
+//    }
+}
+
+func saveHealthDetailsInDocuments(_ healthDetails: HealthDetails) {
+    var day = fetchDayFromDocuments(healthDetails.date)
+    day.healthDetails = healthDetails
+    saveDayInDocuments(day)
+//    do {
+//        let filename = "\(healthDetails.date.dateString).json"
+//        let url = getDocumentsDirectory().appendingPathComponent(filename)
+//        let json = try JSONEncoder().encode(healthDetails)
+//        try json.write(to: url)
+//    } catch {
+//        fatalError()
+//    }
 }
 
 func fetchSettingsFromDocuments() -> Settings {

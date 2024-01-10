@@ -20,7 +20,7 @@ struct RestingEnergyForm: View {
     @State var applyCorrection: Bool = false
     @State var correctionType: CorrectionType = .divide
     @State var correctionInput = DoubleInput(automaticallySubmitsValues: true)
-    @State var customInput = DoubleInput(automaticallySubmitsValues: true)
+    @State var customInput: DoubleInput
 
     @State var equationValuesInKcal: [RestingEnergyEquation: Double] = [:]
     @State var hasFetchedHealthKitValues: Bool = false
@@ -132,6 +132,7 @@ struct RestingEnergyForm: View {
                 try await calculateEquationValues()
                 try await fetchHealthKitValues()
             }
+            hasAppeared = true
         }
 
         if isEditing {
@@ -267,12 +268,14 @@ struct RestingEnergyForm: View {
             
             /// HealthKit Values
             if source == .healthKit {
-                if !hasFetchedHealthKitValues {
+                if hasFetchedHealthKitValues {
+                    await MainActor.run {
+                        setHealthKitValue()
+                    }
+                } else {
                     try await fetchHealthKitValues()
                 }
-                await MainActor.run {
-                    setHealthKitValue()
-                }
+                try Task.checkCancellation()
             }
 
             await MainActor.run {
