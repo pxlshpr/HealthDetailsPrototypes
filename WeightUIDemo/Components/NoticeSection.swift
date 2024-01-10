@@ -34,12 +34,12 @@ struct Notice {
     }
     
     static func legacy(
-        _ date: Date,
+        _ date: Date? = nil,
         isEditing: Binding<Bool> = .constant(false)
     ) -> Notice {
         .init(
             title: "Legacy Data",
-            message: "You are viewing legacy data which has been preserved to ensure any dependent goals on this date remain unchanged.",
+            message: "You are viewing legacy data which has been preserved to ensure any dependent goals\(date != nil ? " on this date" : "") remain unchanged.",
             date: date,
             imageName: "calendar.badge.clock",
             isEditing: isEditing
@@ -59,7 +59,7 @@ struct NoticeSection: View {
     var isEditing: Binding<Bool>
     
     static func legacy(
-        _ date: Date,
+        _ date: Date? = nil,
         isEditing: Binding<Bool> = .constant(false)
     ) -> Self {
         NoticeSection(notice: .legacy(date, isEditing: isEditing))

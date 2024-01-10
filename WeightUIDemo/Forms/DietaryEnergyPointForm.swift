@@ -52,7 +52,7 @@ struct DietaryEnergyPointForm: View {
         self.settingsProvider = settingsProvider
         self.healthProvider = healthProvider
         self.averageEnergyInKcal = averageEnergyInKcal
-        _isEditing = State(initialValue: date.isToday)
+        _isEditing = State(initialValue: point.date.isToday)
         _isPresented = isPresented
         _dismissDisabled = dismissDisabled
         
@@ -69,8 +69,7 @@ struct DietaryEnergyPointForm: View {
 
     var body: some View {
         Form {
-            //TODO: Replace this with something specific to DietaryEnergyForm indicating that a change will affect any other places where this day's dietary energy point is used
-//            notice
+            notice
             sourcePicker
             if source == .userEntered {
                 customSection
@@ -243,13 +242,14 @@ struct DietaryEnergyPointForm: View {
     }
 
     var isLegacy: Bool {
-        healthDetailsDate.startOfDay < Date.now.startOfDay
+        pointDate.startOfDay < Date.now.startOfDay
+//        healthDetailsDate.startOfDay < Date.now.startOfDay
     }
     
     @ViewBuilder
     var notice: some View {
         if isLegacy {
-            NoticeSection.legacy(healthDetailsDate, isEditing: $isEditing)
+            NoticeSection.legacy(isEditing: $isEditing)
         }
     }
     
