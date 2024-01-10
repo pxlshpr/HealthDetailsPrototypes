@@ -56,10 +56,11 @@ struct DietaryEnergyPointForm: View {
         _isPresented = isPresented
         _dismissDisabled = dismissDisabled
         
+        let kcal = point.source == .useAverage ? nil : point.kcal
         _source = State(initialValue: point.source)
-        _energyInKcal = State(initialValue: point.source == .useAverage ? nil : point.kcal)
+        _energyInKcal = State(initialValue: kcal)
         _customInput = State(initialValue: DoubleInput(
-            double: point.kcal.convertEnergy(
+            double: kcal.convertEnergy(
                 from: .kcal,
                 to: settingsProvider.energyUnit
             ),
