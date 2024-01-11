@@ -1,77 +1,245 @@
 import SwiftUI
 import SwiftSugar
+import PrepShared
 
 struct WeightChangeForm: View {
     
-    @ScaledMetric var scale: CGFloat = 1
-    let imageScale: CGFloat = 24
-
-    @State var isCustom: Bool = true
-    @State var value: Double? = nil
-
-    @State var isSynced: Bool = true
-    @State var showingSyncOffConfirmation: Bool = false
-
-    @State var showingAlert = false
-    @State var isGain = true
-    
-    @State var customInput = DoubleInput()
+    @Bindable var settingsProvider: SettingsProvider
+    @Bindable var healthProvider: HealthProvider
 
     let date: Date
+    let initialWeightChange: WeightChange
+
+    @State var type: WeightChangeType
+    @State var weightChangeInKg: Double?
+    @State var weightChangeIsPositive: Bool
+    @State var doubleInput: DoubleInput
+    @State var intInput: IntInput
+    @State var points: WeightChange.Points?
+
     @State var isEditing: Bool
     @State var isDirty: Bool = false
     @Binding var isPresented: Bool
     @Binding var dismissDisabled: Bool
 
+    @State var hasFocusedCustom: Bool = false
+
+    let saveHandler: (WeightChange) -> ()
+
     init(
         date: Date = Date.now,
+        weightChange: WeightChange,
+        healthProvider: HealthProvider,
+        settingsProvider: SettingsProvider,
         isPresented: Binding<Bool> = .constant(true),
-        dismissDisabled: Binding<Bool> = .constant(false)
+        dismissDisabled: Binding<Bool> = .constant(false),
+        saveHandler: @escaping (WeightChange) -> ()
     ) {
         self.date = date
+        self.initialWeightChange = weightChange
+        self.settingsProvider = settingsProvider
+        self.healthProvider = healthProvider
+        self.saveHandler = saveHandler
+        
+        _type = State(initialValue: weightChange.type)
+        _weightChangeInKg = State(initialValue: weightChange.kg)
+        if let kg = weightChange.kg {
+            _weightChangeIsPositive = State(initialValue: kg >= 0)
+        } else {
+            _weightChangeIsPositive = State(initialValue: true)
+        }
+        _points = State(initialValue: weightChange.points)
+        
+        let unit = settingsProvider.bodyMassUnit
+        let kg = weightChange.kg
+        
+        let double: Double? = if let kg {
+            BodyMassUnit.kg.doubleComponent(kg, in: unit)
+        } else {
+           nil
+        }
+        _doubleInput = State(initialValue: DoubleInput(double: double, automaticallySubmitsValues: true))
+
+        let int: Int? = if let kg {
+            BodyMassUnit.kg.intComponent(kg, in: unit)
+        } else {
+           nil
+        }
+        _intInput = State(initialValue: IntInput(int: int, automaticallySubmitsValues: true))
+
         _isPresented = isPresented
         _dismissDisabled = dismissDisabled
         _isEditing = State(initialValue: date.isToday)
     }
-
+    
     var body: some View {
         Form {
             notice
+            dateSection
             typePicker
-            if isCustom {
-                enterSection
-            } else {
+            switch type {
+            case .usingPoints:
                 weightSections
+            case .userEntered:
+                customSection
+                gainOrLossSection
             }
-            explanation
+//            explanation
         }
         .navigationTitle("Weight Change")
         .navigationBarTitleDisplayMode(.large)
         .toolbar { toolbarContent }
-        .alert("Enter your weight \(isGain ? "gain" : "loss")", isPresented: $showingAlert) {
-            TextField("kg", text: customInput.binding)
-                .keyboardType(.decimalPad)
-            Button("OK", action: submitCustomValue)
-            Button("Cancel") { customInput.cancel() }
-        }
         .safeAreaInset(edge: .bottom) { bottomValue }
         .navigationBarBackButtonHidden(isLegacy && isEditing)
         .onChange(of: isEditing) { _, _ in setDismissDisabled() }
         .onChange(of: isDirty) { _, _ in setDismissDisabled() }
     }
     
+    var dateSection: some View {
+        Section {
+            HStack {
+                Text("Period")
+                Spacer()
+                Text(dateIntervalString)
+            }
+        }
+    }
+    
+    var weightSections: some View {
+        func section(
+            for point: WeightChangePoint,
+            title: String,
+            isEndWeight: Bool
+        ) -> some View {
+            Section(title) {
+                NavigationLink {
+                    WeightChangePointForm(
+                        date: date,
+                        point: point,
+                        isEndWeight: isEndWeight,
+                        healthProvider: healthProvider,
+                        isPresented: $isPresented,
+                        dismissDisabled: $dismissDisabled,
+                        saveHandler: { point in
+                            if isEndWeight {
+                                points?.end = point
+                            } else {
+                                points?.start = point
+                            }
+                            handleChanges()
+                        }
+                    )
+                } label: {
+                    HStack {
+                        Text(point.date.shortDateString)
+                        Spacer()
+                        if let kg = point.kg {
+                            Text("\(BodyMassUnit.kg.convert(kg, to: settingsProvider.bodyMassUnit).clean) \(settingsProvider.bodyMassUnit.abbreviation)")
+                        } else {
+                            Text("Not Set")
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+                .disabled(isEditing && isLegacy)
+            }
+        }
+        
+        return Group {
+            if let points {
+                section(
+                    for: points.end,
+                    title: "Ending Weight",
+                    isEndWeight: true
+                )
+                section(
+                    for: points.start,
+                    title: "Starting Weight",
+                    isEndWeight: false
+                )
+            }
+        }
+    }
+
+    var gainOrLossSection: some View {
+        let binding = Binding<Bool>(
+            get: { weightChangeIsPositive },
+            set: { newValue in
+                withAnimation {
+                    weightChangeIsPositive = newValue
+                    if let weightChangeInKg {
+                        switch newValue {
+                        case true:  self.weightChangeInKg = abs(weightChangeInKg)
+                        case false: self.weightChangeInKg = abs(weightChangeInKg) * -1
+                        }
+                    }
+                }
+                handleChanges()
+            }
+        )
+
+        var picker: some View {
+            Picker("", selection: binding) {
+                Text("Gain").tag(true)
+                Text("Loss").tag(false)
+            }
+            .pickerStyle(.segmented)
+            .listRowSeparator(.hidden)
+        }
+        
+        return Group {
+            if weightChangeInKg != nil, weightChangeInKg != 0 {
+                Section {
+                    picker
+                }
+            }
+        }
+    }
+    
     func setDismissDisabled() {
         dismissDisabled = isLegacy && isEditing && isDirty
     }
 
+    var bodyMassUnit: BodyMassUnit { settingsProvider.bodyMassUnit }
+
+    var weightChangeInUserUnit: Double? {
+        weightChangeInKg.convertBodyMass(from: .kg, to: bodyMassUnit)
+    }
+
     var bottomValue: some View {
-        MeasurementBottomBar(
-            double: $value,
-            doubleString: Binding<String?>(
-                get: { valueAsString },
-                set: { _ in }
+
+        var double: Double? {
+            guard let weightChangeInKg else { return nil }
+            let value = BodyMassUnit.kg
+                .doubleComponent(weightChangeInKg, in: bodyMassUnit)
+            return abs(value)
+        }
+        
+        var int: Int? {
+            guard let weightChangeInKg,
+                  let value = BodyMassUnit.kg.intComponent(
+                    weightChangeInKg,
+                    in: bodyMassUnit
+                  )
+            else { return nil }
+            return abs(value)
+        }
+
+        return MeasurementBottomBar(
+            int: Binding<Int?>(
+                get: { int }, set: { _ in }
             ),
-            doubleUnitString: "kg",
+            intUnitString: bodyMassUnit.intUnitString,
+            double: Binding<Double?>(
+                get: { double }, set: { _ in }
+            ),
+            doubleString: Binding<String?>(
+                get: { double?.cleanHealth }, set: { _ in }
+            ),
+            doubleUnitString: bodyMassUnit.doubleUnitString,
+            prefix: Binding<String?>(
+                get: { weightChangeValueIsPositive ? "+" : "-" }, set: { _ in }
+            ),
             isDisabled: Binding<Bool>(
                 get: { !isEditing },
                 set: { _ in }
@@ -90,13 +258,9 @@ struct WeightChangeForm: View {
         }
     }
     
-    var valueAsString: String? {
-        guard let value else { return nil }
-        return if value > 0 {
-            "+\(value.clean)"
-        } else {
-            value.clean
-        }
+    var weightChangeValueIsPositive: Bool {
+        guard let value = weightChangeInUserUnit else { return false }
+        return value > 0
     }
     
     var toolbarContent: some ToolbarContent {
@@ -110,166 +274,127 @@ struct WeightChangeForm: View {
         )
     }
     
+    var weightChange: WeightChange {
+        .init(
+            kg: weightChangeInKg,
+            type: type,
+            points: points
+        )
+    }
+    
     func save() {
-        
+        saveHandler(weightChange)
     }
     
     func undo() {
-        isDirty = false
-        isCustom = true
-        value = nil
-        customInput = DoubleInput()
+        type = initialWeightChange.type
+        points = initialWeightChange.points
+        setWeightChangeInKg(initialWeightChange.kg)
     }
     
     func setIsDirty() {
-        isDirty = self.isGain != true
-        || self.customInput.double != nil
-        || self.value != nil
-        || self.isCustom != true
+        isDirty = initialWeightChange != weightChange
     }
     
-    var weightSections: some View {
-        Group {
-            Section("Ending Weight") {
-                NavigationLink {
-                    WeightChangePointForm(
-                        healthDetailsDate: date,
-                        weightDate: date,
-                        isPresented: $isPresented,
-                        dismissDisabled: $dismissDisabled,
-                        isCurrent: true
-                    )
-                } label: {
-                    HStack {
-                        Text(date.shortDateString)
-                        Spacer()
-                        Text("93.2 kg")
-                    }
+    var customSection: some View {
+        func handleCustomValue() {
+            guard type == .userEntered else { return }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                let int = intInput.int ?? 0
+                let double = doubleInput.double ?? 0
+                
+                let kg: Double? = if int == 0, double == 0 {
+                    nil
+                } else {
+                    settingsProvider.bodyMassUnit.convert(int, double, to: .kg) * (weightChangeIsPositive ? 1 : -1)
                 }
-                .disabled(isEditing && isLegacy)
-            }
-            Section("Starting Weight") {
-                NavigationLink {
-                    WeightChangePointForm(
-                        healthDetailsDate: date,
-                        weightDate: date.moveDayBy(-7),
-                        isPresented: $isPresented,
-                        dismissDisabled: $dismissDisabled,
-                        isCurrent: false
-                    )
-                } label: {
-                    HStack {
-                        Text(date.moveDayBy(-7).shortDateString)
-                        Spacer()
-                        Text("94.2 kg")
-                    }
-                }
-                .disabled(isEditing && isLegacy)
-            }
-        }
-    }
-    
-    var customValue: Double? {
-        customInput.double
-    }
-    
-    func submitCustomValue() {
-        withAnimation {
-            customInput.submitValue()
-            if let customValue {
-                value = isGain ? customValue : -customValue
-            }
-            setIsDirty()
-        }
-    }
-    
-    var enterSection: some View {
-        let binding = Binding<Bool>(
-            get: { isGain },
-            set: { newValue in
                 withAnimation {
-                    isGain = newValue
-                    if let value {
-                        switch isGain {
-                        case true:  self.value = abs(value)
-                        case false: self.value = abs(value) * -1
-                        }
-                    }
-                    setIsDirty()
+                    weightChangeInKg = kg
                 }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    handleChanges()
+                }
+            }
+        }
+
+        return MeasurementInputSection(
+            type: .weight,
+            doubleInput: $doubleInput,
+            intInput: $intInput,
+            hasFocused: $hasFocusedCustom,
+            handleChanges: handleCustomValue
+        )
+        .environment(settingsProvider)
+    }
+    
+    var dateIntervalString: String {
+        let startDate = healthProvider.healthDetails.maintenance.adaptive.interval.startDate(with: date)
+        return "\(startDate.shortDateString) to \(date.shortDateString)"
+    }
+    
+    var explanation: some View {
+        Section {
+            Text("This represents the change in your weight from \(dateIntervalString), which is used to calculate your Adaptive Maintenance Energy.")
+        }
+    }
+    
+    func setWeightChangeInKg(_ kg: Double?) {
+        weightChangeInKg = kg
+        weightChangeIsPositive = if let kg { kg >= 0 } else { true }
+
+        let double: Double? = if let kg {
+            BodyMassUnit.kg.doubleComponent(kg, in: bodyMassUnit)
+        } else { nil }
+        doubleInput = DoubleInput(double: double, automaticallySubmitsValues: true)
+
+        let int: Int? = if let kg {
+            BodyMassUnit.kg.intComponent(kg, in: bodyMassUnit)
+        } else { nil }
+        intInput = IntInput(int: int, automaticallySubmitsValues: true)
+    }
+
+    func handleChanges() {
+        switch type {
+        case .usingPoints:
+            if points == nil {
+                points = .init(
+                    date: date,
+                    interval: healthProvider.healthDetails.maintenance.adaptive.interval
+                )
+            }
+            setWeightChangeInKg(points?.weightChangeInKg)
+           
+        case .userEntered:
+            break
+        }
+        
+        setIsDirty()
+        if !isLegacy {
+            save()
+        }
+    }
+    
+    var typePicker: some View {
+        let binding = Binding<WeightChangeType>(
+            get: { type },
+            set: { newValue in
+                if newValue == .userEntered {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        hasFocusedCustom = false
+                    }
+                }
+                withAnimation {
+                    type = newValue
+                }
+                handleChanges()
             }
         )
         
         var picker: some View {
             Picker("", selection: binding) {
-                Text("Weight Gain").tag(true)
-                Text("Weight Loss").tag(false)
-            }
-            .pickerStyle(.segmented)
-            .listRowSeparator(.hidden)
-        }
-        
-        var button: some View {
-            var name: String {
-                "Weight \(isGain ? "Gain" : "Loss")"
-            }
-            
-            return Button {
-                showingAlert = true
-            } label: {
-//                Text("\(customValue == nil ? "Set" : "Edit") Weight \(isGain ? "Gain" : "Loss")")
-                if let customValue {
-                    HStack {
-                        Text(name)
-                            .foregroundStyle(Color(.label))
-                        Spacer()
-                        Text("\(customValue.clean) kg")
-                            .foregroundStyle(Color(.label))
-                        Image(systemName: "pencil")
-                    }
-                } else {
-                    Text("Set \(name)")
+                ForEach(WeightChangeType.allCases) {
+                    Text($0.name).tag($0)
                 }
-            }
-        }
-        var section: some View {
-            Section {
-                picker
-                button
-            }
-        }
-        
-        return Group {
-            if isEditing {
-                section
-            }
-        }
-    }
-
-    var explanation: some View {
-        Section {
-            Text("This represents the change in your weight from \(date.moveDayBy(-7).shortDateString) to \(date.shortDateString), which is used to calculate your Adaptive Maintenance Energy.")
-        }
-    }
-
-    var typePicker: some View {
-        var picker: some View {
-            Picker("", selection: Binding<Bool>(
-                get: { isCustom },
-                set: { newValue in
-                    withAnimation {
-                        isCustom = newValue
-                        customInput = DoubleInput(double: 0.8)
-                        value = -0.8
-                        isGain = false
-                        setIsDirty()
-                    }
-                }
-            )) {
-//                Text("Use Weights").tag(false)
-//                Text("Enter Manually").tag(true)
-                Text("Weights").tag(false)
-                Text("Manual").tag(true)
             }
             .pickerStyle(.segmented)
             .disabled(!isEditing)
@@ -277,9 +402,9 @@ struct WeightChangeForm: View {
         }
         
         var description: String {
-            switch isCustom {
-            case true: "Enter your weight change manually."
-            case false: "Use your starting and ending weights to calculate your weight change."
+            switch type {
+            case .userEntered: "Enter your weight change manually."
+            case .usingPoints: "Use your starting and ending weights to calculate your weight change."
             }
         }
         return Section {
@@ -291,13 +416,17 @@ struct WeightChangeForm: View {
 
 #Preview("Current") {
     NavigationView {
-        WeightChangeForm()
-    }
-}
-
-#Preview("Past") {
-    NavigationView {
-        WeightChangeForm(date: MockPastDate)
+        WeightChangeForm(
+            date: Date.now,
+            weightChange: .init(),
+            healthProvider: MockCurrentProvider,
+            settingsProvider: SettingsProvider(settings: .init(bodyMassUnit: .kg)),
+            isPresented: .constant(true),
+            dismissDisabled: .constant(false),
+            saveHandler: { weightChange in
+                
+            }
+        )
     }
 }
 

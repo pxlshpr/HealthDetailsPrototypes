@@ -13,7 +13,7 @@ struct AdaptiveMaintenanceForm: View {
     @State var adaptiveInKcal: Double?
     @State var interval: HealthInterval
     @State var dietaryEnergy: HealthDetails.Maintenance.Adaptive.DietaryEnergy
-    @State var weightChange: HealthDetails.Maintenance.Adaptive.WeightChange
+    @State var weightChange: WeightChange
     
     @State var isEditing: Bool
     @State var isDirty: Bool = false
@@ -110,8 +110,15 @@ struct AdaptiveMaintenanceForm: View {
             NavigationLink {
                 WeightChangeForm(
                     date: date,
+                    weightChange: weightChange,
+                    healthProvider: healthProvider,
+                    settingsProvider: settingsProvider,
                     isPresented: $isPresented,
-                    dismissDisabled: $dismissDisabled
+                    dismissDisabled: $dismissDisabled,
+                    saveHandler: { weightChange in
+                        self.weightChange = weightChange
+                        handleChanges()
+                    }
                 )
             } label: {
                 HStack {
@@ -238,7 +245,6 @@ struct AdaptiveMaintenanceForm: View {
     }
     
     func handleChanges() {
-        //TODO: Set adaptiveInKcal
         setIsDirty()
         if !isLegacy {
             save()

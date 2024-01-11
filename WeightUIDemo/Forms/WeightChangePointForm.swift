@@ -1,82 +1,140 @@
 import SwiftUI
 import SwiftSugar
+import PrepShared
+
+let DefaultNumberOfMovingAveragePoints = 7
+let MaxNumberOfMovingAveragePoints = 7
 
 struct WeightChangePointForm: View {
     
-    @State var dailyValueType: DailyValueType = .average
-    @State var value: Double? = 93.6
-    
-    @State var useMovingAverage = true
-    @State var days: Int = 7
-    
-    @ScaledMetric var scale: CGFloat = 1
-    let imageScale: CGFloat = 24
+    @Environment(SettingsProvider.self) var settingsProvider
+    @Bindable var healthProvider: HealthProvider
 
-    let isCurrent: Bool
-    
     let healthDetailsDate: Date
-    let weightDate: Date
+    let initialPoint: WeightChangePoint
+    let isEndWeight: Bool
+    
+    @State var weightInKg: Double?
+    @State var useMovingAverage: Bool
+    @State var movingAverageInterval: HealthInterval
+    @State var points: [WeightChangePoint.MovingAverage.Point]
+    
     @State var isEditing: Bool
     @State var isDirty: Bool = false
     @Binding var isPresented: Bool
     @Binding var dismissDisabled: Bool
 
+    let saveHandler: (WeightChangePoint) -> ()
+    
+    @State var hasFetchedBackendWeights: Bool = false
+    @State var backendWeights: [Date: HealthDetails.Weight] = [:]
+    @State var handleChangesTask: Task<Void, Error>? = nil
+    @State var hasAppeared = false
+
     init(
-        healthDetailsDate: Date = Date.now,
-        weightDate: Date = Date.now.moveDayBy(-1),
+        date: Date,
+        point: WeightChangePoint,
+        isEndWeight: Bool = false,
+        healthProvider: HealthProvider,
         isPresented: Binding<Bool> = .constant(true),
         dismissDisabled: Binding<Bool> = .constant(false),
-        isCurrent: Bool = false
+        saveHandler: @escaping (WeightChangePoint) -> ()
     ) {
-        self.healthDetailsDate = healthDetailsDate
-        self.weightDate = weightDate
-        self.isCurrent = isCurrent
+        self.healthDetailsDate = date
+        self.initialPoint = point
+        self.healthProvider = healthProvider
+        self.isEndWeight = isEndWeight
+        self.saveHandler = saveHandler
         _isPresented = isPresented
         _dismissDisabled = dismissDisabled
-        _isEditing = State(initialValue: healthDetailsDate.isToday)
+        _isEditing = State(initialValue: date.isToday)
+        
+        _weightInKg = State(initialValue: point.kg)
+        _useMovingAverage = State(initialValue: point.movingAverage != nil)
+        _movingAverageInterval = State(initialValue: point.movingAverage?.interval ?? .init(DefaultNumberOfMovingAveragePoints, .day))
+        _points = State(initialValue: point.defaultPoints)
     }
 
     var body: some View {
         Form {
             notice
             dateSection
-            movingAverageToggle
+            movingAverageSection
             weights
             explanation
         }
         .navigationTitle(title)
         .navigationBarTitleDisplayMode(.large)
         .toolbar { toolbarContent }
+        .onAppear(perform: appeared)
         .safeAreaInset(edge: .bottom) { bottomValue }
         .navigationBarBackButtonHidden(isLegacy && isEditing)
         .onChange(of: isEditing) { _, _ in setDismissDisabled() }
         .onChange(of: isDirty) { _, _ in setDismissDisabled() }
     }
     
+    func appeared() {
+        if !hasAppeared {
+            Task {
+                try await fetchBackendWeights()
+            }
+            hasAppeared = true
+        }
+    }
+
+    var pointDate: Date {
+        initialPoint.date
+    }
+    
     var dateSection: some View {
         HStack {
-            Text("Weight for")
+            Text("Date")
             Spacer()
-            Text(weightDate.shortDateString)
+            Text(pointDate.shortDateString)
         }
     }
     
     var title: String {
-        "\(isCurrent ? "Ending" : "Starting") Weight"
+        "\(isEndWeight ? "Ending" : "Starting") Weight"
     }
     
     func setDismissDisabled() {
         dismissDisabled = isLegacy && isEditing && isDirty
     }
+    
+    var bodyMassUnit: BodyMassUnit { settingsProvider.bodyMassUnit }
 
     var bottomValue: some View {
-        MeasurementBottomBar(
-            double: $value,
-            doubleString: Binding<String?>(
-                get: { value?.clean },
-                set: { _ in }
+        
+        var double: Double? {
+            guard let weightInKg else { return nil }
+            let value = BodyMassUnit.kg
+                .doubleComponent(weightInKg, in: bodyMassUnit)
+            return abs(value)
+        }
+        
+        var int: Int? {
+            guard let weightInKg,
+                  let value = BodyMassUnit.kg.intComponent(
+                    weightInKg,
+                    in: bodyMassUnit
+                  )
+            else { return nil }
+            return abs(value)
+        }
+
+        return MeasurementBottomBar(
+            int: Binding<Int?>(
+                get: { int }, set: { _ in }
             ),
-            doubleUnitString: "kg",
+            intUnitString: bodyMassUnit.intUnitString,
+            double: Binding<Double?>(
+                get: { double }, set: { _ in }
+            ),
+            doubleString: Binding<String?>(
+                get: { double?.cleanHealth }, set: { _ in }
+            ),
+            doubleUnitString: bodyMassUnit.doubleUnitString,
             isDisabled: Binding<Bool>(
                 get: { !isEditing },
                 set: { _ in }
@@ -85,15 +143,39 @@ struct WeightChangePointForm: View {
     }
     
     var weights: some View {
-        func link(date: Date, weight: Double?) -> some View {
-            NavigationLink {
+        func link(for point: WeightChangePoint.MovingAverage.Point) -> some View {
+            func valueText(_ weightInKg: Double) -> some View {
+                var valueString: String {
+                    let double = "\(double.cleanHealth) \(doubleUnitString)"
+                    return if let int, let intUnitString {
+                        "\(int) \(intUnitString) \(double)"
+                    } else {
+                        double
+                    }
+                }
                 
+                var double: Double {
+                    BodyMassUnit.kg.doubleComponent(weightInKg, in: bodyMassUnit)
+                }
+                
+                var int: Int? {
+                    BodyMassUnit.kg.intComponent(weightInKg, in: bodyMassUnit)
+                }
+                
+                var intUnitString: String? { bodyMassUnit.intUnitString }
+                var doubleUnitString: String { bodyMassUnit.doubleUnitString }
+                
+                return Text(valueString)
+            }
+            
+            return NavigationLink {
+                Text("Weight Form goes here")
             } label: {
                 HStack {
-                    Text(date.shortDateString)
+                    Text(point.date.shortDateString)
                     Spacer()
-                    if let weight {
-                        Text("\(weight.clean) kg")
+                    if let weightInKg = point.weight?.weightInKg {
+                        valueText(weightInKg)
                     } else {
                         Text("Not Set")
                             .foregroundStyle(.secondary)
@@ -103,38 +185,12 @@ struct WeightChangePointForm: View {
             .disabled(isLegacy && isEditing)
         }
         
-        func weight(for date: Date) -> Double? {
-            switch date.shortDateString {
-            case "24 Dec": 93.6
-            case "23 Dec": nil
-            case "22 Dec": 94.7
-            case "21 Dec": 94.2
-            case "20 Dec": nil
-            case "19 Dec": 95.1
-            case "18 Dec": 95.4
-            default: nil
-            }
-        }
-        
-        func link(at index: Int) -> some View {
-            let date = MockPastDate.moveDayBy(-index)
-            return link(
-                date: date,
-                weight: weight(for: date)
-            )
-        }
-        
         return Section {
-            link(at: 0)
-//            link(date: MockPastDate, weight: 93.6)
-            if useMovingAverage {
-                ForEach(1..<days, id: \.self) { i in
-                    link(at: i)
-                }
+            ForEach(points) { point in
+                link(for: point)
             }
         }
     }
-    
     
     var isLegacy: Bool {
         healthDetailsDate.startOfDay < Date.now.startOfDay
@@ -148,35 +204,51 @@ struct WeightChangePointForm: View {
     }
     
     var toolbarContent: some ToolbarContent {
-//        Group {
-            topToolbarContent(
-                isEditing: $isEditing,
-                isDirty: $isDirty,
-                isPast: isLegacy,
-                dismissAction: { isPresented = false },
-                undoAction: undo,
-                saveAction: save
-            )
-//            ToolbarItem(placement: .principal) {
-//                Text("\(isCurrent ? "Ending" : "Starting") Weight")
-//                    .font(.headline)
-//            }
-//        }
+        topToolbarContent(
+            isEditing: $isEditing,
+            isDirty: $isDirty,
+            isPast: isLegacy,
+            dismissAction: { isPresented = false },
+            undoAction: undo,
+            saveAction: save
+        )
     }
     
     func save() {
+        saveHandler(point)
+    }
+    
+    var point: WeightChangePoint {
+        var movingAverage: WeightChangePoint.MovingAverage? {
+            guard useMovingAverage else { return nil }
+            return .init(
+                interval: movingAverageInterval,
+                points: points
+            )
+        }
         
+        var weight: HealthDetails.Weight? {
+            guard !useMovingAverage, let firstPoint = points.first else { return nil }
+            return firstPoint.weight
+        }
+        
+        return .init(
+            date: pointDate,
+            kg: weightInKg,
+            weight: weight,
+            movingAverage: movingAverage
+        )
     }
     
     func undo() {
-        isDirty = false
-        useMovingAverage = true
-        days = 7
+//        isDirty = false
+//        useMovingAverage = true
+//        movingAverageInterval = 7
     }
     
     func setIsDirty() {
-        isDirty = useMovingAverage != true
-        || days != 7
+//        isDirty = useMovingAverage != true
+//        || movingAverageInterval != 7
     }
     
     var explanation: some View {
@@ -187,27 +259,117 @@ struct WeightChangePointForm: View {
         }
     }
     
-    var movingAverageToggle: some View {
+    func handleChanges() {
+        handleChangesTask?.cancel()
+        handleChangesTask = Task {
+            if hasFetchedBackendWeights {
+                await MainActor.run {
+                    setPoints()
+                }
+            } else {
+                try await fetchBackendWeights()
+            }
+            try Task.checkCancellation()
+
+            await MainActor.run {
+                setIsDirty()
+                if !isLegacy {
+                    save()
+                }
+            }
+        }
+    }
+    
+    func datesForPoints(numberOfDays: Int) -> [Date] {
+        var dates: [Date] = []
+        for i in 0..<numberOfDays {
+            dates.append(point.date.moveDayBy(-i))
+        }
+        return dates
+    }
+    
+    var allPossibleDatesForMovingAverage: [Date] {
+        datesForPoints(numberOfDays: MaxNumberOfMovingAveragePoints)
+    }
+
+    var datesForPoints: [Date] {
+        let numberOfDays = useMovingAverage ? movingAverageInterval.numberOfDays : 1
+        return datesForPoints(numberOfDays: numberOfDays)
+    }
+
+    func fetchBackendWeights() async throws {
+        let dict = try await withThrowingTaskGroup(
+            of: (Date, HealthDetails.Weight?).self,
+            returning: [Date: HealthDetails.Weight].self
+        ) { taskGroup in
+            
+            for date in allPossibleDatesForMovingAverage {
+                taskGroup.addTask {
+                    let weight = await healthProvider.fetchBackendWeight(for: date)
+                    return (date, weight)
+                }
+            }
+
+            var dict = [Date : HealthDetails.Weight]()
+
+            while let tuple = try await taskGroup.next() {
+                dict[tuple.0] = tuple.1
+            }
+            
+            return dict
+        }
+        
+        await MainActor.run { [dict] in
+            withAnimation {
+                backendWeights = dict
+            }
+            setPoints()
+            hasFetchedBackendWeights = true
+        }
+    }
+    
+    func setPoints() {
+        var points: [WeightChangePoint.MovingAverage.Point] = []
+        for date in datesForPoints {
+            points.append(.init(date: date, weight: backendWeights[date]))
+        }
+        withAnimation {
+//            if self.points != points {
+                self.points = points
+//            }
+//            if self.weightInKg != points.average {
+                self.weightInKg = points.average
+//            }
+        }
+    }
+    
+    var isDisabled: Bool {
+        isLegacy && !isEditing
+    }
+    
+    var movingAverageSection: some View {
         let binding = Binding<Bool>(
             get: { useMovingAverage },
             set: { newValue in
                 withAnimation {
                     useMovingAverage = newValue
-                    setIsDirty()
                 }
+                handleChanges()
             }
         )
-        let daysBinding = Binding<Int>(
-            get: { days },
+        let intervalBinding = Binding<HealthInterval>(
+            get: { movingAverageInterval },
             set: { newValue in
                 withAnimation {
-                    days = newValue
-                    setIsDirty()
+                    movingAverageInterval = newValue
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                    handleChanges()
                 }
             }
         )
         
-        return Section {
+        var toggle: some View {
             HStack {
                 Text("Use a Moving Average")
                     .layoutPriority(1)
@@ -216,36 +378,47 @@ struct WeightChangePointForm: View {
             }
             .disabled(!isEditing)
             .foregroundStyle(isEditing ? .primary : .secondary)
+        }
+        
+        @ViewBuilder
+        var intervalPicker: some View {
             if useMovingAverage {
-                HStack(spacing: 3) {
-                    Stepper(
-                        "",
-                        value: daysBinding,
-                        in: 2...7
+                IntervalPicker(
+                    interval: intervalBinding,
+                    periods: [.day],
+                    ranges: [
+                        .day: 2...MaxNumberOfMovingAveragePoints,
+                    ],
+                    isDisabled: Binding<Bool>(
+                        get: { isDisabled },
+                        set: { _ in }
                     )
-                    .disabled(!isEditing)
-                    .fixedSize()
-                    Spacer()
-                    Text("\(days)")
-                        .contentTransition(.numericText(value: Double(days)))
-                    Text("days")
-                }
-                .foregroundStyle(isEditing ? .primary : .secondary)
+                )
             }
+        }
+        
+        return Section {
+            toggle
+            intervalPicker
         }
     }
 }
 
-#Preview("Current") {
-    NavigationView {
-        WeightChangePointForm()
-    }
-}
+//#Preview("Current") {
+//    NavigationView {
+//        WeightChangePointForm()
+//    }
+//}
 
-#Preview("Past") {
-    NavigationView {
-        WeightChangePointForm(
-            healthDetailsDate: MockPastDate
-        )
-    }
+//
+//#Preview("Past") {
+//    NavigationView {
+//        WeightChangePointForm(
+//            healthDetailsDate: MockPastDate
+//        )
+//    }
+//}
+
+#Preview("Demo") {
+    DemoView()
 }

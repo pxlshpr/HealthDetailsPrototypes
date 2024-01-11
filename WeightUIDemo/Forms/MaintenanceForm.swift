@@ -116,7 +116,7 @@ struct MaintenanceForm: View {
         
         var footer: some View {
 //            Text("Your Estimated Maintenance Energy will be used when there is not enough Weight or Dietary Energy data to calculate your Adaptive Maintenance.")
-            Text("The Estimate will be used as a fallback when the Adaptive calcuation cannot be made.")
+            Text("The Estimate will be used as a fallback when the Adaptive calcuation cannot be made due to a lack of data.")
         }
         
         let binding = Binding<Bool>(

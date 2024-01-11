@@ -7,6 +7,7 @@ struct MeasurementBottomBar: View {
 
     @Binding var double: Double?
     @Binding var doubleString: String?
+    var prefix: Binding<String?>?
     var emptyValueString: Binding<String>?
     @Binding var isDisabled: Bool
     
@@ -21,6 +22,7 @@ struct MeasurementBottomBar: View {
         double: Binding<Double?>,
         doubleString: Binding<String?>,
         doubleUnitString: String,
+        prefix: Binding<String?>? = nil,
 
         emptyValueString: Binding<String>? = nil,
         
@@ -31,6 +33,7 @@ struct MeasurementBottomBar: View {
         self.int = int
         self.intUnitString = intUnitString
         self.emptyValueString = emptyValueString
+        self.prefix = prefix
         _double = double
         _doubleString = doubleString
         _isDisabled = isDisabled
@@ -60,6 +63,7 @@ struct MeasurementBottomBar: View {
                 doubleString: $doubleString,
                 doubleUnitString: doubleUnitString,
                 emptyValueString: emptyValueString,
+                prefix: prefix,
                 isDisabled: $isDisabled
             )
         }
@@ -78,6 +82,7 @@ struct MeasurementBottomText: View {
     @Binding var isDisabled: Bool
 
     var emptyValueString: Binding<String>?
+    var prefix: Binding<String?>?
 
     let doubleUnitString: String
 
@@ -90,12 +95,14 @@ struct MeasurementBottomText: View {
         doubleUnitString: String,
 
         emptyValueString: Binding<String>? = nil,
+        prefix: Binding<String?>? = nil,
 
         isDisabled: Binding<Bool>
     ) {
         self.int = int
         self.intUnitString = intUnitString
         self.emptyValueString = emptyValueString
+        self.prefix = prefix
         _double = double
         _doubleString = doubleString
         _isDisabled = isDisabled
@@ -105,25 +112,32 @@ struct MeasurementBottomText: View {
     @ViewBuilder
     var body: some View {
         if let double {
-            if let int = int?.wrappedValue, let intUnitString {
-                HStack(alignment: .firstTextBaseline, spacing: 5) {
-                    Text("\(int)")
-                        .contentTransition(.numericText(value: Double(int)))
+            HStack {
+                if let prefix = prefix?.wrappedValue {
+                    Text(prefix)
                         .font(LargeNumberFont)
                         .foregroundStyle(isDisabled ? .secondary : .primary)
-                    Text(intUnitString)
+                }
+                if let int = int?.wrappedValue, let intUnitString {
+                    HStack(alignment: .firstTextBaseline, spacing: 5) {
+                        Text("\(int)")
+                            .contentTransition(.numericText(value: Double(int)))
+                            .font(LargeNumberFont)
+                            .foregroundStyle(isDisabled ? .secondary : .primary)
+                        Text(intUnitString)
+                            .font(LargeUnitFont)
+                            .foregroundStyle(isDisabled ? .tertiary : .secondary)
+                    }
+                }
+                HStack(alignment: .firstTextBaseline, spacing: 5) {
+                    Text("\(doubleString ?? double.clean)")
+                        .contentTransition(.numericText(value: double))
+                        .font(LargeNumberFont)
+                        .foregroundStyle(isDisabled ? .secondary : .primary)
+                    Text(doubleUnitString)
                         .font(LargeUnitFont)
                         .foregroundStyle(isDisabled ? .tertiary : .secondary)
                 }
-            }
-            HStack(alignment: .firstTextBaseline, spacing: 5) {
-                Text("\(doubleString ?? double.clean)")
-                    .contentTransition(.numericText(value: double))
-                    .font(LargeNumberFont)
-                    .foregroundStyle(isDisabled ? .secondary : .primary)
-                Text(doubleUnitString)
-                    .font(LargeUnitFont)
-                    .foregroundStyle(isDisabled ? .tertiary : .secondary)
             }
         } else {
             ZStack {

@@ -50,6 +50,174 @@ extension Array where Element == DietaryEnergyPoint {
     }
 }
 
+extension Array where Element == WeightChangePoint.MovingAverage.Point {
+    var average: Double? {
+        let values = self
+            .compactMap { $0.weight?.weightInKg }
+        guard !values.isEmpty else { return nil }
+        let sum = values.reduce(0) { $0 + $1 }
+        return Double(sum) / Double(values.count)
+    }
+}
+
+struct WeightChangePoint: Hashable, Codable {
+    
+    var date: Date
+    var kg: Double?
+    
+    var weight: HealthDetails.Weight?
+    var movingAverage: MovingAverage?
+    
+    var defaultPoints: [MovingAverage.Point] {
+        if let points = movingAverage?.points {
+            points
+        } else if let weight {
+            [MovingAverage.Point(date: date, weight: weight)]
+        } else {
+            []
+        }
+    }
+    
+    struct MovingAverage: Hashable, Codable {
+        var interval: HealthInterval = .init(7, .day)
+        var points: [Point]
+        
+        struct Point: Hashable, Codable, Identifiable {
+            var date: Date
+            var weight: HealthDetails.Weight?
+            
+            var id: Date { date }
+        }
+    }
+    
+    init(
+        date: Date,
+        kg: Double? = nil,
+        weight: HealthDetails.Weight? = nil,
+        movingAverage: MovingAverage? = nil
+    ) {
+        self.date = date
+        self.kg = kg
+        self.weight = weight
+        self.movingAverage = movingAverage
+    }
+}
+
+enum WeightChangeType: Int, Hashable, Codable, CaseIterable, Identifiable {
+    case usingPoints = 1
+    case userEntered
+    
+    var id: Int { rawValue }
+    
+    var name: String {
+        switch self {
+        case .userEntered: "Manual"
+        case .usingPoints: "Weights"
+        }
+    }
+}
+
+struct WeightChange: Hashable, Codable {
+
+    var kg: Double?
+    var type: WeightChangeType = .userEntered
+    var points: Points? = nil
+    
+    struct Points: Hashable, Codable {
+        var start: WeightChangePoint
+        var end: WeightChangePoint
+        
+        init(date: Date, interval: HealthInterval) {
+            self.end = .init(date: date)
+            self.start = .init(date: interval.startDate(with: date))
+        }
+        
+        var weightChangeInKg: Double? {
+            guard let endKg = end.kg, let startKg = start.kg else { return nil }
+            return endKg - startKg
+        }
+    }
+    
+    var isEmpty: Bool {
+        kg == nil
+    }
+
+    var energyEquivalentInKcal: Double? {
+        guard let kg else { return nil }
+//        454 g : 3500 kcal
+//        delta : x kcal
+        return (3500 * kg) / BodyMassUnit.lb.convert(1, to: .kg)
+    }
+    
+    func energyEquivalent(in energyUnit: EnergyUnit) -> Double? {
+        guard let kcal = energyEquivalentInKcal else { return nil }
+        return EnergyUnit.kcal.convert(kcal, to: energyUnit)
+    }
+}
+
+import Foundation
+
+public enum MaintenanceCalculationError: Int, Error, Codable {
+    case noWeightData = 1
+    case noNutritionData
+    case noWeightOrNutritionData
+    case weightChangeExceedsNutrition
+    
+    var message: String {
+        switch self {
+        case .noWeightData:
+//            "You do not have enough weight data over the prior week to make a calculation."
+            "You need to set your weight change to make a calculation."
+        case .noNutritionData:
+            "You need to have at least one day's dietary energy to make a calculation."
+        case .noWeightOrNutritionData:
+            "You need to set your weight change and dietary energy consumed to make an adaptive calculation."
+        case .weightChangeExceedsNutrition:
+            "Your weight gain far exceeds the dietary energy, making the calculation invalid. Make sure you have accounted for all the dietary energy you consumed."
+        }
+    }
+    
+    var title: String {
+        switch self {
+        case .noWeightData:
+            "No Weight Change"
+        case .noNutritionData:
+            "No Dietary Energy"
+        case .noWeightOrNutritionData:
+            "No Weight Change and Dietary Energy"
+        case .weightChangeExceedsNutrition:
+            "Invalid Data"
+        }
+    }
+}
+
+extension HealthDetails.Maintenance.Adaptive {
+    static func calculate(
+        weightChange: WeightChange,
+        dietaryEnergy: DietaryEnergy,
+        interval: HealthInterval
+    ) -> Result<Double, MaintenanceCalculationError> {
+        
+        guard let weightDeltaInKcal = weightChange.energyEquivalentInKcal,
+              let dietaryEnergyTotal = dietaryEnergy.totalInKcal
+        else {
+            return switch (weightChange.isEmpty, dietaryEnergy.isEmpty) {
+            case (true, false): .failure(.noWeightData)
+            case (false, true): .failure(.noNutritionData)
+            default:            .failure(.noWeightOrNutritionData)
+            }
+        }
+        
+        let value = (dietaryEnergyTotal - weightDeltaInKcal) / Double(interval.numberOfDays)
+        
+        guard value > 0 else {
+            return .failure(.weightChangeExceedsNutrition)
+        }
+        
+        return .success(max(value, 0))
+    }
+}
+
 extension HealthDetails {
     struct Maintenance: Hashable, Codable {
         
@@ -60,11 +228,38 @@ extension HealthDetails {
         var useEstimateAsFallback: Bool = true
         
         struct Adaptive: Hashable, Codable {
-            var kcal: Double? = nil
-            var interval: HealthInterval = .init(1, .week)
+            var kcal: Double?
+            var error: MaintenanceCalculationError?
+            var interval: HealthInterval
             
             var dietaryEnergy = DietaryEnergy()
             var weightChange = WeightChange()
+            
+            init(
+                kcal: Double? = nil,
+                interval: HealthInterval = .init(1, .week),
+                dietaryEnergy: DietaryEnergy = DietaryEnergy(),
+                weightChange: WeightChange = WeightChange()
+            ) {
+                self.kcal = kcal
+                self.interval = interval
+                self.dietaryEnergy = dietaryEnergy
+                self.weightChange = weightChange
+                
+                let result = Self.calculate(
+                    weightChange: weightChange,
+                    dietaryEnergy: dietaryEnergy,
+                    interval: interval
+                )
+                switch result {
+                case .success(let value):
+                    self.kcal = value
+                    self.error = nil
+                case .failure(let error):
+                    self.kcal = nil
+                    self.error = error
+                }
+            }
             
             struct DietaryEnergy: Hashable, Codable {
                 var kcalPerDay: Double?
@@ -76,24 +271,16 @@ extension HealthDetails {
                     self.points = points
                     self.kcalPerDay = points.average
                 }
-            }
-            
-            struct WeightChange: Hashable, Codable {
-                var kg: Double?
-                var isCustom: Bool = false
-                var points: [Point] = []
-
-                struct Point: Hashable, Codable {
-                    var date: Date
-                    var kg: Double?
-                    var useMovingAverage: Bool
-                    var movingAverageInterval: HealthInterval = .init(7, .day)
-                    var weights: [Weight]
-                    
-                    struct Weight: Hashable, Codable {
-                        var date: Date
-                        var weight: HealthDetails.Weight
-                    }
+                
+                var isEmpty: Bool {
+                    !points.contains(where: { $0.kcal != nil })
+                }
+                
+                var totalInKcal: Double? {
+                    guard !isEmpty else { return nil }
+                    return points
+                        .compactMap { $0.kcal }
+                        .reduce(0) { $0 + $1 }
                 }
             }
         }
@@ -197,11 +384,15 @@ extension Double {
     }
 }
 extension Optional where Wrapped == Double {
-    
+
+    func convertBodyMass(from fromUnit: BodyMassUnit, to toUnit: BodyMassUnit) -> Double? {
+        guard let self else { return nil }
+        return fromUnit.convert(self, to: toUnit)
+    }
+
     func convertEnergy(from fromUnit: EnergyUnit, to toUnit: EnergyUnit) -> Double? {
         guard let self else { return nil }
         return fromUnit.convert(self, to: toUnit)
-//            .rounded(.towardZero)
     }
 
     func valueString(convertedFrom fromUnit: EnergyUnit, to unit: EnergyUnit) -> String {

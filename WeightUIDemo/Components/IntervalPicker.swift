@@ -96,12 +96,17 @@ struct IntervalPicker: View {
     var periodPicker: some View {
         Group {
             if let periods {
-                MenuPicker(
-                    periods,
-                    periodBinding,
-                    isPlural: interval.value != 1,
-                    isDisabled: $isDisabled
-                )
+                if periods.count == 1 {
+                    Text(periods[0].name)
+                        .foregroundStyle(isDisabled ? .secondary : .primary)
+                } else {
+                    MenuPicker(
+                        periods,
+                        periodBinding,
+                        isPlural: interval.value != 1,
+                        isDisabled: $isDisabled
+                    )
+                }
             } else {
                 MenuPicker(
                     $interval.period,
