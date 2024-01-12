@@ -75,6 +75,11 @@ struct HeightForm: View {
         .navigationBarBackButtonHidden(isLegacy && isEditing)
         .onChange(of: isEditing) { _, _ in setDismissDisabled() }
         .onChange(of: isDirty) { _, _ in setDismissDisabled() }
+        .onChange(of: isSynced, isSyncedChanged)
+    }
+    
+    func isSyncedChanged(old: Bool, new: Bool) {
+        healthProvider.setHealthKitSyncing(for: .height, to: new)
     }
     
     var heightUnit: HeightUnit {

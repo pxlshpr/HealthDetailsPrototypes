@@ -52,3 +52,15 @@ extension HealthProvider {
         print("\(leanBodyMasses?.count ?? 0) leanBodyMasses")
     }
 }
+
+extension HealthProvider {
+    func setHealthKitSyncing(for healthDetail: HealthDetail, to isOn: Bool) {
+        settingsProvider.settings.setHealthKitSyncing(for: healthDetail, to: isOn)
+        if isOn {
+            Task {
+                await syncMeasurementsWithHealthKit()
+                await recalculate()
+            }
+        }
+    }
+}

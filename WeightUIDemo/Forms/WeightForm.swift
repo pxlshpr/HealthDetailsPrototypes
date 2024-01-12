@@ -81,19 +81,9 @@ struct WeightForm: View {
     }
     
     func isSyncedChanged(old: Bool, new: Bool) {
-        switch (old, new) {
-        case (false, true):
-            print("isSynced switched on")
-            Task {
-                await healthProvider.syncMeasurementsWithHealthKit()
-            }
-        case (true, false):
-            print("isSynced switched off")
-        default:
-            break
-        }
+        healthProvider.setHealthKitSyncing(for: .weight, to: new)
     }
-    
+
     var explanation: some View {
         var header: some View {
             Text("Usage")
