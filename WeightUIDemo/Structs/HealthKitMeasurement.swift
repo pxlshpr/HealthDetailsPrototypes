@@ -4,12 +4,23 @@ public struct HealthKitMeasurement: Hashable, Codable {
     public var id: UUID
     public var value: Double
     public var date: Date
+    public var sourceName: String
+    public var sourceBundleIdentifier: String
     
-    public init(id: UUID, value: Double, date: Date) {
+    public init(
+        id: UUID,
+        value: Double,
+        date: Date,
+        sourceName: String,
+        sourceBundleIdentifier: String
+    ) {
         self.id = id
         self.value = value
         self.date = date
+        self.sourceName = sourceName
+        self.sourceBundleIdentifier = sourceBundleIdentifier
     }
+    
     
 //    init?(value: Double?)  {
 //        guard let value else {
@@ -57,7 +68,9 @@ extension HKQuantitySample {
         return HealthKitMeasurement(
             id: uuid,
             value: quantity,
-            date: date
+            date: date,
+            sourceName: sourceRevision.source.name,
+            sourceBundleIdentifier: sourceRevision.source.bundleIdentifier
         )
     }
 }
@@ -78,7 +91,9 @@ extension HealthKitMeasurement {
         HealthKitMeasurement(
             id: id,
             value: value.rounded(toPlaces: places),
-            date: date
+            date: date,
+            sourceName: sourceName,
+            sourceBundleIdentifier: sourceBundleIdentifier
         )
     }
 }

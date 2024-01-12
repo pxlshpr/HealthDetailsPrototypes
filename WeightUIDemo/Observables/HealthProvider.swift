@@ -500,6 +500,12 @@ extension HealthProvider {
 }
 
 extension HealthProvider {
+    
+    /// This function goes through all `Day` objects, and if the resting or active energy components are sourced from HealthKit—re-fetches it for that day. If any changes are made, the maintenance energy and any dependent goals are re-evaluated. Expect this function to take some time as queries for summating energy values are time-consuming.
+    func fetchHealthKitEnergyValues() {
+        
+    }
+    
     //TODO: Consider a rewrite
     /// [ ] First add the source data into HealthKitMeasurement so that we can filter out what's form Apple or us
     /// [ ] Sync with everything
@@ -519,7 +525,7 @@ extension HealthProvider {
     /// [ ] Continue this for all Days
     /// [ ] Once we're doing, go ahead and delete all the measurements we put aside to be deleted
     /// [ ] Also add all the measurements we put aside to be added
-    func syncWeights() {
+    func syncMeasurementsWithHealthKit() {
         Task {
             let start = CFAbsoluteTimeGetCurrent()
            
@@ -532,7 +538,9 @@ extension HealthProvider {
             /// [ ] Remove HealthKit sourced weights
 
             print("Got \(measurements.count) weight quantities: \(CFAbsoluteTimeGetCurrent()-start)s")
-            
+            for measurement in measurements {
+                print("\(measurement.date.shortDateString) - \(measurement.value.cleanHealth) kg; \(measurement.sourceName) \(measurement.sourceBundleIdentifier)")
+            }
             
         }
     }

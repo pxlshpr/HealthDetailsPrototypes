@@ -85,7 +85,7 @@ struct WeightForm: View {
         switch (old, new) {
         case (false, true):
             print("isSynced switched on")
-            healthProvider.syncWeights()
+            healthProvider.syncMeasurementsWithHealthKit()
         case (true, false):
             print("isSynced switched off")
         default:
