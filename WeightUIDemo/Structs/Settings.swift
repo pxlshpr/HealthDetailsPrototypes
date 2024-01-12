@@ -1,27 +1,43 @@
 import Foundation
 import PrepShared
 
-public struct Settings: Codable, Hashable {
+struct Settings: Codable, Hashable {
     
-    public var energyUnit: EnergyUnit = .kcal
-    public var bodyMassUnit: BodyMassUnit = .kg
-    public var heightUnit: HeightUnit = .cm
-    public var volumeUnits: VolumeUnits = .defaultUnits
+    var energyUnit: EnergyUnit = .kcal
+    var bodyMassUnit: BodyMassUnit = .kg
+    var heightUnit: HeightUnit = .cm
+    var volumeUnits: VolumeUnits = .defaultUnits
     
-    public var macrosBarType: MacrosBarType = .foodItem
+    var macrosBarType: MacrosBarType = .foodItem
     
-    public var nutrientsFilter: NutrientsFilter = .all
-    public var showRDAGoals: Bool = true
-    public var expandedMicroGroups: [MicroGroup] = []
-    public var metricType: GoalMetricType = .consumed
+    var nutrientsFilter: NutrientsFilter = .all
+    var showRDAGoals: Bool = true
+    var expandedMicroGroups: [MicroGroup] = []
+    var metricType: GoalMetricType = .consumed
     
-    public var displayedMicros: [Micro] = []
+    var displayedMicros: [Micro] = []
+    
+    var healthKitSyncedHealthDetails: [HealthDetail] = []
     
     /// Removed because these should be per-day, similar to `Plan` and `HealthDetails`
 //    public var dailyValues: [Micro: DailyValue] = [:]
 }
 
-public extension Settings {
+extension Settings {
+    
+    func isHealthKitSyncing(_ healthDetail: HealthDetail) -> Bool {
+        healthKitSyncedHealthDetails.contains(healthDetail)
+    }
+    
+    mutating func setHealthKitSyncing(for healthDetail: HealthDetail, to isOn: Bool) {
+        switch isOn {
+        case true:
+            guard !isHealthKitSyncing(healthDetail) else { return }
+            healthKitSyncedHealthDetails.append(healthDetail)
+        case false:
+            healthKitSyncedHealthDetails.removeAll(where: { $0 == healthDetail })
+        }
+    }
 
     var asData: Data {
         try! JSONEncoder().encode(self)

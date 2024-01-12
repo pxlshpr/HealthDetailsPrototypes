@@ -2,10 +2,12 @@ import SwiftUI
 
 @Observable class HealthProvider {
     
+    var settingsProvider: SettingsProvider
+    
     let isCurrent: Bool
     var healthDetails: HealthDetails
     
-    var latest: LatestHealthDetails
+    var latest: LatestHealthDetails = LatestHealthDetails()
     
     var currentOrLatestWeightInKg: Double? {
         healthDetails.weight.weightInKg ?? latest.weight?.weight.weightInKg
@@ -65,16 +67,25 @@ import SwiftUI
     }
     
     init(
-        isCurrent: Bool,
         healthDetails: HealthDetails,
-        latest: LatestHealthDetails = LatestHealthDetails()
+        settingsProvider: SettingsProvider
     ) {
-        self.isCurrent = isCurrent
+        self.settingsProvider = settingsProvider
+        self.isCurrent = healthDetails.date.isToday
         self.healthDetails = healthDetails
-        self.latest = latest
         Task {
+            await self.loadLatestHealthDetails()
+            await self.bringForwardNonTemporalHealthDetails()
+
             await self.update()
         }
+    }
+}
+
+extension HealthProvider {
+    func loadLatestHealthDetails() async {
+        let latest = latestHealthDetails(to: healthDetails.date)
+        self.latest = latest
     }
 }
 
@@ -95,6 +106,7 @@ extension HealthProvider {
         /// [ ] Now calculate the kcalPerDay
         await fetchBackendData()
         await fetchHealthKitData()
+        await syncMeasurementsWithHealthKit()
         await recalculate()
     }
     
@@ -333,7 +345,7 @@ extension HealthProvider {
     }
     
     func saveDietaryEnergyPoint(_ point: DietaryEnergyPoint) {
-        var day = fetchDayFromDocuments(point.date)
+        var day = fetchOrCreateDayFromDocuments(point.date)
         day.dietaryEnergyPoint = point
         //TODO: Get any other HealthDetails (other than the one in this HealthProvider) that uses this point and get them to update within an instantiated HealthProvider as well
         saveDayInDocuments(day)
@@ -436,32 +448,38 @@ extension HealthProvider {
     //MARK: - Save for other days
 
     func saveWeight(_ weight: HealthDetails.Weight, for date: Date) async {
-        var healthDetails = fetchHealthDetailsFromDocuments(date)
+        var healthDetails = fetchOrCreateHealthDetailsFromDocuments(date)
         healthDetails.weight = weight
         saveHealthDetailsInDocuments(healthDetails)
     }
 
     func saveHeight(_ height: HealthDetails.Height, for date: Date) async {
-        var healthDetails = fetchHealthDetailsFromDocuments(date)
+        var healthDetails = fetchOrCreateHealthDetailsFromDocuments(date)
         healthDetails.height = height
         saveHealthDetailsInDocuments(healthDetails)
     }
 
     func saveMaintenance(_ maintenance: HealthDetails.Maintenance, for date: Date) async {
-        var healthDetails = fetchHealthDetailsFromDocuments(date)
+        var healthDetails = fetchOrCreateHealthDetailsFromDocuments(date)
         healthDetails.maintenance = maintenance
         saveHealthDetailsInDocuments(healthDetails)
     }
 
     func savePregnancyStatus(_ pregnancyStatus: PregnancyStatus, for date: Date) async {
-        var healthDetails = fetchHealthDetailsFromDocuments(date)
+        var healthDetails = fetchOrCreateHealthDetailsFromDocuments(date)
         healthDetails.pregnancyStatus = pregnancyStatus
         saveHealthDetailsInDocuments(healthDetails)
     }
     
     func saveLeanBodyMass(_ leanBodyMass: HealthDetails.LeanBodyMass, for date: Date) async {
-        var healthDetails = fetchHealthDetailsFromDocuments(date)
+        var healthDetails = fetchOrCreateHealthDetailsFromDocuments(date)
         healthDetails.leanBodyMass = leanBodyMass
+        saveHealthDetailsInDocuments(healthDetails)
+    }
+    
+    func saveHealthKitHeightMeasurement(_ measurement: HealthKitMeasurement) async {
+        var healthDetails = fetchOrCreateHealthDetailsFromDocuments(measurement.date)
+        healthDetails.height.addHealthKitMeasurement(measurement)
         saveHealthDetailsInDocuments(healthDetails)
     }
 }
@@ -471,26 +489,27 @@ extension HealthProvider {
 extension HealthProvider {
     
     func fetchBackendLogStartDate() async -> Date? {
-        Date(fromDateString: "2022_01_01")!
+        //TODO: Make sure that the start date gets the first date that actually has food logged in it so that we don't get a Day we may have created to house something like a legacy height measurement.
+        LogStartDate
     }
     
     func setBackendDietaryEnergyPoint(_ point: DietaryEnergyPoint, for date: Date) {
-        var day = fetchDayFromDocuments(date)
+        var day = fetchOrCreateDayFromDocuments(date)
         day.dietaryEnergyPoint = point
         saveDayInDocuments(day)
     }
 
     func fetchOrCreateBackendWeight(for date: Date) async -> HealthDetails.Weight {
-        let healthDetails = fetchHealthDetailsFromDocuments(date)
+        let healthDetails = fetchOrCreateHealthDetailsFromDocuments(date)
         return healthDetails.weight
     }
     func fetchBackendDietaryEnergyPoint(for date: Date) async -> DietaryEnergyPoint? {
-        let day = fetchDayFromDocuments(date)
+        let day = fetchOrCreateDayFromDocuments(date)
         return day.dietaryEnergyPoint
     }
     
     func fetchBackendEnergyInKcal(for date: Date) async -> Double? {
-        let day = fetchDayFromDocuments(date)
+        let day = fetchOrCreateDayFromDocuments(date)
         return day.energyInKcal
     }
     
@@ -504,45 +523,6 @@ extension HealthProvider {
     /// This function goes through all `Day` objects, and if the resting or active energy components are sourced from HealthKit—re-fetches it for that day. If any changes are made, the maintenance energy and any dependent goals are re-evaluated. Expect this function to take some time as queries for summating energy values are time-consuming.
     func fetchHealthKitEnergyValues() {
         
-    }
-    
-    //TODO: Consider a rewrite
-    /// [ ] First add the source data into HealthKitMeasurement so that we can filter out what's form Apple or us
-    /// [ ] Sync with everything
-    /// [ ] First, fetch whatever isSynced is turned on for (weight, height, LBM)—fetch everything from the first Day's date onwards
-    /// [ ] Now fetch all the Day's we have in our backend, optimizing by not fetching the meals etc when do so
-    /// [ ] Go through each Day
-    /// [ ] For each Day, go through each fetched array and get all the values for that date
-    /// [ ] Now sync with the day by removing any healthKit measurements we have that don't exist any more
-    /// [ ] Also add any healthKit measurements that are present which we don't have
-    /// [ ] Any HealthStore measurements that we provided that no longer are present on our side—put them aside to be deleted later
-    /// [ ] Now any non-healthKit measurements we have that aren't present in HealthStore–put them aside to be exported later (we'll do it in a btach as opposed to a day at a time)
-    /// [ ] Do this for all 3 types (weight, height, LBM)
-    /// [ ] Now if any changes were made, recalculate the HealthDetails in its entirety by
-    /// [ ] Recalculating any dependent equations we have (LBM, Resting Energy)
-    /// [ ] Recalculating the AdaptiveMaintenance WeightChange if needed, and hence adaptive, and then maintenance (do a sanity check that this would account for all weight changes for moving average by the time we reach a date, given that we're going in order of the days)
-    /// [ ] Now recalculate the plans for the Day as HealthDetails have changed
-    /// [ ] Continue this for all Days
-    /// [ ] Once we're doing, go ahead and delete all the measurements we put aside to be deleted
-    /// [ ] Also add all the measurements we put aside to be added
-    func syncMeasurementsWithHealthKit() {
-        Task {
-            let start = CFAbsoluteTimeGetCurrent()
-           
-            /// Fetch all HealthKit weight samples from start of log (since we're not interested in any before that)
-            let startDate = await fetchBackendLogStartDate()
-            let measurements = await HealthStore.allWeightsQuantities(startingFrom: startDate)
-
-            /// [ ] Go through all Days in backend in order
-            /// [ ] For each day
-            /// [ ] Remove HealthKit sourced weights
-
-            print("Got \(measurements.count) weight quantities: \(CFAbsoluteTimeGetCurrent()-start)s")
-            for measurement in measurements {
-                print("\(measurement.date.shortDateString) - \(measurement.value.cleanHealth) kg; \(measurement.sourceName) \(measurement.sourceBundleIdentifier)")
-            }
-            
-        }
     }
 }
 

@@ -33,6 +33,26 @@ extension SettingsProvider {
 
 extension SettingsProvider {
     
+    var heightIsHealthKitSynced: Bool {
+        get { settings.isHealthKitSyncing(.height) }
+        set { settings.setHealthKitSyncing(for: .height, to: newValue) }
+    }
+
+    var weightIsHealthKitSynced: Bool {
+        get { settings.isHealthKitSyncing(.weight) }
+        set { settings.setHealthKitSyncing(for: .weight, to: newValue) }
+    }
+
+    var leanBodyMassIsHealthKitSynced: Bool {
+        get { settings.isHealthKitSyncing(.leanBodyMass) }
+        set { settings.setHealthKitSyncing(for: .leanBodyMass, to: newValue) }
+    }
+
+//    var fatPercentageIsHealthKitSynced: Bool {
+//        get { settings.isHealthKitSyncing(.fatPercentage) }
+//        set { settings.setHealthKitSyncing(for: .fatPercentage, to: newValue) }
+//    }
+
     var energyUnit: EnergyUnit {
         get { settings.energyUnit }
         set {

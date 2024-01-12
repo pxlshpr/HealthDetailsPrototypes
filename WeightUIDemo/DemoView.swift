@@ -2,7 +2,9 @@ import SwiftUI
 import SwiftSugar
 
 let LargeNumberFont: Font = .system(.largeTitle, design: .rounded, weight: .bold)
-let PreviousMockDate = Date(fromDateString: "2023_12_01")!
+//let LogStartDate = Date(fromDateString: "2023_12_01")!
+let LogStartDate = Date(fromDateString: "2022_01_01")!
+let DaysStartDate = Date(fromDateString: "2016_01_01")!
 
 struct DemoView: View {
     
@@ -47,22 +49,21 @@ struct DemoView: View {
     
     func setCurrentHealthDetails() {
         deleteAllFilesInDocuments()
-        var healthDetails = fetchHealthDetailsFromDocuments(Date.now)
+        var healthDetails = fetchOrCreateHealthDetailsFromDocuments(Date.now)
         healthDetails.dateOfBirth = Date(fromDateString: "1987_06_04")!
         healthDetails.biologicalSex = .male
         healthDetails.weight = .init(
             weightInKg: 96.2,
             dailyValueType: .average,
             measurements: [.init(date: Date.now, weightInKg: 96.2)],
-            deletedHealthKitMeasurements: [],
-            isSynced: false
+            deletedHealthKitMeasurements: []
         )
-        healthDetails.height = .init(
-            heightInCm: 177,
-            measurements: [.init(date: Date.now, heightInCm: 177)],
-            deletedHealthKitMeasurements: [],
-            isSynced: false
-        )
+//        healthDetails.height = .init(
+//            heightInCm: 177,
+//            measurements: [.init(date: Date.now, heightInCm: 177)],
+//            deletedHealthKitMeasurements: [],
+//            isSynced: false
+//        )
         healthDetails.leanBodyMass = .init(
             leanBodyMassInKg: 75.2,
             fatPercentage: 21.8,
@@ -73,8 +74,7 @@ struct DemoView: View {
                 fatPercentage: 21.8,
                 source: .fatPercentage)
             ],
-            deletedHealthKitMeasurements: [],
-            isSynced: false
+            deletedHealthKitMeasurements: []
         )
         saveHealthDetailsInDocuments(healthDetails)
     }
@@ -86,17 +86,18 @@ struct DemoView: View {
     func healthDetailsForm(for date: Date) -> some View {
         MockHealthDetailsForm(
             date: date,
+            settingsProvider: settingsProvider,
             isPresented: Binding<Bool>(
                 get: { true },
                 set: { if !$0 { pastDateBeingShown = nil } }
             )
         )
-        .environment(settingsProvider)
+//        .environment(settingsProvider)
     }
     
     var healthDetailsSection: some View {
 
-        let numberOfDays = Date.now.numberOfDaysFrom(PreviousMockDate)
+        let numberOfDays = Date.now.numberOfDaysFrom(LogStartDate)
         
         func button(daysAgo: Int) -> some View {
             let date = Date.now.moveDayBy(-daysAgo)

@@ -1,6 +1,6 @@
 import Foundation
 
-enum HealthDetail: Int, Identifiable, CaseIterable {
+enum HealthDetail: Int, Identifiable, CaseIterable, Codable {
     case maintenance = 1
     
     case age

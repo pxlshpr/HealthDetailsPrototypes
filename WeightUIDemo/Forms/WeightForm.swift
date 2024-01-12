@@ -4,7 +4,6 @@ import PrepShared
 
 struct WeightForm: View {
     
-    @Environment(SettingsProvider.self) var settingsProvider
     @Bindable var healthProvider: HealthProvider
 
     let date: Date
@@ -45,7 +44,7 @@ struct WeightForm: View {
         _measurements = State(initialValue: weight.measurements)
         _dailyValueType = State(initialValue: weight.dailyValueType)
         _deletedHealthKitMeasurements = State(initialValue: weight.deletedHealthKitMeasurements)
-        _isSynced = State(initialValue: weight.isSynced)
+        _isSynced = State(initialValue: healthProvider.settingsProvider.weightIsHealthKitSynced)
     }
     
     init(
@@ -85,7 +84,9 @@ struct WeightForm: View {
         switch (old, new) {
         case (false, true):
             print("isSynced switched on")
-            healthProvider.syncMeasurementsWithHealthKit()
+            Task {
+                await healthProvider.syncMeasurementsWithHealthKit()
+            }
         case (true, false):
             print("isSynced switched off")
         default:
@@ -137,12 +138,14 @@ struct WeightForm: View {
         )
     }
     
+    var bodyMassUnit: BodyMassUnit { healthProvider.settingsProvider.bodyMassUnit }
+
     var measurementForm: some View {
         MeasurementForm(
             type: .weight,
             date: date
         ) { int, double, time in
-            let weightInKg = settingsProvider.bodyMassUnit.convert(int, double, to: .kg)
+            let weightInKg = bodyMassUnit.convert(int, double, to: .kg)
             let measurement = WeightMeasurement(date: time, weightInKg: weightInKg)
             measurements.append(measurement)
             measurements.sort()
@@ -155,24 +158,19 @@ struct WeightForm: View {
         
         var bottomRow: some View {
             
-            var intUnitString: String? {
-                settingsProvider.bodyMassUnit.intUnitString
-            }
-            
-            var doubleUnitString: String {
-                settingsProvider.bodyMassUnit.doubleUnitString
-            }
+            var intUnitString: String? { bodyMassUnit.intUnitString }
+            var doubleUnitString: String { bodyMassUnit.doubleUnitString }
             
             var double: Double? {
                 guard let weightInKg else { return nil }
                 return BodyMassUnit.kg
-                    .doubleComponent(weightInKg, in: settingsProvider.bodyMassUnit)
+                    .doubleComponent(weightInKg, in: bodyMassUnit)
             }
             
             var int: Int? {
                 guard let weightInKg else { return nil }
                 return BodyMassUnit.kg
-                    .intComponent(weightInKg, in: settingsProvider.bodyMassUnit)
+                    .intComponent(weightInKg, in: bodyMassUnit)
             }
             
             return MeasurementBottomBar(
@@ -288,7 +286,6 @@ struct WeightForm: View {
         self.dailyValueType = initialWeight.dailyValueType
         self.measurements = initialWeight.measurements
         self.deletedHealthKitMeasurements = initialWeight.deletedHealthKitMeasurements
-        self.isSynced = initialWeight.isSynced
     }
     
     func save() {
@@ -325,8 +322,7 @@ struct WeightForm: View {
             weightInKg: calculatedWeightInKg,
             dailyValueType: dailyValueType,
             measurements: measurements,
-            deletedHealthKitMeasurements: deletedHealthKitMeasurements,
-            isSynced: isSynced
+            deletedHealthKitMeasurements: deletedHealthKitMeasurements
         )
     }
 }

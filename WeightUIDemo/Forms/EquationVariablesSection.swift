@@ -267,17 +267,18 @@ struct TemporalVariableSection: View {
                         isPresented: $isPresented,
                         dismissDisabled: $dismissDisabled
                     )
+                    .environment(settingsProvider)
                 case .preganancyStatus:
                     PregnancyStatusForm(
                         healthProvider: healthProvider,
                         isPresented: $isPresented,
                         dismissDisabled: $dismissDisabled
                     )
+                    .environment(settingsProvider)
                 default:
                     EmptyView()
                 }
             }
-            .environment(settingsProvider)
         } label: {
             HStack {
                 Text(date.shortDateString)
@@ -408,6 +409,7 @@ struct TemporalVariableSection: View {
                 HeightForm(
                     date: latestHeight.date,
                     height: latestHeight.height,
+                    healthProvider: healthProvider,
                     isPresented: $isPresented,
                     dismissDisabled: $dismissDisabled,
                     save: { newHeight in
@@ -415,7 +417,6 @@ struct TemporalVariableSection: View {
                         healthProvider.updateLatestHeight(newHeight)
                     }
                 )
-                .environment(settingsProvider)
             } label: {
                 HStack {
                     Text(latestHeight.date.shortDateString)

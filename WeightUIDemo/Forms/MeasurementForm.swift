@@ -102,24 +102,24 @@ struct MeasurementForm: View {
         }
     }
 }
-
-#Preview("Height (cm)") {
-    MeasurementForm(type: .height) { int, double, time in
-        
-    }
-    .environment(SettingsProvider(settings: .init(heightUnit: .cm)))
-}
-
-#Preview("Height (ft)") {
-    MeasurementForm(type: .height) { int, double, time in
-        
-    }
-    .environment(SettingsProvider(settings: .init(heightUnit: .ft)))
-}
-
-#Preview("HeightForm") {
-    NavigationView {
-        HeightForm(healthProvider: MockCurrentProvider)
-            .environment(SettingsProvider(settings: .init(heightUnit: .ft)))
-    }
-}
+//
+//#Preview("Height (cm)") {
+//    MeasurementForm(type: .height) { int, double, time in
+//        
+//    }
+//    .environment(SettingsProvider(settings: .init(heightUnit: .cm)))
+//}
+//
+//#Preview("Height (ft)") {
+//    MeasurementForm(type: .height) { int, double, time in
+//        
+//    }
+//    .environment(SettingsProvider(settings: .init(heightUnit: .ft)))
+//}
+//
+//#Preview("HeightForm") {
+//    NavigationView {
+//        HeightForm(healthProvider: MockCurrentProvider)
+//            .environment(SettingsProvider(settings: .init(heightUnit: .ft)))
+//    }
+//}

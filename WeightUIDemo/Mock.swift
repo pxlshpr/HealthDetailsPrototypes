@@ -5,18 +5,20 @@ public var isPreview: Bool {
 }
 
 var CurrentHealthDetails: HealthDetails {
-    fetchHealthDetailsFromDocuments(Date.now)
+    fetchOrCreateHealthDetailsFromDocuments(Date.now)
 }
 
 func latestHealthDetails(to date: Date = Date.now) -> HealthProvider.LatestHealthDetails {
     let start = CFAbsoluteTimeGetCurrent()
     var latest = HealthProvider.LatestHealthDetails()
     
-    let numberOfDays = Date.now.numberOfDaysFrom(PreviousMockDate)
+    let numberOfDays = Date.now.numberOfDaysFrom(DaysStartDate)
     var retrievedDetails: [HealthDetail] = []
     for i in 1...numberOfDays {
         let date = Date.now.moveDayBy(-i)
-        let healthDetails = fetchHealthDetailsFromDocuments(date)
+        guard let healthDetails = fetchHealthDetailsFromDocuments(date) else {
+            continue
+        }
 
         if healthDetails.hasSet(.weight) {
             latest.weight = .init(date: date, weight: healthDetails.weight)
@@ -47,19 +49,22 @@ func latestHealthDetails(to date: Date = Date.now) -> HealthProvider.LatestHealt
         }
     }
     
+    print("Getting latestHealthDetails for \(numberOfDays) numberOfDays took: \(CFAbsoluteTimeGetCurrent()-start)s")
     return latest
 }
 
 extension HealthProvider {
-    //TODO: To be replaced in Prep with a function that asks backend for the earliest Days that contain age, sex, or smokingStatus
-    func bringForwardNonTemporalHealthDetails() {
+    //TODO: To be replaced in Prep with a function that asks backend for the earliest Days that contain age, sex, or smokingStatus to be as optimized as possible
+    func bringForwardNonTemporalHealthDetails() async {
         guard !healthDetails.missingNonTemporalHealthDetails.isEmpty else { return }
         let start = CFAbsoluteTimeGetCurrent()
         
-        let numberOfDays = healthDetails.date.numberOfDaysFrom(PreviousMockDate)
+        let numberOfDays = healthDetails.date.numberOfDaysFrom(DaysStartDate)
         for i in 0...numberOfDays {
             let date = healthDetails.date.moveDayBy(-i)
-            let pastHealthDetails = fetchHealthDetailsFromDocuments(date)
+            guard let pastHealthDetails = fetchHealthDetailsFromDocuments(date) else {
+                continue
+            }
 
             if !healthDetails.hasSet(.age), let dateOfBirthComponents = pastHealthDetails.dateOfBirthComponents {
                 healthDetails.dateOfBirthComponents = dateOfBirthComponents
@@ -78,35 +83,34 @@ extension HealthProvider {
                 break
             }
         }
+        
+        print("bringForwardNonTemporalHealthDetails() for \(numberOfDays) numberOfDays took: \(CFAbsoluteTimeGetCurrent()-start)s")
     }
 }
 
 struct MockHealthDetailsForm: View {
     
-    @Environment(SettingsProvider.self) var settingsProvider
+    @Bindable var settingsProvider: SettingsProvider
 
     @State var healthProvider: HealthProvider
     @Binding var isPresented: Bool
     
+    let date: Date
+    
     init(
         date: Date,
+        settingsProvider: SettingsProvider,
         isPresented: Binding<Bool> = .constant(true)
     ) {
+        self.date = date
+        self.settingsProvider = settingsProvider
         _isPresented = isPresented
         
-        let healthDetails = fetchHealthDetailsFromDocuments(date)
-
-        let latest = latestHealthDetails(to: date)
-        
+        let healthDetails = fetchOrCreateHealthDetailsFromDocuments(date)
         let healthProvider = HealthProvider(
-            isCurrent: date.isToday,
             healthDetails: healthDetails,
-            latest: latest
+            settingsProvider: settingsProvider
         )
-        
-        /// Get HealthProvider to bring forward any non-temporal HealthDetails (age, sex, smokingStatus)
-        healthProvider.bringForwardNonTemporalHealthDetails()
-        
         _healthProvider = State(initialValue: healthProvider)
     }
 
@@ -121,52 +125,52 @@ struct MockHealthDetailsForm: View {
 
 
 let MockCurrentProvider = HealthProvider(
-    isCurrent: true,
     healthDetails: HealthDetails(
         date: Date.now,
         biologicalSex: .notSet,
         smokingStatus: .smoker
     ),
-    latest: HealthProvider.LatestHealthDetails(
-        maintenance: .init(
-            date: Date.now.moveDayBy(-1),
-            maintenance: .init(
-                type: .adaptive,
-                kcal: 2500,
-                adaptive: .init(
-                    weightChange: .init(
-                        type: .usingPoints
-                    )
-                ),
-                estimate: .init(
-                    kcal: 2500,
-                    restingEnergy: .init(
-                        kcal: 2000,
-                        source: .userEntered
-                    ),
-                    activeEnergy: .init(
-                        kcal: 500,
-                        source: .userEntered
-                    )
-                )
-            )
-        ),
-        pregnancyStatus: .init(
-            date: Date.now.moveDayBy(-150),
-            pregnancyStatus: .pregnant
-        )
-    )
+    settingsProvider: SettingsProvider()
+//    latest: HealthProvider.LatestHealthDetails(
+//        maintenance: .init(
+//            date: Date.now.moveDayBy(-1),
+//            maintenance: .init(
+//                type: .adaptive,
+//                kcal: 2500,
+//                adaptive: .init(
+//                    weightChange: .init(
+//                        type: .usingPoints
+//                    )
+//                ),
+//                estimate: .init(
+//                    kcal: 2500,
+//                    restingEnergy: .init(
+//                        kcal: 2000,
+//                        source: .userEntered
+//                    ),
+//                    activeEnergy: .init(
+//                        kcal: 500,
+//                        source: .userEntered
+//                    )
+//                )
+//            )
+//        ),
+//        pregnancyStatus: .init(
+//            date: Date.now.moveDayBy(-150),
+//            pregnancyStatus: .pregnant
+//        )
+//    )
 )
 
 let MockPastProvider = HealthProvider(
-    isCurrent: false,
     healthDetails: HealthDetails(
         date: Date.now.moveDayBy(-1),
         biologicalSex: .male,
         dateOfBirthComponents: 20.dateOfBirthComponents,
         smokingStatus: .nonSmoker,
         pregnancyStatus: .notSet
-    )
+    ),
+    settingsProvider: SettingsProvider()
 )
 
 //MARK: Reusable
@@ -202,7 +206,7 @@ struct Day: Codable {
     }
 }
 
-func fetchDayFromDocuments(_ date: Date) -> Day {
+func fetchOrCreateDayFromDocuments(_ date: Date) -> Day {
     let filename = "\(date.dateString).json"
     let url = getDocumentsDirectory().appendingPathComponent(filename)
     do {
@@ -213,6 +217,18 @@ func fetchDayFromDocuments(_ date: Date) -> Day {
         let day = Day(date: date)
         saveDayInDocuments(day)
         return day
+    }
+}
+
+func fetchDayFromDocuments(_ date: Date) -> Day? {
+    let filename = "\(date.dateString).json"
+    let url = getDocumentsDirectory().appendingPathComponent(filename)
+    do {
+        let data = try Data(contentsOf: url)
+        let day = try JSONDecoder().decode(Day.self, from: data)
+        return day
+    } catch {
+        return nil
     }
 }
 
@@ -227,23 +243,16 @@ func saveDayInDocuments(_ day: Day) {
     }
 }
 
-func fetchHealthDetailsFromDocuments(_ date: Date) -> HealthDetails {
-    fetchDayFromDocuments(date).healthDetails
-//    let filename = "\(date.dateString).json"
-//    let url = getDocumentsDirectory().appendingPathComponent(filename)
-//    do {
-//        let data = try Data(contentsOf: url)
-//        let healthDetails = try JSONDecoder().decode(HealthDetails.self, from: data)
-//        return healthDetails
-//    } catch {
-//        let healthDetails = HealthDetails(date: date)
-//        saveHealthDetailsInDocuments(healthDetails)
-//        return healthDetails
-//    }
+func fetchOrCreateHealthDetailsFromDocuments(_ date: Date) -> HealthDetails {
+    fetchOrCreateDayFromDocuments(date).healthDetails
+}
+
+func fetchHealthDetailsFromDocuments(_ date: Date) -> HealthDetails? {
+    fetchDayFromDocuments(date)?.healthDetails
 }
 
 func saveHealthDetailsInDocuments(_ healthDetails: HealthDetails) {
-    var day = fetchDayFromDocuments(healthDetails.date)
+    var day = fetchOrCreateDayFromDocuments(healthDetails.date)
     day.healthDetails = healthDetails
     saveDayInDocuments(day)
 //    do {

@@ -330,7 +330,6 @@ extension HealthDetails {
         var dailyValueType: DailyValueType = .average
         var measurements: [LeanBodyMassMeasurement] = []
         var deletedHealthKitMeasurements: [LeanBodyMassMeasurement] = []
-        var isSynced: Bool = false
     }
 }
 
@@ -341,7 +340,6 @@ extension HealthDetails {
         var dailyValueType: DailyValueType = .average
         var measurements: [WeightMeasurement] = []
         var deletedHealthKitMeasurements: [WeightMeasurement] = []
-        var isSynced: Bool = false
     }
 }
 
@@ -367,12 +365,6 @@ extension HealthDetails.LeanBodyMass {
     }
     func valueString(in unit: BodyMassUnit) -> String {
         leanBodyMassInKg.valueString(convertedFrom: .kg, to: unit)
-    }
-}
-
-extension HealthDetails.Height {
-    func valueString(in unit: HeightUnit) -> String {
-        heightInCm.valueString(convertedFrom: .cm, to: unit)
     }
 }
 
@@ -431,7 +423,25 @@ extension HealthDetails {
         var heightInCm: Double? = nil
         var measurements: [HeightMeasurement] = []
         var deletedHealthKitMeasurements: [HeightMeasurement] = []
-        var isSynced: Bool = false
+    }
+}
+
+extension HealthDetails.Height {
+    
+    mutating func addHealthKitMeasurement(_ measurement: HealthKitMeasurement) {
+        
+        guard !measurements.contains(where: { $0.healthKitUUID == measurement.id }),
+              !deletedHealthKitMeasurements.contains(where: { $0.healthKitUUID == measurement.id })
+        else {
+            return
+        }
+        measurements.append(HeightMeasurement(healthKitMeasurement: measurement))
+        measurements.sort()
+        heightInCm = measurements.last?.heightInCm
+    }
+    
+    func valueString(in unit: HeightUnit) -> String {
+        heightInCm.valueString(convertedFrom: .cm, to: unit)
     }
 }
 
@@ -507,6 +517,13 @@ struct HeightMeasurement: Hashable, Identifiable, Codable {
         self.healthKitUUID = healthKitUUID
         self.date = date
         self.heightInCm = heightInCm
+    }
+    
+    init(healthKitMeasurement measurement: HealthKitMeasurement) {
+        self.id = UUID()
+        self.healthKitUUID = measurement.id
+        self.date = measurement.date
+        self.heightInCm = measurement.value
     }
 }
 

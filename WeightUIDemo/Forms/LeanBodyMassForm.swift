@@ -4,7 +4,6 @@ import PrepShared
 
 struct LeanBodyMassForm: View {
     
-    @Environment(SettingsProvider.self) var settingsProvider
     @Bindable var healthProvider: HealthProvider
 
     let date: Date
@@ -46,7 +45,7 @@ struct LeanBodyMassForm: View {
         _measurements = State(initialValue: leanBodyMass.measurements)
         _dailyValueType = State(initialValue: leanBodyMass.dailyValueType)
         _deletedHealthKitMeasurements = State(initialValue: leanBodyMass.deletedHealthKitMeasurements)
-        _isSynced = State(initialValue: leanBodyMass.isSynced)
+        _isSynced = State(initialValue: healthProvider.settingsProvider.leanBodyMassIsHealthKitSynced)
     }
     
     init(
@@ -114,26 +113,25 @@ struct LeanBodyMassForm: View {
         }
     }
     
+    var bodyMassUnit: BodyMassUnit {
+        healthProvider.settingsProvider.bodyMassUnit
+    }
+    
     var bottomValue: some View {
         var bottomRow: some View {
-            var intUnitString: String? {
-                settingsProvider.bodyMassUnit.intUnitString
-            }
-            
-            var doubleUnitString: String {
-                settingsProvider.bodyMassUnit.doubleUnitString
-            }
+            var intUnitString: String? { bodyMassUnit.intUnitString }
+            var doubleUnitString: String { bodyMassUnit.doubleUnitString }
             
             var double: Double? {
                 guard let leanBodyMassInKg else { return nil }
                 return BodyMassUnit.kg
-                    .doubleComponent(leanBodyMassInKg, in: settingsProvider.bodyMassUnit)
+                    .doubleComponent(leanBodyMassInKg, in: bodyMassUnit)
             }
             
             var int: Int? {
                 guard let leanBodyMassInKg else { return nil }
                 return BodyMassUnit.kg
-                    .intComponent(leanBodyMassInKg, in: settingsProvider.bodyMassUnit)
+                    .intComponent(leanBodyMassInKg, in: bodyMassUnit)
             }
             
             return HStack(alignment: .firstTextBaseline, spacing: 5) {
@@ -274,7 +272,6 @@ struct LeanBodyMassForm: View {
         self.dailyValueType = initialLeanBodyMass.dailyValueType
         self.measurements = initialLeanBodyMass.measurements
         self.deletedHealthKitMeasurements = initialLeanBodyMass.deletedHealthKitMeasurements
-        self.isSynced = initialLeanBodyMass.isSynced
     }
     
     func save() {
@@ -335,8 +332,7 @@ struct LeanBodyMassForm: View {
             fatPercentage: calculatedFatPercentage,
             dailyValueType: dailyValueType,
             measurements: measurements,
-            deletedHealthKitMeasurements: deletedHealthKitMeasurements,
-            isSynced: isSynced
+            deletedHealthKitMeasurements: deletedHealthKitMeasurements
         )
     }
 }
