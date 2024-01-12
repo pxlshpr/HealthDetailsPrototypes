@@ -259,8 +259,8 @@ struct LeanBodyMassForm: View {
                 get: { isEditing },
                 set: { _ in }
             ),
-            dailyValueType: $dailyValueType,
-            footerSuffix: "Percentages indicate your body fat.",
+//            dailyValueType: $dailyValueType,
+//            footerSuffix: "Percentages indicate your body fat.",
             handleChanges: handleChanges
         )
     }

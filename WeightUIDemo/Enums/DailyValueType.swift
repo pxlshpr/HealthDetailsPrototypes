@@ -19,11 +19,11 @@ enum DailyValueType: Int, CaseIterable, Hashable, Codable {
     var description: String {
         switch self {
         case .average:
-            "The average of the above measurements is being used."
+            "The average of the measurements will be used."
         case .last:
-            "The last of the above measurements is being used."
+            "The last of the measurements will be used."
         case .first:
-            "The first of the above measurements is being used."
+            "The first of the measurements will be used."
         }
     }
 }

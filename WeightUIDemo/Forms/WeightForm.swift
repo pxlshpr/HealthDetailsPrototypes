@@ -66,6 +66,7 @@ struct WeightForm: View {
         Form {
             noticeOrDateSection
             measurementsSections
+            dailyValuePicker
             syncSection
             explanation
         }
@@ -87,7 +88,7 @@ struct WeightForm: View {
     var explanation: some View {
         var header: some View {
             Text("Usage")
-                .formTitleStyle()
+//                .formTitleStyle()
         }
         return Section(header: header) {
             VStack(alignment: .leading) {
@@ -123,7 +124,7 @@ struct WeightForm: View {
                 get: { isEditing },
                 set: { _ in }
             ),
-            dailyValueType: $dailyValueType,
+//            dailyValueType: $dailyValueType,
             handleChanges: handleChanges
         )
     }
@@ -177,8 +178,8 @@ struct WeightForm: View {
                 doubleUnitString: doubleUnitString,
                 isDisabled: Binding<Bool>(
                     get: { isDisabled }, set: { _ in }
-                ),
-                isStyledAsBottomBar: false
+                )
+//                isStyledAsBottomBar: false
             )
         }
 
@@ -186,13 +187,14 @@ struct WeightForm: View {
             dailyValuePicker
         }
         
-        return VStack {
-            topRow
-            bottomRow
-        }
-        .padding(.horizontal, BottomValueHorizontalPadding)
-        .padding(.vertical, BottomValueVerticalPadding)
-        .background(.bar)
+        return bottomRow
+//        return VStack {
+//            topRow
+//            bottomRow
+//        }
+//        .padding(.horizontal, BottomValueHorizontalPadding)
+//        .padding(.vertical, BottomValueVerticalPadding)
+//        .background(.bar)
     }
     
     @ViewBuilder
@@ -221,14 +223,30 @@ struct WeightForm: View {
             }
         )
         
-        return Picker("", selection: binding) {
-            ForEach(DailyValueType.allCases, id: \.self) {
-                Text($0.name).tag($0)
+        var pickerRow: some View {
+            Picker("", selection: binding) {
+                ForEach(DailyValueType.allCases, id: \.self) {
+                    Text($0.name).tag($0)
+                }
             }
+            .pickerStyle(.segmented)
+            .listRowSeparator(.hidden)
+            .disabled(isDisabled)
         }
-        .pickerStyle(.segmented)
-        .listRowSeparator(.hidden)
-        .disabled(isDisabled || measurements.isEmpty)
+
+        var description: String {
+            dailyValueType.description
+        }
+
+        var header: some View {
+            Text("Handling Multiple Measurements")
+//                .formTitleStyle()
+        }
+
+        return Section(header: header) {
+            pickerRow
+            Text(description)
+        }
     }
 
     @ViewBuilder
@@ -320,42 +338,36 @@ struct WeightForm: View {
 #Preview("Current (kg)") {
     NavigationView {
         WeightForm(healthProvider: MockCurrentProvider)
-            .environment(SettingsProvider(settings: .init(bodyMassUnit: .kg)))
     }
 }
 
 #Preview("Past (kg)") {
     NavigationView {
         WeightForm(healthProvider: MockPastProvider)
-            .environment(SettingsProvider(settings: .init(bodyMassUnit: .kg)))
     }
 }
 
 #Preview("Current (st)") {
     NavigationView {
         WeightForm(healthProvider: MockCurrentProvider)
-            .environment(SettingsProvider(settings: .init(bodyMassUnit: .st)))
     }
 }
 
 #Preview("Past (st)") {
     NavigationView {
         WeightForm(healthProvider: MockPastProvider)
-            .environment(SettingsProvider(settings: .init(bodyMassUnit: .st)))
     }
 }
 
 #Preview("Current (lb)") {
     NavigationView {
         WeightForm(healthProvider: MockCurrentProvider)
-            .environment(SettingsProvider(settings: .init(bodyMassUnit: .lb)))
     }
 }
 
 #Preview("Past (lb)") {
     NavigationView {
         WeightForm(healthProvider: MockPastProvider)
-            .environment(SettingsProvider(settings: .init(bodyMassUnit: .lb)))
     }
 }
 

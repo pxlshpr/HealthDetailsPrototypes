@@ -208,7 +208,7 @@ struct HeightForm: View {
                 get: { isEditing },
                 set: { _ in }
             ),
-            dailyValueType: .constant(.last),
+//            dailyValueType: .constant(.last),
             handleChanges: handleChanges
         )
     }

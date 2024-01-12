@@ -10,9 +10,9 @@ struct MeasurementsSections<U : HealthUnit>: View {
     @Binding var showingForm: Bool
     @Binding var isPast: Bool
     @Binding var isEditing: Bool
-    @Binding var dailyValueType: DailyValueType
+//    @Binding var dailyValueType: DailyValueType
     
-    var footerSuffix: String? = nil
+//    var footerSuffix: String? = nil
     let handleChanges: () -> ()
     
     var body: some View {
@@ -23,7 +23,8 @@ struct MeasurementsSections<U : HealthUnit>: View {
     }
     
     var measurementsSection: some View {
-        Section(footer: footer) {
+//        Section(footer: footer) {
+        Section {
             cells
             lastRow
         }
@@ -61,21 +62,21 @@ struct MeasurementsSections<U : HealthUnit>: View {
         }
     }
     
-    var footer: some View {
-        var string: String {
-            let string = dailyValueType.description
-            return if let footerSuffix {
-                string + " " + footerSuffix
-            } else {
-                string
-            }
-        }
-        return Group {
-            if !measurements.isEmpty {
-                Text(string)
-            }
-        }
-    }
+//    var footer: some View {
+//        var string: String {
+//            let string = dailyValueType.description
+//            return if let footerSuffix {
+//                string + " " + footerSuffix
+//            } else {
+//                string
+//            }
+//        }
+//        return Group {
+//            if !measurements.isEmpty {
+//                Text(string)
+//            }
+//        }
+//    }
     
     var isDisabled: Bool {
         isPast && !isEditing
