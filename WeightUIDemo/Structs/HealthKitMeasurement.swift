@@ -3,9 +3,9 @@ import Foundation
 public struct HealthKitMeasurement: Hashable, Codable {
     public var id: UUID
     public var value: Double
-    public var date: Date?
+    public var date: Date
     
-    public init(id: UUID, value: Double, date: Date? = nil) {
+    public init(id: UUID, value: Double, date: Date) {
         self.id = id
         self.value = value
         self.date = date
@@ -27,21 +27,21 @@ extension Array where Element == HealthDetails.Weight {
 }
 
 extension Array where Element == HealthKitMeasurement {
-    var valuesGroupedByDate: [Date: [HealthKitMeasurement]] {
-        let withDates = self.filter { $0.date != nil }
-        return Dictionary(grouping: withDates) { $0.date!.startOfDay }
-    }
+//    var valuesGroupedByDate: [Date: [HealthKitMeasurement]] {
+//        let withDates = self.filter { $0.date != nil }
+//        return Dictionary(grouping: withDates) { $0.date!.startOfDay }
+//    }
     
-    var sortedByDate: [HealthKitMeasurement] {
-        self.sorted(by: { lhs, rhs in
-            switch (lhs.date, rhs.date) {
-            case (.some(let date1), .some(let date2)):  date1 < date2
-            case (.some, .none):                        true
-            case (.none, .some):                        false
-            case (.none, .none):                        false
-            }
-        })
-    }
+//    var sortedByDate: [HealthKitMeasurement] {
+//        self.sorted(by: { lhs, rhs in
+//            switch (lhs.date, rhs.date) {
+//            case (.some(let date1), .some(let date2)):  date1 < date2
+//            case (.some, .none):                        true
+//            case (.none, .some):                        false
+//            case (.none, .none):                        false
+//            }
+//        })
+//    }
     
     var averageValue: Double? {
         map{ $0.value }.average

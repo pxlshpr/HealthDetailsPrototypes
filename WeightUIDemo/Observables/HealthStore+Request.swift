@@ -83,9 +83,19 @@ extension HealthStore {
 
 extension HealthStore {
     static func allWeightsQuantities(
-        in unit: BodyMassUnit = .kg
-    ) async throws -> [HealthKitMeasurement]? {
-        try await HealthKitQuantityRequest(.weight, unit.healthKitUnit)
-            .allQuantities()
+        in unit: BodyMassUnit = .kg,
+        startingFrom startDate: Date? = nil
+    ) async -> [HealthKitMeasurement] {
+        do {
+            guard let measurements = try await HealthKitQuantityRequest(
+                .weight,
+                unit.healthKitUnit
+            ).allQuantities(startingFrom: startDate) else {
+                return []
+            }
+            return measurements
+        } catch {
+            return []
+        }
     }
 }

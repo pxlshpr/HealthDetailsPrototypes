@@ -134,8 +134,14 @@ extension HealthKitQuantityRequest {
         .map { $0.asHealthKitMeasurement(in: healthKitUnit) }
     }
 
-    func allQuantities() async throws -> [HealthKitMeasurement]? {
+    func allQuantities(startingFrom startDate: Date?) async throws -> [HealthKitMeasurement]? {
+        let predicate: NSPredicate? = if let startDate {
+            NSPredicate(format: "startDate >= %@", startDate.startOfDay as NSDate)
+        } else {
+            nil
+        }
         return try await samples(
+            matching: predicate,
             sortDescriptors: [SortDescriptor(\.startDate, order: .forward)]
         )
         .map { $0.asHealthKitMeasurement(in: healthKitUnit) }
