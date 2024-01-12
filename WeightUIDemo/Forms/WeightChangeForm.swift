@@ -111,7 +111,20 @@ struct WeightChangeForm: View {
             title: String,
             isEndWeight: Bool
         ) -> some View {
-            Section(title) {
+            var header: some View {
+                Text(title)
+            }
+            
+            @ViewBuilder
+            var footer: some View {
+                if let points = point.movingAverage?.points,
+                   let end = points.first, let start = points.last
+                {
+                    Text("This is a moving average of your weight from \(start.date.shortDateString) to \(end.date.shortDateString)")
+                }
+            }
+            
+            return Section(header: header, footer: footer) {
                 NavigationLink {
                     WeightChangePointForm(
                         date: date,
@@ -134,7 +147,7 @@ struct WeightChangeForm: View {
                         Text(point.date.shortDateString)
                         Spacer()
                         if let kg = point.kg {
-                            Text("\(BodyMassUnit.kg.convert(kg, to: settingsProvider.bodyMassUnit).clean) \(settingsProvider.bodyMassUnit.abbreviation)")
+                            Text("\(BodyMassUnit.kg.convert(kg, to: settingsProvider.bodyMassUnit).cleanHealth) \(settingsProvider.bodyMassUnit.abbreviation)")
                         } else {
                             Text("Not Set")
                                 .foregroundStyle(.secondary)

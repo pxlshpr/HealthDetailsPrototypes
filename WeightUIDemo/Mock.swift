@@ -131,8 +131,13 @@ let MockCurrentProvider = HealthProvider(
         maintenance: .init(
             date: Date.now.moveDayBy(-1),
             maintenance: .init(
-                type: .estimated,
+                type: .adaptive,
                 kcal: 2500,
+                adaptive: .init(
+                    weightChange: .init(
+                        type: .usingPoints
+                    )
+                ),
                 estimate: .init(
                     kcal: 2500,
                     restingEnergy: .init(

@@ -177,9 +177,9 @@ extension HealthProvider {
                     /// If its using a movingAverage, for each of the `numberOfDays` of the interval
                     for index in 0..<interval.numberOfDays {
                         /// Compute the date
-                        let date = healthDetails.date.moveDayBy(-index)
+                        let date = point.date.moveDayBy(-index)
                         /// Try and fetch the `HealthDetails.Weight?` from the backend for the computed date
-                        let weight = await fetchBackendWeight(for: date)
+                        let weight = await fetchOrCreateBackendWeight(for: date)
                         /// If we get it, then create a `WeightChangePoint.MovingAverage.Point` with it and append it to the array
                         /// If we don't have it, then create the point with a nil `weight` and still append it
                         let point = WeightChangePoint.MovingAverage.Point(date: date, weight: weight)
@@ -195,9 +195,9 @@ extension HealthProvider {
                     point.weight = nil
                 } else {
                     /// If its not using a movingAverage, fetch the `HealthDetails.Weight?` from the backend for the date
-                    let weight = await fetchBackendWeight(for: point.date)
+                    let weight = await fetchOrCreateBackendWeight(for: point.date)
                     /// Set this weight's `weightInKg` value as the `kg` value
-                    point.kg = weight?.weightInKg
+                    point.kg = weight.weightInKg
                     point.weight = weight
                 }
             }
@@ -396,48 +396,74 @@ extension HealthProvider {
     func updateLatestWeight(_ weight: HealthDetails.Weight) {
         guard let latestWeight = latest.weight else { return }
         latest.weight?.weight = weight
-        
-        var healthDetails = fetchHealthDetailsFromDocuments(latestWeight.date)
-        healthDetails.weight = weight
-        saveHealthDetailsInDocuments(healthDetails)
+        Task {
+            await saveWeight(weight, for: latestWeight.date)
+        }
     }
     
     func updateLatestHeight(_ height: HealthDetails.Height) {
         guard let latestHeight = latest.height else { return }
         latest.height?.height = height
-        
-        var healthDetails = fetchHealthDetailsFromDocuments(latestHeight.date)
-        healthDetails.height = height
-        saveHealthDetailsInDocuments(healthDetails)
+        Task {
+            await saveHeight(height, for: latestHeight.date)
+        }
     }
 
     func updateLatestMaintenance(_ maintenance: HealthDetails.Maintenance) {
         guard let latestMaintenance = latest.maintenance else { return }
         latest.maintenance?.maintenance = maintenance
-        
-        var healthDetails = fetchHealthDetailsFromDocuments(latestMaintenance.date)
-        healthDetails.maintenance = maintenance
-        saveHealthDetailsInDocuments(healthDetails)
+        Task {
+            await saveMaintenance(maintenance, for: latestMaintenance.date)
+        }
     }
 
     func updateLatestPregnancyStatus(_ pregnancyStatus: PregnancyStatus) {
         guard let latestPregnancyStatus = latest.pregnancyStatus else { return }
         latest.pregnancyStatus?.pregnancyStatus = pregnancyStatus
-        
-        var healthDetails = fetchHealthDetailsFromDocuments(latestPregnancyStatus.date)
-        healthDetails.pregnancyStatus = pregnancyStatus
-        saveHealthDetailsInDocuments(healthDetails)
+        Task {
+            await savePregnancyStatus(pregnancyStatus, for: latestPregnancyStatus.date)
+        }
     }
 
     func updateLatestLeanBodyMass(_ leanBodyMass: HealthDetails.LeanBodyMass) {
         guard let latestLeanBodyMass = latest.leanBodyMass else { return }
         latest.leanBodyMass?.leanBodyMass = leanBodyMass
-        
-        var healthDetails = fetchHealthDetailsFromDocuments(latestLeanBodyMass.date)
-        healthDetails.leanBodyMass = leanBodyMass
+        Task {
+            await saveLeanBodyMass(leanBodyMass, for: latestLeanBodyMass.date)
+        }
+    }
+    
+    //MARK: - Save for other days
+
+    func saveWeight(_ weight: HealthDetails.Weight, for date: Date) async {
+        var healthDetails = fetchHealthDetailsFromDocuments(date)
+        healthDetails.weight = weight
         saveHealthDetailsInDocuments(healthDetails)
     }
 
+    func saveHeight(_ height: HealthDetails.Height, for date: Date) async {
+        var healthDetails = fetchHealthDetailsFromDocuments(date)
+        healthDetails.height = height
+        saveHealthDetailsInDocuments(healthDetails)
+    }
+
+    func saveMaintenance(_ maintenance: HealthDetails.Maintenance, for date: Date) async {
+        var healthDetails = fetchHealthDetailsFromDocuments(date)
+        healthDetails.maintenance = maintenance
+        saveHealthDetailsInDocuments(healthDetails)
+    }
+
+    func savePregnancyStatus(_ pregnancyStatus: PregnancyStatus, for date: Date) async {
+        var healthDetails = fetchHealthDetailsFromDocuments(date)
+        healthDetails.pregnancyStatus = pregnancyStatus
+        saveHealthDetailsInDocuments(healthDetails)
+    }
+    
+    func saveLeanBodyMass(_ leanBodyMass: HealthDetails.LeanBodyMass, for date: Date) async {
+        var healthDetails = fetchHealthDetailsFromDocuments(date)
+        healthDetails.leanBodyMass = leanBodyMass
+        saveHealthDetailsInDocuments(healthDetails)
+    }
 }
 
 //TODO: Replace these with actual backend manipulation in Prep
@@ -449,7 +475,7 @@ extension HealthProvider {
         saveDayInDocuments(day)
     }
 
-    func fetchBackendWeight(for date: Date) async -> HealthDetails.Weight? {
+    func fetchOrCreateBackendWeight(for date: Date) async -> HealthDetails.Weight {
         let healthDetails = fetchHealthDetailsFromDocuments(date)
         return healthDetails.weight
     }
@@ -465,6 +491,18 @@ extension HealthProvider {
     
     func save() {
         saveHealthDetailsInDocuments(healthDetails)
+    }
+}
+
+extension HealthProvider {
+    func syncWeights() {
+        Task {
+            let start = CFAbsoluteTimeGetCurrent()
+            guard let quantities = try await HealthStore.allWeightsQuantities() else {
+                fatalError("Uh oh")
+            }
+            print("Got \(quantities.count) weight quantities: \(CFAbsoluteTimeGetCurrent()-start)s")
+        }
     }
 }
 

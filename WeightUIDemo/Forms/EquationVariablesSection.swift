@@ -302,10 +302,10 @@ struct TemporalVariableSection: View {
                 WeightForm(
                     date: latestWeight.date,
                     weight: latestWeight.weight,
+                    healthProvider: healthProvider,
                     isPresented: $isPresented,
                     dismissDisabled: $dismissDisabled,
                     save: { newWeight in
-                        //TODO: Save
                         healthProvider.updateLatestWeight(newWeight)
                     }
                 )

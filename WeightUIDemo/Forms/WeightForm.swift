@@ -5,7 +5,8 @@ import PrepShared
 struct WeightForm: View {
     
     @Environment(SettingsProvider.self) var settingsProvider
-    
+    @Bindable var healthProvider: HealthProvider
+
     let date: Date
     let initialWeight: HealthDetails.Weight
     
@@ -27,6 +28,7 @@ struct WeightForm: View {
     init(
         date: Date,
         weight: HealthDetails.Weight,
+        healthProvider: HealthProvider,
         isPresented: Binding<Bool> = .constant(true),
         dismissDisabled: Binding<Bool> = .constant(false),
         save: @escaping (HealthDetails.Weight) -> ()
@@ -34,6 +36,7 @@ struct WeightForm: View {
         self.date = date
         self.initialWeight = weight
         self.saveHandler = save
+        self.healthProvider = healthProvider
         _isPresented = isPresented
         _dismissDisabled = dismissDisabled
         _isEditing = State(initialValue: date.isToday)
@@ -53,6 +56,7 @@ struct WeightForm: View {
         self.init(
             date: healthProvider.healthDetails.date,
             weight: healthProvider.healthDetails.weight,
+            healthProvider: healthProvider,
             isPresented: isPresented,
             dismissDisabled: dismissDisabled,
             save: healthProvider.saveWeight
@@ -74,6 +78,19 @@ struct WeightForm: View {
         .navigationBarBackButtonHidden(isLegacy && isEditing)
         .onChange(of: isEditing) { _, _ in setDismissDisabled() }
         .onChange(of: isDirty) { _, _ in setDismissDisabled() }
+        .onChange(of: isSynced, isSyncedChanged)
+    }
+    
+    func isSyncedChanged(old: Bool, new: Bool) {
+        switch (old, new) {
+        case (false, true):
+            print("isSynced switched on")
+            healthProvider.syncWeights()
+        case (true, false):
+            print("isSynced switched off")
+        default:
+            break
+        }
     }
     
     var explanation: some View {

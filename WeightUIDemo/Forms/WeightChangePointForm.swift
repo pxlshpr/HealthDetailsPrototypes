@@ -142,6 +142,20 @@ struct WeightChangePointForm: View {
         )
     }
     
+    func updatePoint(_ point: WeightChangePoint.MovingAverage.Point, with weight: HealthDetails.Weight) {
+        Task {
+            guard let index = points.firstIndex(where: { $0.id == point.id }) else {
+                return
+            }
+            backendWeights[point.date] = weight
+            await MainActor.run {
+                points[index].weight = weight
+            }
+            await healthProvider.saveWeight(weight, for: point.date)
+            handleChanges()
+        }
+    }
+    
     var weights: some View {
         func link(for point: WeightChangePoint.MovingAverage.Point) -> some View {
             func valueText(_ weightInKg: Double) -> some View {
@@ -169,12 +183,21 @@ struct WeightChangePointForm: View {
             }
             
             return NavigationLink {
-                Text("Weight Form goes here")
+                WeightForm(
+                    date: point.date,
+                    weight: point.weight,
+                    healthProvider: healthProvider,
+                    isPresented: $isPresented,
+                    dismissDisabled: $dismissDisabled,
+                    save: { weight in
+                        updatePoint(point, with: weight)
+                    }
+                )
             } label: {
                 HStack {
                     Text(point.date.shortDateString)
                     Spacer()
-                    if let weightInKg = point.weight?.weightInKg {
+                    if let weightInKg = point.weight.weightInKg {
                         valueText(weightInKg)
                     } else {
                         Text("Not Set")
@@ -186,7 +209,7 @@ struct WeightChangePointForm: View {
         }
         
         return Section {
-            ForEach(points) { point in
+            ForEach(points, id: \.self) { point in
                 link(for: point)
             }
         }
@@ -305,7 +328,7 @@ struct WeightChangePointForm: View {
             
             for date in allPossibleDatesForMovingAverage {
                 taskGroup.addTask {
-                    let weight = await healthProvider.fetchBackendWeight(for: date)
+                    let weight = await healthProvider.fetchOrCreateBackendWeight(for: date)
                     return (date, weight)
                 }
             }
@@ -331,15 +354,11 @@ struct WeightChangePointForm: View {
     func setPoints() {
         var points: [WeightChangePoint.MovingAverage.Point] = []
         for date in datesForPoints {
-            points.append(.init(date: date, weight: backendWeights[date]))
+            points.append(.init(date: date, weight: backendWeights[date] ?? .init()))
         }
         withAnimation {
-//            if self.points != points {
-                self.points = points
-//            }
-//            if self.weightInKg != points.average {
-                self.weightInKg = points.average
-//            }
+            self.points = points
+            self.weightInKg = points.average
         }
     }
     

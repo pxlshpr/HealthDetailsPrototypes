@@ -133,7 +133,14 @@ extension HealthKitQuantityRequest {
         )
         .map { $0.asQuantity(in: healthKitUnit) }
     }
-    
+
+    func allQuantities() async throws -> [Quantity]? {
+        return try await samples(
+            sortDescriptors: [SortDescriptor(\.startDate, order: .forward)]
+        )
+        .map { $0.asQuantity(in: healthKitUnit) }
+    }
+
     func mostRecent(to date: Date) async throws -> Quantity? {
         try await firstQuantity(
             matching: NSPredicate(format: "startDate <= %@", date as NSDate),

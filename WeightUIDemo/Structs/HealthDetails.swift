@@ -53,7 +53,7 @@ extension Array where Element == DietaryEnergyPoint {
 extension Array where Element == WeightChangePoint.MovingAverage.Point {
     var average: Double? {
         let values = self
-            .compactMap { $0.weight?.weightInKg }
+            .compactMap { $0.weight.weightInKg }
         guard !values.isEmpty else { return nil }
         let sum = values.reduce(0) { $0 + $1 }
         return Double(sum) / Double(values.count)
@@ -84,7 +84,7 @@ struct WeightChangePoint: Hashable, Codable {
         
         struct Point: Hashable, Codable, Identifiable {
             var date: Date
-            var weight: HealthDetails.Weight?
+            var weight: HealthDetails.Weight
             
             var id: Date { date }
         }
