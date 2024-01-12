@@ -11,7 +11,7 @@ public class HealthStore {
 
 extension HealthStore {
     
-    static func latestQuantity(for type: QuantityType, using unit: HKUnit? = nil) async -> Quantity? {
+    static func latestQuantity(for type: QuantityType, using unit: HKUnit? = nil) async -> HealthKitMeasurement? {
         do {
             try await requestPermission(for: type)
             return try await latestQuantity(
@@ -53,11 +53,11 @@ extension HealthStore {
 }
 
 extension HealthStore {
-    static func latestQuantity(for type: QuantityType, using heightUnit: HeightUnit? = nil) async -> Quantity? {
+    static func latestQuantity(for type: QuantityType, using heightUnit: HeightUnit? = nil) async -> HealthKitMeasurement? {
         await latestQuantity(for: type, using: heightUnit?.healthKitUnit)
     }
     
-    static func latestQuantity(for type: QuantityType, using bodyMassUnit: BodyMassUnit? = nil) async -> Quantity? {
+    static func latestQuantity(for type: QuantityType, using bodyMassUnit: BodyMassUnit? = nil) async -> HealthKitMeasurement? {
         await latestQuantity(for: type, using: bodyMassUnit?.healthKitUnit)
     }
 }
@@ -105,19 +105,21 @@ private extension HealthStore {
         for type: QuantityType,
         using unit: HKUnit?,
         excludingToday: Bool
-    ) async throws -> Quantity? {
+    ) async throws -> HealthKitMeasurement? {
         do {
             let sample = try await latestQuantitySample(
                 for: type.healthKitTypeIdentifier,
                 excludingToday: excludingToday
             )
             let unit = unit ?? type.defaultUnit
-            let quantity = sample.quantity.doubleValue(for: unit)
-            let date = sample.startDate
-            return Quantity(
-                value: quantity,
-                date: date
-            )
+//            let quantity = sample.quantity.doubleValue(for: unit)
+//            let date = sample.startDate
+            return sample.asHealthKitMeasurement(in: unit)
+//            return HealthKitMeasurement(
+//                id: sample.uuid,
+//                value: quantity,
+//                date: date
+//            )
         } catch {
             //TODO: This might be an indiciator of needing permissions
             return nil

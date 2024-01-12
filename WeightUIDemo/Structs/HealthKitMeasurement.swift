@@ -1,21 +1,23 @@
 import Foundation
 
-public struct Quantity: Hashable, Codable {
+public struct HealthKitMeasurement: Hashable, Codable {
+    public var id: UUID
     public var value: Double
     public var date: Date?
     
-    public init(value: Double, date: Date? = nil) {
+    public init(id: UUID, value: Double, date: Date? = nil) {
+        self.id = id
         self.value = value
         self.date = date
     }
     
-    init?(value: Double?)  {
-        guard let value else {
-            return nil
-        }
-        self.value = value
-        self.date = nil
-    }
+//    init?(value: Double?)  {
+//        guard let value else {
+//            return nil
+//        }
+//        self.value = value
+//        self.date = nil
+//    }
 }
 
 extension Array where Element == HealthDetails.Weight {
@@ -24,13 +26,13 @@ extension Array where Element == HealthDetails.Weight {
     }
 }
 
-extension Array where Element == Quantity {
-    var valuesGroupedByDate: [Date: [Quantity]] {
+extension Array where Element == HealthKitMeasurement {
+    var valuesGroupedByDate: [Date: [HealthKitMeasurement]] {
         let withDates = self.filter { $0.date != nil }
         return Dictionary(grouping: withDates) { $0.date!.startOfDay }
     }
     
-    var sortedByDate: [Quantity] {
+    var sortedByDate: [HealthKitMeasurement] {
         self.sorted(by: { lhs, rhs in
             switch (lhs.date, rhs.date) {
             case (.some(let date1), .some(let date2)):  date1 < date2
@@ -49,16 +51,20 @@ extension Array where Element == Quantity {
 import HealthKit
 
 extension HKQuantitySample {
-    func asQuantity(in healthKitUnit: HKUnit) -> Quantity {
+    func asHealthKitMeasurement(in healthKitUnit: HKUnit) -> HealthKitMeasurement {
         let quantity = quantity.doubleValue(for: healthKitUnit)
         let date = startDate
-        return Quantity(value: quantity, date: date)
+        return HealthKitMeasurement(
+            id: uuid,
+            value: quantity,
+            date: date
+        )
     }
 }
 
-public extension Array where Element == Quantity {
-    func removingDuplicateQuantities() -> [Quantity] {
-        var addedDict = [Quantity: Bool]()
+public extension Array where Element == HealthKitMeasurement {
+    func removingDuplicateQuantities() -> [HealthKitMeasurement] {
+        var addedDict = [HealthKitMeasurement: Bool]()
         
         return filter {
             let rounded = $0.rounded(toPlaces: 2)
@@ -67,11 +73,12 @@ public extension Array where Element == Quantity {
     }
 }
 
-extension Quantity {
-    func rounded(toPlaces places: Int) -> Quantity {
-        Quantity(
-            value: self.value.rounded(toPlaces: places),
-            date: self.date
+extension HealthKitMeasurement {
+    func rounded(toPlaces places: Int) -> HealthKitMeasurement {
+        HealthKitMeasurement(
+            id: id,
+            value: value.rounded(toPlaces: places),
+            date: date
         )
     }
 }

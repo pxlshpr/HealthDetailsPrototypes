@@ -44,7 +44,7 @@ extension Array where Element == Date {
 
 extension HealthKitQuantityRequest {
 
-    func quantities(for dates: [Date]) async throws -> [Quantity] {
+    func quantities(for dates: [Date]) async throws -> [HealthKitMeasurement] {
         guard let predicate = dates.predicateForHealthKitQuantities else { return [] }
         return try await quantities(matching: predicate)
     }
@@ -90,7 +90,7 @@ extension HealthKitQuantityRequest {
 
 extension HealthKitQuantityRequest {
 
-    func mostRecentOrEarliestAvailable(to date: Date) async throws -> Quantity? {
+    func mostRecentOrEarliestAvailable(to date: Date) async throws -> HealthKitMeasurement? {
 //        var date = date
 //        if date.isToday {
 //            date = date.startOfDay
@@ -103,14 +103,14 @@ extension HealthKitQuantityRequest {
         return mostRecent
     }
 
-    func mostRecentDaysQuantities(to date: Date) async throws -> [Quantity]? {
+    func mostRecentDaysQuantities(to date: Date) async throws -> [HealthKitMeasurement]? {
         guard let latestDate = try await mostRecentOrEarliestAvailable(to: date)?.date else {
             return nil
         }
         return try await daysQuantities(for: latestDate)
     }
 
-    func daysQuantities(for range: ClosedRange<Date>) async throws -> [Quantity]? {
+    func daysQuantities(for range: ClosedRange<Date>) async throws -> [HealthKitMeasurement]? {
         let predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
             NSPredicate(format: "startDate >= %@", range.lowerBound.startOfDay as NSDate),
             NSPredicate(format: "startDate <= %@", range.upperBound.endOfDay as NSDate),
@@ -119,10 +119,10 @@ extension HealthKitQuantityRequest {
             matching: predicate,
             sortDescriptors: [SortDescriptor(\.startDate, order: .forward)]
         )
-        .map { $0.asQuantity(in: healthKitUnit) }
+        .map { $0.asHealthKitMeasurement(in: healthKitUnit) }
     }
     
-    func daysQuantities(for date: Date) async throws -> [Quantity]? {
+    func daysQuantities(for date: Date) async throws -> [HealthKitMeasurement]? {
         let predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
             NSPredicate(format: "startDate >= %@", date.startOfDay as NSDate),
             NSPredicate(format: "startDate <= %@", date.endOfDay as NSDate),
@@ -131,24 +131,24 @@ extension HealthKitQuantityRequest {
             matching: predicate,
             sortDescriptors: [SortDescriptor(\.startDate, order: .forward)]
         )
-        .map { $0.asQuantity(in: healthKitUnit) }
+        .map { $0.asHealthKitMeasurement(in: healthKitUnit) }
     }
 
-    func allQuantities() async throws -> [Quantity]? {
+    func allQuantities() async throws -> [HealthKitMeasurement]? {
         return try await samples(
             sortDescriptors: [SortDescriptor(\.startDate, order: .forward)]
         )
-        .map { $0.asQuantity(in: healthKitUnit) }
+        .map { $0.asHealthKitMeasurement(in: healthKitUnit) }
     }
 
-    func mostRecent(to date: Date) async throws -> Quantity? {
+    func mostRecent(to date: Date) async throws -> HealthKitMeasurement? {
         try await firstQuantity(
             matching: NSPredicate(format: "startDate <= %@", date as NSDate),
             sortDescriptors: [SortDescriptor(\.startDate, order: .reverse)]
         )
     }
     
-    func earliestAvailable() async throws -> Quantity? {
+    func earliestAvailable() async throws -> HealthKitMeasurement? {
         try await firstQuantity(
             sortDescriptors: [SortDescriptor(\.startDate, order: .forward)]
         )
@@ -185,21 +185,21 @@ extension HealthKitQuantityRequest {
     func quantities(
         matching predicate: NSPredicate? = nil,
         sortDescriptors: [SortDescriptor<HKQuantitySample>] = []
-    ) async throws -> [Quantity] {
+    ) async throws -> [HealthKitMeasurement] {
         try await samples(matching: predicate, sortDescriptors: sortDescriptors)
-            .map { $0.asQuantity(in: healthKitUnit) }
+            .map { $0.asHealthKitMeasurement(in: healthKitUnit) }
     }
 
     func firstQuantity(
         matching predicate: NSPredicate? = nil,
         sortDescriptors: [SortDescriptor<HKQuantitySample>] = []
-    ) async throws -> Quantity? {
+    ) async throws -> HealthKitMeasurement? {
         try await samples(
             matching: predicate,
             sortDescriptors: sortDescriptors,
             limit: 1
         )
         .first?
-        .asQuantity(in: healthKitUnit)
+        .asHealthKitMeasurement(in: healthKitUnit)
     }
 }
