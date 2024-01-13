@@ -3,20 +3,15 @@ import PrepShared
 
 struct EstimatedMaintenanceForm: View {
 
-    @Environment(SettingsProvider.self) var settingsProvider
     @Bindable var healthProvider: HealthProvider
-    
+    @Binding var isPresented: Bool
+
     let date: Date
-    let initialEstimate: HealthDetails.Maintenance.Estimate
     
     @State var estimateInKcal: Double? = nil
     @State var restingEnergy: HealthDetails.Maintenance.Estimate.RestingEnergy
     @State var activeEnergy: HealthDetails.Maintenance.Estimate.ActiveEnergy
     
-    @State var isEditing: Bool
-    @Binding var isPresented: Bool
-    @Binding var dismissDisabled: Bool
-
     let saveHandler: (HealthDetails.Maintenance.Estimate) -> ()
 
     init(
@@ -24,16 +19,12 @@ struct EstimatedMaintenanceForm: View {
         estimate: HealthDetails.Maintenance.Estimate,
         healthProvider: HealthProvider,
         isPresented: Binding<Bool> = .constant(true),
-        dismissDisabled: Binding<Bool> = .constant(false),
         saveHandler: @escaping (HealthDetails.Maintenance.Estimate) -> ()
     ) {
         self.date = date
-        self.initialEstimate = estimate
         self.healthProvider = healthProvider
         self.saveHandler = saveHandler
         _isPresented = isPresented
-        _dismissDisabled = dismissDisabled
-        _isEditing = State(initialValue: true)
         
         _restingEnergy = State(initialValue: estimate.restingEnergy)
         _activeEnergy = State(initialValue: estimate.activeEnergy)
@@ -42,7 +33,7 @@ struct EstimatedMaintenanceForm: View {
     
     var body: some View {
         Form {
-            notice
+            dateSection
             restingEnergyLink
             activeEnergyLink
             explanation
@@ -52,10 +43,12 @@ struct EstimatedMaintenanceForm: View {
         .safeAreaInset(edge: .bottom) { bottomValue }
     }
     
+    var energyUnit: EnergyUnit { healthProvider.settingsProvider.energyUnit }
+    
     var bottomValue: some View {
         var energyValue: Double? {
             guard let estimateInKcal else { return nil }
-            return EnergyUnit.kcal.convert(estimateInKcal, to: settingsProvider.energyUnit)
+            return EnergyUnit.kcal.convert(estimateInKcal, to: energyUnit)
         }
 
         return MeasurementBottomBar(
@@ -106,7 +99,7 @@ struct EstimatedMaintenanceForm: View {
     var restingEnergyLink: some View {
         var energyValue: Double? {
             guard let kcal = restingEnergy.kcal else { return nil }
-            return EnergyUnit.kcal.convert(kcal, to: settingsProvider.energyUnit)
+            return EnergyUnit.kcal.convert(kcal, to: energyUnit)
         }
         
         return Section {
@@ -114,10 +107,8 @@ struct EstimatedMaintenanceForm: View {
                 RestingEnergyForm(
                     date: date,
                     restingEnergy: restingEnergy,
-                    settingsProvider: settingsProvider,
                     healthProvider: healthProvider,
                     isPresented: $isPresented,
-                    dismissDisabled: $dismissDisabled,
                     saveHandler: saveRestingEnergy
                 )
             } label: {
@@ -139,14 +130,12 @@ struct EstimatedMaintenanceForm: View {
         }
     }
     
-    var energyUnitString: String {
-        settingsProvider.energyUnit.abbreviation
-    }
+    var energyUnitString: String { energyUnit.abbreviation }
 
     var activeEnergyLink: some View {
         var energyValue: Double? {
             guard let kcal = activeEnergy.kcal else { return nil }
-            return EnergyUnit.kcal.convert(kcal, to: settingsProvider.energyUnit)
+            return EnergyUnit.kcal.convert(kcal, to: energyUnit)
         }
 
         return Section {
@@ -155,10 +144,8 @@ struct EstimatedMaintenanceForm: View {
                     date: date,
                     activeEnergy: activeEnergy,
                     restingEnergyInKcal: restingEnergy.kcal,
-                    settingsProvider: settingsProvider,
                     healthProvider: healthProvider,
                     isPresented: $isPresented,
-                    dismissDisabled: $dismissDisabled,
                     saveHandler: saveActiveEnergy
                 )
             } label: {
@@ -188,17 +175,17 @@ struct EstimatedMaintenanceForm: View {
         }
     }
     
-    var isLegacy: Bool {
-        date.startOfDay < Date.now.startOfDay
-    }
-
-    @ViewBuilder
-    var notice: some View {
-        if isLegacy {
-            NoticeSection.legacy(date)
+    
+    var dateSection: some View {
+        Section {
+            HStack {
+                Text("Date")
+                Spacer()
+                Text(date.shortDateString)
+            }
         }
     }
-
+    
     var toolbarContent: some ToolbarContent {
         Group {
             ToolbarItem(placement: .topBarTrailing) {
@@ -207,10 +194,6 @@ struct EstimatedMaintenanceForm: View {
                 } label: {
                     CloseButtonLabel()
                 }
-//                Button("Done") {
-//                    isPresented = false
-//                }
-//                .fontWeight(.semibold)
             }
             ToolbarItem(placement: .principal) {
                 Text("Maintenance Energy")
@@ -218,20 +201,7 @@ struct EstimatedMaintenanceForm: View {
             }
         }
     }
-
 }
-
-//#Preview("Current") {
-//    NavigationView {
-//        EstimatedMaintenanceForm(healthProvider: MockCurrentProvider)
-//    }
-//}
-//
-//#Preview("Past") {
-//    NavigationView {
-//        EstimatedMaintenanceForm(healthProvider: MockPastProvider)
-//    }
-//}
 
 #Preview("Demo") {
     DemoView()

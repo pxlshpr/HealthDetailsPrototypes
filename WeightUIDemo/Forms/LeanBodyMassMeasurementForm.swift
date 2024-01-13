@@ -210,7 +210,6 @@ struct LeanBodyMassMeasurementForm: View {
             ),
             healthProvider: healthProvider,
             date: date,
-            isEditing: .constant(false),
             isPresented: Binding<Bool>(
                 get: { true },
                 set: { newValue in
@@ -219,7 +218,6 @@ struct LeanBodyMassMeasurementForm: View {
                     }
                 }
             ),
-            dismissDisabled: $dismissDisabled,
             showHeader: false
         )
     }
@@ -233,7 +231,6 @@ struct LeanBodyMassMeasurementForm: View {
             ),
             healthProvider: healthProvider,
             date: date,
-            isEditing: .constant(false),
             isPresented: Binding<Bool>(
                 get: { true },
                 set: { newValue in
@@ -241,8 +238,7 @@ struct LeanBodyMassMeasurementForm: View {
                         dismiss()
                     }
                 }
-            ),
-            dismissDisabled: $dismissDisabled
+            )
         )
     }
     

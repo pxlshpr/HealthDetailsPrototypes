@@ -120,7 +120,7 @@ enum WeightChangeType: Int, Hashable, Codable, CaseIterable, Identifiable {
 struct WeightChange: Hashable, Codable {
 
     var kg: Double?
-    var type: WeightChangeType = .userEntered
+    var type: WeightChangeType = .usingPoints
     var points: Points? = nil
     
     struct Points: Hashable, Codable {

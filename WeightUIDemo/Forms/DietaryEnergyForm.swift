@@ -35,7 +35,7 @@ struct DietaryEnergyForm: View {
             list
             explanation
         }
-        .navigationTitle("Dietary Energy")
+        .navigationTitle("Total Dietary Energy")
         .toolbar { toolbarContent }
         .safeAreaInset(edge: .bottom) { bottomValue }
     }

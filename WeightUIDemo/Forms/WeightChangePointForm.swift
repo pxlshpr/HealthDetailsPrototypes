@@ -7,11 +7,11 @@ let MaxNumberOfMovingAveragePoints = 7
 
 struct WeightChangePointForm: View {
     
-    @Environment(SettingsProvider.self) var settingsProvider
     @Bindable var healthProvider: HealthProvider
-
+    @Binding var isPresented: Bool
+    
     let healthDetailsDate: Date
-    let initialPoint: WeightChangePoint
+    let pointDate: Date
     let isEndWeight: Bool
     
     @State var weightInKg: Double?
@@ -19,11 +19,6 @@ struct WeightChangePointForm: View {
     @State var movingAverageInterval: HealthInterval
     @State var points: [WeightChangePoint.MovingAverage.Point]
     
-    @State var isEditing: Bool
-    @State var isDirty: Bool = false
-    @Binding var isPresented: Bool
-    @Binding var dismissDisabled: Bool
-
     let saveHandler: (WeightChangePoint) -> ()
     
     @State var hasFetchedBackendWeights: Bool = false
@@ -37,17 +32,14 @@ struct WeightChangePointForm: View {
         isEndWeight: Bool = false,
         healthProvider: HealthProvider,
         isPresented: Binding<Bool> = .constant(true),
-        dismissDisabled: Binding<Bool> = .constant(false),
         saveHandler: @escaping (WeightChangePoint) -> ()
     ) {
         self.healthDetailsDate = date
-        self.initialPoint = point
+        self.pointDate = point.date
         self.healthProvider = healthProvider
         self.isEndWeight = isEndWeight
         self.saveHandler = saveHandler
         _isPresented = isPresented
-        _dismissDisabled = dismissDisabled
-        _isEditing = State(initialValue: date.isToday)
         
         _weightInKg = State(initialValue: point.kg)
         _useMovingAverage = State(initialValue: point.movingAverage != nil)
@@ -57,7 +49,6 @@ struct WeightChangePointForm: View {
 
     var body: some View {
         Form {
-            notice
             dateSection
             movingAverageSection
             weights
@@ -68,9 +59,6 @@ struct WeightChangePointForm: View {
         .toolbar { toolbarContent }
         .onAppear(perform: appeared)
         .safeAreaInset(edge: .bottom) { bottomValue }
-        .navigationBarBackButtonHidden(isLegacy && isEditing)
-        .onChange(of: isEditing) { _, _ in setDismissDisabled() }
-        .onChange(of: isDirty) { _, _ in setDismissDisabled() }
     }
     
     func appeared() {
@@ -82,10 +70,6 @@ struct WeightChangePointForm: View {
         }
     }
 
-    var pointDate: Date {
-        initialPoint.date
-    }
-    
     var dateSection: some View {
         HStack {
             Text("Date")
@@ -98,11 +82,7 @@ struct WeightChangePointForm: View {
         "\(isEndWeight ? "Ending" : "Starting") Weight"
     }
     
-    func setDismissDisabled() {
-        dismissDisabled = isLegacy && isEditing && isDirty
-    }
-    
-    var bodyMassUnit: BodyMassUnit { settingsProvider.bodyMassUnit }
+    var bodyMassUnit: BodyMassUnit { healthProvider.settingsProvider.bodyMassUnit }
 
     var bottomValue: some View {
         
@@ -201,7 +181,6 @@ struct WeightChangePointForm: View {
                     }
                 }
             }
-            .disabled(isLegacy && isEditing)
         }
         
         return Section {
@@ -211,26 +190,14 @@ struct WeightChangePointForm: View {
         }
     }
     
-    var isLegacy: Bool {
-        healthDetailsDate.startOfDay < Date.now.startOfDay
-    }
-    
-    @ViewBuilder
-    var notice: some View {
-        if isLegacy {
-            NoticeSection.legacy(healthDetailsDate)
-        }
-    }
-    
     var toolbarContent: some ToolbarContent {
-        topToolbarContent(
-            isEditing: $isEditing,
-            isDirty: $isDirty,
-            isPast: isLegacy,
-            dismissAction: { isPresented = false },
-            undoAction: undo,
-            saveAction: save
-        )
+        ToolbarItem(placement: .topBarTrailing) {
+            Button {
+                isPresented = false
+            } label: {
+                CloseButtonLabel()
+            }
+        }
     }
     
     func save() {
@@ -259,17 +226,6 @@ struct WeightChangePointForm: View {
         )
     }
     
-    func undo() {
-//        isDirty = false
-//        useMovingAverage = true
-//        movingAverageInterval = 7
-    }
-    
-    func setIsDirty() {
-//        isDirty = useMovingAverage != true
-//        || movingAverageInterval != 7
-    }
-    
     var explanation: some View {
         Section {
             VStack(alignment: .leading) {
@@ -291,10 +247,7 @@ struct WeightChangePointForm: View {
             try Task.checkCancellation()
 
             await MainActor.run {
-                setIsDirty()
-                if !isLegacy {
-                    save()
-                }
+                save()
             }
         }
     }
@@ -358,10 +311,6 @@ struct WeightChangePointForm: View {
         }
     }
     
-    var isDisabled: Bool {
-        isLegacy && !isEditing
-    }
-    
     var movingAverageSection: some View {
         let binding = Binding<Bool>(
             get: { useMovingAverage },
@@ -391,8 +340,7 @@ struct WeightChangePointForm: View {
                 Spacer()
                 Toggle("", isOn: binding)
             }
-            .disabled(!isEditing)
-            .foregroundStyle(isEditing ? .primary : .secondary)
+            .foregroundStyle(.primary)
         }
         
         @ViewBuilder
@@ -403,11 +351,7 @@ struct WeightChangePointForm: View {
                     periods: [.day],
                     ranges: [
                         .day: 2...MaxNumberOfMovingAveragePoints,
-                    ],
-                    isDisabled: Binding<Bool>(
-                        get: { isDisabled },
-                        set: { _ in }
-                    )
+                    ]
                 )
             }
         }
@@ -418,21 +362,6 @@ struct WeightChangePointForm: View {
         }
     }
 }
-
-//#Preview("Current") {
-//    NavigationView {
-//        WeightChangePointForm()
-//    }
-//}
-
-//
-//#Preview("Past") {
-//    NavigationView {
-//        WeightChangePointForm(
-//            healthDetailsDate: MockPastDate
-//        )
-//    }
-//}
 
 #Preview("Demo") {
     DemoView()

@@ -3,14 +3,12 @@ import PrepShared
 
 struct ActiveEnergyForm: View {
 
-    @Environment(\.dismiss) var dismiss
     @Environment(\.scenePhase) var scenePhase
 
-    @Bindable var settingsProvider: SettingsProvider
     @Bindable var healthProvider: HealthProvider
-    
+    @Binding var isPresented: Bool
+
     let date: Date
-    let initialActiveEnergy: HealthDetails.Maintenance.Estimate.ActiveEnergy
     let restingEnergyInKcal: Double?
 
     @State var activeEnergyInKcal: Double?
@@ -36,39 +34,26 @@ struct ActiveEnergyForm: View {
     @State var hasFocusedCustomField: Bool = true
     @State var hasAppeared = false
 
-    @State var isEditing: Bool
-    @State var isDirty: Bool = false
-    @Binding var isPresented: Bool
-    @Binding var dismissDisabled: Bool
-
     let saveHandler: (HealthDetails.Maintenance.Estimate.ActiveEnergy) -> ()
 
     init(
         date: Date,
         activeEnergy: HealthDetails.Maintenance.Estimate.ActiveEnergy,
         restingEnergyInKcal: Double?,
-        settingsProvider: SettingsProvider,
         healthProvider: HealthProvider,
         isPresented: Binding<Bool> = .constant(true),
-        dismissDisabled: Binding<Bool> = .constant(false),
         saveHandler: @escaping (HealthDetails.Maintenance.Estimate.ActiveEnergy) -> ()
     ) {
         self.date = date
-        self.initialActiveEnergy = activeEnergy
         self.restingEnergyInKcal = restingEnergyInKcal
         self.healthProvider = healthProvider
-        self.settingsProvider = settingsProvider
         self.saveHandler = saveHandler
         _isPresented = isPresented
-        _dismissDisabled = dismissDisabled
-        _isEditing = State(initialValue: date.isToday)
 
+        let energyUnit = healthProvider.settingsProvider.energyUnit
         _activeEnergyInKcal = State(initialValue: activeEnergy.kcal)
         _customInput = State(initialValue: DoubleInput(
-            double: activeEnergy.kcal.convertEnergy(
-                from: .kcal,
-                to: settingsProvider.energyUnit
-            ),
+            double: activeEnergy.kcal.convertEnergy(from: .kcal, to: energyUnit),
             automaticallySubmitsValues: true
         ))
 
@@ -83,10 +68,7 @@ struct ActiveEnergyForm: View {
             
             let correctionDouble = switch correction.type {
             case .add, .subtract:
-                correction.double.convertEnergy(
-                    from: .kcal,
-                    to: settingsProvider.energyUnit
-                )
+                correction.double.convertEnergy(from: .kcal, to: energyUnit)
             case .multiply, .divide:
                 correction.double
             }
@@ -101,7 +83,7 @@ struct ActiveEnergyForm: View {
     
     var body: some View {
         Form {
-            notice
+            dateSection
             explanation
             sourceSection
             switch source {
@@ -120,17 +102,7 @@ struct ActiveEnergyForm: View {
         .sheet(isPresented: $showingActivityLevelInfo) { ActivityLevelInfo() }
         .sheet(isPresented: $showingActiveEnergyInfo) { ActiveEnergyInfo() }
         .safeAreaInset(edge: .bottom) { bottomValue }
-        .navigationBarBackButtonHidden(isLegacy && isEditing)
         .scrollDismissesKeyboard(.interactively)
-        .onChange(of: isDirty) { _, _ in setDismissDisabled() }
-        .onChange(of: isEditing) { _, _ in
-            handleChanges()
-            setDismissDisabled()
-        }
-    }
-    
-    func setDismissDisabled() {
-        dismissDisabled = isLegacy && isEditing && isDirty
     }
 
     func appeared() {
@@ -142,11 +114,9 @@ struct ActiveEnergyForm: View {
             hasAppeared = true
         }
 
-        if isEditing {
-            /// Triggers equations to re-calculate or HealthKit to resync when we pop back from an equation variable. Delay this if not the first appearance so that we get to see the animation of the value changing.
-            DispatchQueue.main.asyncAfter(deadline: .now() + (hasAppeared ? 0.3 : 0)) {
-                handleChanges()
-            }
+        /// Triggers equations to re-calculate or HealthKit to resync when we pop back from an equation variable. Delay this if not the first appearance so that we get to see the animation of the value changing.
+        DispatchQueue.main.asyncAfter(deadline: .now() + (hasAppeared ? 0.3 : 0)) {
+            handleChanges()
         }
     }
 
@@ -161,7 +131,7 @@ struct ActiveEnergyForm: View {
         }
     }
     
-    var energyUnit: EnergyUnit { settingsProvider.energyUnit }
+    var energyUnit: EnergyUnit { healthProvider.settingsProvider.energyUnit }
 
     var bottomValue: some View {
         var double: Double? {
@@ -180,34 +150,24 @@ struct ActiveEnergyForm: View {
         )
     }
 
-    @ViewBuilder
-    var notice: some View {
-        if isLegacy {
-            NoticeSection.legacy(date)
+    var dateSection: some View {
+        Section {
+            HStack {
+                Text("Date")
+                Spacer()
+                Text(date.shortDateString)
+            }
         }
     }
 
     var toolbarContent: some ToolbarContent {
-        topToolbarContent(
-            isEditing: $isEditing,
-            isDirty: $isDirty,
-            isPast: isLegacy,
-            dismissAction: { isPresented = false },
-            undoAction: undo,
-            saveAction: save
-        )
-    }
-    
-    var isDisabled: Bool {
-        isLegacy && !isEditing
-    }
-    
-    var controlColor: Color {
-        isDisabled ? .secondary : .primary
-    }
-    
-    var isLegacy: Bool {
-        date.startOfDay < Date.now.startOfDay
+        ToolbarItem(placement: .topBarTrailing) {
+            Button {
+                isPresented = false
+            } label: {
+                CloseButtonLabel()
+            }
+        }
     }
     
     //MARK: - Sections
@@ -216,8 +176,10 @@ struct ActiveEnergyForm: View {
         guard let double = correctionInput.double else { return nil }
 
         return switch correctionType {
-        case .add, .subtract:       double.convertEnergy(from: energyUnit, to: .kcal)
-        case .multiply, .divide:    double
+        case .add, .subtract:
+            double.convertEnergy(from: energyUnit, to: .kcal)
+        case .multiply, .divide:
+            double
         }
     }
 
@@ -238,8 +200,6 @@ struct ActiveEnergyForm: View {
     }
     
     func handleChanges() {
-        guard isEditing else { return }
-
         handleChangesTask?.cancel()
         handleChangesTask = Task {
             
@@ -266,10 +226,7 @@ struct ActiveEnergyForm: View {
             }
 
             await MainActor.run {
-                setIsDirty()
-                if !isLegacy {
-                    save()
-                }
+                save()
             }
         }
     }
@@ -290,8 +247,6 @@ struct ActiveEnergyForm: View {
     }
     
     func fetchHealthKitValues() async throws {
-//        guard !isPreview else { return }
-        
         let dict = try await withThrowingTaskGroup(
             of: (HealthInterval, Double?).self,
             returning: [HealthInterval: Double].self
@@ -381,15 +336,14 @@ struct ActiveEnergyForm: View {
             date: date,
             intervalType: $intervalType,
             interval: $interval,
-            isEditing: $isEditing,
             applyCorrection: $applyCorrection,
             correctionType: $correctionType,
             correctionInput: $correctionInput,
             handleChanges: handleChanges,
             isRestingEnergy: false,
-            energyInKcal: $activeEnergyInKcal
+            energyInKcal: $activeEnergyInKcal,
+            energyUnitString: energyUnit.abbreviation
         )
-        .environment(settingsProvider)
     }
     
     var activityLevelSection: some View {
@@ -403,15 +357,12 @@ struct ActiveEnergyForm: View {
             }
         )
         
-        @ViewBuilder
         var footer: some View {
-            if !isDisabled {
-                Button {
-                    showingActivityLevelInfo = true
-                } label: {
-                    Text("Learn more…")
-                        .font(.footnote)
-                }
+            Button {
+                showingActivityLevelInfo = true
+            } label: {
+                Text("Learn more…")
+                    .font(.footnote)
             }
         }
 
@@ -431,8 +382,6 @@ struct ActiveEnergyForm: View {
                 }
             }
             .pickerStyle(.wheel)
-            .disabled(isDisabled)
-            .opacity(isDisabled ? 0.5 : 1)
         }
     }
     
@@ -458,9 +407,7 @@ struct ActiveEnergyForm: View {
                     Text($0.name).tag($0)
                 }
             }
-            .foregroundStyle(controlColor)
             .pickerStyle(.segmented)
-            .disabled(isDisabled)
             .listRowSeparator(.hidden)
         }
 
@@ -524,7 +471,7 @@ struct ActiveEnergyForm: View {
         }
         
         return SingleUnitMeasurementTextField(
-            title: settingsProvider.unitString(for: .energy),
+            title: energyUnit.abbreviation,
             doubleInput: $customInput,
             hasFocused: $hasFocusedCustomField,
             delayFocus: true,
@@ -533,71 +480,10 @@ struct ActiveEnergyForm: View {
         )
     }
     
-    //MARK: - Actions
-    
-    func undo() {
-        activeEnergyInKcal = initialActiveEnergy.kcal
-        customInput = DoubleInput(
-            double: initialActiveEnergy.kcal.convertEnergy(
-                from: .kcal,
-                to: settingsProvider.energyUnit
-            ),
-            automaticallySubmitsValues: true
-        )
-
-        source = initialActiveEnergy.source
-        activityLevel = initialActiveEnergy.activityLevel
-        intervalType = initialActiveEnergy.healthKitSyncSettings.intervalType
-        interval = initialActiveEnergy.healthKitSyncSettings.interval
-   
-        if let correction = initialActiveEnergy.healthKitSyncSettings.correctionValue {
-            applyCorrection = true
-            correctionType = correction.type
-            
-            let correctionDouble = switch correction.type {
-            case .add, .subtract:
-                correction.double.convertEnergy(
-                    from: .kcal,
-                    to: settingsProvider.energyUnit
-                )
-            case .multiply, .divide:
-                correction.double
-            }
-            correctionInput = DoubleInput(
-                double: correctionDouble,
-                automaticallySubmitsValues: true
-            )
-        } else {
-            applyCorrection = false
-        }
-    }
-    
-    func setIsDirty() {
-        isDirty = activeEnergy != initialActiveEnergy
-    }
-    
     func save() {
         saveHandler(activeEnergy)
     }
 }
-//
-//#Preview("Current") {
-//    NavigationView {
-//        ActiveEnergyForm(
-//            settingsProvider: SettingsProvider(),
-//            healthProvider: MockCurrentProvider
-//        )
-//    }
-//}
-//
-//#Preview("Past") {
-//    NavigationView {
-//        ActiveEnergyForm(
-//            settingsProvider: SettingsProvider(),
-//            healthProvider: MockPastProvider
-//        )
-//    }
-//}
 
 #Preview("Demo") {
     DemoView()

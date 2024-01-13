@@ -280,32 +280,6 @@ struct DietaryEnergyPointForm: View {
                 set: { _ in }
             )
         )
-//        return HStack(alignment: .firstTextBaseline, spacing: 5) {
-//            Spacer()
-//            if let energyValue {
-//                Text("\(energyValue.formattedEnergy)")
-//                    .contentTransition(.numericText(value: energyValue))
-//                    .font(LargeNumberFont)
-//                Text("kcal")
-//                    .font(LargeUnitFont)
-//                    .foregroundStyle(.secondary)
-//            } else {
-//                ZStack {
-//                    
-//                    /// dummy text placed to ensure height stays consistent
-//                    Text("0")
-//                        .font(LargeNumberFont)
-//                        .opacity(0)
-//
-//                    Text(source == .userEntered ? "Not Set" : "Excluded")
-//                        .font(LargeUnitFont)
-//                        .foregroundStyle(.secondary)
-//                }
-//            }
-//        }
-//        .padding(.horizontal, BottomValueHorizontalPadding)
-//        .padding(.vertical, BottomValueVerticalPadding)
-//        .background(.bar)
     }
     
     var toolbarContent: some ToolbarContent {

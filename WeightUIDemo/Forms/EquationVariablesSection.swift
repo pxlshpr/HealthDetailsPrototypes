@@ -2,14 +2,11 @@ import SwiftUI
 
 struct VariablesSections: View {
     
-    @Environment(SettingsProvider.self) var settingsProvider
     @Bindable var healthProvider: HealthProvider
     
     @Binding var healthDetails: [HealthDetail]
     let date: Date
-    @Binding var isEditing: Bool
     @Binding var isPresented: Bool
-    @Binding var dismissDisabled: Bool
     let showHeader: Bool
     @Binding var isRequired: Bool
     
@@ -43,9 +40,7 @@ struct VariablesSections: View {
         isRequired: Binding<Bool> = .constant(true),
         healthProvider: HealthProvider,
         date: Date,
-        isEditing: Binding<Bool>,
         isPresented: Binding<Bool>,
-        dismissDisabled: Binding<Bool>,
         showHeader: Bool = true
     ) {
         self.healthProvider = healthProvider
@@ -53,9 +48,7 @@ struct VariablesSections: View {
         _isRequired = isRequired
         _healthDetails = healthDetails
         self.date = date
-        _isEditing = isEditing
         _isPresented = isPresented
-        _dismissDisabled = dismissDisabled
         self.showHeader = showHeader
     }
     
@@ -78,9 +71,7 @@ struct VariablesSections: View {
             subject: subject,
             characteristic: characteristic,
             date: date,
-            isEditing: $isEditing,
-            isPresented: $isPresented,
-            dismissDisabled: $dismissDisabled
+            isPresented: $isPresented
         )
     }
     
@@ -116,9 +107,7 @@ struct VariablesSections: View {
             subject: subject,
             healthDetail: healthDetail,
             date: date,
-            isEditing: $isEditing,
             isPresented: $isPresented,
-            dismissDisabled: $dismissDisabled,
             isRequired: $isRequired,
             shouldShowMainHeader: Binding<Bool>(
                 get: { nonTemporalHealthDetails.isEmpty && index == 0 },
@@ -143,15 +132,12 @@ struct VariablesSections: View {
 
 struct NonTemporalVariableLink: View {
     
-    @Environment(SettingsProvider.self) var settingsProvider
     @Bindable var healthProvider: HealthProvider
 
     let subject: VariablesSections.Subject
     let characteristic: HealthDetail
     let date: Date
-    @Binding var isEditing: Bool
     @Binding var isPresented: Bool
-    @Binding var dismissDisabled: Bool
 
     var body: some View {
         NavigationLink {
@@ -159,7 +145,6 @@ struct NonTemporalVariableLink: View {
         } label: {
             label
         }
-        .disabled(isEditing && isLegacy)
     }
     
     @ViewBuilder
@@ -189,27 +174,20 @@ struct NonTemporalVariableLink: View {
         HStack {
             Text(characteristic.name)
             Spacer()
-            Text(healthProvider.healthDetails.valueString(for: characteristic, settingsProvider))
+            Text(healthProvider.healthDetails.valueString(for: characteristic, healthProvider.settingsProvider))
                 .foregroundStyle(healthProvider.healthDetails.hasSet(characteristic) ? .primary : .secondary)
         }
-    }
-    
-    var isLegacy: Bool {
-        date.startOfDay < Date.now.startOfDay
     }
 }
 
 struct TemporalVariableSection: View {
     
-    @Environment(SettingsProvider.self) var settingsProvider
     @Bindable var healthProvider: HealthProvider
 
     let subject: VariablesSections.Subject
     let healthDetail: HealthDetail
     let date: Date
-    @Binding var isEditing: Bool
     @Binding var isPresented: Bool
-    @Binding var dismissDisabled: Bool
     @Binding var isRequired: Bool
     @Binding var shouldShowMainHeader: Bool
     let showHeader: Bool
@@ -274,14 +252,13 @@ struct TemporalVariableSection: View {
                 Text(date.shortDateString)
                 Spacer()
                 if healthProvider.healthDetails.hasSet(healthDetail)  {
-                    Text(healthProvider.healthDetails.valueString(for: healthDetail, settingsProvider))
+                    Text(healthProvider.healthDetails.valueString(for: healthDetail, healthProvider.settingsProvider))
                 } else {
                     Text("Not Set")
                         .foregroundStyle(.secondary)
                 }
             }
         }
-        .disabled(isEditing && isLegacy)
     }
     
     //MARK: - Links
@@ -303,10 +280,9 @@ struct TemporalVariableSection: View {
                 HStack {
                     Text(latestWeight.date.shortDateString)
                     Spacer()
-                    Text(latestWeight.weight.valueString(in: settingsProvider.bodyMassUnit))
+                    Text(latestWeight.weight.valueString(in: healthProvider.settingsProvider.bodyMassUnit))
                 }
             }
-            .disabled(isEditing && isLegacy)
         }
     }
     
@@ -327,10 +303,9 @@ struct TemporalVariableSection: View {
                 HStack {
                     Text(latestLeanBodyMass.date.shortDateString)
                     Spacer()
-                    Text(latestLeanBodyMass.leanBodyMass.valueString(in: settingsProvider.bodyMassUnit))
+                    Text(latestLeanBodyMass.leanBodyMass.valueString(in: healthProvider.settingsProvider.bodyMassUnit))
                 }
             }
-            .disabled(isEditing && isLegacy)
         }
     }
     
@@ -351,10 +326,9 @@ struct TemporalVariableSection: View {
                 HStack {
                     Text(latest.date.shortDateString)
                     Spacer()
-                    Text(latest.maintenance.valueString(in: settingsProvider.energyUnit))
+                    Text(latest.maintenance.valueString(in: healthProvider.settingsProvider.energyUnit))
                 }
             }
-            .disabled(isEditing && isLegacy)
         }
     }
     
@@ -377,7 +351,6 @@ struct TemporalVariableSection: View {
                     Text(latest.pregnancyStatus.name)
                 }
             }
-            .disabled(isEditing && isLegacy)
         }
     }
     
@@ -398,10 +371,9 @@ struct TemporalVariableSection: View {
                 HStack {
                     Text(latestHeight.date.shortDateString)
                     Spacer()
-                    Text(latestHeight.height.valueString(in: settingsProvider.heightUnit))
+                    Text(latestHeight.height.valueString(in: healthProvider.settingsProvider.heightUnit))
                 }
             }
-            .disabled(isEditing && isLegacy)
         }
     }
     
@@ -495,16 +467,13 @@ struct TemporalVariableSection: View {
                 ),
                 healthProvider: MockCurrentProvider,
                 date: Date.now,
-                isEditing: .constant(false),
                 isPresented: Binding<Bool>(
                     get: { true },
                     set: { newValue in
                     }
                 ),
-                dismissDisabled: .constant(false),
                 showHeader: true
             )
-            .environment(SettingsProvider())
         }
     }
 }
@@ -512,7 +481,6 @@ struct TemporalVariableSection: View {
 struct GoalDemo: View {
     
     @State var isPresented: Bool = true
-    @State var dismissDisabled: Bool = false
 
     var body: some View {
         Color.clear
@@ -531,12 +499,9 @@ struct GoalDemo: View {
                             ),
                             healthProvider: MockCurrentProvider,
                             date: Date.now,
-                            isEditing: .constant(false),
                             isPresented: $isPresented,
-                            dismissDisabled: $dismissDisabled,
                             showHeader: true
                         )
-                        .environment(SettingsProvider())
                     }
                     .navigationTitle("Goal Demo")
                 }
@@ -563,16 +528,13 @@ struct GoalDemo: View {
                 ),
                 healthProvider: MockCurrentProvider,
                 date: Date.now,
-                isEditing: .constant(false),
                 isPresented: Binding<Bool>(
                     get: { true },
                     set: { newValue in
                     }
                 ),
-                dismissDisabled: .constant(false),
                 showHeader: true
             )
-            .environment(SettingsProvider())
         }
     }
 }

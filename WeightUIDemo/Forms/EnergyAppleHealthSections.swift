@@ -2,12 +2,9 @@ import SwiftUI
 
 struct EnergyAppleHealthSections: View {
     
-    @Environment(SettingsProvider.self) var settingsProvider
-    
     let date: Date
     @Binding var intervalType: HealthIntervalType
     @Binding var interval: HealthInterval
-    @Binding var isEditing: Bool
 
     @Binding var applyCorrection: Bool
     @Binding var correctionType: CorrectionType
@@ -19,6 +16,8 @@ struct EnergyAppleHealthSections: View {
     @State var showingHealthIntervalInfo = false
     @State var showingCorrectionInfo = false
     @Binding var energyInKcal: Double?
+    
+    let energyUnitString: String
     
     @State var hasFocusedCorrectionField = true
     
@@ -72,8 +71,6 @@ struct EnergyAppleHealthSections: View {
                 }
             }
             .pickerStyle(.wheel)
-            .disabled(isDisabled)
-            .opacity(isDisabled ? 0.5 : 1)
         }
         
         @ViewBuilder
@@ -112,26 +109,9 @@ struct EnergyAppleHealthSections: View {
                 .day: 2...6,
                 .week: 1...2
             ],
-            title: "of previous",
-            isDisabled: Binding<Bool>(
-                get: { isDisabled },
-                set: { _ in }
-            )
+            title: "of previous"
         )
     }
-    
-    var isLegacy: Bool {
-        date.startOfDay < Date.now.startOfDay
-    }
-
-    var isDisabled: Bool {
-        isLegacy && !isEditing
-    }
-
-    var controlColor: Color {
-        isDisabled ? .secondary : .primary
-    }
-    
     var name: String {
         isRestingEnergy ? "Resting Energy" : "Active Energy"
     }
@@ -154,9 +134,9 @@ extension EnergyAppleHealthSections {
                     case .multiply:
                         "Your \(name) from Apple Health is being multiplied by \(correction.clean) before being used."
                     case .add:
-                        "\(correction.clean) \(settingsProvider.energyUnit.abbreviation) is being added to your \(name) from Apple Health before being used."
+                        "\(correction.clean) \(energyUnitString) is being added to your \(name) from Apple Health before being used."
                     case .subtract:
-                        "\(correction.clean) \(settingsProvider.energyUnit.abbreviation) is being subtracted from your \(name) from Apple Health before being used."
+                        "\(correction.clean) \(energyUnitString) is being subtracted from your \(name) from Apple Health before being used."
                     }
                 } else {
                     "If you have reason to believe that the data from Apple Health may be inaccurate, use a correction to account for this."
@@ -192,8 +172,6 @@ extension EnergyAppleHealthSections {
                 Spacer()
                 Toggle("", isOn: binding)
             }
-            .disabled(isDisabled)
-            .foregroundStyle(controlColor)
         }
         
         var correctionTypeRow: some View {
@@ -213,8 +191,6 @@ extension EnergyAppleHealthSections {
                     }
                 }
                 .pickerStyle(.menu)
-                .disabled(isDisabled)
-                .foregroundStyle(controlColor)
             }
         }
         
@@ -243,7 +219,7 @@ extension EnergyAppleHealthSections {
             var title: String {
                 switch correctionType {
                 case .add, .subtract:
-                    settingsProvider.unitString(for: .energy)
+                    energyUnitString
                 case .divide:
                     "Divide by"
                 case .multiply:
@@ -267,9 +243,7 @@ extension EnergyAppleHealthSections {
                 toggleRow
                 if applyCorrection {
                     correctionTypeRow
-                    if correction != nil || !isDisabled {
-                        correctionRow
-                    }
+                    correctionRow
                 }
             }
             .sheet(isPresented: $showingCorrectionInfo) {
@@ -303,12 +277,3 @@ extension EnergyAppleHealthSections {
         }
     }
 }
-
-//#Preview("Current") {
-//    NavigationView {
-//        RestingEnergyForm(
-//            settingsProvider: SettingsProvider(),
-//            healthProvider: MockCurrentProvider
-//        )
-//    }
-//}

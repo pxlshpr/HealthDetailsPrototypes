@@ -16,7 +16,7 @@ struct WeightChangeForm: View {
     @State var intInput: IntInput
     @State var points: WeightChange.Points?
 
-    @State var hasFocusedCustom: Bool = false
+    @State var hasFocusedCustomField: Bool = true
 
     let saveHandler: (WeightChange) -> ()
 
@@ -62,7 +62,6 @@ struct WeightChangeForm: View {
     
     var body: some View {
         Form {
-            dateSection
             dateSection
             typePicker
             switch type {
@@ -116,7 +115,6 @@ struct WeightChangeForm: View {
                         isEndWeight: isEndWeight,
                         healthProvider: healthProvider,
                         isPresented: $isPresented,
-                        dismissDisabled: .constant(true),
                         saveHandler: { point in
                             if isEndWeight {
                                 points?.end = point
@@ -288,7 +286,7 @@ struct WeightChangeForm: View {
             settingsProvider: healthProvider.settingsProvider,
             doubleInput: $doubleInput,
             intInput: $intInput,
-            hasFocused: $hasFocusedCustom,
+            hasFocused: $hasFocusedCustomField,
             handleChanges: handleCustomValue
         )
     }
@@ -344,7 +342,7 @@ struct WeightChangeForm: View {
             set: { newValue in
                 if newValue == .userEntered {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                        hasFocusedCustom = false
+                        hasFocusedCustomField = false
                     }
                 }
                 withAnimation {

@@ -163,6 +163,16 @@ struct WeightForm: View {
         }
     }
     
+    var toolbarContent: some ToolbarContent {
+        ToolbarItem(placement: .topBarTrailing) {
+            Button {
+                isPresented = false
+            } label: {
+                CloseButtonLabel()
+            }
+        }
+    }
+
     var dailyValuePicker: some View {
         let binding = Binding<DailyValueType>(
             get: { dailyValueType },
@@ -206,16 +216,6 @@ struct WeightForm: View {
         )
     }
     
-    var toolbarContent: some ToolbarContent {
-        ToolbarItem(placement: .topBarTrailing) {
-            Button {
-                isPresented = false
-            } label: {
-                CloseButtonLabel()
-            }
-        }
-    }
-
     func handleChanges() {
         weightInKg = calculatedWeightInKg
         save()
