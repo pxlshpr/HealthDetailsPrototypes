@@ -445,11 +445,7 @@ struct TemporalVariableSection: View {
         default:
             false
         }
-    }
-        
-    var isLegacy: Bool {
-        date.startOfDay < Date.now.startOfDay
-    }
+    }        
 }
 
 #Preview("Equation") {

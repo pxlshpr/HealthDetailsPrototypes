@@ -217,7 +217,6 @@ struct MaintenanceForm: View {
                 estimate: estimate,
                 healthProvider: healthProvider,
                 isPresented: $isPresented,
-                dismissDisabled: .constant(true),
                 saveHandler: { estimate in
                     self.estimate = estimate
                     handleChanges()
