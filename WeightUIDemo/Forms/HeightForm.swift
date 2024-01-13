@@ -7,7 +7,6 @@ struct HeightForm: View {
     @Bindable var healthProvider: HealthProvider
     
     let date: Date
-    let initialHeight: HealthDetails.Height
 
     @State var heightInCm: Double?
     @State var measurements: [HeightMeasurement]
@@ -16,10 +15,7 @@ struct HeightForm: View {
 
     @State var showingForm = false
 
-    @State var isEditing: Bool
-    @State var isDirty: Bool = false
     @Binding var isPresented: Bool
-    @Binding var dismissDisabled: Bool
     
     let saveHandler: (HealthDetails.Height) -> ()
 
@@ -28,16 +24,12 @@ struct HeightForm: View {
         height: HealthDetails.Height,
         healthProvider: HealthProvider,
         isPresented: Binding<Bool> = .constant(true),
-        dismissDisabled: Binding<Bool> = .constant(false),
         save: @escaping (HealthDetails.Height) -> ()
     ) {
         self.date = date
-        self.initialHeight = height
         self.saveHandler = save
         self.healthProvider = healthProvider
         _isPresented = isPresented
-        _dismissDisabled = dismissDisabled
-        _isEditing = State(initialValue: date.isToday)
                 
         _heightInCm = State(initialValue: height.heightInCm)
         _measurements = State(initialValue: height.measurements)
@@ -47,22 +39,20 @@ struct HeightForm: View {
 
     init(
         healthProvider: HealthProvider,
-        isPresented: Binding<Bool> = .constant(true),
-        dismissDisabled: Binding<Bool> = .constant(false)
+        isPresented: Binding<Bool> = .constant(true)
     ) {
         self.init(
             date: healthProvider.healthDetails.date,
             height: healthProvider.healthDetails.height,
             healthProvider: healthProvider,
             isPresented: isPresented,
-            dismissDisabled: dismissDisabled,
             save: healthProvider.saveHeight(_:)
         )
     }
     
     var body: some View {
         Form {
-            noticeOrDateSection
+            dateSection
             measurementsSections
             dailyValueInfoSection
             syncSection
@@ -73,9 +63,6 @@ struct HeightForm: View {
         .toolbar { toolbarContent }
         .sheet(isPresented: $showingForm) { measurementForm }
         .safeAreaInset(edge: .bottom) { bottomValue }
-        .navigationBarBackButtonHidden(isLegacy && isEditing)
-        .onChange(of: isEditing) { _, _ in setDismissDisabled() }
-        .onChange(of: isDirty) { _, _ in setDismissDisabled() }
         .onChange(of: isSynced, isSyncedChanged)
     }
     
@@ -143,26 +130,22 @@ struct HeightForm: View {
         }
     }
     
-    @ViewBuilder
     var syncSection: some View {
-        if !isLegacy {
-            SyncSection(
-                healthDetail: .height,
-                isSynced: $isSynced,
-                handleChanges: handleChanges
-            )
-        }
+        SyncSection(
+            healthDetail: .height,
+            isSynced: $isSynced,
+            handleChanges: handleChanges
+        )
     }
     
     var toolbarContent: some ToolbarContent {
-        topToolbarContent(
-            isEditing: $isEditing,
-            isDirty: $isDirty,
-            isPast: isLegacy,
-            dismissAction: { isPresented = false },
-            undoAction: undo,
-            saveAction: save
-        )
+        ToolbarItem(placement: .topBarTrailing) {
+            Button {
+                isPresented = false
+            } label: {
+                CloseButtonLabel()
+            }
+        }
     }
     
     var explanation: some View {
@@ -180,17 +163,12 @@ struct HeightForm: View {
         }
     }
     
-    @ViewBuilder
-    var noticeOrDateSection: some View {
-        if isLegacy {
-            NoticeSection.legacy(date, isEditing: $isEditing)
-        } else {
-            Section {
-                HStack {
-                    Text("Date")
-                    Spacer()
-                    Text(Date.now.shortDateString)
-                }
+    var dateSection: some View {
+        Section {
+            HStack {
+                Text("Date")
+                Spacer()
+                Text(date.shortDateString)
             }
         }
     }
@@ -216,32 +194,13 @@ struct HeightForm: View {
         )
     }
     
-    //MARK: - Actions
-    
     func save() {
         saveHandler(height)
     }
     
-    func undo() {
-        self.heightInCm = initialHeight.heightInCm
-        self.measurements = initialHeight.measurements
-        self.deletedHealthKitMeasurements = initialHeight.deletedHealthKitMeasurements
-    }
-
-    func setDismissDisabled() {
-        dismissDisabled = isLegacy && isEditing && isDirty
-    }
-
     func handleChanges() {
         heightInCm = lastMeasurementInCm
-        setIsDirty()
-        if !isLegacy {
-            save()
-        }
-    }
-
-    func setIsDirty() {
-        isDirty = height != initialHeight
+        save()
     }
 
     //MARK: - Convenience
@@ -257,61 +216,7 @@ struct HeightForm: View {
             deletedHealthKitMeasurements: deletedHealthKitMeasurements
         )
     }
-
-    var isDisabled: Bool {
-        isLegacy && !isEditing
-    }
-    
-    var controlColor: Color {
-        isDisabled ? .secondary : .primary
-    }
-    
-    var isLegacy: Bool {
-        date.startOfDay < Date.now.startOfDay
-    }
 }
-
-//#Preview("Current (ft)") {
-//    NavigationView {
-//        HeightForm(healthProvider: MockCurrentProvider)
-//            .environment(SettingsProvider(settings: .init(heightUnit: .ft)))
-//    }
-//}
-//
-//#Preview("Past (ft)") {
-//    NavigationView {
-//        HeightForm(healthProvider: MockPastProvider)
-//            .environment(SettingsProvider(settings: .init(heightUnit: .ft)))
-//    }
-//}
-//
-//#Preview("Current (cm)") {
-//    NavigationView {
-//        HeightForm(healthProvider: MockCurrentProvider)
-//            .environment(SettingsProvider(settings: .init(heightUnit: .cm)))
-//    }
-//}
-//
-//#Preview("Past (cm)") {
-//    NavigationView {
-//        HeightForm(healthProvider: MockPastProvider)
-//            .environment(SettingsProvider(settings: .init(heightUnit: .cm)))
-//    }
-//}
-//
-//#Preview("Current (m)") {
-//    NavigationView {
-//        HeightForm(healthProvider: MockCurrentProvider)
-//            .environment(SettingsProvider(settings: .init(heightUnit: .m)))
-//    }
-//}
-//
-//#Preview("Past (m)") {
-//    NavigationView {
-//        HeightForm(healthProvider: MockPastProvider)
-//            .environment(SettingsProvider(settings: .init(heightUnit: .m)))
-//    }
-//}
 
 #Preview {
     DemoView()

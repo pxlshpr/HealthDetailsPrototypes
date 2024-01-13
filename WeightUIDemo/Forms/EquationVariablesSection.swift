@@ -246,14 +246,12 @@ struct TemporalVariableSection: View {
                 case .height:
                     HeightForm(
                         healthProvider: healthProvider,
-                        isPresented: $isPresented,
-                        dismissDisabled: $dismissDisabled
+                        isPresented: $isPresented
                     )
                 case .weight:
                     WeightForm(
                         healthProvider: healthProvider,
                         isPresented: $isPresented
-//                        dismissDisabled: $dismissDisabled
                     )
                 case .leanBodyMass:
                     LeanBodyMassForm(
@@ -333,7 +331,6 @@ struct TemporalVariableSection: View {
                     isPresented: $isPresented,
                     dismissDisabled: $dismissDisabled,
                     save: { leanBodyMass in
-                        //TODO: Save
                         healthProvider.updateLatestLeanBodyMass(leanBodyMass)
                     }
                 )
@@ -360,7 +357,6 @@ struct TemporalVariableSection: View {
                     isPresented: $isPresented,
                     dismissDisabled: $dismissDisabled,
                     saveHandler: { maintenance in
-                        //TODO: Save
                         healthProvider.updateLatestMaintenance(maintenance)
                     }
                 )
@@ -386,7 +382,6 @@ struct TemporalVariableSection: View {
                     isPresented: $isPresented,
                     dismissDisabled: $dismissDisabled,
                     save: { pregnancyStatus in
-                        //TODO: Save
                         healthProvider.updateLatestPregnancyStatus(pregnancyStatus)
                     }
                 )
@@ -411,9 +406,7 @@ struct TemporalVariableSection: View {
                     height: latestHeight.height,
                     healthProvider: healthProvider,
                     isPresented: $isPresented,
-                    dismissDisabled: $dismissDisabled,
                     save: { newHeight in
-                        //TODO: Save
                         healthProvider.updateLatestHeight(newHeight)
                     }
                 )
