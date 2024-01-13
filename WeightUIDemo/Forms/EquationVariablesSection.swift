@@ -178,8 +178,7 @@ struct NonTemporalVariableLink: View {
         case .smokingStatus:
             SmokingStatusForm(
                 healthProvider: healthProvider,
-                isPresented: $isPresented,
-                dismissDisabled: $dismissDisabled
+                isPresented: $isPresented
             )
         default:
             EmptyView()
@@ -267,10 +266,8 @@ struct TemporalVariableSection: View {
                 case .preganancyStatus:
                     PregnancyStatusForm(
                         healthProvider: healthProvider,
-                        isPresented: $isPresented,
-                        dismissDisabled: $dismissDisabled
+                        isPresented: $isPresented
                     )
-                    .environment(settingsProvider)
                 default:
                     EmptyView()
                 }
@@ -378,12 +375,10 @@ struct TemporalVariableSection: View {
                     date: latest.date,
                     pregnancyStatus: latest.pregnancyStatus,
                     isPresented: $isPresented,
-                    dismissDisabled: $dismissDisabled,
                     save: { pregnancyStatus in
                         healthProvider.updateLatestPregnancyStatus(pregnancyStatus)
                     }
                 )
-                .environment(settingsProvider)
             } label: {
                 HStack {
                     Text(latest.date.shortDateString)

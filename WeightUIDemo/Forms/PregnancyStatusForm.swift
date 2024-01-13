@@ -3,52 +3,38 @@ import SwiftSugar
 
 struct PregnancyStatusForm: View {
 
-    let date: Date
-    let initialPregnancyStatus: PregnancyStatus
-
-    @State var pregnancyStatus: PregnancyStatus = .notSet
-
-    @State var isEditing: Bool
-    @State var isDirty: Bool = false
     @Binding var isPresented: Bool
-    @Binding var dismissDisabled: Bool
-    
+    let date: Date
+    @State var pregnancyStatus: PregnancyStatus = .notSet
     let saveHandler: (PregnancyStatus) -> ()
 
     init(
         date: Date,
         pregnancyStatus: PregnancyStatus,
         isPresented: Binding<Bool> = .constant(true),
-        dismissDisabled: Binding<Bool> = .constant(false),
         save: @escaping (PregnancyStatus) -> ()
     ) {
         self.date = date
-        self.initialPregnancyStatus = pregnancyStatus
         self.saveHandler = save
         _isPresented = isPresented
-        _dismissDisabled = dismissDisabled
-        _isEditing = State(initialValue: date.isToday)
-        
         _pregnancyStatus = State(initialValue: pregnancyStatus)
     }
     
     init(
         healthProvider: HealthProvider,
-        isPresented: Binding<Bool> = .constant(true),
-        dismissDisabled: Binding<Bool> = .constant(false)
+        isPresented: Binding<Bool> = .constant(true)
     ) {
         self.init(
             date: healthProvider.healthDetails.date,
             pregnancyStatus: healthProvider.healthDetails.pregnancyStatus,
             isPresented: isPresented,
-            dismissDisabled: dismissDisabled,
             save: healthProvider.savePregnancyStatus
         )
     }
 
     var body: some View {
         Form {
-            notice
+            dateSection
             picker
             explanation
         }
@@ -56,18 +42,17 @@ struct PregnancyStatusForm: View {
         .navigationBarTitleDisplayMode(.large)
         .toolbar { toolbarContent }
         .safeAreaInset(edge: .bottom) { bottomValue }
-        .navigationBarBackButtonHidden(isLegacy && isEditing)
-        .onChange(of: isEditing) { _, _ in setDismissDisabled() }
-        .onChange(of: isDirty) { _, _ in setDismissDisabled() }
     }
     
-    @ViewBuilder
-    var notice: some View {
-        if isLegacy {
-            NoticeSection.legacy(date, isEditing: $isEditing)
+    var dateSection: some View {
+        Section {
+            HStack {
+                Text("Date")
+                Spacer()
+                Text(date.shortDateString)
+            }
         }
     }
-
     var picker: some View {
         let binding = Binding<PregnancyStatus>(
             get: { pregnancyStatus },
@@ -78,11 +63,7 @@ struct PregnancyStatusForm: View {
         )
         return PickerSection(
             [PregnancyStatus.notPregnantOrLactating, PregnancyStatus.pregnant, PregnancyStatus.lactating],
-            binding,
-            isDisabled: Binding<Bool>(
-                get: { isDisabled },
-                set: { _ in }
-            )
+            binding
         )
         
     }
@@ -99,51 +80,23 @@ struct PregnancyStatusForm: View {
     }
 
     var toolbarContent: some ToolbarContent {
-        topToolbarContent(
-            isEditing: $isEditing,
-            isDirty: $isDirty,
-            isPast: isLegacy,
-            dismissAction: { isPresented = false },
-            undoAction: undo,
-            saveAction: save
-        )
-    }
-
-    func setIsDirty() {
-        isDirty = pregnancyStatus != .notSet
-    }
-    
-    func setDismissDisabled() {
-        dismissDisabled = isLegacy && isEditing && isDirty
-    }
-
-    func undo() {
-        self.pregnancyStatus = initialPregnancyStatus
-    }
-    
-    func handleChanges() {
-        setIsDirty()
-        if !isLegacy {
-            save()
+        ToolbarItem(placement: .topBarTrailing) {
+            Button {
+                isPresented = false
+            } label: {
+                CloseButtonLabel()
+            }
         }
+    }
+
+    func handleChanges() {
+        save()
     }
     
     func save() {
         saveHandler(pregnancyStatus)
     }
 
-    var isDisabled: Bool {
-        isLegacy && !isEditing
-    }
-    
-    var controlColor: Color {
-        isDisabled ? .secondary : .primary
-    }
-    
-    var isLegacy: Bool {
-        date.startOfDay < Date.now.startOfDay
-    }
-    
     var explanation: some View {
         var header: some View {
             Text("Usage")

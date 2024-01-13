@@ -3,52 +3,38 @@ import SwiftSugar
 
 struct SmokingStatusForm: View {
     
-    let date: Date
-    let initialSmokingStatus: SmokingStatus
-
-    @State var smokingStatus: SmokingStatus = .notSet
-    
-    @State var isEditing: Bool
-    @State var isDirty: Bool = false
     @Binding var isPresented: Bool
-    @Binding var dismissDisabled: Bool
-    
+    let date: Date
+    @State var smokingStatus: SmokingStatus = .notSet
     let saveHandler: (SmokingStatus) -> ()
     
     init(
         date: Date,
         smokingStatus: SmokingStatus,
         isPresented: Binding<Bool> = .constant(true),
-        dismissDisabled: Binding<Bool> = .constant(false),
         save: @escaping (SmokingStatus) -> ()
     ) {
         self.date = date
-        self.initialSmokingStatus = smokingStatus
         self.saveHandler = save
         _isPresented = isPresented
-        _dismissDisabled = dismissDisabled
-        _isEditing = State(initialValue: date.isToday)
-        
-        _smokingStatus = State(initialValue: initialSmokingStatus)
+        _smokingStatus = State(initialValue: smokingStatus)
     }
     
     init(
         healthProvider: HealthProvider,
-        isPresented: Binding<Bool> = .constant(true),
-        dismissDisabled: Binding<Bool> = .constant(false)
+        isPresented: Binding<Bool> = .constant(true)
     ) {
         self.init(
             date: healthProvider.healthDetails.date,
             smokingStatus: healthProvider.healthDetails.smokingStatus,
             isPresented: isPresented,
-            dismissDisabled: dismissDisabled,
             save: healthProvider.saveSmokingStatus
         )
     }
 
     var body: some View {
         Form {
-            notice
+            dateSection
             picker
             explanation
         }
@@ -56,15 +42,15 @@ struct SmokingStatusForm: View {
         .navigationBarTitleDisplayMode(.large)
         .toolbar { toolbarContent }
         .safeAreaInset(edge: .bottom) { bottomValue }
-        .navigationBarBackButtonHidden(isLegacy && isEditing)
-        .onChange(of: isEditing) { _, _ in setDismissDisabled() }
-        .onChange(of: isDirty) { _, _ in setDismissDisabled() }
     }
     
-    @ViewBuilder
-    var notice: some View {
-        if isLegacy {
-            NoticeSection.legacy(date, isEditing: $isEditing)
+    var dateSection: some View {
+        Section {
+            HStack {
+                Text("Date")
+                Spacer()
+                Text(date.shortDateString)
+            }
         }
     }
     
@@ -98,58 +84,26 @@ struct SmokingStatusForm: View {
         )
         return PickerSection(
             [SmokingStatus.nonSmoker, SmokingStatus.smoker],
-            binding,
-            isDisabled: Binding<Bool>(
-                get: { isDisabled },
-                set: { _ in }
-            )
+            binding
         )
     }
     
     var toolbarContent: some ToolbarContent {
-        topToolbarContent(
-            isEditing: $isEditing,
-            isDirty: $isDirty,
-            isPast: isLegacy,
-            dismissAction: { isPresented = false },
-            undoAction: undo,
-            saveAction: save
-        )
-    }
-    
-    func setIsDirty() {
-        isDirty = smokingStatus != .notSet
-    }
-    
-    func setDismissDisabled() {
-        dismissDisabled = isLegacy && isEditing && isDirty
-    }
-
-    func undo() {
-        self.smokingStatus = initialSmokingStatus
+        ToolbarItem(placement: .topBarTrailing) {
+            Button {
+                isPresented = false
+            } label: {
+                CloseButtonLabel()
+            }
+        }
     }
     
     func handleChanges() {
-        setIsDirty()
-        if !isLegacy {
-            save()
-        }
+        save()
     }
     
     func save() {
         saveHandler(smokingStatus)
-    }
-    
-    var isDisabled: Bool {
-        isLegacy && !isEditing
-    }
-    
-    var controlColor: Color {
-        isDisabled ? .secondary : .primary
-    }
-    
-    var isLegacy: Bool {
-        date.startOfDay < Date.now.startOfDay
     }
     
     var explanation: some View {

@@ -141,14 +141,12 @@ struct HealthDetailsForm: View {
         case .preganancyStatus:
             PregnancyStatusForm(
                 healthProvider: healthProvider,
-                isPresented: $isPresented,
-                dismissDisabled: $dismissDisabled
+                isPresented: $isPresented
             )
         case .smokingStatus:
             SmokingStatusForm(
                 healthProvider: healthProvider,
-                isPresented: $isPresented,
-                dismissDisabled: $dismissDisabled
+                isPresented: $isPresented
             )
         }
     }
