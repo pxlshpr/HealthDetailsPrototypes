@@ -194,11 +194,9 @@ func fetchAllDaysFromDocuments() async -> [Day] {
     //TODO: In production:
     /// [ ] Optimizing by not fetching the meals etc, only fetching fields we need
     var days: [Day] = []
-    for i in (0..<Date.now.numberOfDaysFrom(LogStartDate)).reversed() {
+    for i in (0...Date.now.numberOfDaysFrom(LogStartDate)).reversed() {
         let date = Date.now.moveDayBy(-i)
-        print("Fetching Day for \(date.shortDateString)")
-        guard let day = fetchDayFromDocuments(date) else { continue }
-        days.append(day)
+        days.append(fetchOrCreateDayFromDocuments(date))
     }
     return days
 }

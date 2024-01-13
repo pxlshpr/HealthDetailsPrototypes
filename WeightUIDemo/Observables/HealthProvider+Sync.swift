@@ -11,44 +11,42 @@ extension HealthProvider {
         let startDate = await fetchBackendLogStartDate()
         
         /// [x] First, fetch whatever isSynced is turned on for (weight, height, LBM)—fetch everything from the first Day's date onwards
-        let weights: [HealthKitMeasurement]? = if settingsProvider.weightIsHealthKitSynced {
-            await HealthStore.weightMeasurements(from: startDate)
-        } else { nil }
-        
-        let leanBodyMasses: [HealthKitMeasurement]? = if settingsProvider.leanBodyMassIsHealthKitSynced {
-            await HealthStore.leanBodyMassMeasurements(from: startDate)
-        } else { nil }
-        
-        let heights: [HealthKitMeasurement]? = if settingsProvider.heightIsHealthKitSynced {
-            await HealthStore.heightMeasurements(from: startDate)
-        } else { nil }
+        let weights = await HealthStore.weightMeasurements(from: startDate)
+        let lbms = await HealthStore.leanBodyMassMeasurements(from: startDate)
+        let heights = await HealthStore.heightMeasurements(from: startDate)
         
         /// Special case with height – if we have do not have any data within our app's timeframe—grab the latest height available and save it
-        if (heights == nil || heights?.isEmpty == true),
-           let latestHeight = await HealthStore.heightMeasurements().suffix(1).first
+        if heights.isEmpty == true, let latestHeight = await HealthStore.heightMeasurements().suffix(1).first
         {
             await saveHealthKitHeightMeasurement(latestHeight)
         }
         
         /// [ ] Go through each Day
-        /// [ ] For each Day, go through each fetched array and get all the values for that date
-        /// [ ] Now sync with the day by removing any healthKit measurements we have that don't exist any more
-        /// [ ] Also add any healthKit measurements that are present which we don't have
-        /// [ ] Any HealthStore measurements that we provided that no longer are present on our side—put them aside to be deleted later
-        /// [ ] Now any non-healthKit measurements we have that aren't present in HealthStore–put them aside to be exported later (we'll do it in a btach as opposed to a day at a time)
-        /// [ ] Do this for all 3 types (weight, height, LBM)
+        for day in days {
+            print("Doing date: \(day.date.shortDateString)")
+            /// [ ] For each Day, go through each fetched array and get all the values for that date
+            let weights = weights.filter { $0.date.startOfDay == day.date.startOfDay }
+            print("We have: \(weights.count) weights")
 
-        /// [ ] If the day has DietaryEnergyPointSource, RestingEnergySource or ActivieEnergySource as .healthKit, fetch them and set them
+            let lbms = lbms.filter { $0.date.startOfDay == day.date.startOfDay }
+            print("We have: \(lbms.count) lbms")
 
-        /// [ ] Continue this for all Days
-        /// [ ] Once we're doing, go ahead and delete all the measurements we put aside to be deleted
-        /// [ ] Also export all the measurements we put aside
+            let heights = heights.filter { $0.date.startOfDay == day.date.startOfDay }
+            print("We have: \(heights.count) heights")
+
+            /// [ ] Now sync with the day by removing any healthKit measurements we have that don't exist any more
+            /// [ ] Also add any healthKit measurements that are present which we don't have
+            /// [ ] Any HealthStore measurements that we provided that no longer are present on our side—put them aside to be deleted later
+            /// [ ] Now any non-healthKit measurements we have that aren't present in HealthStore–put them aside to be exported later (we'll do it in a btach as opposed to a day at a time)
+            /// [ ] Do this for all 3 types (weight, height, LBM)
+
+            /// [ ] If the day has DietaryEnergyPointSource, RestingEnergySource or ActivieEnergySource as .healthKit, fetch them and set them
+
+            /// [ ] Continue this for all Days
+            /// [ ] Once we're doing, go ahead and delete all the measurements we put aside to be deleted
+            /// [ ] Also export all the measurements we put aside
+        }
         
-        print("Got measurements in: \(CFAbsoluteTimeGetCurrent()-start)s")
-        print("\(weights?.count ?? 0) weights")
-        print("\(heights?.count ?? 0) heights")
-        print("\(leanBodyMasses?.count ?? 0) leanBodyMasses")
-
         await recalculate(days)
     }
 }

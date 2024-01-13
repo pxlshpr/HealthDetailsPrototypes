@@ -100,25 +100,13 @@ extension HealthProvider {
 //    }
     
     func update() async {
-        /// [ ] This needs to be an async func that gets called soon after init (and later, like when scenePhase changes etc)
-        /// [ ] Now for each point, evaluate it if needed (which grabs the current log value, healthKit value)
-        /// [ ] Now once that's done, calculate the average of all the non-average types and set those to the average types
-        /// [ ] Now calculate the kcalPerDay
-        await fetchBackendData()
-        await fetchHealthKitData()
-        await syncMeasurementsWithHealthKit()
-        await recalculate()
+        //TODO: Do this as part of recalculate()
+//        await fetchBackendData()
+        
+        let days = await fetchAllDaysFromDocuments()
+        await syncWithHealthKitAndRecalculate(days)
     }
     
-    func fetchHealthKitData() async {
-        /// [ ] DietaryEnergy
-        let points = healthDetails.maintenance.adaptive.dietaryEnergy.points
-        for index in points.indices {
-            guard points[index].source == .healthKit else { continue }
-            
-        }
-    }
-
     func fetchBackendData() async {
         
         func fetchDietaryEnergyData() async {
@@ -183,20 +171,25 @@ extension HealthProvider {
 
             /// For each of `points.start` and `points.end`, do the following
             func fetchData(for point: inout WeightChangePoint) async {
+
+                /// If its using a movingAverage, for each of the `numberOfDays` of the interval
                 if let movingAverage = point.movingAverage {
                     let interval = movingAverage.interval
                     var points: [WeightChangePoint.MovingAverage.Point] = []
-                    /// If its using a movingAverage, for each of the `numberOfDays` of the interval
+
                     for index in 0..<interval.numberOfDays {
+
                         /// Compute the date
                         let date = point.date.moveDayBy(-index)
+
                         /// Try and fetch the `HealthDetails.Weight?` from the backend for the computed date
                         let weight = await fetchOrCreateBackendWeight(for: date)
-                        /// If we get it, then create a `WeightChangePoint.MovingAverage.Point` with it and append it to the array
-                        /// If we don't have it, then create the point with a nil `weight` and still append it
+
+                        /// If we get it, then create a `WeightChangePoint.MovingAverage.Point` with it and append it to the array. If we don't have it, then create the point with a nil `weight` and still append it.
                         let point = WeightChangePoint.MovingAverage.Point(date: date, weight: weight)
                         points.append(point)
                     }
+                    
                     /// Once completed, calculate the average and set it in `kg`
                     let average = points.average
                     point.kg = average
