@@ -41,7 +41,7 @@ struct Notice {
 //            title: "Legacy Data",
 //            message: "You are viewing legacy data which has been preserved to ensure any dependent goals\(date != nil ? " on this date" : "") remain unchanged.",
             title: "Past Health Details",
-            message: "You are viewing your Health Details for a past date.",
+            message: "You are viewing your Health Details for a past date. Changes will not affected your current health details but may affect the goals you had set on that day.",
             date: date,
             imageName: "calendar.badge.clock",
             isEditing: isEditing
