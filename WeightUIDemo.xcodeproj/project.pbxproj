@@ -32,7 +32,6 @@
 		E228EA352B46CFEF00A44ADC /* HealthKitQuantityRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E228EA342B46CFEF00A44ADC /* HealthKitQuantityRequest.swift */; };
 		E228EA372B46D00900A44ADC /* CharacteristicType.swift in Sources */ = {isa = PBXBuildFile; fileRef = E228EA362B46D00900A44ADC /* CharacteristicType.swift */; };
 		E228EA392B46D01D00A44ADC /* HealthKitStoreError.swift in Sources */ = {isa = PBXBuildFile; fileRef = E228EA382B46D01D00A44ADC /* HealthKitStoreError.swift */; };
-		E23A25122B39EF2C00BDAECE /* TopToolbarContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = E23A25112B39EF2C00BDAECE /* TopToolbarContent.swift */; };
 		E23A25142B39F09100BDAECE /* MeasurementBottomBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = E23A25132B39F09100BDAECE /* MeasurementBottomBar.swift */; };
 		E23A25182B39F58F00BDAECE /* SwiftHaptics in Frameworks */ = {isa = PBXBuildFile; productRef = E23A25172B39F58F00BDAECE /* SwiftHaptics */; };
 		E23A251A2B3B1FFB00BDAECE /* HealthDetailsForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = E23A25192B3B1FFB00BDAECE /* HealthDetailsForm.swift */; };
@@ -46,7 +45,6 @@
 		E25AC7F62B4156F90063F6E2 /* MeasurementForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = E25AC7F52B4156F90063F6E2 /* MeasurementForm.swift */; };
 		E28C693B2B3EC414005E0096 /* DoubleInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = E28C693A2B3EC414005E0096 /* DoubleInput.swift */; };
 		E28C693E2B3F0A6C005E0096 /* LeanBodyMassData.swift in Sources */ = {isa = PBXBuildFile; fileRef = E28C693D2B3F0A6C005E0096 /* LeanBodyMassData.swift */; };
-		E28C69402B3F47AB005E0096 /* InputSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = E28C693F2B3F47AB005E0096 /* InputSection.swift */; };
 		E28C69422B3F508E005E0096 /* HealthDetail.swift in Sources */ = {isa = PBXBuildFile; fileRef = E28C69412B3F508E005E0096 /* HealthDetail.swift */; };
 		E28E4BB72B3DDB7E00F89FDC /* ActiveEnergyInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = E28E4BB62B3DDB7E00F89FDC /* ActiveEnergyInfo.swift */; };
 		E28E4BB92B3E11E800F89FDC /* EquationVariablesSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = E28E4BB82B3E11E800F89FDC /* EquationVariablesSection.swift */; };
@@ -134,7 +132,6 @@
 		E228EA342B46CFEF00A44ADC /* HealthKitQuantityRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitQuantityRequest.swift; sourceTree = "<group>"; };
 		E228EA362B46D00900A44ADC /* CharacteristicType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CharacteristicType.swift; sourceTree = "<group>"; };
 		E228EA382B46D01D00A44ADC /* HealthKitStoreError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitStoreError.swift; sourceTree = "<group>"; };
-		E23A25112B39EF2C00BDAECE /* TopToolbarContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopToolbarContent.swift; sourceTree = "<group>"; };
 		E23A25132B39F09100BDAECE /* MeasurementBottomBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeasurementBottomBar.swift; sourceTree = "<group>"; };
 		E23A25192B3B1FFB00BDAECE /* HealthDetailsForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthDetailsForm.swift; sourceTree = "<group>"; };
 		E23A251D2B3B52ED00BDAECE /* HealthIntervalInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthIntervalInfo.swift; sourceTree = "<group>"; };
@@ -147,7 +144,6 @@
 		E25AC7F52B4156F90063F6E2 /* MeasurementForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeasurementForm.swift; sourceTree = "<group>"; };
 		E28C693A2B3EC414005E0096 /* DoubleInput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DoubleInput.swift; sourceTree = "<group>"; };
 		E28C693D2B3F0A6C005E0096 /* LeanBodyMassData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeanBodyMassData.swift; sourceTree = "<group>"; };
-		E28C693F2B3F47AB005E0096 /* InputSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputSection.swift; sourceTree = "<group>"; };
 		E28C69412B3F508E005E0096 /* HealthDetail.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthDetail.swift; sourceTree = "<group>"; };
 		E28E4BB62B3DDB7E00F89FDC /* ActiveEnergyInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActiveEnergyInfo.swift; sourceTree = "<group>"; };
 		E28E4BB82B3E11E800F89FDC /* EquationVariablesSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EquationVariablesSection.swift; sourceTree = "<group>"; };
@@ -302,7 +298,6 @@
 				E28ED8092B41BD440076BA50 /* DatePickerSheet.swift */,
 				E2BCCC062B3DC30300616E9A /* DotPoint.swift */,
 				E23A25212B3B530E00BDAECE /* InfoSection.swift */,
-				E28C693F2B3F47AB005E0096 /* InputSection.swift */,
 				E2261F812B371B9A007B7DDD /* IntervalPicker.swift */,
 				E2923FCC2B42B1830008F010 /* MeasurementCell.swift */,
 				E2923FCE2B42C2860008F010 /* MeasurementsSections.swift */,
@@ -310,7 +305,6 @@
 				E2923FD42B42D9FE0008F010 /* AppleHealthIcon.swift */,
 				E2F16EB32B32302A004AD1BA /* NoticeSection.swift */,
 				E2F79F512B3484B900A09BDF /* PickerSection.swift */,
-				E23A25112B39EF2C00BDAECE /* TopToolbarContent.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -565,7 +559,6 @@
 				E28C693E2B3F0A6C005E0096 /* LeanBodyMassData.swift in Sources */,
 				E228EA352B46CFEF00A44ADC /* HealthKitQuantityRequest.swift in Sources */,
 				E25AC7F42B414BAA0063F6E2 /* Measurement.swift in Sources */,
-				E23A25122B39EF2C00BDAECE /* TopToolbarContent.swift in Sources */,
 				E2261F7A2B37150E007B7DDD /* ActiveEnergyForm.swift in Sources */,
 				E228EA2D2B46C81800A44ADC /* HealthStore.swift in Sources */,
 				E2F79F722B34BEE300A09BDF /* PregnancyStatus.swift in Sources */,
@@ -585,7 +578,6 @@
 				E2F79F542B3484CE00A09BDF /* Pickable.swift in Sources */,
 				E228EA372B46D00900A44ADC /* CharacteristicType.swift in Sources */,
 				E2103B0B2B36140600B0C381 /* DietaryEnergyPointSource.swift in Sources */,
-				E28C69402B3F47AB005E0096 /* InputSection.swift in Sources */,
 				E2F16EB42B32302A004AD1BA /* NoticeSection.swift in Sources */,
 				E2F79F562B3484F400A09BDF /* BiologicalSex.swift in Sources */,
 				E2103B072B3608D000B0C381 /* DietaryEnergyForm.swift in Sources */,

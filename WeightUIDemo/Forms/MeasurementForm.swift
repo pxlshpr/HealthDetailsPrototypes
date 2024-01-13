@@ -4,9 +4,10 @@ import SwiftUIIntrospect
 
 struct MeasurementForm: View {
     
-    @Environment(SettingsProvider.self) var settingsProvider
     @Environment(\.dismiss) var dismiss
-    
+
+    @Bindable var settingsProvider: SettingsProvider
+
     let type: MeasurementType
     let date: Date
     @State var time = Date.now
@@ -23,11 +24,13 @@ struct MeasurementForm: View {
     init(
         type: MeasurementType,
         date: Date? = nil,
+        settingsProvider: SettingsProvider,
         add: @escaping (Int, Double, Date) -> ()
     ) {
         self.date = (date ?? Date.now).startOfDay
         self.type = type
         self.add = add
+        self.settingsProvider = settingsProvider
     }
     
     var body: some View {
@@ -103,24 +106,3 @@ struct MeasurementForm: View {
         }
     }
 }
-//
-//#Preview("Height (cm)") {
-//    MeasurementForm(type: .height) { int, double, time in
-//        
-//    }
-//    .environment(SettingsProvider(settings: .init(heightUnit: .cm)))
-//}
-//
-//#Preview("Height (ft)") {
-//    MeasurementForm(type: .height) { int, double, time in
-//        
-//    }
-//    .environment(SettingsProvider(settings: .init(heightUnit: .ft)))
-//}
-//
-//#Preview("HeightForm") {
-//    NavigationView {
-//        HeightForm(healthProvider: MockCurrentProvider)
-//            .environment(SettingsProvider(settings: .init(heightUnit: .ft)))
-//    }
-//}

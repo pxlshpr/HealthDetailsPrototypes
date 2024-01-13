@@ -6,7 +6,6 @@ struct LeanBodyMassMeasurementForm: View {
 
     @Environment(\.dismiss) var dismiss
 
-    @Environment(SettingsProvider.self) var settingsProvider
     @Bindable var healthProvider: HealthProvider
     
     @State var time = Date.now
@@ -78,7 +77,7 @@ struct LeanBodyMassMeasurementForm: View {
     }
     
     var unit: BodyMassUnit {
-        settingsProvider.bodyMassUnit
+        healthProvider.settingsProvider.bodyMassUnit
     }
     
     var bottomValue: some View {
@@ -168,7 +167,7 @@ struct LeanBodyMassMeasurementForm: View {
     var customSection: some View {
         MeasurementInputSection(
             type: .leanBodyMass,
-            settingsProvider: settingsProvider,
+            settingsProvider: healthProvider.settingsProvider,
             doubleInput: $doubleInput,
             intInput: $intInput,
             hasFocused: $hasFocusedCustom,
@@ -188,7 +187,7 @@ struct LeanBodyMassMeasurementForm: View {
     
     var fatPercentageEnterSection: some View {
         SingleUnitMeasurementTextField(
-            title: settingsProvider.unitString(for: .fatPercentage),
+            title: healthProvider.settingsProvider.unitString(for: .fatPercentage),
             doubleInput: $fatPercentageInput,
             hasFocused: $hasFocusedFatPercentage,
             delayFocus: true,

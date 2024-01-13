@@ -121,7 +121,11 @@ struct HeightForm: View {
     }
     
     var measurementForm: some View {
-        MeasurementForm(type: .height, date: date) { int, double, time in
+        MeasurementForm(
+            type: .height,
+            date: date,
+            settingsProvider: healthProvider.settingsProvider
+        ) { int, double, time in
             let heightInCm = heightUnit.convert(int, double, to: .cm)
             let measurement = HeightMeasurement(date: time, heightInCm: heightInCm)
             measurements.append(measurement)
@@ -175,6 +179,7 @@ struct HeightForm: View {
     
     var measurementsSections: some View {
         MeasurementsSections<HeightUnit>(
+            settingsProvider: healthProvider.settingsProvider,
             measurements: Binding<[any Measurable]>(
                 get: { measurements },
                 set: { newValue in

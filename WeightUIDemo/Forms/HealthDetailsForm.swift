@@ -2,7 +2,6 @@ import SwiftUI
 
 struct HealthDetailsForm: View {
     
-    @Environment(SettingsProvider.self) var settingsProvider
     @Bindable var healthProvider: HealthProvider
     
     @Binding var isPresented: Bool
@@ -64,14 +63,14 @@ struct HealthDetailsForm: View {
         
         @ViewBuilder
         var secondaryText: some View {
-            if let secondary = details.secondaryValueString(for: healthDetail, settingsProvider) {
+            if let secondary = details.secondaryValueString(for: healthDetail, healthProvider.settingsProvider) {
                 Text(secondary)
                     .foregroundStyle(.secondary)
             }
         }
         
         var primaryText: some View {
-            Text(details.valueString(for: healthDetail, settingsProvider))
+            Text(details.valueString(for: healthDetail, healthProvider.settingsProvider))
                 .foregroundStyle(details.hasSet(healthDetail) ? .primary : .secondary)
         }
         

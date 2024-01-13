@@ -1,9 +1,10 @@
 import SwiftUI
 import PrepShared
+
 struct DietaryEnergyCell: View {
     
-    @Environment(SettingsProvider.self) var settingsProvider
     let point: DietaryEnergyPoint
+    let energyUnit: EnergyUnit
     
     var body: some View {
         HStack {
@@ -17,13 +18,13 @@ struct DietaryEnergyCell: View {
     var detail: some View {
         var label: String {
             guard point.source != .useAverage else {
-                return "Excluded"
+                return "Not Counted"
             }
             guard let kcal = point.kcal else {
                 return "Not Set"
             }
-            let value = EnergyUnit.kcal.convert(kcal, to: settingsProvider.energyUnit)
-            return "\(value.formattedEnergy) \(settingsProvider.energyUnit.abbreviation)"
+            let value = EnergyUnit.kcal.convert(kcal, to: energyUnit)
+            return "\(value.formattedEnergy) \(energyUnit.abbreviation)"
         }
         
         var foregroundColor: Color {

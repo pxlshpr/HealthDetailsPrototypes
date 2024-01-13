@@ -210,6 +210,7 @@ struct LeanBodyMassForm: View {
     
     var measurementsSections: some View {
         MeasurementsSections<BodyMassUnit>(
+            settingsProvider: healthProvider.settingsProvider,
             measurements: Binding<[any Measurable]>(
                 get: { measurements },
                 set: { newValue in

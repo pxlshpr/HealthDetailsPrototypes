@@ -119,7 +119,6 @@ struct MockHealthDetailsForm: View {
             healthProvider: healthProvider,
             isPresented: $isPresented
         )
-        .environment(settingsProvider)
     }
 }
 
@@ -131,35 +130,6 @@ let MockCurrentProvider = HealthProvider(
         smokingStatus: .smoker
     ),
     settingsProvider: SettingsProvider()
-//    latest: HealthProvider.LatestHealthDetails(
-//        maintenance: .init(
-//            date: Date.now.moveDayBy(-1),
-//            maintenance: .init(
-//                type: .adaptive,
-//                kcal: 2500,
-//                adaptive: .init(
-//                    weightChange: .init(
-//                        type: .usingPoints
-//                    )
-//                ),
-//                estimate: .init(
-//                    kcal: 2500,
-//                    restingEnergy: .init(
-//                        kcal: 2000,
-//                        source: .userEntered
-//                    ),
-//                    activeEnergy: .init(
-//                        kcal: 500,
-//                        source: .userEntered
-//                    )
-//                )
-//            )
-//        ),
-//        pregnancyStatus: .init(
-//            date: Date.now.moveDayBy(-150),
-//            pregnancyStatus: .pregnant
-//        )
-//    )
 )
 
 let MockPastProvider = HealthProvider(

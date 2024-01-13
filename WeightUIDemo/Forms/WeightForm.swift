@@ -87,6 +87,7 @@ struct WeightForm: View {
     
     var measurementsSections: some View {
         MeasurementsSections<BodyMassUnit>(
+            settingsProvider: healthProvider.settingsProvider,
             measurements: Binding<[any Measurable]>(
                 get: { measurements },
                 set: { newValue in
@@ -111,7 +112,8 @@ struct WeightForm: View {
     var measurementForm: some View {
         MeasurementForm(
             type: .weight,
-            date: date
+            date: date,
+            settingsProvider: healthProvider.settingsProvider
         ) { int, double, time in
             let weightInKg = bodyMassUnit.convert(int, double, to: .kg)
             let measurement = WeightMeasurement(date: time, weightInKg: weightInKg)

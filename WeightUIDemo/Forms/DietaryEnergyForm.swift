@@ -75,7 +75,7 @@ struct DietaryEnergyForm: View {
                         }
                     )
                 } label: {
-                    DietaryEnergyCell(point: point)
+                    DietaryEnergyCell(point: point, energyUnit: energyUnit)
                 }
             }
         }

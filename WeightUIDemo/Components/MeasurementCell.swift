@@ -3,14 +3,26 @@ import PrepShared
 
 struct MeasurementCell<U : HealthUnit>: View {
 
-    @Environment(SettingsProvider.self) var settingsProvider
-
     let measurement: any Measurable
-    
+    @Bindable var settingsProvider: SettingsProvider
     let isDisabled: Bool
     @Binding var showDeleteButton: Bool
     let deleteAction: () -> ()
 
+    init(
+        measurement: any Measurable,
+        settingsProvider: SettingsProvider,
+        isDisabled: Bool,
+        showDeleteButton: Binding<Bool> = .constant(false),
+        deleteAction: @escaping () -> Void
+    ) {
+        self.measurement = measurement
+        self.settingsProvider = settingsProvider
+        self.isDisabled = isDisabled
+        _showDeleteButton = showDeleteButton
+        self.deleteAction = deleteAction
+    }
+    
     var body: some View {
         HStack {
             deleteButton

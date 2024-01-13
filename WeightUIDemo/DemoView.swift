@@ -92,7 +92,6 @@ struct DemoView: View {
                 set: { if !$0 { pastDateBeingShown = nil } }
             )
         )
-//        .environment(settingsProvider)
     }
     
     var healthDetailsSection: some View {

@@ -8,40 +8,34 @@ public struct PickerSection<T: Pickable>: View {
     let binding: Binding<T>
     let title: String?
     let disabledOptions: [T]
-    let isDisabledBinding: Binding<Bool>
     
     public init(
         _ options: [T],
         _ binding: Binding<T>,
         _ title: String? = nil,
-        disabledOptions: [T] = [],
-        isDisabled: Binding<Bool> = .constant(false)
+        disabledOptions: [T] = []
     ) {
         self.options = options
         self.binding = binding
         self.title = title
         self.disabledOptions = disabledOptions
-        self.isDisabledBinding = isDisabled
     }
 
     public init(
         _ binding: Binding<T>,
         _ title: String? = nil,
-        disabledOptions: [T] = [],
-        isDisabled: Binding<Bool> = .constant(false)
+        disabledOptions: [T] = []
     ) {
         self.options = T.allCases as! [T]
         self.binding = binding
         self.title = title
         self.disabledOptions = disabledOptions
-        self.isDisabledBinding = isDisabled
     }
 
     public init(
         _ binding: Binding<T?>,
         _ title: String? = nil,
-        disabledOptions: [T] = [],
-        isDisabled: Binding<Bool> = .constant(false)
+        disabledOptions: [T] = []
     ) {
         self.options = T.allCases as! [T]
         self.binding = Binding<T>(
@@ -50,15 +44,13 @@ public struct PickerSection<T: Pickable>: View {
         )
         self.title = title
         self.disabledOptions = disabledOptions
-        self.isDisabledBinding = isDisabled
     }
 
     public init(
         _ options: [T],
         _ binding: Binding<T?>,
         _ title: String?,
-        disabledOptions: [T] = [],
-        isDisabled: Binding<Bool> = .constant(false)
+        disabledOptions: [T] = []
     ) {
         self.options = options
         self.binding = Binding<T>(
@@ -67,7 +59,6 @@ public struct PickerSection<T: Pickable>: View {
         )
         self.title = title
         self.disabledOptions = disabledOptions
-        self.isDisabledBinding = isDisabled
     }
     
     public var body: some View {
@@ -88,11 +79,7 @@ public struct PickerSection<T: Pickable>: View {
     }
     
     func optionIsDisabled(_ option: T) -> Bool {
-        disabledOptions.contains(option) || isDisabled
-    }
-    
-    var isDisabled: Bool {
-        isDisabledBinding.wrappedValue == true
+        disabledOptions.contains(option)
     }
     
     func label(for option: T) -> some View {
