@@ -19,11 +19,11 @@ enum DailyValueType: Int, CaseIterable, Hashable, Codable {
     func description(for healthDetail: HealthDetail) -> String {
         switch self {
         case .average:
-            "The average of your \(healthDetail.name.lowercased()) measurements for a day will always be used."
+            "The average of your \(healthDetail.name.lowercased()) measurements for the day will always be used."
         case .last:
-            "The last of your \(healthDetail.name.lowercased()) measurements for a day will always be used."
+            "The last of your \(healthDetail.name.lowercased()) measurements for the day will always be used."
         case .first:
-            "The first of your \(healthDetail.name.lowercased()) measurements for a day will always be used."
+            "The first of your \(healthDetail.name.lowercased()) measurements for the day will always be used."
         }
     }
     
