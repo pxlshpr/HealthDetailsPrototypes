@@ -38,7 +38,8 @@ struct WeightForm: View {
         self.healthProvider = healthProvider
         _isPresented = isPresented
         _dismissDisabled = dismissDisabled
-        _isEditing = State(initialValue: date.isToday)
+//        _isEditing = State(initialValue: date.isToday)
+        _isEditing = State(initialValue: true)
 
         _weightInKg = State(initialValue: weight.weightInKg)
         _measurements = State(initialValue: weight.measurements)
@@ -75,7 +76,7 @@ struct WeightForm: View {
         .toolbar { toolbarContent }
         .sheet(isPresented: $showingForm) { measurementForm }
         .safeAreaInset(edge: .bottom) { bottomValue }
-        .navigationBarBackButtonHidden(isLegacy && isEditing)
+//        .navigationBarBackButtonHidden(isLegacy && isEditing)
         .onChange(of: isEditing) { _, _ in setDismissDisabled() }
         .onChange(of: isDirty) { _, _ in setDismissDisabled() }
         .onChange(of: isSynced, isSyncedChanged)
@@ -292,7 +293,8 @@ struct WeightForm: View {
     }
     
     var isLegacy: Bool {
-        date.startOfDay < Date.now.startOfDay
+        false
+//        date.startOfDay < Date.now.startOfDay
     }
     
     var calculatedWeightInKg: Double? {
