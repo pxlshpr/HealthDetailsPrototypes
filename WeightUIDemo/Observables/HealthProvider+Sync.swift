@@ -1,82 +1,118 @@
 import SwiftUI
+import HealthKit
 
 extension HealthProvider {
     //TODO: Consider a rewrite
     /// [x] First add the source data into HealthKitMeasurement so that we can filter out what's form Apple or us
     /// [x] Rename to Sync with everything or something
-    func syncWithHealthKitAndRecalculate(_ days: [Day]) async {
+    static func syncWithHealthKitAndRecalculateAllDays() async {
         
-        var days = days
+        var days = await fetchAllDaysFromDocuments()
         
         let start = CFAbsoluteTimeGetCurrent()
         
         /// Fetch all HealthKit weight samples from start of log (since we're not interested in any before that)
         let startDate = await fetchBackendLogStartDate()
         
+        let settingsProvider = fetchSettingsFromDocuments()
+        
         /// [x] First, fetch whatever isSynced is turned on for (weight, height, LBM)—fetch everything from the first Day's date onwards
-        let weights = await HealthStore.weightMeasurements(from: startDate)
-        let lbms = await HealthStore.leanBodyMassMeasurements(from: startDate)
-        let heights = await HealthStore.heightMeasurements(from: startDate)
+        let weightSamples: [HKQuantitySample]? = if settingsProvider.isHealthKitSyncing(.weight) {
+            await HealthStore.weightMeasurements(from: startDate)
+        } else {
+            nil
+        }
+        let leanBodyMassSamples: [HKQuantitySample]? = if settingsProvider.isHealthKitSyncing(.leanBodyMass) {
+            await HealthStore.leanBodyMassMeasurements(from: startDate)
+        } else {
+            nil
+        }
+        let heightSamples: [HKQuantitySample]? = if settingsProvider.isHealthKitSyncing(.height) {
+            await HealthStore.heightMeasurements(from: startDate)
+        } else {
+            nil
+        }
         
         /// Special case with height – if we have do not have any data within our app's timeframe—grab the latest height available and save it
-        if heights.isEmpty == true, let latestHeight = await HealthStore.heightMeasurements().suffix(1).first
+        if (heightSamples == nil || heightSamples?.isEmpty == true), let latestHeight = await HealthStore.heightMeasurements().suffix(1).first
         {
             await saveHealthKitHeightMeasurement(latestHeight)
         }
         
-        var toDelete: [HealthKitMeasurement] = []
+        var toDelete: [HKQuantitySample] = []
         var toExport: [any Measurable] = []
         
         /// [ ] Go through each Day
         for i in days.indices {
+
             let day = days[i]
             print("Doing date: \(day.date.shortDateString)")
-            /// [ ] For each Day, go through each fetched array and get all the values for that date
-            let weights = weights.filter { $0.date.startOfDay == day.date.startOfDay }
-            if weights.count > 0 {
-                print("We have: \(weights.count) weights")
+
+            if let weightSamples {
+                var weight: HealthDetails.Weight {
+                    get { days[i].healthDetails.weight }
+                    set { days[i].healthDetails.weight = newValue }
+                }
+                
+                let samples = weightSamples.filter { $0.date.startOfDay == day.date.startOfDay }
+                weight.removeHealthKitQuantitySamples(notPresentIn: samples.notOurs)
+                weight.addNewHealthKitQuantitySamples(from: samples.notOurs)
+                toDelete.append(contentsOf: samples.ours.notPresent(in: weight.measurements))
+                toExport.append(contentsOf: weight.measurements.nonHealthKitMeasurements.notPresent(in: samples.ours))
+            }
+
+            if let heightSamples {
+                var height: HealthDetails.Height {
+                    get { days[i].healthDetails.height }
+                    set { days[i].healthDetails.height = newValue }
+                }
+                
+                let samples = heightSamples.filter { $0.date.startOfDay == day.date.startOfDay }
+                height.removeHealthKitQuantitySamples(notPresentIn: samples.notOurs)
+                height.addNewHealthKitQuantitySamples(from: samples.notOurs)
+                toDelete.append(contentsOf: samples.ours.notPresent(in: height.measurements))
+                toExport.append(contentsOf: height.measurements.nonHealthKitMeasurements.notPresent(in: samples.ours))
             }
             
-            var weight: HealthDetails.Weight {
-                get { days[i].healthDetails.weight }
-                set { days[i].healthDetails.weight = newValue }
+            if let leanBodyMassSamples {
+                var leanBodyMass: HealthDetails.LeanBodyMass {
+                    get { days[i].healthDetails.leanBodyMass }
+                    set { days[i].healthDetails.leanBodyMass = newValue }
+                }
+                
+                let samples = leanBodyMassSamples.filter { $0.date.startOfDay == day.date.startOfDay }
+                leanBodyMass.removeHealthKitQuantitySamples(notPresentIn: samples.notOurs)
+                leanBodyMass.addNewHealthKitQuantitySamples(from: samples.notOurs)
+                toDelete.append(contentsOf: samples.ours.notPresent(in: leanBodyMass.measurements))
+                toExport.append(contentsOf: leanBodyMass.measurements.nonHealthKitMeasurements.notPresent(in: samples.ours))
             }
-            
-            /// [x] Remove any healthKit measurements we have that don't exist any more
-            weight.removeHealthKitMeasurements(notPresentIn: weights.notOurs)
-            
-            /// [x] Also add any healthKit measurements that are present which we don't have
-            weight.addNewHealthKitMeasurements(from: weights.notOurs)
-
-            /// [x] Any HealthStore measurements that we provided that no longer are present on our side—put them aside to be deleted later
-            toDelete.append(contentsOf: weights.ours.notPresent(in: weight.measurements))
-            
-            /// [x] Now any non-healthKit measurements we have that aren't present in HealthStore–put them aside to be exported later (we'll do it in a btach as opposed to a day at a time)
-            toExport.append(contentsOf: weight.measurements.nonHealthKitMeasurements.notPresent(in: weights.ours))
-            
-//            let lbms = lbms.filter { $0.date.startOfDay == day.date.startOfDay }
-//            if lbms.count > 0 {
-//                print("We have: \(lbms.count) lbms")
-//            }
-//
-//            let heights = heights.filter { $0.date.startOfDay == day.date.startOfDay }
-//            if heights.count > 0 {
-//                print("We have: \(heights.count) heights")
-//            }
-
-            /// [ ] Do this for all 3 types (weight, height, LBM)
 
             /// [ ] If the day has DietaryEnergyPointSource, RestingEnergySource or ActivieEnergySource as .healthKit, fetch them and set them
 
             /// [ ] Continue this for all Days
             /// [ ] Once we're doing, go ahead and delete all the measurements we put aside to be deleted
             /// [ ] Also export all the measurements we put aside
+
+            saveDayInDocuments(days[i])
         }
         
         print("We have: \(toDelete.count) to delete")
         print("We have: \(toExport.count) to export")
+        
+        if !toDelete.isEmpty {
+            let start = CFAbsoluteTimeGetCurrent()
+            await HealthStore.deleteMeasurements(toDelete)
+            print("Delete took: \(CFAbsoluteTimeGetCurrent()-start)s")
+        }
 
-        await recalculate(days)
+        if !toExport.isEmpty {
+            let start = CFAbsoluteTimeGetCurrent()
+            await HealthStore.saveMeasurements(toExport)
+            print("Export took: \(CFAbsoluteTimeGetCurrent()-start)s")
+        }
+
+        print("syncWithHealthKitAndRecalculateAllDays took: \(CFAbsoluteTimeGetCurrent()-start)s")
+//        await recalculate(days)
     }
 }
 
@@ -104,20 +140,15 @@ extension HealthProvider {
 extension HealthProvider {
     func setDailyValueType(for healthDetail: HealthDetail, to type: DailyValueType) {
         settingsProvider.settings.setDailyValueType(type, for: healthDetail)
+        settingsProvider.save()
         recalculateAllDays()
     }
     
     func setHealthKitSyncing(for healthDetail: HealthDetail, to isOn: Bool) {
         settingsProvider.settings.setHealthKitSyncing(for: healthDetail, to: isOn)
+        settingsProvider.save()
         if isOn {
-            resyncAndRecalculateAllDays()
-        }
-    }
-    
-    func resyncAndRecalculateAllDays() {
-        Task {
-            let days = await fetchAllDaysFromDocuments()
-            await syncWithHealthKitAndRecalculate(days)
+//            resyncAndRecalculateAllDays()
         }
     }
     

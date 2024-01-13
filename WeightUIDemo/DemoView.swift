@@ -36,6 +36,7 @@ struct DemoView: View {
     func appeared() {
         Task {
             try await HealthStore.requestPermissions()
+            await HealthProvider.syncWithHealthKitAndRecalculateAllDays()
         }
     }
     
@@ -44,6 +45,11 @@ struct DemoView: View {
             Menu {
                 Button("Clear Data") {
                     deleteAllFilesInDocuments()
+                    var settings = fetchSettingsFromDocuments()
+                    settings.setHealthKitSyncing(for: .weight, to: true)
+                    settings.setHealthKitSyncing(for: .height, to: true)
+                    settings.setHealthKitSyncing(for: .leanBodyMass, to: true)
+                    saveSettingsInDocuments(settings)
                 }
                 Button("Reset Current") {
                     setCurrentHealthDetails()

@@ -3,55 +3,6 @@ import PrepShared
 
 extension HealthStore {
     
-    static func latestDayOfWeightQuantities(
-        in unit: BodyMassUnit = .kg,
-        for date: Date = Date.now
-    ) async throws -> [HealthKitMeasurement]? {
-        try await HealthKitQuantityRequest(.weight, unit.healthKitUnit)
-            .mostRecentDaysQuantities(to: date)
-//            ?.removingDuplicateQuantities()
-    }
-
-    static func weightQuantities(
-        in unit: BodyMassUnit = .kg,
-        on date: Date
-    ) async throws -> [HealthKitMeasurement]? {
-        try await HealthKitQuantityRequest(.weight, unit.healthKitUnit)
-            .daysQuantities(for: date)
-    }
-
-    static func weightQuantities(
-        in unit: BodyMassUnit = .kg,
-        for range: ClosedRange<Date>
-    ) async throws -> [HealthKitMeasurement]? {
-        try await HealthKitQuantityRequest(.weight, unit.healthKitUnit)
-            .daysQuantities(for: range)
-    }
-
-    static func weight(
-        in unit: BodyMassUnit = .kg,
-        for date: Date = Date.now
-    ) async throws -> HealthKitMeasurement? {
-        try await HealthKitQuantityRequest(.weight, unit.healthKitUnit)
-            .mostRecentOrEarliestAvailable(to: date)
-    }
-
-    static func leanBodyMass(
-        in unit: BodyMassUnit = .kg,
-        for date: Date = Date.now
-    ) async throws -> HealthKitMeasurement? {
-        try await HealthKitQuantityRequest(.leanBodyMass, unit.healthKitUnit)
-            .mostRecentOrEarliestAvailable(to: date)
-    }
-
-    static func height(
-        in unit: HeightUnit = .cm,
-        for date: Date = Date.now
-    ) async throws -> HealthKitMeasurement? {
-        try await HealthKitQuantityRequest(.height, unit.healthKitUnit)
-            .mostRecentOrEarliestAvailable(to: date)
-    }
-
     static func biologicalSex() async throws -> HKBiologicalSex? {
         try store.biologicalSex().biologicalSex
     }
@@ -83,12 +34,9 @@ extension HealthStore {
     static func weightMeasurements(
         in unit: BodyMassUnit = .kg,
         from startDate: Date? = nil
-    ) async -> [HealthKitMeasurement] {
+    ) async -> [HKQuantitySample] {
         do {
-            guard let measurements = try await HealthKitQuantityRequest(.weight, unit.healthKitUnit).allQuantities(startingFrom: startDate) else {
-                return []
-            }
-            return measurements
+            return try await HealthKitQuantityRequest(.weight, unit.healthKitUnit).allSamples(startingFrom: startDate) ?? []
         } catch {
             return []
         }
@@ -97,9 +45,9 @@ extension HealthStore {
     static func leanBodyMassMeasurements(
         in unit: BodyMassUnit = .kg,
         from startDate: Date? = nil
-    ) async -> [HealthKitMeasurement] {
+    ) async -> [HKQuantitySample] {
         do {
-            return try await HealthKitQuantityRequest(.leanBodyMass, unit.healthKitUnit).allQuantities(startingFrom: startDate) ?? []
+            return try await HealthKitQuantityRequest(.leanBodyMass, unit.healthKitUnit).allSamples(startingFrom: startDate) ?? []
         } catch {
             return []
         }
@@ -108,12 +56,9 @@ extension HealthStore {
     static func heightMeasurements(
         in unit: HeightUnit = .cm,
         from startDate: Date? = nil
-    ) async -> [HealthKitMeasurement] {
+    ) async -> [HKQuantitySample] {
         do {
-            guard let measurements = try await HealthKitQuantityRequest(.height, unit.healthKitUnit).allQuantities(startingFrom: startDate) else {
-                return []
-            }
-            return measurements
+            return try await HealthKitQuantityRequest(.height, unit.healthKitUnit).allSamples(startingFrom: startDate) ?? []
         } catch {
             return []
         }

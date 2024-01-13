@@ -1,37 +1,41 @@
 import Foundation
+import HealthKit
 
 protocol HealthKitSyncable {
     associatedtype MeasurementType: Measurable
     var measurements: [MeasurementType] { get set }
     var deletedHealthKitMeasurements: [MeasurementType] { get set }
-    mutating func removeHealthKitMeasurements(notPresentIn healthKitMeasurements: [HealthKitMeasurement])
-    mutating func addNewHealthKitMeasurements(from healthKitMeasurements: [HealthKitMeasurement])
+    mutating func removeHealthKitQuantitySamples(notPresentIn samples: [HKQuantitySample])
+    mutating func addNewHealthKitQuantitySamples(from samples: [HKQuantitySample])
 }
 
 //MARK: - Default implementations
 
 extension HealthKitSyncable {
     
-    mutating func removeHealthKitMeasurements(notPresentIn healthKitMeasurements: [HealthKitMeasurement]) {
+    mutating func removeHealthKitQuantitySamples(notPresentIn samples: [HKQuantitySample]) {
         
         func shouldRemove(_ measurement: MeasurementType) -> Bool {
             guard let id = measurement.healthKitUUID else { return false }
-            return !healthKitMeasurements.contains(where: { $0.id == id })
+            return !samples.contains(where: { $0.uuid == id })
         }
         
         measurements.removeAll(where: shouldRemove)
         deletedHealthKitMeasurements.removeAll(where: shouldRemove)
     }
     
-    mutating func addNewHealthKitMeasurements(from healthKitMeasurements: [HealthKitMeasurement]) {
+    mutating func addNewHealthKitQuantitySamples(from samples: [HKQuantitySample]) {
 
-        func shouldAdd(_ healthKitMeasurement: HealthKitMeasurement) -> Bool {
-            !measurements.contains(where: { $0.id == healthKitMeasurement.id })
-            && !deletedHealthKitMeasurements.contains(where: { $0.id == healthKitMeasurement.id })
+        func shouldAdd(_ sample: HKQuantitySample) -> Bool {
+            !measurements.contains(where: { $0.healthKitUUID == sample.uuid })
+            && !deletedHealthKitMeasurements.contains(where: { $0.healthKitUUID == sample.uuid })
         }
         
-        let toAdd = healthKitMeasurements.filter(shouldAdd)
-            .map { MeasurementType(healthKitMeasurement: $0) }
+        let toAdd = samples.filter(shouldAdd)
+            .map { MeasurementType(healthKitQuantitySample: $0) }
+        if toAdd.count > 0 {
+            print("We here")
+        }
         measurements.append(contentsOf: toAdd)
         measurements.sort()
     }
@@ -43,3 +47,10 @@ extension HealthDetails.Weight: HealthKitSyncable {
     typealias MeasurementType = WeightMeasurement
 }
 
+extension HealthDetails.LeanBodyMass: HealthKitSyncable {
+    typealias MeasurementType = LeanBodyMassMeasurement
+}
+
+extension HealthDetails.Height: HealthKitSyncable {
+    typealias MeasurementType = HeightMeasurement
+}

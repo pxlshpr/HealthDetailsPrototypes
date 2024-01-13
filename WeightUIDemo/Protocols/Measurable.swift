@@ -1,28 +1,31 @@
 import Foundation
+import HealthKit
 
 protocol Measurable: Identifiable {
     var id: UUID { get }
     var healthKitUUID: UUID? { get }
     var date: Date { get }
     var value: Double { get }
-    
+    static var healthKitUnit: HKUnit { get }
+    var unit: HKUnit { get }
+
     /// Optionals
     var secondaryValue: Double? { get }
     var secondaryValueUnit: String? { get }
     var imageType: MeasurementImageType { get }
     
-    init(healthKitMeasurement: HealthKitMeasurement)
+    init(healthKitQuantitySample: HKQuantitySample)
     init(id: UUID, date: Date, value: Double, healthKitUUID: UUID?)
 }
 
 extension Measurable {
     
-    init(healthKitMeasurement: HealthKitMeasurement) {
+    init(healthKitQuantitySample sample: HKQuantitySample) {
         self.init(
             id: UUID(),
-            date: healthKitMeasurement.date,
-            value: healthKitMeasurement.value,
-            healthKitUUID: healthKitMeasurement.id
+            date: sample.date,
+            value: sample.quantity.doubleValue(for: Self.healthKitUnit),
+            healthKitUUID: sample.uuid
         )
     }
     
@@ -62,6 +65,42 @@ extension Measurable {
     }
 }
 
+//MARK: - Conformances
+
+extension HeightMeasurement: Measurable {
+    var value: Double { heightInCm }
+    static var healthKitUnit: HKUnit { .meterUnit(with: .centi) }
+    var unit: HKUnit { .meterUnit(with: .centi) }
+}
+
+
+extension WeightMeasurement: Measurable {
+    var value: Double { weightInKg }
+    static var healthKitUnit: HKUnit { .gramUnit(with: .kilo) }
+    var unit: HKUnit { .gramUnit(with: .kilo) }
+}
+
+extension LeanBodyMassMeasurement: Measurable {
+    var value: Double { leanBodyMassInKg }
+    static var healthKitUnit: HKUnit { .gramUnit(with: .kilo) }
+    var unit: HKUnit { .gramUnit(with: .kilo) }
+
+    var healthKitUUID: UUID? { source.healthKitUUID }
+    var secondaryValue: Double? { fatPercentage?.rounded(toPlaces: 1) }
+    var secondaryValueUnit: String? { "%" }
+    
+    var imageType: MeasurementImageType {
+        switch source {
+        case .healthKit:    .healthKit
+        default:            .systemImage(source.image, source.imageScale)
+        }
+    }
+}
+
+
+
+//MARK: - Array extensions
+
 extension Array where Element: Measurable {
     mutating func sort() {
         sort(by: { $0.date < $1.date })
@@ -77,9 +116,9 @@ extension Array where Element: Measurable {
         filter { $0.healthKitUUID == nil }
     }
     
-    func notPresent(in healthKitMeasurements: [HealthKitMeasurement]) -> [Element] {
+    func notPresent(in samples: [HKQuantitySample]) -> [Element] {
         filter { measurement in
-            !healthKitMeasurements.contains(where: { $0.prepID == measurement.id.uuidString })
+            !samples.contains(where: { $0.prepID == measurement.id.uuidString })
         }
     }
 }

@@ -341,6 +341,12 @@ extension HealthDetails {
     }
 }
 
+extension Array where Element == HealthDetails.Weight {
+    var averageValue: Double? {
+        compactMap{ $0.weightInKg }.average
+    }
+}
+
 extension HealthDetails.Weight {
     func valueString(in unit: BodyMassUnit) -> String {
         weightInKg.valueString(convertedFrom: .kg, to: unit)
@@ -424,16 +430,18 @@ extension HealthDetails {
     }
 }
 
+import HealthKit
+
 extension HealthDetails.Height {
     
-    mutating func addHealthKitMeasurement(_ measurement: HealthKitMeasurement) {
+    mutating func addHealthKitSample(_ sample: HKQuantitySample) {
         
-        guard !measurements.contains(where: { $0.healthKitUUID == measurement.id }),
-              !deletedHealthKitMeasurements.contains(where: { $0.healthKitUUID == measurement.id })
+        guard !measurements.contains(where: { $0.healthKitUUID == sample.uuid }),
+              !deletedHealthKitMeasurements.contains(where: { $0.healthKitUUID == sample.uuid })
         else {
             return
         }
-        measurements.append(HeightMeasurement(healthKitMeasurement: measurement))
+        measurements.append(HeightMeasurement(sample: sample))
         measurements.sort()
         heightInCm = measurements.last?.heightInCm
     }
@@ -526,20 +534,13 @@ struct HeightMeasurement: Hashable, Identifiable, Codable {
         self.heightInCm = value
     }
     
-    init(healthKitMeasurement measurement: HealthKitMeasurement) {
+    init(sample: HKQuantitySample) {
         self.id = UUID()
-        self.healthKitUUID = measurement.id
-        self.date = measurement.date
-        self.heightInCm = measurement.value
+        self.healthKitUUID = sample.uuid
+        self.date = sample.date
+        self.heightInCm = sample.quantity.doubleValue(for: .meterUnit(with: .centi))
     }
 }
-
-extension HeightMeasurement: Measurable {
-    var value: Double {
-        heightInCm
-    }
-}
-
 
 struct WeightMeasurement: Hashable, Identifiable, Codable {
     let id: UUID
@@ -607,34 +608,3 @@ struct LeanBodyMassMeasurement: Hashable, Identifiable, Codable {
         self.fatPercentage = fatPercentage
     }
 }
-
-extension WeightMeasurement: Measurable {
-    var value: Double {
-        weightInKg
-    }
-}
-
-extension LeanBodyMassMeasurement: Measurable {
-    var healthKitUUID: UUID? {
-        source.healthKitUUID
-    }
-    
-    var secondaryValue: Double? {
-        fatPercentage?.rounded(toPlaces: 1)
-    }
-    var secondaryValueUnit: String? {
-        "%"
-    }
-    
-    var value: Double {
-        leanBodyMassInKg
-    }
-    
-    var imageType: MeasurementImageType {
-        switch source {
-        case .healthKit:    .healthKit
-        default:            .systemImage(source.image, source.imageScale)
-        }
-    }
-}
-

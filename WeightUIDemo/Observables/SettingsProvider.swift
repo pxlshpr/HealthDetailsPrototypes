@@ -33,19 +33,28 @@ extension SettingsProvider {
 
 extension SettingsProvider {
     
+    func isHealthKitSyncing(_ healthDetail: HealthDetail) -> Bool {
+        settings.isHealthKitSyncing(healthDetail)
+    }
+    
+    func setHealthKitSyncing(for healthDetail: HealthDetail, to isOn: Bool) {
+        settings.setHealthKitSyncing(for: healthDetail, to: isOn)
+        save()
+    }
+    
     var heightIsHealthKitSynced: Bool {
         get { settings.isHealthKitSyncing(.height) }
-        set { settings.setHealthKitSyncing(for: .height, to: newValue) }
+        set { setHealthKitSyncing(for: .height, to: newValue) }
     }
 
     var weightIsHealthKitSynced: Bool {
         get { settings.isHealthKitSyncing(.weight) }
-        set { settings.setHealthKitSyncing(for: .weight, to: newValue) }
+        set { setHealthKitSyncing(for: .weight, to: newValue) }
     }
 
     var leanBodyMassIsHealthKitSynced: Bool {
         get { settings.isHealthKitSyncing(.leanBodyMass) }
-        set { settings.setHealthKitSyncing(for: .leanBodyMass, to: newValue) }
+        set { setHealthKitSyncing(for: .leanBodyMass, to: newValue) }
     }
 
 //    var fatPercentageIsHealthKitSynced: Bool {
@@ -54,10 +63,7 @@ extension SettingsProvider {
 //    }
 
     var energyUnit: EnergyUnit {
-        get { settings.energyUnit }
-        set {
-            settings.energyUnit = newValue
-        }
+        settings.energyUnit
     }
 
     var metricType: GoalMetricType {
