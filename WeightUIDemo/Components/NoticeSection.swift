@@ -102,8 +102,8 @@ struct NoticeSection: View {
     
     var body: some View {
         Section {
-            dateRow
             noticeRow
+            dateRow
         }
         .listRowBackground(background)
     }
