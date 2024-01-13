@@ -6,6 +6,7 @@ public enum QuantityType {
     case height
     case restingEnergy
     case activeEnergy
+    case fatPercentage
 }
 
 public extension QuantityType {
@@ -17,6 +18,7 @@ public extension QuantityType {
         case .height:           .height
         case .restingEnergy:    .basalEnergyBurned
         case .activeEnergy:     .activeEnergyBurned
+        case .fatPercentage:    .bodyFatPercentage
         }
     }
 }
@@ -29,6 +31,7 @@ extension QuantityType {
         case .height:           .meterUnit(with: .centi)
         case .restingEnergy:    .kilocalorie()
         case .activeEnergy:     .kilocalorie()
+        case .fatPercentage:    .percent()
         }
     }
 }

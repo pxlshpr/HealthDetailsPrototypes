@@ -511,10 +511,19 @@ struct HeightMeasurement: Hashable, Identifiable, Codable {
         heightInCm: Double,
         healthKitUUID: UUID? = nil
     ) {
+        self.init(id: id, date: date, value: heightInCm, healthKitUUID: healthKitUUID)
+    }
+
+    init(
+        id: UUID = UUID(),
+        date: Date,
+        value: Double,
+        healthKitUUID: UUID? = nil
+    ) {
         self.id = id
         self.healthKitUUID = healthKitUUID
         self.date = date
-        self.heightInCm = heightInCm
+        self.heightInCm = value
     }
     
     init(healthKitMeasurement measurement: HealthKitMeasurement) {
@@ -537,26 +546,28 @@ struct WeightMeasurement: Hashable, Identifiable, Codable {
     let healthKitUUID: UUID?
     let date: Date
     let weightInKg: Double
-    
+
     init(
         id: UUID = UUID(),
         date: Date,
         weightInKg: Double,
         healthKitUUID: UUID? = nil
     ) {
+        self.init(id: id, date: date, value: weightInKg, healthKitUUID: healthKitUUID)
+    }
+
+    init(
+        id: UUID = UUID(),
+        date: Date,
+        value: Double,
+        healthKitUUID: UUID? = nil
+    ) {
         self.id = id
         self.healthKitUUID = healthKitUUID
         self.date = date
-        self.weightInKg = weightInKg
+        self.weightInKg = value
     }
 }
-
-extension WeightMeasurement: Measurable {
-    var value: Double {
-        weightInKg
-    }
-}
-
 
 struct LeanBodyMassMeasurement: Hashable, Identifiable, Codable {
     let id: UUID
@@ -564,6 +575,23 @@ struct LeanBodyMassMeasurement: Hashable, Identifiable, Codable {
     let date: Date
     let leanBodyMassInKg: Double
     let fatPercentage: Double? /// e.g. 10 for 10%
+
+    init(
+        id: UUID,
+        date: Date,
+        value: Double,
+        healthKitUUID: UUID?
+    ) {
+        self.id = id
+        self.source = if let healthKitUUID {
+            .healthKit(healthKitUUID)
+        } else {
+            .userEntered
+        }
+        self.date = date
+        self.leanBodyMassInKg = value
+        self.fatPercentage = nil
+    }
     
     init(
         id: UUID = UUID(),
@@ -577,6 +605,12 @@ struct LeanBodyMassMeasurement: Hashable, Identifiable, Codable {
         self.date = date
         self.leanBodyMassInKg = leanBodyMassInKg
         self.fatPercentage = fatPercentage
+    }
+}
+
+extension WeightMeasurement: Measurable {
+    var value: Double {
+        weightInKg
     }
 }
 

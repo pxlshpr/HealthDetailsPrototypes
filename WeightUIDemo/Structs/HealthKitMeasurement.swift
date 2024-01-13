@@ -2,6 +2,7 @@ import Foundation
 
 public struct HealthKitMeasurement: Hashable, Codable {
     public var id: UUID
+    public var prepID: String?
     public var value: Double
     public var date: Date
     public var sourceName: String
@@ -9,12 +10,14 @@ public struct HealthKitMeasurement: Hashable, Codable {
     
     public init(
         id: UUID,
+        prepID: String?,
         value: Double,
         date: Date,
         sourceName: String,
         sourceBundleIdentifier: String
     ) {
         self.id = id
+        self.prepID = prepID
         self.value = value
         self.date = date
         self.sourceName = sourceName
@@ -38,26 +41,29 @@ extension Array where Element == HealthDetails.Weight {
 }
 
 extension Array where Element == HealthKitMeasurement {
-//    var valuesGroupedByDate: [Date: [HealthKitMeasurement]] {
-//        let withDates = self.filter { $0.date != nil }
-//        return Dictionary(grouping: withDates) { $0.date!.startOfDay }
-//    }
-    
-//    var sortedByDate: [HealthKitMeasurement] {
-//        self.sorted(by: { lhs, rhs in
-//            switch (lhs.date, rhs.date) {
-//            case (.some(let date1), .some(let date2)):  date1 < date2
-//            case (.some, .none):                        true
-//            case (.none, .some):                        false
-//            case (.none, .none):                        false
-//            }
-//        })
-//    }
-    
     var averageValue: Double? {
         map{ $0.value }.average
     }
+    
+    var notOurs: [HealthKitMeasurement] {
+        filter { $0.sourceBundleIdentifier != HealthKitBundleIdentifier }
+    }
+    
+    var ours: [HealthKitMeasurement] {
+        filter { $0.sourceBundleIdentifier == HealthKitBundleIdentifier }
+    }
+    
+    func notPresent(in measurements: [any Measurable]) -> [HealthKitMeasurement] {
+        filter {
+            /// If there's no `prepID`, consider it not to be present
+            guard let prepID = $0.prepID else { return true }
+            return !measurements.contains(where: { $0.id.uuidString == prepID })
+        }
+    }
 }
+
+let HealthKitBundleIdentifier: String = "com.xxx"
+let HealthKitMetadataIDKey: String = "PrepID"
 
 import HealthKit
 
@@ -67,6 +73,7 @@ extension HKQuantitySample {
         let date = startDate
         return HealthKitMeasurement(
             id: uuid,
+            prepID: metadata?[HealthKitMetadataIDKey] as? String,
             value: quantity,
             date: date,
             sourceName: sourceRevision.source.name,
@@ -90,6 +97,7 @@ extension HealthKitMeasurement {
     func rounded(toPlaces places: Int) -> HealthKitMeasurement {
         HealthKitMeasurement(
             id: id,
+            prepID: prepID,
             value: value.rounded(toPlaces: places),
             date: date,
             sourceName: sourceName,

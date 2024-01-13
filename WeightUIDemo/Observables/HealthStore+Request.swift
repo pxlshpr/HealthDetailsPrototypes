@@ -53,13 +53,11 @@ extension HealthStore {
     }
 
     static func biologicalSex() async throws -> HKBiologicalSex? {
-        try await requestPermission(for: .biologicalSex)
-        return try store.biologicalSex().biologicalSex
+        try store.biologicalSex().biologicalSex
     }
     
     static func dateOfBirthComponents() async throws -> DateComponents? {
-        try await requestPermission(for: .dateOfBirth)
-        return try store.dateOfBirthComponents()
+        try store.dateOfBirthComponents()
     }
 
     static func restingEnergy(

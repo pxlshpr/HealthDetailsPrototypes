@@ -30,6 +30,13 @@ struct DemoView: View {
         }
         .sheet(item: $pastDateBeingShown) { healthDetailsForm(for: $0) }
         .sheet(isPresented: $showingSettings) { settingsForm }
+        .onAppear(perform: appeared)
+    }
+    
+    func appeared() {
+        Task {
+            try await HealthStore.requestPermissions()
+        }
     }
     
     var toolbarContent: some ToolbarContent {

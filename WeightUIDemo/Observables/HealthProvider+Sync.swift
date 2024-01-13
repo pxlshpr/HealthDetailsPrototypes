@@ -5,6 +5,9 @@ extension HealthProvider {
     /// [x] First add the source data into HealthKitMeasurement so that we can filter out what's form Apple or us
     /// [x] Rename to Sync with everything or something
     func syncWithHealthKitAndRecalculate(_ days: [Day]) async {
+        
+        var days = days
+        
         let start = CFAbsoluteTimeGetCurrent()
         
         /// Fetch all HealthKit weight samples from start of log (since we're not interested in any before that)
@@ -21,23 +24,46 @@ extension HealthProvider {
             await saveHealthKitHeightMeasurement(latestHeight)
         }
         
+        var toDelete: [HealthKitMeasurement] = []
+        var toExport: [any Measurable] = []
+        
         /// [ ] Go through each Day
-        for day in days {
+        for i in days.indices {
+            let day = days[i]
             print("Doing date: \(day.date.shortDateString)")
             /// [ ] For each Day, go through each fetched array and get all the values for that date
             let weights = weights.filter { $0.date.startOfDay == day.date.startOfDay }
-            print("We have: \(weights.count) weights")
+            if weights.count > 0 {
+                print("We have: \(weights.count) weights")
+            }
+            
+            var weight: HealthDetails.Weight {
+                get { days[i].healthDetails.weight }
+                set { days[i].healthDetails.weight = newValue }
+            }
+            
+            /// [x] Remove any healthKit measurements we have that don't exist any more
+            weight.removeHealthKitMeasurements(notPresentIn: weights.notOurs)
+            
+            /// [x] Also add any healthKit measurements that are present which we don't have
+            weight.addNewHealthKitMeasurements(from: weights.notOurs)
 
-            let lbms = lbms.filter { $0.date.startOfDay == day.date.startOfDay }
-            print("We have: \(lbms.count) lbms")
+            /// [x] Any HealthStore measurements that we provided that no longer are present on our side—put them aside to be deleted later
+            toDelete.append(contentsOf: weights.ours.notPresent(in: weight.measurements))
+            
+            /// [x] Now any non-healthKit measurements we have that aren't present in HealthStore–put them aside to be exported later (we'll do it in a btach as opposed to a day at a time)
+            toExport.append(contentsOf: weight.measurements.nonHealthKitMeasurements.notPresent(in: weights.ours))
+            
+//            let lbms = lbms.filter { $0.date.startOfDay == day.date.startOfDay }
+//            if lbms.count > 0 {
+//                print("We have: \(lbms.count) lbms")
+//            }
+//
+//            let heights = heights.filter { $0.date.startOfDay == day.date.startOfDay }
+//            if heights.count > 0 {
+//                print("We have: \(heights.count) heights")
+//            }
 
-            let heights = heights.filter { $0.date.startOfDay == day.date.startOfDay }
-            print("We have: \(heights.count) heights")
-
-            /// [ ] Now sync with the day by removing any healthKit measurements we have that don't exist any more
-            /// [ ] Also add any healthKit measurements that are present which we don't have
-            /// [ ] Any HealthStore measurements that we provided that no longer are present on our side—put them aside to be deleted later
-            /// [ ] Now any non-healthKit measurements we have that aren't present in HealthStore–put them aside to be exported later (we'll do it in a btach as opposed to a day at a time)
             /// [ ] Do this for all 3 types (weight, height, LBM)
 
             /// [ ] If the day has DietaryEnergyPointSource, RestingEnergySource or ActivieEnergySource as .healthKit, fetch them and set them
@@ -47,6 +73,9 @@ extension HealthProvider {
             /// [ ] Also export all the measurements we put aside
         }
         
+        print("We have: \(toDelete.count) to delete")
+        print("We have: \(toExport.count) to export")
+
         await recalculate(days)
     }
 }

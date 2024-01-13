@@ -5,12 +5,27 @@ protocol Measurable: Identifiable {
     var healthKitUUID: UUID? { get }
     var date: Date { get }
     var value: Double { get }
+    
+    /// Optionals
     var secondaryValue: Double? { get }
     var secondaryValueUnit: String? { get }
     var imageType: MeasurementImageType { get }
+    
+    init(healthKitMeasurement: HealthKitMeasurement)
+    init(id: UUID, date: Date, value: Double, healthKitUUID: UUID?)
 }
 
 extension Measurable {
+    
+    init(healthKitMeasurement: HealthKitMeasurement) {
+        self.init(
+            id: UUID(),
+            date: healthKitMeasurement.date,
+            value: healthKitMeasurement.value,
+            healthKitUUID: healthKitMeasurement.id
+        )
+    }
+    
     var secondaryValue: Double? {
         nil
     }
@@ -18,6 +33,17 @@ extension Measurable {
     var secondaryValueUnit: String? {
         nil
     }
+    
+    var imageType: MeasurementImageType {
+        if isFromHealthKit {
+            .healthKit
+        } else {
+            .systemImage("pencil")
+        }
+    }
+}
+
+extension Measurable {
     
     var secondaryValueString: String? {
         if let secondaryValue, let secondaryValueUnit {
@@ -34,14 +60,6 @@ extension Measurable {
     var isFromHealthKit: Bool {
         healthKitUUID != nil
     }
-    
-    var imageType: MeasurementImageType {
-        if isFromHealthKit {
-            .healthKit
-        } else {
-            .systemImage("pencil")
-        }
-    }
 }
 
 extension Array where Element: Measurable {
@@ -54,26 +72,14 @@ extension Array where Element: Measurable {
     }
 }
 
-//struct AnyMeasurable: Measurable {
-//    private var _measurable: any Measurable
-//    
-//    init(_ measurable: some Measurable) {
-//        _measurable = measurable /// Automatically casts to "any" type
-//    }
-//    
-//    var id: UUID {
-//        _measurable.id
-//    }
-//    
-//    var healthKitUUID: UUID? {
-//        _measurable.healthKitUUID
-//    }
-//    
-//    var date: Date {
-//        _measurable.date
-//    }
-//    
-//    var value: Double {
-//        _measurable.value
-//    }
-//}
+extension Array where Element: Measurable {
+    var nonHealthKitMeasurements: [Element] {
+        filter { $0.healthKitUUID == nil }
+    }
+    
+    func notPresent(in healthKitMeasurements: [HealthKitMeasurement]) -> [Element] {
+        filter { measurement in
+            !healthKitMeasurements.contains(where: { $0.prepID == measurement.id.uuidString })
+        }
+    }
+}

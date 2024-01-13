@@ -26,9 +26,9 @@ extension HealthKitEnergyRequest {
     var quantityType: HKQuantityType { HKQuantityType(typeIdentifier)}
     var unit: HKUnit { energyUnit.healthKitUnit }
     
-    func requestPersmissions() async throws {
-        try await HealthStore.requestPermissions(quantityTypeIdentifiers: [typeIdentifier])
-    }
+//    func requestPersmissions() async throws {
+//        try await HealthStore.requestPermissions(quantityTypeIdentifiers: [typeIdentifier])
+//    }
     
     var startDate: Date { interval.startDate(with: date) }
     var dateRange: ClosedRange<Date> { interval.dateRange(with: date) }

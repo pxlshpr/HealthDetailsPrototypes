@@ -165,17 +165,15 @@ extension HealthKitQuantityRequest {
     
     var typeIdentifier: HKQuantityTypeIdentifier { quantityType.healthKitTypeIdentifier }
 
-    func requestPersmissions() async throws {
-        try await HealthStore.requestPermissions(quantityTypeIdentifiers: [typeIdentifier])
-    }
+//    func requestPersmissions() async throws {
+//        try await HealthStore.requestPermissions(quantityTypeIdentifiers: [typeIdentifier])
+//    }
 
     func samples(
         matching predicate: NSPredicate? = nil,
         sortDescriptors: [SortDescriptor<HKQuantitySample>] = [],
         limit: Int? = nil
     ) async throws -> [HKQuantitySample] {
-        try await requestPersmissions()
-
         let type = HKSampleType.quantityType(forIdentifier: typeIdentifier)!
         let samplePredicates = [HKSamplePredicate.quantitySample(type: type, predicate: predicate)]
         
