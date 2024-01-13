@@ -133,6 +133,12 @@ extension SettingsProvider {
     }
 }
 
+extension SettingsProvider {
+    func energyString(_ energyInKcal: Double) -> String {
+        "\(EnergyUnit.kcal.convert(energyInKcal, to: energyUnit).formattedEnergy) \(energyUnit.abbreviation)"
+    }
+}
+
 //import HealthKit
 //
 //public extension SettingsStore {

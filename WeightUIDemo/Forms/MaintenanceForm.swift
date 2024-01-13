@@ -4,12 +4,10 @@ import PrepShared
 
 struct MaintenanceForm: View {
     
-    @Environment(SettingsProvider.self) var settingsProvider
-    
     @Bindable var healthProvider: HealthProvider
-    
+    @Binding var isPresented: Bool
+
     let date: Date
-    let initialMaintenance: HealthDetails.Maintenance
     
     @State var estimate: HealthDetails.Maintenance.Estimate
     @State var adaptive: HealthDetails.Maintenance.Adaptive
@@ -19,11 +17,6 @@ struct MaintenanceForm: View {
 
     @State var showingMaintenanceInfo = false
     
-    @State var isEditing: Bool
-    @State var isDirty: Bool = false
-    @Binding var isPresented: Bool
-    @Binding var dismissDisabled: Bool
-
     let saveHandler: (HealthDetails.Maintenance) -> ()
     
     init(
@@ -31,16 +24,12 @@ struct MaintenanceForm: View {
         maintenance: HealthDetails.Maintenance,
         healthProvider: HealthProvider,
         isPresented: Binding<Bool> = .constant(true),
-        dismissDisabled: Binding<Bool> = .constant(false),
         saveHandler: @escaping (HealthDetails.Maintenance) -> ()
     ) {
         self.date = date
-        self.initialMaintenance = maintenance
         self.saveHandler = saveHandler
         self.healthProvider = healthProvider
         _isPresented = isPresented
-        _dismissDisabled = dismissDisabled
-        _isEditing = State(initialValue: date.isToday)
 
         _maintenanceInKcal = State(initialValue: maintenance.kcal)
         _maintenancetype = State(initialValue: maintenance.type)
@@ -51,22 +40,20 @@ struct MaintenanceForm: View {
     
     init(
         healthProvider: HealthProvider,
-        isPresented: Binding<Bool> = .constant(true),
-        dismissDisabled: Binding<Bool> = .constant(false)
+        isPresented: Binding<Bool> = .constant(true)
     ) {
         self.init(
             date: healthProvider.healthDetails.date,
             maintenance: healthProvider.healthDetails.maintenance,
             healthProvider: healthProvider,
             isPresented: isPresented,
-            dismissDisabled: dismissDisabled,
             saveHandler: healthProvider.saveMaintenance
         )
     }
     
     var body: some View {
         List {
-            notice
+            dateSection
             about
             valuePicker
             adaptiveLink
@@ -80,19 +67,15 @@ struct MaintenanceForm: View {
             MaintenanceInfo()
         }
         .safeAreaInset(edge: .bottom) { bottomValue }
-        .navigationBarBackButtonHidden(isLegacy && isEditing)
-        .onChange(of: isEditing) { _, _ in setDismissDisabled() }
-        .onChange(of: isDirty) { _, _ in setDismissDisabled() }
     }
     
-    func setDismissDisabled() {
-        dismissDisabled = isLegacy && isEditing && isDirty
-    }
-    
+    var energyUnit: EnergyUnit { healthProvider.settingsProvider.energyUnit }
+    var energyUnitString: String { healthProvider.settingsProvider.energyUnit.abbreviation }
+
     var bottomValue: some View {
         var value: Double? {
             guard let maintenanceInKcal else { return nil }
-            return EnergyUnit.kcal.convert(maintenanceInKcal, to: settingsProvider.energyUnit)
+            return EnergyUnit.kcal.convert(maintenanceInKcal, to: energyUnit)
         }
         
         return MeasurementBottomBar(
@@ -104,7 +87,7 @@ struct MaintenanceForm: View {
                 get: { value?.formattedEnergy },
                 set: { _ in }
             ),
-            doubleUnitString: settingsProvider.energyUnit.abbreviation
+            doubleUnitString: energyUnitString
         )
     }
     
@@ -134,35 +117,30 @@ struct MaintenanceForm: View {
             if maintenancetype == .adaptive {
                 Section(footer: footer) {
                     Toggle(title, isOn: binding)
-                        .disabled(!isEditing)
-                        .foregroundColor(isEditing ? .primary : .secondary)
+                        .foregroundColor(.primary)
                 }
             }
         }
     }
     
-    var isLegacy: Bool {
-        date.startOfDay < Date.now.startOfDay
-    }
-    
-    @ViewBuilder
-    var notice: some View {
-        if isLegacy {
-            NoticeSection.legacy(date, isEditing: $isEditing)
+    var dateSection: some View {
+        Section {
+            HStack {
+                Text("Date")
+                Spacer()
+                Text(date.shortDateString)
+            }
         }
     }
-    
+
     var toolbarContent: some ToolbarContent {
-        topToolbarContent(
-            isEditing: $isEditing,
-            isDirty: $isDirty,
-            isPast: isLegacy,
-            dismissAction: { 
+        ToolbarItem(placement: .topBarTrailing) {
+            Button {
                 isPresented = false
-            },
-            undoAction: undo,
-            saveAction: save
-        )
+            } label: {
+                CloseButtonLabel()
+            }
+        }
     }
     
     func save() {
@@ -178,14 +156,6 @@ struct MaintenanceForm: View {
             useEstimateAsFallback: useEstimateAsFallback
         )
     }
-    
-    func undo() {
-        maintenanceInKcal = initialMaintenance.kcal
-        maintenancetype = initialMaintenance.type
-        useEstimateAsFallback = initialMaintenance.useEstimateAsFallback
-        estimate = initialMaintenance.estimate
-        adaptive = initialMaintenance.adaptive
-    }
 
     var adaptiveLink: some View {
         var label: some View {
@@ -193,7 +163,7 @@ struct MaintenanceForm: View {
                 Text("Adaptive")
                 Spacer()
                 if let kcal = adaptive.kcal {
-                    Text("\(EnergyUnit.kcal.convert(kcal, to: settingsProvider.energyUnit).formattedEnergy) \(settingsProvider.energyUnit.abbreviation)")
+                    Text(healthProvider.settingsProvider.energyString(kcal))
                 } else {
                     Text("Not Set")
                         .foregroundStyle(.secondary)
@@ -204,13 +174,13 @@ struct MaintenanceForm: View {
         var destination: some View {
             AdaptiveMaintenanceForm(
                 date: date,
-                adaptive: initialMaintenance.adaptive,
+                adaptive: adaptive,
                 healthProvider: healthProvider,
                 isPresented: $isPresented,
-                dismissDisabled: $dismissDisabled,
+                dismissDisabled: .constant(true),
                 saveHandler: { adaptive in
                     self.adaptive = adaptive
-                    handleChanges(forceSave: true)
+                    handleChanges()
                 }
             )
         }
@@ -225,7 +195,6 @@ struct MaintenanceForm: View {
         }
         return Section {
             navigationViewLink
-                .disabled(isLegacy && isEditing)
         }
     }
 
@@ -235,7 +204,7 @@ struct MaintenanceForm: View {
                 Text("Estimate")
                 Spacer()
                 if let kcal = estimate.kcal {
-                    Text("\(EnergyUnit.kcal.convert(kcal, to: settingsProvider.energyUnit).formattedEnergy) \(settingsProvider.energyUnit.abbreviation)")
+                    Text(healthProvider.settingsProvider.energyString(kcal))
                 } else {
                     Text("Not Set")
                         .foregroundStyle(.secondary)
@@ -246,16 +215,15 @@ struct MaintenanceForm: View {
         var destination: some View {
             EstimatedMaintenanceForm(
                 date: date,
-                estimate: initialMaintenance.estimate,
+                estimate: estimate,
                 healthProvider: healthProvider,
                 isPresented: $isPresented,
-                dismissDisabled: $dismissDisabled,
+                dismissDisabled: .constant(true),
                 saveHandler: { estimate in
                     self.estimate = estimate
-                    handleChanges(forceSave: true)
+                    handleChanges()
                 }
             )
-            .environment(settingsProvider)
         }
         
         var navigationViewLink: some View {
@@ -268,11 +236,10 @@ struct MaintenanceForm: View {
         }
         return Section {
             navigationViewLink
-                .disabled(isLegacy && isEditing)
         }
     }
 
-    func handleChanges(forceSave: Bool = false) {
+    func handleChanges() {
         
         let maintenanceInKcal: Double? = switch maintenancetype {
         case .adaptive:
@@ -290,14 +257,7 @@ struct MaintenanceForm: View {
             self.maintenanceInKcal = maintenanceInKcal
         }
 
-        setIsDirty()
-        if !isLegacy || forceSave {
-            save()
-        }
-    }
-    
-    func setIsDirty() {
-        isDirty = maintenance != initialMaintenance
+        save()
     }
     
     var valuePicker: some View {
@@ -319,7 +279,6 @@ struct MaintenanceForm: View {
             }
             .pickerStyle(.segmented)
             .listRowSeparator(.hidden)
-            .disabled(!isEditing)
         }
         
         var description: String {

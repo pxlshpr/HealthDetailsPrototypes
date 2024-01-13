@@ -253,16 +253,13 @@ struct TemporalVariableSection: View {
                 case .leanBodyMass:
                     LeanBodyMassForm(
                         healthProvider: healthProvider,
-                        isPresented: $isPresented,
-                        dismissDisabled: $dismissDisabled
+                        isPresented: $isPresented
                     )
                 case .maintenance:
                     MaintenanceForm(
                         healthProvider: healthProvider,
-                        isPresented: $isPresented,
-                        dismissDisabled: $dismissDisabled
+                        isPresented: $isPresented
                     )
-                    .environment(settingsProvider)
                 case .preganancyStatus:
                     PregnancyStatusForm(
                         healthProvider: healthProvider,
@@ -298,12 +295,10 @@ struct TemporalVariableSection: View {
                     weight: latestWeight.weight,
                     healthProvider: healthProvider,
                     isPresented: $isPresented,
-//                    dismissDisabled: $dismissDisabled,
                     save: { newWeight in
                         healthProvider.updateLatestWeight(newWeight)
                     }
                 )
-                .environment(settingsProvider)
             } label: {
                 HStack {
                     Text(latestWeight.date.shortDateString)
@@ -324,12 +319,10 @@ struct TemporalVariableSection: View {
                     leanBodyMass: latestLeanBodyMass.leanBodyMass,
                     healthProvider: healthProvider,
                     isPresented: $isPresented,
-                    dismissDisabled: $dismissDisabled,
                     save: { leanBodyMass in
                         healthProvider.updateLatestLeanBodyMass(leanBodyMass)
                     }
                 )
-                .environment(settingsProvider)
             } label: {
                 HStack {
                     Text(latestLeanBodyMass.date.shortDateString)
@@ -350,12 +343,10 @@ struct TemporalVariableSection: View {
                     maintenance: latest.maintenance,
                     healthProvider: healthProvider,
                     isPresented: $isPresented,
-                    dismissDisabled: $dismissDisabled,
                     saveHandler: { maintenance in
                         healthProvider.updateLatestMaintenance(maintenance)
                     }
                 )
-                .environment(settingsProvider)
             } label: {
                 HStack {
                     Text(latest.date.shortDateString)

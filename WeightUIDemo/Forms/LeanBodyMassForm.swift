@@ -5,9 +5,9 @@ import PrepShared
 struct LeanBodyMassForm: View {
     
     @Bindable var healthProvider: HealthProvider
-
+    @Binding var isPresented: Bool
+    
     let date: Date
-    let initialLeanBodyMass: HealthDetails.LeanBodyMass
 
     @State var leanBodyMassInKg: Double?
     @State var fatPercentage: Double?
@@ -18,11 +18,6 @@ struct LeanBodyMassForm: View {
     
     @State var showingForm = false
     
-    @State var isEditing: Bool
-    @State var isDirty: Bool = false
-    @Binding var isPresented: Bool
-    @Binding var dismissDisabled: Bool
-    
     let saveHandler: (HealthDetails.LeanBodyMass) -> ()
 
     init(
@@ -30,16 +25,12 @@ struct LeanBodyMassForm: View {
         leanBodyMass: HealthDetails.LeanBodyMass,
         healthProvider: HealthProvider,
         isPresented: Binding<Bool> = .constant(true),
-        dismissDisabled: Binding<Bool> = .constant(false),
         save: @escaping (HealthDetails.LeanBodyMass) -> ()
     ) {
         self.date = date
-        self.initialLeanBodyMass = leanBodyMass
         self.saveHandler = save
         self.healthProvider = healthProvider
         _isPresented = isPresented
-        _dismissDisabled = dismissDisabled
-        _isEditing = State(initialValue: date.isToday)
         
         _leanBodyMassInKg = State(initialValue: leanBodyMass.leanBodyMassInKg)
         _measurements = State(initialValue: leanBodyMass.measurements)
@@ -50,22 +41,20 @@ struct LeanBodyMassForm: View {
     
     init(
         healthProvider: HealthProvider,
-        isPresented: Binding<Bool> = .constant(true),
-        dismissDisabled: Binding<Bool> = .constant(false)
+        isPresented: Binding<Bool> = .constant(true)
     ) {
         self.init(
             date: healthProvider.healthDetails.date,
             leanBodyMass: healthProvider.healthDetails.leanBodyMass,
             healthProvider: healthProvider,
             isPresented: isPresented,
-            dismissDisabled: dismissDisabled,
             save: healthProvider.saveLeanBodyMass
         )
     }
 
     var body: some View {
         Form {
-            noticeOrDateSection
+            dateSection
             measurementsSections
             dailyValuePicker
             syncSection
@@ -76,9 +65,6 @@ struct LeanBodyMassForm: View {
         .toolbar { toolbarContent }
         .sheet(isPresented: $showingForm) { measurementForm }
         .safeAreaInset(edge: .bottom) { bottomValue }
-        .navigationBarBackButtonHidden(isLegacy && isEditing)
-        .onChange(of: isEditing) { _, _ in setDismissDisabled() }
-        .onChange(of: isDirty) { _, _ in setDismissDisabled() }
         .onChange(of: isSynced, isSyncedChanged)
     }
     
@@ -103,18 +89,12 @@ struct LeanBodyMassForm: View {
         }
     }
     
-    
-    @ViewBuilder
-    var noticeOrDateSection: some View {
-        if isLegacy {
-            NoticeSection.legacy(date, isEditing: $isEditing)
-        } else {
-            Section {
-                HStack {
-                    Text("Date")
-                    Spacer()
-                    Text(Date.now.shortDateString)
-                }
+    var dateSection: some View {
+        Section {
+            HStack {
+                Text("Date")
+                Spacer()
+                Text(date.shortDateString)
             }
         }
     }
@@ -144,10 +124,10 @@ struct LeanBodyMassForm: View {
                 Text("\(fatPercentage.roundedToOnePlace)")
                     .contentTransition(.numericText(value: fatPercentage))
                     .font(LargeNumberFont)
-                    .foregroundStyle(isDisabled ? .secondary : .primary)
+                    .foregroundStyle(.primary)
                 Text("% fat")
                     .font(LargeUnitFont)
-                    .foregroundStyle(isDisabled ? .tertiary : .secondary)
+                    .foregroundStyle(.secondary)
             }
             Spacer()
             MeasurementBottomText(
@@ -167,14 +147,13 @@ struct LeanBodyMassForm: View {
     }
     
     var toolbarContent: some ToolbarContent {
-        topToolbarContent(
-            isEditing: $isEditing,
-            isDirty: $isDirty,
-            isPast: isLegacy,
-            dismissAction: { isPresented = false },
-            undoAction: undo,
-            saveAction: save
-        )
+        ToolbarItem(placement: .topBarTrailing) {
+            Button {
+                isPresented = false
+            } label: {
+                CloseButtonLabel()
+            }
+        }
     }
     
     //MARK: - Rewrite
@@ -205,7 +184,6 @@ struct LeanBodyMassForm: View {
             }
             .pickerStyle(.segmented)
             .listRowSeparator(.hidden)
-            .disabled(isDisabled)
         }
 
         var description: String {
@@ -222,15 +200,12 @@ struct LeanBodyMassForm: View {
         }
     }
     
-    @ViewBuilder
     var syncSection: some View {
-        if !isLegacy {
-            SyncSection(
-                healthDetail: .leanBodyMass,
-                isSynced: $isSynced,
-                handleChanges: handleChanges
-            )
-        }
+        SyncSection(
+            healthDetail: .leanBodyMass,
+            isSynced: $isSynced,
+            handleChanges: handleChanges
+        )
     }
     
     var measurementsSections: some View {
@@ -256,46 +231,16 @@ struct LeanBodyMassForm: View {
     
     //MARK: - Actions
     
-    func setDismissDisabled() {
-        dismissDisabled = isLegacy && isEditing && isDirty
-    }
-    
-    
-    func undo() {
-        self.leanBodyMassInKg = initialLeanBodyMass.leanBodyMassInKg
-        self.measurements = initialLeanBodyMass.measurements
-        self.deletedHealthKitMeasurements = initialLeanBodyMass.deletedHealthKitMeasurements
-    }
-    
     func save() {
         saveHandler(leanBodyMass)
     }
     
-    func setIsDirty() {
-        isDirty = leanBodyMass != initialLeanBodyMass
-    }
-    
     func handleChanges() {
         leanBodyMassInKg = calculatedLeanBodyMassInKg
-        setIsDirty()
-        if !isLegacy {
-            save()
-        }
+        save()
     }
     
     //MARK: - Convenience
-    
-    var isDisabled: Bool {
-        isLegacy && !isEditing
-    }
-    
-    var controlColor: Color {
-        isDisabled ? .secondary : .primary
-    }
-    
-    var isLegacy: Bool {
-        date.startOfDay < Date.now.startOfDay
-    }
     
     var calculatedLeanBodyMassInKg: Double? {
         switch dailyValueType {
@@ -326,48 +271,6 @@ struct LeanBodyMassForm: View {
             measurements: measurements,
             deletedHealthKitMeasurements: deletedHealthKitMeasurements
         )
-    }
-}
-
-#Preview("Current (kg)") {
-    NavigationView {
-        LeanBodyMassForm(healthProvider: MockCurrentProvider)
-            .environment(SettingsProvider(settings: .init(bodyMassUnit: .kg)))
-    }
-}
-
-#Preview("Past (kg)") {
-    NavigationView {
-        LeanBodyMassForm(healthProvider: MockPastProvider)
-            .environment(SettingsProvider(settings: .init(bodyMassUnit: .kg)))
-    }
-}
-
-#Preview("Current (st)") {
-    NavigationView {
-        LeanBodyMassForm(healthProvider: MockCurrentProvider)
-            .environment(SettingsProvider(settings: .init(bodyMassUnit: .st)))
-    }
-}
-
-#Preview("Past (st)") {
-    NavigationView {
-        LeanBodyMassForm(healthProvider: MockPastProvider)
-            .environment(SettingsProvider(settings: .init(bodyMassUnit: .st)))
-    }
-}
-
-#Preview("Current (lb)") {
-    NavigationView {
-        LeanBodyMassForm(healthProvider: MockCurrentProvider)
-            .environment(SettingsProvider(settings: .init(bodyMassUnit: .lb)))
-    }
-}
-
-#Preview("Past (lb)") {
-    NavigationView {
-        LeanBodyMassForm(healthProvider: MockPastProvider)
-            .environment(SettingsProvider(settings: .init(bodyMassUnit: .lb)))
     }
 }
 

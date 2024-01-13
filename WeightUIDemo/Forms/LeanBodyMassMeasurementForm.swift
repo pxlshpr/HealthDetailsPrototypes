@@ -494,38 +494,6 @@ struct LeanBodyMassMeasurementForm: View {
     }
 }
 
-#Preview("Current (kg)") {
-    LeanBodyMassMeasurementForm(
-        healthProvider: MockCurrentProvider
-    ) { measurement in
-        
-    }
-    .environment(SettingsProvider(settings: .init(bodyMassUnit: .kg)))
-}
-
-#Preview("Current (st)") {
-    LeanBodyMassMeasurementForm(
-        healthProvider: MockCurrentProvider
-    ) { measurement in
-        
-    }
-    .environment(SettingsProvider(settings: .init(bodyMassUnit: .st)))
-}
-
-#Preview("LeanBodyMassForm (kg)") {
-    NavigationView {
-        LeanBodyMassForm(healthProvider: MockCurrentProvider)
-            .environment(SettingsProvider(settings: .init(bodyMassUnit: .kg)))
-    }
-}
-
-#Preview("LeanBodyMassForm (st)") {
-    NavigationView {
-        LeanBodyMassForm(healthProvider: MockCurrentProvider)
-            .environment(SettingsProvider(settings: .init(bodyMassUnit: .st)))
-    }
-}
-
 #Preview("DemoView ") {
     DemoView()
 }
