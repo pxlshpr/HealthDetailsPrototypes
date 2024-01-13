@@ -257,10 +257,6 @@ extension EnergyAppleHealthSections {
                 hasFocused: $hasFocusedCorrectionField,
                 delayFocus: true,
                 footer: nil,
-                isDisabled: Binding<Bool>(
-                    get: { isDisabled },
-                    set: { _ in }
-                ),
                 handleChanges: handleCustomValue,
                 handleLostFocus: handleLostFocus
             )
@@ -301,8 +297,7 @@ extension EnergyAppleHealthSections {
                 notice: .init(
                     title: "Missing Data or Permissions",
                     message: "No data was fetched from Apple Health. This could be because there isn't any data available for \(intervalType.dateDescription(date, interval: interval)) or you have not provided permission to read it.\n\nYou can check for permissions in:\nSettings > Privacy & Security > Health > Prep",
-                    imageName: "questionmark.app.dashed",
-                    isEditing: $isEditing
+                    imageName: "questionmark.app.dashed"
                 )
             )
         }

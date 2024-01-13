@@ -219,7 +219,7 @@ struct RestingEnergyForm: View {
     @ViewBuilder
     var notice: some View {
         if isLegacy {
-            NoticeSection.legacy(date, isEditing: $isEditing)
+            NoticeSection.legacy(date)
         }
     }
     
@@ -494,10 +494,6 @@ struct RestingEnergyForm: View {
             hasFocused: $hasFocusedCustomField,
             delayFocus: true,
             footer: nil,
-            isDisabled: Binding<Bool>(
-                get: { isDisabled },
-                set: { _ in }
-            ),
             handleChanges: handleCustomValue
         )
     }

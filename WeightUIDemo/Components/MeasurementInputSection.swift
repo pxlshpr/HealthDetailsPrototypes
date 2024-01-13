@@ -3,9 +3,9 @@ import PrepShared
 
 struct MeasurementInputSection: View {
     
-    @Environment(SettingsProvider.self) var settingsProvider
-    
     let type: MeasurementType
+    let unitString: String
+    let secondUnitString: String?
 
     @Binding var doubleInput: DoubleInput
     @Binding var intInput: IntInput
@@ -17,6 +17,7 @@ struct MeasurementInputSection: View {
 
     init(
         type: MeasurementType,
+        settingsProvider: SettingsProvider,
         doubleInput: Binding<DoubleInput>,
         intInput: Binding<IntInput>,
         hasFocused: Binding<Bool>,
@@ -26,6 +27,8 @@ struct MeasurementInputSection: View {
         handleChanges: @escaping () -> Void
     ) {
         self.type = type
+        self.unitString = settingsProvider.unitString(for: type)
+        self.secondUnitString = settingsProvider.secondUnitString(for: type)
         _focusDelay = focusDelay
         _doubleInput = doubleInput
         _intInput = intInput
@@ -55,7 +58,7 @@ struct MeasurementInputSection: View {
     
     var singleUnit: some View {
         SingleUnitMeasurementTextField(
-            title: settingsProvider.unitString(for: type),
+            title: unitString,
             doubleInput: $doubleInput,
             hasFocused: $hasFocused,
             delayFocus: delayFocus,
@@ -117,14 +120,6 @@ struct MeasurementInputSection: View {
                     .multilineTextAlignment(.trailing)
             }
         }
-    }
-    
-    var unitString: String {
-        settingsProvider.unitString(for: type)
-    }
-
-    var secondUnitString: String? {
-        settingsProvider.secondUnitString(for: type)
     }
     
     func introspect(_ textField: UITextField) {

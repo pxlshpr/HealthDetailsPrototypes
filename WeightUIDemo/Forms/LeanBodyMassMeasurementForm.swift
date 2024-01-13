@@ -168,6 +168,7 @@ struct LeanBodyMassMeasurementForm: View {
     var customSection: some View {
         MeasurementInputSection(
             type: .leanBodyMass,
+            settingsProvider: settingsProvider,
             doubleInput: $doubleInput,
             intInput: $intInput,
             hasFocused: $hasFocusedCustom,
@@ -494,6 +495,6 @@ struct LeanBodyMassMeasurementForm: View {
     }
 }
 
-#Preview("DemoView ") {
+#Preview("DemoView") {
     DemoView()
 }

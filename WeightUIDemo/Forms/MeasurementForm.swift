@@ -79,6 +79,7 @@ struct MeasurementForm: View {
     var customSection: some View {
         MeasurementInputSection(
             type: type,
+            settingsProvider: settingsProvider,
             doubleInput: $doubleInput,
             intInput: $intInput,
             hasFocused: $hasFocusedCustom,

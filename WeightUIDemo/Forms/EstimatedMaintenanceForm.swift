@@ -195,7 +195,7 @@ struct EstimatedMaintenanceForm: View {
     @ViewBuilder
     var notice: some View {
         if isLegacy {
-            NoticeSection.legacy(date, isEditing: .constant(false))
+            NoticeSection.legacy(date)
         }
     }
 

@@ -177,7 +177,6 @@ struct MaintenanceForm: View {
                 adaptive: adaptive,
                 healthProvider: healthProvider,
                 isPresented: $isPresented,
-                dismissDisabled: .constant(true),
                 saveHandler: { adaptive in
                     self.adaptive = adaptive
                     handleChanges()

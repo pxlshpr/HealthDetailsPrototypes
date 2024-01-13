@@ -5,11 +5,11 @@ struct DietaryEnergyPointForm: View {
 
     @Environment(\.scenePhase) var scenePhase
 
-    @Bindable var settingsProvider: SettingsProvider
     @Bindable var healthProvider: HealthProvider
+    @Binding var isPresented: Bool
 
     let healthDetailsDate: Date
-    let initialPoint: DietaryEnergyPoint
+    let pointDate: Date
     let averageEnergyInKcal: Double?
     
     @State var source: DietaryEnergyPointSource
@@ -20,11 +20,6 @@ struct DietaryEnergyPointForm: View {
     @State var showingInfo = false
     @State var hasFocusedCustomField: Bool = true
     @State var hasAppeared = false
-
-    @State var isEditing: Bool
-    @State var isDirty: Bool = false
-    @Binding var isPresented: Bool
-    @Binding var dismissDisabled: Bool
 
     @State var hasFetchedLogValue: Bool = false
     @State var logValueInKcal: Double?
@@ -40,21 +35,16 @@ struct DietaryEnergyPointForm: View {
         date: Date,
         point: DietaryEnergyPoint,
         averageEnergyInKcal: Double? = nil,
-        settingsProvider: SettingsProvider,
         healthProvider: HealthProvider,
         isPresented: Binding<Bool> = .constant(true),
-        dismissDisabled: Binding<Bool> = .constant(false),
         saveHandler: @escaping (DietaryEnergyPoint) -> ()
     ) {
         self.healthDetailsDate = date
-        self.initialPoint = point
+        self.pointDate = point.date
         self.saveHandler = saveHandler
-        self.settingsProvider = settingsProvider
         self.healthProvider = healthProvider
         self.averageEnergyInKcal = averageEnergyInKcal
-        _isEditing = State(initialValue: point.date.isToday)
         _isPresented = isPresented
-        _dismissDisabled = dismissDisabled
         
         let kcal = point.source == .useAverage ? nil : point.kcal
         _source = State(initialValue: point.source)
@@ -62,7 +52,7 @@ struct DietaryEnergyPointForm: View {
         _customInput = State(initialValue: DoubleInput(
             double: kcal.convertEnergy(
                 from: .kcal,
-                to: settingsProvider.energyUnit
+                to: healthProvider.settingsProvider.energyUnit
             ),
             automaticallySubmitsValues: true
         ))
@@ -70,7 +60,7 @@ struct DietaryEnergyPointForm: View {
 
     var body: some View {
         Form {
-            notice
+            dateSection
             sourcePicker
             if source == .userEntered {
                 customSection
@@ -80,16 +70,14 @@ struct DietaryEnergyPointForm: View {
             notCountedSection
 //            explanation
         }
-        .navigationTitle(initialPoint.date.shortDateString)
+//        .navigationTitle(pointDate.shortDateString)
+        .navigationTitle("Dietary Energy")
         .navigationBarTitleDisplayMode(.large)
         .toolbar { toolbarContent }
         .onAppear(perform: appeared)
         .onChange(of: scenePhase, scenePhaseChanged)
         .sheet(isPresented: $showingInfo) { AdaptiveDietaryEnergyInfo() }
         .safeAreaInset(edge: .bottom) { bottomValue }
-        .navigationBarBackButtonHidden(isLegacy && isEditing)
-        .onChange(of: isEditing) { _, _ in setDismissDisabled() }
-        .onChange(of: isDirty) { _, _ in setDismissDisabled() }
     }
     
     @ViewBuilder
@@ -100,8 +88,7 @@ struct DietaryEnergyPointForm: View {
                 notice: .init(
                     title: "No Logged Foods",
                     message: "There are no foods logged on this date.\n\nConsider marking it as fasted if you actually hadn't consumed anything, so that it would be set at 0 \(energyUnit.abbreviation).\n\nIf you can't accurately remember what you had consumed, choose 'Exclude this Day', to ignore this day and not count it towards your daily average.",
-                    imageName: "questionmark.app.dashed",
-                    isEditing: $isEditing
+                    imageName: "questionmark.app.dashed"
                 )
             )
         }
@@ -115,8 +102,7 @@ struct DietaryEnergyPointForm: View {
                 notice: .init(
                     title: "Missing Data or Permissions",
                     message: "No data was fetched from Apple Health. This could be because there isn't any data available for \(pointDate.shortDateString) or you have not provided permission to read it.\n\nYou can check for permissions in:\nSettings > Privacy & Security > Health > Prep",
-                    imageName: "questionmark.app.dashed",
-                    isEditing: $isEditing
+                    imageName: "questionmark.app.dashed"
                 )
             )
         }
@@ -130,8 +116,7 @@ struct DietaryEnergyPointForm: View {
                 notice: .init(
                     title: "Excluded",
                     message: "This day's dietary energy is being ignored and will not count towards your daily average.",
-                    imageName: "pencil.slash",
-                    isEditing: $isEditing
+                    imageName: "pencil.slash"
                 )
             )
         }
@@ -219,10 +204,6 @@ struct DietaryEnergyPointForm: View {
         handleChanges()
     }
 
-    var controlColor: Color {
-        isDisabled ? .secondary : .primary
-    }
-    
     var healthKitValueInUserUnit: Double? {
         guard let healthKitValueInKcal else { return nil }
         return EnergyUnit.kcal.convert(healthKitValueInKcal, to: energyUnit)
@@ -264,60 +245,16 @@ struct DietaryEnergyPointForm: View {
                 }
             }
             .pickerStyle(.wheel)
-            .disabled(isDisabled)
-            .opacity(isDisabled ? 0.5 : 1)
        }
     }
-    
-    var sourcePicker_: some View {
 
-        func cell(for source: DietaryEnergyPointSource) -> some View {
-            var checkmark: some View {
-                Image(systemName: "checkmark")
-                    .foregroundStyle(Color.accentColor)
-                    .opacity(self.source == source ? 1 : 0)
-                    .animation(.none, value: self.source)
-            }
-            
-            var name: some View {
-                Text(source.name)
-                    .foregroundStyle(isDisabled ? Color(.secondaryLabel) : Color(.label))
-            }
-            
-            return HStack {
-                DietaryEnergyPointSourceImage(source: source)
-                name
+    var dateSection: some View {
+        Section {
+            HStack {
+                Text("Date")
                 Spacer()
-                checkmark
+                Text(pointDate.shortDateString)
             }
-
-        }
-            
-        return Section {
-            ForEach(DietaryEnergyPointSource.allCases) { source in
-                Button {
-                    setSource(to: source)
-                } label: {
-                    cell(for: source)
-                }
-                .disabled(isDisabled)
-            }
-        }
-    }
-    
-    func setDismissDisabled() {
-        dismissDisabled = isLegacy && isEditing && isDirty
-    }
-
-    var isLegacy: Bool {
-        pointDate.startOfDay < Date.now.startOfDay
-//        healthDetailsDate.startOfDay < Date.now.startOfDay
-    }
-    
-    @ViewBuilder
-    var notice: some View {
-        if isLegacy {
-            NoticeSection.legacy(isEditing: $isEditing)
         }
     }
     
@@ -372,15 +309,12 @@ struct DietaryEnergyPointForm: View {
     }
     
     var toolbarContent: some ToolbarContent {
-        Group {
-            topToolbarContent(
-                isEditing: $isEditing,
-                isDirty: $isDirty,
-                isPast: isLegacy,
-                dismissAction: { isPresented = false },
-                undoAction: undo,
-                saveAction: save
-            )
+        ToolbarItem(placement: .topBarTrailing) {
+            Button {
+                isPresented = false
+            } label: {
+                CloseButtonLabel()
+            }
         }
     }
     
@@ -395,30 +329,6 @@ struct DietaryEnergyPointForm: View {
         healthProvider.saveDietaryEnergyPoint(point)
     }
     
-    func undo() {
-        energyInKcal = initialPoint.kcal
-        customInput = DoubleInput(
-            double: initialPoint.kcal.convertEnergy(
-                from: .kcal,
-                to: energyUnit
-            ),
-            automaticallySubmitsValues: true
-        )
-        source = initialPoint.source
-    }
-    
-    func setIsDirty() {
-        var initialPoint = initialPoint
-        if initialPoint.source == .useAverage {
-            initialPoint.kcal = nil
-        }
-        isDirty = dietaryEnergyPoint != initialPoint
-    }
-    
-    var pointDate: Date {
-        initialPoint.date
-    }
-    
     var dietaryEnergyPoint: DietaryEnergyPoint {
         .init(
             date: pointDate,
@@ -427,7 +337,7 @@ struct DietaryEnergyPointForm: View {
         )
     }
   
-    var energyUnit: EnergyUnit { settingsProvider.energyUnit }
+    var energyUnit: EnergyUnit { healthProvider.settingsProvider.energyUnit }
 
     func handleChanges() {
         handleChangesTask?.cancel()
@@ -466,10 +376,7 @@ struct DietaryEnergyPointForm: View {
             }
 
             await MainActor.run {
-                setIsDirty()
-                if !isLegacy {
-                    save()
-                }
+                save()
             }
         }
     }
@@ -489,33 +396,22 @@ struct DietaryEnergyPointForm: View {
         }
         
         return SingleUnitMeasurementTextField(
-            title: settingsProvider.unitString(for: .energy),
+            title: healthProvider.settingsProvider.unitString(for: .energy),
             doubleInput: $customInput,
             hasFocused: $hasFocusedCustomField,
             delayFocus: true,
             footer: nil,
-            isDisabled: Binding<Bool>(
-                get: { isDisabled },
-                set: { _ in }
-            ),
             handleChanges: handleCustomValue
         )
     }
     
-    var isDisabled: Bool {
-        isLegacy && !isEditing
-    }
-    
     var explanation: some View {
-        @ViewBuilder
         var footer: some View {
-            if !isDisabled {
-                Button {
-                    showingInfo = true
-                } label: {
-                    Text("Learn more…")
-                        .font(.footnote)
-                }
+            Button {
+                showingInfo = true
+            } label: {
+                Text("Learn more…")
+                    .font(.footnote)
             }
         }
 
@@ -524,18 +420,6 @@ struct DietaryEnergyPointForm: View {
         }
     }
 }
-
-//#Preview("Current") {
-//    NavigationView {
-//        DietaryEnergyPointForm()
-//    }
-//}
-//
-//#Preview("Past") {
-//    NavigationView {
-//        DietaryEnergyPointForm(healthDetailsDate: MockPastDate)
-//    }
-//}
 
 #Preview("Demo") {
     DemoView()

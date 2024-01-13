@@ -63,6 +63,8 @@
 		E28ED8112B41F5BE0076BA50 /* PrepShared in Frameworks */ = {isa = PBXBuildFile; productRef = E28ED8102B41F5BE0076BA50 /* PrepShared */; };
 		E28ED8152B41FA7A0076BA50 /* SettingsForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = E28ED8142B41FA7A0076BA50 /* SettingsForm.swift */; };
 		E28ED8262B420F7A0076BA50 /* SwiftUIIntrospect in Frameworks */ = {isa = PBXBuildFile; productRef = E28ED8252B420F7A0076BA50 /* SwiftUIIntrospect */; };
+		E28F374C2B53066700378EA2 /* DietaryEnergyPointSourceImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = E28F374B2B53066700378EA2 /* DietaryEnergyPointSourceImage.swift */; };
+		E28F374E2B53068000378EA2 /* DietaryEnergyCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = E28F374D2B53068000378EA2 /* DietaryEnergyCell.swift */; };
 		E2923FCD2B42B1830008F010 /* MeasurementCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2923FCC2B42B1830008F010 /* MeasurementCell.swift */; };
 		E2923FCF2B42C2860008F010 /* MeasurementsSections.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2923FCE2B42C2860008F010 /* MeasurementsSections.swift */; };
 		E2923FD12B42C3D60008F010 /* Measurable.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2923FD02B42C3D60008F010 /* Measurable.swift */; };
@@ -160,6 +162,8 @@
 		E28ED80B2B41F57D0076BA50 /* SettingsProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsProvider.swift; sourceTree = "<group>"; };
 		E28ED80D2B41F5A10076BA50 /* Settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
 		E28ED8142B41FA7A0076BA50 /* SettingsForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsForm.swift; sourceTree = "<group>"; };
+		E28F374B2B53066700378EA2 /* DietaryEnergyPointSourceImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DietaryEnergyPointSourceImage.swift; sourceTree = "<group>"; };
+		E28F374D2B53068000378EA2 /* DietaryEnergyCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DietaryEnergyCell.swift; sourceTree = "<group>"; };
 		E2923FCC2B42B1830008F010 /* MeasurementCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeasurementCell.swift; sourceTree = "<group>"; };
 		E2923FCE2B42C2860008F010 /* MeasurementsSections.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeasurementsSections.swift; sourceTree = "<group>"; };
 		E2923FD02B42C3D60008F010 /* Measurable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Measurable.swift; sourceTree = "<group>"; };
@@ -289,6 +293,8 @@
 			isa = PBXGroup;
 			children = (
 				E23A25132B39F09100BDAECE /* MeasurementBottomBar.swift */,
+				E28F374B2B53066700378EA2 /* DietaryEnergyPointSourceImage.swift */,
+				E28F374D2B53068000378EA2 /* DietaryEnergyCell.swift */,
 				E2923FDE2B449C3B0008F010 /* MeasurementInputSection.swift */,
 				E2923FE02B449C480008F010 /* SingleUnitMeasurementTextField.swift */,
 				E2923FDA2B448CAC0008F010 /* CloseButtonLabel.swift */,
@@ -511,6 +517,7 @@
 				E2261F802B371AEF007B7DDD /* HealthIntervalType.swift in Sources */,
 				E228EA392B46D01D00A44ADC /* HealthKitStoreError.swift in Sources */,
 				E2923FCF2B42C2860008F010 /* MeasurementsSections.swift in Sources */,
+				E28F374E2B53068000378EA2 /* DietaryEnergyCell.swift in Sources */,
 				E2F79F522B3484B900A09BDF /* PickerSection.swift in Sources */,
 				E2103B032B35BC1600B0C381 /* Constants.swift in Sources */,
 				E28ED80C2B41F57D0076BA50 /* SettingsProvider.swift in Sources */,
@@ -530,6 +537,7 @@
 				E228EA2F2B46C82A00A44ADC /* HealthStore+Request.swift in Sources */,
 				E2BAE3242B30B601003C5B7F /* DemoView.swift in Sources */,
 				E2F16EAE2B31CA8D004AD1BA /* WeightChangePointForm.swift in Sources */,
+				E28F374C2B53066700378EA2 /* DietaryEnergyPointSourceImage.swift in Sources */,
 				E2103AF52B35A2AC00B0C381 /* MaintenanceType.swift in Sources */,
 				E23A25262B3BF79D00BDAECE /* AdaptiveMaintenanceInfo.swift in Sources */,
 				E28ED8152B41FA7A0076BA50 /* SettingsForm.swift in Sources */,

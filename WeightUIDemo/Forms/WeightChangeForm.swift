@@ -4,11 +4,10 @@ import PrepShared
 
 struct WeightChangeForm: View {
     
-    @Bindable var settingsProvider: SettingsProvider
     @Bindable var healthProvider: HealthProvider
-
+    @Binding var isPresented: Bool
+    
     let date: Date
-    let initialWeightChange: WeightChange
 
     @State var type: WeightChangeType
     @State var weightChangeInKg: Double?
@@ -16,11 +15,6 @@ struct WeightChangeForm: View {
     @State var doubleInput: DoubleInput
     @State var intInput: IntInput
     @State var points: WeightChange.Points?
-
-    @State var isEditing: Bool
-    @State var isDirty: Bool = false
-    @Binding var isPresented: Bool
-    @Binding var dismissDisabled: Bool
 
     @State var hasFocusedCustom: Bool = false
 
@@ -30,14 +24,10 @@ struct WeightChangeForm: View {
         date: Date = Date.now,
         weightChange: WeightChange,
         healthProvider: HealthProvider,
-        settingsProvider: SettingsProvider,
         isPresented: Binding<Bool> = .constant(true),
-        dismissDisabled: Binding<Bool> = .constant(false),
         saveHandler: @escaping (WeightChange) -> ()
     ) {
         self.date = date
-        self.initialWeightChange = weightChange
-        self.settingsProvider = settingsProvider
         self.healthProvider = healthProvider
         self.saveHandler = saveHandler
         
@@ -50,7 +40,7 @@ struct WeightChangeForm: View {
         }
         _points = State(initialValue: weightChange.points)
         
-        let unit = settingsProvider.bodyMassUnit
+        let unit = healthProvider.settingsProvider.bodyMassUnit
         let kg = weightChange.kg
         
         let double: Double? = if let kg {
@@ -68,13 +58,11 @@ struct WeightChangeForm: View {
         _intInput = State(initialValue: IntInput(int: int, automaticallySubmitsValues: true))
 
         _isPresented = isPresented
-        _dismissDisabled = dismissDisabled
-        _isEditing = State(initialValue: date.isToday)
     }
     
     var body: some View {
         Form {
-            notice
+            dateSection
             dateSection
             typePicker
             switch type {
@@ -84,15 +72,11 @@ struct WeightChangeForm: View {
                 customSection
                 gainOrLossSection
             }
-//            explanation
         }
         .navigationTitle("Weight Change")
         .navigationBarTitleDisplayMode(.large)
         .toolbar { toolbarContent }
         .safeAreaInset(edge: .bottom) { bottomValue }
-        .navigationBarBackButtonHidden(isLegacy && isEditing)
-        .onChange(of: isEditing) { _, _ in setDismissDisabled() }
-        .onChange(of: isDirty) { _, _ in setDismissDisabled() }
     }
     
     var dateSection: some View {
@@ -132,7 +116,7 @@ struct WeightChangeForm: View {
                         isEndWeight: isEndWeight,
                         healthProvider: healthProvider,
                         isPresented: $isPresented,
-                        dismissDisabled: $dismissDisabled,
+                        dismissDisabled: .constant(true),
                         saveHandler: { point in
                             if isEndWeight {
                                 points?.end = point
@@ -147,14 +131,13 @@ struct WeightChangeForm: View {
                         Text(point.date.shortDateString)
                         Spacer()
                         if let kg = point.kg {
-                            Text("\(BodyMassUnit.kg.convert(kg, to: settingsProvider.bodyMassUnit).cleanHealth) \(settingsProvider.bodyMassUnit.abbreviation)")
+                            Text(healthProvider.settingsProvider.bodyMassString(kg))
                         } else {
                             Text("Not Set")
                                 .foregroundStyle(.secondary)
                         }
                     }
                 }
-                .disabled(isEditing && isLegacy)
             }
         }
         
@@ -209,11 +192,7 @@ struct WeightChangeForm: View {
         }
     }
     
-    func setDismissDisabled() {
-        dismissDisabled = isLegacy && isEditing && isDirty
-    }
-
-    var bodyMassUnit: BodyMassUnit { settingsProvider.bodyMassUnit }
+    var bodyMassUnit: BodyMassUnit { healthProvider.settingsProvider.bodyMassUnit }
 
     var weightChangeInUserUnit: Double? {
         weightChangeInKg.convertBodyMass(from: .kg, to: bodyMassUnit)
@@ -256,31 +235,19 @@ struct WeightChangeForm: View {
         )
     }
     
-    var isLegacy: Bool {
-        date.startOfDay < Date.now.startOfDay
-    }
-    
-    @ViewBuilder
-    var notice: some View {
-        if isLegacy {
-            NoticeSection.legacy(date, isEditing: $isEditing)
-        }
-    }
-    
     var weightChangeValueIsPositive: Bool {
         guard let value = weightChangeInUserUnit else { return false }
         return value > 0
     }
     
     var toolbarContent: some ToolbarContent {
-        topToolbarContent(
-            isEditing: $isEditing,
-            isDirty: $isDirty,
-            isPast: isLegacy,
-            dismissAction: { isPresented = false },
-            undoAction: undo,
-            saveAction: save
-        )
+        ToolbarItem(placement: .topBarTrailing) {
+            Button {
+                isPresented = false
+            } label: {
+                CloseButtonLabel()
+            }
+        }
     }
     
     var weightChange: WeightChange {
@@ -295,16 +262,6 @@ struct WeightChangeForm: View {
         saveHandler(weightChange)
     }
     
-    func undo() {
-        type = initialWeightChange.type
-        points = initialWeightChange.points
-        setWeightChangeInKg(initialWeightChange.kg)
-    }
-    
-    func setIsDirty() {
-        isDirty = initialWeightChange != weightChange
-    }
-    
     var customSection: some View {
         func handleCustomValue() {
             guard type == .userEntered else { return }
@@ -315,7 +272,7 @@ struct WeightChangeForm: View {
                 let kg: Double? = if int == 0, double == 0 {
                     nil
                 } else {
-                    settingsProvider.bodyMassUnit.convert(int, double, to: .kg) * (weightChangeIsPositive ? 1 : -1)
+                    bodyMassUnit.convert(int, double, to: .kg) * (weightChangeIsPositive ? 1 : -1)
                 }
                 withAnimation {
                     weightChangeInKg = kg
@@ -328,16 +285,17 @@ struct WeightChangeForm: View {
 
         return MeasurementInputSection(
             type: .weight,
+            settingsProvider: healthProvider.settingsProvider,
             doubleInput: $doubleInput,
             intInput: $intInput,
             hasFocused: $hasFocusedCustom,
             handleChanges: handleCustomValue
         )
-        .environment(settingsProvider)
     }
     
     var dateIntervalString: String {
-        let startDate = healthProvider.healthDetails.maintenance.adaptive.interval.startDate(with: date)
+        let startDate = healthProvider.healthDetails.maintenance
+            .adaptive.interval.startDate(with: date)
         return "\(startDate.shortDateString) to \(date.shortDateString)"
     }
     
@@ -377,10 +335,7 @@ struct WeightChangeForm: View {
             break
         }
         
-        setIsDirty()
-        if !isLegacy {
-            save()
-        }
+        save()
     }
     
     var typePicker: some View {
@@ -406,7 +361,6 @@ struct WeightChangeForm: View {
                 }
             }
             .pickerStyle(.segmented)
-            .disabled(!isEditing)
             .listRowSeparator(.hidden)
         }
         
@@ -420,22 +374,6 @@ struct WeightChangeForm: View {
             picker
             Text(description)
         }
-    }
-}
-
-#Preview("Current") {
-    NavigationView {
-        WeightChangeForm(
-            date: Date.now,
-            weightChange: .init(),
-            healthProvider: MockCurrentProvider,
-            settingsProvider: SettingsProvider(settings: .init(bodyMassUnit: .kg)),
-            isPresented: .constant(true),
-            dismissDisabled: .constant(false),
-            saveHandler: { weightChange in
-                
-            }
-        )
     }
 }
 

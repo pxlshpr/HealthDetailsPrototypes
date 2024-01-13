@@ -134,8 +134,12 @@ extension SettingsProvider {
 }
 
 extension SettingsProvider {
-    func energyString(_ energyInKcal: Double) -> String {
-        "\(EnergyUnit.kcal.convert(energyInKcal, to: energyUnit).formattedEnergy) \(energyUnit.abbreviation)"
+    func energyString(_ kcal: Double) -> String {
+        "\(EnergyUnit.kcal.convert(kcal, to: energyUnit).formattedEnergy) \(energyUnit.abbreviation)"
+    }
+    
+    func bodyMassString(_ kg: Double) -> String {
+        "\(BodyMassUnit.kg.convert(kg, to: bodyMassUnit).formattedEnergy) \(bodyMassUnit.abbreviation)"
     }
 }
 

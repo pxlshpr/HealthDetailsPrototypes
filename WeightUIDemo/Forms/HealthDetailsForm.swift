@@ -92,7 +92,7 @@ struct HealthDetailsForm: View {
     @ViewBuilder
     var dateSection: some View {
         if !healthProvider.healthDetails.date.isToday {
-            NoticeSection.legacy(healthProvider.healthDetails.date, isEditing: .constant(true))
+            NoticeSection.legacy(healthProvider.healthDetails.date)
 //            Section {
 //                HStack {
 //                    Text("Date")
@@ -114,7 +114,7 @@ struct HealthDetailsForm: View {
         case .leanBodyMass:
             LeanBodyMassForm(
                 healthProvider: healthProvider,
-                isPresented: $isPresented,
+                isPresented: $isPresented
             )
         case .weight:
             WeightForm(

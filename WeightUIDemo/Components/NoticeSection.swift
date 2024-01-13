@@ -17,34 +17,27 @@ struct Notice {
     let message: String
     let date: Date?
     let imageName: String
-    let isEditing: Binding<Bool>
 
     init(
         title: String,
         message: String,
         date: Date? = nil,
-        imageName: String,
-        isEditing: Binding<Bool> = .constant(false)
+        imageName: String
     ) {
         self.title = title
         self.message = message
         self.date = date
         self.imageName = imageName
-        self.isEditing = isEditing
     }
     
-    static func legacy(
-        _ date: Date? = nil,
-        isEditing: Binding<Bool> = .constant(false)
-    ) -> Notice {
+    static func legacy(_ date: Date? = nil) -> Notice {
         .init(
 //            title: "Legacy Data",
 //            message: "You are viewing legacy data which has been preserved to ensure any dependent goals\(date != nil ? " on this date" : "") remain unchanged.",
             title: "Past Health Details",
             message: "You are viewing your Health Details for a past date. Changes will not affected your current health details but may affect the goals you had set on that day.",
             date: date,
-            imageName: "calendar.badge.clock",
-            isEditing: isEditing
+            imageName: "calendar.badge.clock"
         )
     }
 }
@@ -58,13 +51,9 @@ struct NoticeSection: View {
     let primaryAction: NoticeAction?
     let secondaryAction: NoticeAction?
     let imageName: String?
-    var isEditing: Binding<Bool>
     
-    static func legacy(
-        _ date: Date? = nil,
-        isEditing: Binding<Bool> = .constant(false)
-    ) -> Self {
-        NoticeSection(notice: .legacy(date, isEditing: isEditing))
+    static func legacy(_ date: Date? = nil) -> Self {
+        NoticeSection(notice: .legacy(date))
     }
     
     init(
@@ -80,7 +69,6 @@ struct NoticeSection: View {
         self.secondaryAction = secondaryAction
         self.imageName = notice.imageName
         self.date = notice.date
-        self.isEditing = notice.isEditing
     }
     
     init(
@@ -97,7 +85,6 @@ struct NoticeSection: View {
         self.secondaryAction = secondaryAction
         self.imageName = nil
         self.date = nil
-        self.isEditing = .constant(false)
     }
     
     var body: some View {
