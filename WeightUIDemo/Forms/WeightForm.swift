@@ -146,55 +146,37 @@ struct WeightForm: View {
 
 
     var bottomValue: some View {
+        var intUnitString: String? { bodyMassUnit.intUnitString }
+        var doubleUnitString: String { bodyMassUnit.doubleUnitString }
         
-        var bottomRow: some View {
-            
-            var intUnitString: String? { bodyMassUnit.intUnitString }
-            var doubleUnitString: String { bodyMassUnit.doubleUnitString }
-            
-            var double: Double? {
-                guard let weightInKg else { return nil }
-                return BodyMassUnit.kg
-                    .doubleComponent(weightInKg, in: bodyMassUnit)
-            }
-            
-            var int: Int? {
-                guard let weightInKg else { return nil }
-                return BodyMassUnit.kg
-                    .intComponent(weightInKg, in: bodyMassUnit)
-            }
-            
-            return MeasurementBottomBar(
-                int: Binding<Int?>(
-                    get: { int }, set: { _ in }
-                ),
-                intUnitString: intUnitString,
-                double: Binding<Double?>(
-                    get: { double }, set: { _ in }
-                ),
-                doubleString: Binding<String?>(
-                    get: { double?.cleanHealth }, set: { _ in }
-                ),
-                doubleUnitString: doubleUnitString,
-                isDisabled: Binding<Bool>(
-                    get: { isDisabled }, set: { _ in }
-                )
-//                isStyledAsBottomBar: false
+        var double: Double? {
+            guard let weightInKg else { return nil }
+            return BodyMassUnit.kg
+                .doubleComponent(weightInKg, in: bodyMassUnit)
+        }
+        
+        var int: Int? {
+            guard let weightInKg else { return nil }
+            return BodyMassUnit.kg
+                .intComponent(weightInKg, in: bodyMassUnit)
+        }
+        
+        return MeasurementBottomBar(
+            int: Binding<Int?>(
+                get: { int }, set: { _ in }
+            ),
+            intUnitString: intUnitString,
+            double: Binding<Double?>(
+                get: { double }, set: { _ in }
+            ),
+            doubleString: Binding<String?>(
+                get: { double?.cleanHealth }, set: { _ in }
+            ),
+            doubleUnitString: doubleUnitString,
+            isDisabled: Binding<Bool>(
+                get: { isDisabled }, set: { _ in }
             )
-        }
-
-        var topRow: some View {
-            dailyValuePicker
-        }
-        
-        return bottomRow
-//        return VStack {
-//            topRow
-//            bottomRow
-//        }
-//        .padding(.horizontal, BottomValueHorizontalPadding)
-//        .padding(.vertical, BottomValueVerticalPadding)
-//        .background(.bar)
+        )
     }
     
     @ViewBuilder
@@ -240,7 +222,6 @@ struct WeightForm: View {
 
         var header: some View {
             Text("Handling Multiple Measurements")
-//                .formTitleStyle()
         }
 
         return Section(header: header) {

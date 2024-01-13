@@ -64,6 +64,7 @@ struct HeightForm: View {
         Form {
             noticeOrDateSection
             measurementsSections
+            dailyValueInfoSection
             syncSection
             explanation
         }
@@ -76,6 +77,20 @@ struct HeightForm: View {
         .onChange(of: isEditing) { _, _ in setDismissDisabled() }
         .onChange(of: isDirty) { _, _ in setDismissDisabled() }
         .onChange(of: isSynced, isSyncedChanged)
+    }
+    
+    var dailyValueInfoSection: some View {
+        var description: String {
+            DailyValueType.last.description
+        }
+
+        var header: some View {
+            Text("Handling Multiple Measurements")
+        }
+
+        return Section(header: header) {
+            Text(description)
+        }
     }
     
     func isSyncedChanged(old: Bool, new: Bool) {

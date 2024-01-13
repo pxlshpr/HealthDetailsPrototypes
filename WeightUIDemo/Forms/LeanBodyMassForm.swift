@@ -67,6 +67,7 @@ struct LeanBodyMassForm: View {
         Form {
             noticeOrDateSection
             measurementsSections
+            dailyValuePicker
             syncSection
             explanation
         }
@@ -123,63 +124,49 @@ struct LeanBodyMassForm: View {
     }
     
     var bottomValue: some View {
-        var bottomRow: some View {
-            var intUnitString: String? { bodyMassUnit.intUnitString }
-            var doubleUnitString: String { bodyMassUnit.doubleUnitString }
-            
-            var double: Double? {
-                guard let leanBodyMassInKg else { return nil }
-                return BodyMassUnit.kg
-                    .doubleComponent(leanBodyMassInKg, in: bodyMassUnit)
+        var intUnitString: String? { bodyMassUnit.intUnitString }
+        var doubleUnitString: String { bodyMassUnit.doubleUnitString }
+        
+        var double: Double? {
+            guard let leanBodyMassInKg else { return nil }
+            return BodyMassUnit.kg
+                .doubleComponent(leanBodyMassInKg, in: bodyMassUnit)
+        }
+        
+        var int: Int? {
+            guard let leanBodyMassInKg else { return nil }
+            return BodyMassUnit.kg
+                .intComponent(leanBodyMassInKg, in: bodyMassUnit)
+        }
+        
+        return HStack(alignment: .firstTextBaseline, spacing: 5) {
+            if let fatPercentage {
+                Text("\(fatPercentage.roundedToOnePlace)")
+                    .contentTransition(.numericText(value: fatPercentage))
+                    .font(LargeNumberFont)
+                    .foregroundStyle(isDisabled ? .secondary : .primary)
+                Text("% fat")
+                    .font(LargeUnitFont)
+                    .foregroundStyle(isDisabled ? .tertiary : .secondary)
             }
-            
-            var int: Int? {
-                guard let leanBodyMassInKg else { return nil }
-                return BodyMassUnit.kg
-                    .intComponent(leanBodyMassInKg, in: bodyMassUnit)
-            }
-            
-            return HStack(alignment: .firstTextBaseline, spacing: 5) {
-                if let fatPercentage {
-                    Text("\(fatPercentage.roundedToOnePlace)")
-                        .contentTransition(.numericText(value: fatPercentage))
-                        .font(LargeNumberFont)
-                        .foregroundStyle(isDisabled ? .secondary : .primary)
-                    Text("% fat")
-                        .font(LargeUnitFont)
-                        .foregroundStyle(isDisabled ? .tertiary : .secondary)
-                }
-                Spacer()
-                MeasurementBottomText(
-                    int: Binding<Int?>(
-                        get: { int }, set: { _ in }
-                    ),
-                    intUnitString: intUnitString,
-                    double: Binding<Double?>(
-                        get: { double }, set: { _ in }
-                    ),
-                    doubleString: Binding<String?>(
-                        get: { double?.cleanHealth }, set: { _ in }
-                    ),
-                    doubleUnitString: doubleUnitString,
-                    isDisabled: Binding<Bool>(
-                        get: { isDisabled }, set: { _ in }
-                    )
+            Spacer()
+            MeasurementBottomText(
+                int: Binding<Int?>(
+                    get: { int }, set: { _ in }
+                ),
+                intUnitString: intUnitString,
+                double: Binding<Double?>(
+                    get: { double }, set: { _ in }
+                ),
+                doubleString: Binding<String?>(
+                    get: { double?.cleanHealth }, set: { _ in }
+                ),
+                doubleUnitString: doubleUnitString,
+                isDisabled: Binding<Bool>(
+                    get: { isDisabled }, set: { _ in }
                 )
-            }
+            )
         }
-        
-        var topRow: some View {
-            dailyValuePicker
-        }
-        
-        return VStack {
-            topRow
-            bottomRow
-        }
-        .padding(.horizontal, BottomValueHorizontalPadding)
-        .padding(.vertical, BottomValueVerticalPadding)
-        .background(.bar)
     }
     
     var toolbarContent: some ToolbarContent {
@@ -213,14 +200,29 @@ struct LeanBodyMassForm: View {
             }
         )
         
-        return Picker("", selection: binding) {
-            ForEach(DailyValueType.allCases, id: \.self) {
-                Text($0.name).tag($0)
+        var pickerRow: some View {
+            Picker("", selection: binding) {
+                ForEach(DailyValueType.allCases, id: \.self) {
+                    Text($0.name).tag($0)
+                }
             }
+            .pickerStyle(.segmented)
+            .listRowSeparator(.hidden)
+            .disabled(isDisabled)
         }
-        .pickerStyle(.segmented)
-        .listRowSeparator(.hidden)
-        .disabled(isDisabled || measurements.isEmpty)
+
+        var description: String {
+            dailyValueType.description
+        }
+
+        var header: some View {
+            Text("Handling Multiple Measurements")
+        }
+
+        return Section(header: header) {
+            pickerRow
+            Text(description)
+        }
     }
     
     @ViewBuilder
