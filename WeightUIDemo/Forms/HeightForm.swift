@@ -92,7 +92,7 @@ struct HeightForm: View {
         }
 
         var description: String {
-            dailyValueType.description(for: .weight)
+            dailyValueType.description(for: .height)
         }
 
         var header: some View {
