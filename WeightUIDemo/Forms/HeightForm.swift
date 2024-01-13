@@ -11,6 +11,8 @@ struct HeightForm: View {
     @State var heightInCm: Double?
     @State var measurements: [HeightMeasurement]
     @State var deletedHealthKitMeasurements: [HeightMeasurement]
+    
+    @State var dailyValueType: DailyValueType
     @State var isSynced: Bool
 
     @State var showingForm = false
@@ -34,6 +36,8 @@ struct HeightForm: View {
         _heightInCm = State(initialValue: height.heightInCm)
         _measurements = State(initialValue: height.measurements)
         _deletedHealthKitMeasurements = State(initialValue: height.deletedHealthKitMeasurements)
+        
+        _dailyValueType = State(initialValue: healthProvider.settingsProvider.settings.dailyValueType(for: .weight))
         _isSynced = State(initialValue: healthProvider.settingsProvider.heightIsHealthKitSynced)
     }
 
@@ -54,7 +58,7 @@ struct HeightForm: View {
         Form {
             dateSection
             measurementsSections
-            dailyValueInfoSection
+            dailyValuePicker
             syncSection
             explanation
         }
@@ -66,9 +70,29 @@ struct HeightForm: View {
         .onChange(of: isSynced, isSyncedChanged)
     }
     
-    var dailyValueInfoSection: some View {
+    var dailyValuePicker: some View {
+        let binding = Binding<DailyValueType>(
+            get: { dailyValueType },
+            set: { newValue in
+                withAnimation {
+                    dailyValueType = newValue
+                    handleChanges()
+                }
+            }
+        )
+        
+        var pickerRow: some View {
+            Picker("", selection: binding) {
+                ForEach(DailyValueType.allCases, id: \.self) {
+                    Text($0.name).tag($0)
+                }
+            }
+            .pickerStyle(.segmented)
+            .listRowSeparator(.hidden)
+        }
+
         var description: String {
-            DailyValueType.last.description(for: .height)
+            dailyValueType.description(for: .weight)
         }
 
         var header: some View {
@@ -76,6 +100,7 @@ struct HeightForm: View {
         }
 
         return Section(header: header) {
+            pickerRow
             Text(description)
         }
     }
@@ -88,6 +113,17 @@ struct HeightForm: View {
         healthProvider.settingsProvider.heightUnit
     }
     
+    var calculatedHeightInCm: Double? {
+        switch dailyValueType {
+        case .average:
+            measurements.compactMap { $0.heightInCm }.average
+        case .last:
+            measurements.last?.heightInCm
+        case .first:
+            measurements.first?.heightInCm
+        }
+    }
+
     var bottomValue: some View {
         
         var double: Double? {
@@ -204,19 +240,13 @@ struct HeightForm: View {
     }
     
     func handleChanges() {
-        heightInCm = lastMeasurementInCm
+        heightInCm = calculatedHeightInCm
         save()
     }
 
-    //MARK: - Convenience
-
-    var lastMeasurementInCm: Double? {
-        measurements.last?.heightInCm
-    }
-    
     var height: HealthDetails.Height {
         HealthDetails.Height(
-            heightInCm: lastMeasurementInCm,
+            heightInCm: calculatedHeightInCm,
             measurements: measurements,
             deletedHealthKitMeasurements: deletedHealthKitMeasurements
         )

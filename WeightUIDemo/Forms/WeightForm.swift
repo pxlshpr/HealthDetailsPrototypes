@@ -9,9 +9,10 @@ struct WeightForm: View {
     let date: Date
     
     @State var weightInKg: Double?
-    @State var dailyValueType: DailyValueType
     @State var measurements: [WeightMeasurement]
     @State var deletedHealthKitMeasurements: [WeightMeasurement]
+
+    @State var dailyValueType: DailyValueType
     @State var isSynced: Bool = true
 
     @State var showingForm = false
@@ -34,8 +35,9 @@ struct WeightForm: View {
 
         _weightInKg = State(initialValue: weight.weightInKg)
         _measurements = State(initialValue: weight.measurements)
-        _dailyValueType = State(initialValue: healthProvider.settingsProvider.settings.dailyValueType(for: .weight))
         _deletedHealthKitMeasurements = State(initialValue: weight.deletedHealthKitMeasurements)
+
+        _dailyValueType = State(initialValue: healthProvider.settingsProvider.settings.dailyValueType(for: .weight))
         _isSynced = State(initialValue: healthProvider.settingsProvider.weightIsHealthKitSynced)
     }
     
