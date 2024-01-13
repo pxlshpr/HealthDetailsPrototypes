@@ -40,9 +40,9 @@ struct Notice {
         .init(
 //            title: "Legacy Data",
 //            message: "You are viewing legacy data which has been preserved to ensure any dependent goals\(date != nil ? " on this date" : "") remain unchanged.",
-            title: "Past Data",
-            message: "You are viewing your Health Details on \(date?.shortDateString ?? "xxx"). Changes will not affect your current Health Details.",
-//            date: date,
+            title: "Old Health Details",
+            message: "You are viewing your Health Details on a past date. Changes will not affect your current Health Details.",
+            date: date,
             imageName: "calendar.badge.clock",
             isEditing: isEditing
         )
