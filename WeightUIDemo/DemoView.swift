@@ -54,7 +54,7 @@ struct DemoView: View {
         healthDetails.biologicalSex = .male
         healthDetails.weight = .init(
             weightInKg: 96.2,
-            dailyValueType: .average,
+//            dailyValueType: .average,
             measurements: [.init(date: Date.now, weightInKg: 96.2)],
             deletedHealthKitMeasurements: []
         )
@@ -67,7 +67,7 @@ struct DemoView: View {
         healthDetails.leanBodyMass = .init(
             leanBodyMassInKg: 75.2,
             fatPercentage: 21.8,
-            dailyValueType: .average,
+//            dailyValueType: .average,
             measurements: [.init(
                 date: Date.now,
                 leanBodyMassInKg: 75.2,

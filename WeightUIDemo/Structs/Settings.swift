@@ -18,12 +18,21 @@ struct Settings: Codable, Hashable {
     var displayedMicros: [Micro] = []
     
     var healthKitSyncedHealthDetails: [HealthDetail] = []
+    var dailyValueTypes: [HealthDetail : DailyValueType] = [:]
     
     /// Removed because these should be per-day, similar to `Plan` and `HealthDetails`
 //    public var dailyValues: [Micro: DailyValue] = [:]
 }
 
 extension Settings {
+
+    mutating func setDailyValueType(_ type: DailyValueType, for healthDetail: HealthDetail) {
+        dailyValueTypes[healthDetail] = type
+    }
+
+    func dailyValueType(for healthDetail: HealthDetail) -> DailyValueType {
+        dailyValueTypes[healthDetail] ?? .last
+    }
     
     func isHealthKitSyncing(_ healthDetail: HealthDetail) -> Bool {
         healthKitSyncedHealthDetails.contains(healthDetail)

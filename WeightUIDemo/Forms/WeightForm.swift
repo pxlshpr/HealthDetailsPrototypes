@@ -43,7 +43,7 @@ struct WeightForm: View {
 
         _weightInKg = State(initialValue: weight.weightInKg)
         _measurements = State(initialValue: weight.measurements)
-        _dailyValueType = State(initialValue: weight.dailyValueType)
+        _dailyValueType = State(initialValue: healthProvider.settingsProvider.settings.dailyValueType(for: .weight))
         _deletedHealthKitMeasurements = State(initialValue: weight.deletedHealthKitMeasurements)
         _isSynced = State(initialValue: healthProvider.settingsProvider.weightIsHealthKitSynced)
     }
@@ -219,7 +219,7 @@ struct WeightForm: View {
         }
 
         var description: String {
-            dailyValueType.description
+            dailyValueType.description(for: .weight)
         }
 
         var header: some View {
@@ -274,7 +274,6 @@ struct WeightForm: View {
 
     func undo() {
         self.weightInKg = initialWeight.weightInKg
-        self.dailyValueType = initialWeight.dailyValueType
         self.measurements = initialWeight.measurements
         self.deletedHealthKitMeasurements = initialWeight.deletedHealthKitMeasurements
     }
@@ -312,7 +311,6 @@ struct WeightForm: View {
     var weight: HealthDetails.Weight {
         HealthDetails.Weight(
             weightInKg: calculatedWeightInKg,
-            dailyValueType: dailyValueType,
             measurements: measurements,
             deletedHealthKitMeasurements: deletedHealthKitMeasurements
         )

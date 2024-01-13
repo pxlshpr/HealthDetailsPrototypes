@@ -43,7 +43,7 @@ struct LeanBodyMassForm: View {
         
         _leanBodyMassInKg = State(initialValue: leanBodyMass.leanBodyMassInKg)
         _measurements = State(initialValue: leanBodyMass.measurements)
-        _dailyValueType = State(initialValue: leanBodyMass.dailyValueType)
+        _dailyValueType = State(initialValue: healthProvider.settingsProvider.settings.dailyValueType(for: .leanBodyMass))
         _deletedHealthKitMeasurements = State(initialValue: leanBodyMass.deletedHealthKitMeasurements)
         _isSynced = State(initialValue: healthProvider.settingsProvider.leanBodyMassIsHealthKitSynced)
     }
@@ -212,7 +212,7 @@ struct LeanBodyMassForm: View {
         }
 
         var description: String {
-            dailyValueType.description
+            dailyValueType.description(for: .leanBodyMass)
         }
 
         var header: some View {
@@ -276,7 +276,6 @@ struct LeanBodyMassForm: View {
     
     func undo() {
         self.leanBodyMassInKg = initialLeanBodyMass.leanBodyMassInKg
-        self.dailyValueType = initialLeanBodyMass.dailyValueType
         self.measurements = initialLeanBodyMass.measurements
         self.deletedHealthKitMeasurements = initialLeanBodyMass.deletedHealthKitMeasurements
     }
@@ -337,7 +336,6 @@ struct LeanBodyMassForm: View {
         HealthDetails.LeanBodyMass(
             leanBodyMassInKg: calculatedLeanBodyMassInKg,
             fatPercentage: calculatedFatPercentage,
-            dailyValueType: dailyValueType,
             measurements: measurements,
             deletedHealthKitMeasurements: deletedHealthKitMeasurements
         )

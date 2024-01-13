@@ -327,7 +327,6 @@ extension HealthDetails {
     struct LeanBodyMass: Hashable, Codable {
         var leanBodyMassInKg: Double? = nil
         var fatPercentage: Double? = nil
-        var dailyValueType: DailyValueType = .average
         var measurements: [LeanBodyMassMeasurement] = []
         var deletedHealthKitMeasurements: [LeanBodyMassMeasurement] = []
     }
@@ -337,7 +336,6 @@ extension HealthDetails {
 extension HealthDetails {
     struct Weight: Hashable, Codable {
         var weightInKg: Double? = nil
-        var dailyValueType: DailyValueType = .average
         var measurements: [WeightMeasurement] = []
         var deletedHealthKitMeasurements: [WeightMeasurement] = []
     }

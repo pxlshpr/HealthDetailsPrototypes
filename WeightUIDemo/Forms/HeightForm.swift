@@ -81,7 +81,7 @@ struct HeightForm: View {
     
     var dailyValueInfoSection: some View {
         var description: String {
-            DailyValueType.last.description
+            DailyValueType.last.description(for: .height)
         }
 
         var header: some View {
@@ -324,3 +324,7 @@ struct HeightForm: View {
 //            .environment(SettingsProvider(settings: .init(heightUnit: .m)))
 //    }
 //}
+
+#Preview {
+    DemoView()
+}
