@@ -171,6 +171,7 @@ struct LeanBodyMassForm: View {
             set: { newValue in
                 withAnimation {
                     dailyValueType = newValue
+                    healthProvider.setDailyValueType(for: .leanBodyMass, to: newValue)
                     handleChanges()
                 }
             }

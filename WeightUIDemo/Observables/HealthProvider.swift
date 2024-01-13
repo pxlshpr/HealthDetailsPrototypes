@@ -229,10 +229,6 @@ extension HealthProvider {
         await fetchWeightChangeData()
         save()
     }
-
-    func recalculate() async {
-        
-    }
 }
 
 //extension HealthDetails.Maintenance.Adaptive {

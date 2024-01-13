@@ -76,6 +76,7 @@ struct HeightForm: View {
             set: { newValue in
                 withAnimation {
                     dailyValueType = newValue
+                    healthProvider.setDailyValueType(for: .height, to: newValue)
                     handleChanges()
                 }
             }

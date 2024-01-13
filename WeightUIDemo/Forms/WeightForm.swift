@@ -183,6 +183,7 @@ struct WeightForm: View {
             set: { newValue in
                 withAnimation {
                     dailyValueType = newValue
+                    healthProvider.setDailyValueType(for: .weight, to: newValue)
                     handleChanges()
                 }
             }
