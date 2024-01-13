@@ -46,7 +46,7 @@ struct DietaryEnergyPointForm: View {
         self.averageEnergyInKcal = averageEnergyInKcal
         _isPresented = isPresented
         
-        let kcal = point.source == .useAverage ? nil : point.kcal
+        let kcal = point.source == .notCounted ? nil : point.kcal
         _source = State(initialValue: point.source)
         _energyInKcal = State(initialValue: kcal)
         _customInput = State(initialValue: DoubleInput(
@@ -68,9 +68,7 @@ struct DietaryEnergyPointForm: View {
             missingLogDataSection
             missingHealthKitDataSection
             notCountedSection
-//            explanation
         }
-//        .navigationTitle(pointDate.shortDateString)
         .navigationTitle("Dietary Energy")
         .navigationBarTitleDisplayMode(.large)
         .toolbar { toolbarContent }
@@ -87,7 +85,7 @@ struct DietaryEnergyPointForm: View {
                 style: .plain,
                 notice: .init(
                     title: "No Logged Foods",
-                    message: "There are no foods logged on this date.\n\nConsider marking it as fasted if you actually hadn't consumed anything, so that it would be set at 0 \(energyUnit.abbreviation).\n\nIf you can't accurately remember what you had consumed, choose 'Not Included', to ignore this day and not count it towards your daily average.",
+                    message: "There are no foods logged on this date.\n\nConsider marking it as fasted if you actually hadn't consumed anything, so that it would be set at 0 \(energyUnit.abbreviation).\n\nIf you can't accurately remember what you had consumed, choose '\(DietaryEnergyPointSource.notCounted.name)', to ignore this day and not count it towards your daily average.",
                     imageName: "questionmark.app.dashed"
                 )
             )
@@ -110,13 +108,13 @@ struct DietaryEnergyPointForm: View {
     
     @ViewBuilder
     var notCountedSection: some View {
-        if source == .useAverage {
+        if source == .notCounted {
             NoticeSection(
                 style: .plain,
                 notice: .init(
-                    title: "Excluded",
+                    title: DietaryEnergyPointSource.notCounted.name,
                     message: "This day's dietary energy is being ignored and will not count towards your daily average.",
-                    imageName: "pencil.slash"
+                    imageName: DietaryEnergyPointSource.notCounted.image
                 )
             )
         }
@@ -234,7 +232,7 @@ struct DietaryEnergyPointForm: View {
                 } else {
                     source.name
                 }
-            case .fasted, .useAverage, .userEntered:
+            case .fasted, .notCounted, .userEntered:
                 source.name
             }
         }
@@ -297,7 +295,7 @@ struct DietaryEnergyPointForm: View {
         
         /// Save the point in its date's `Day` as well
         var point = dietaryEnergyPoint
-        if point.source == .useAverage {
+        if point.source == .notCounted {
             point.kcal = nil
         }
         healthProvider.saveDietaryEnergyPoint(point)
@@ -345,7 +343,7 @@ struct DietaryEnergyPointForm: View {
                     }
                 }
                 
-            case .useAverage, .userEntered:
+            case .notCounted, .userEntered:
                 break
             }
 

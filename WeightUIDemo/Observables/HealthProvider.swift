@@ -144,7 +144,7 @@ extension HealthProvider {
                     /// Fallback to creating an exclusionary `DietaryEnergyPoint` for this date
                     let point = DietaryEnergyPoint(
                         date: date,
-                        source: .useAverage
+                        source: .notCounted
                     )
                     points.append(point)
 

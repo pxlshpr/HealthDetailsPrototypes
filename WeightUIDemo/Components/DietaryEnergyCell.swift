@@ -17,8 +17,8 @@ struct DietaryEnergyCell: View {
 
     var detail: some View {
         var label: String {
-            guard point.source != .useAverage else {
-                return "Not Counted"
+            guard point.source != .notCounted else {
+                return DietaryEnergyPointSource.notCounted.name
             }
             guard let kcal = point.kcal else {
                 return "Not Set"
@@ -28,7 +28,7 @@ struct DietaryEnergyCell: View {
         }
         
         var foregroundColor: Color {
-            point.source == .useAverage || point.kcal == nil
+            point.source == .notCounted || point.kcal == nil
             ? Color(.secondaryLabel)
             : Color(.label)
         }

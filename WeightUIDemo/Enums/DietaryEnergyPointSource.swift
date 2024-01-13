@@ -5,7 +5,7 @@ enum DietaryEnergyPointSource: Int, Codable, CaseIterable, Identifiable {
     case healthKit
     case fasted
     case userEntered
-    case useAverage
+    case notCounted
 
     var id: Int {
         rawValue
@@ -13,7 +13,7 @@ enum DietaryEnergyPointSource: Int, Codable, CaseIterable, Identifiable {
 
     var emptyValueString: String {
         switch self {
-        case .useAverage:   "Excluded"
+        case .notCounted:   "Excluded"
         case .healthKit:    "No Data"
         default:            "Not Set"
         }
@@ -25,9 +25,9 @@ enum DietaryEnergyPointSource: Int, Codable, CaseIterable, Identifiable {
         case .healthKit:    "pencil"
         case .fasted:       ""
         case .userEntered:  "pencil"
-        case .useAverage:   "pencil.slash"
-//        case .useAverage:   "questionmark.square.dashed"
-//        case .useAverage:   "circle.slash"
+        case .notCounted:   "pencil.slash"
+//        case .notCounted:   "questionmark.square.dashed"
+//        case .notCounted:   "circle.slash"
         }
     }
 
@@ -37,7 +37,7 @@ enum DietaryEnergyPointSource: Int, Codable, CaseIterable, Identifiable {
 //        case .healthKit:    "Use Apple Health"
 //        case .fasted:       "Set as Fasted"
 //        case .userEntered:  "Enter Manually"
-//        case .useAverage:   "Not Counted" /// "Exclude and Use Average"
+//        case .notCounted:   "Not Counted" /// "Exclude and Use Average"
 //        }
 //    }
 
@@ -47,14 +47,16 @@ enum DietaryEnergyPointSource: Int, Codable, CaseIterable, Identifiable {
         case .healthKit:    "Apple Health Data"
         case .fasted:       "Mark as Fasted"
         case .userEntered:  "Enter Manually"
-        case .useAverage:   "Not Included" /// "Exclude and Use Average"
-//        case .useAverage:   "Exclude this Day" /// "Exclude and Use Average"
+        case .notCounted:   "Not Counted"
+//        case .notCounted:   "Not Included"
+//        case .notCounted:   "Exclude and Use Average"
+//        case .notCounted:   "Exclude this Day"
         }
     }
 
     var imageScale: CGFloat {
         switch self {
-        case .useAverage:   0.85
+        case .notCounted:   0.85
         default:            1.0
         }
     }
