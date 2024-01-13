@@ -168,14 +168,12 @@ struct NonTemporalVariableLink: View {
         case .age:
             AgeForm(
                 healthProvider: healthProvider,
-                isPresented: $isPresented,
-                dismissDisabled: $dismissDisabled
+                isPresented: $isPresented
             )
         case .sex:
             BiologicalSexForm(
                 healthProvider: healthProvider,
-                isPresented: $isPresented,
-                dismissDisabled: $dismissDisabled
+                isPresented: $isPresented
             )
         case .smokingStatus:
             SmokingStatusForm(

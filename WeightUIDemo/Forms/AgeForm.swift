@@ -3,8 +3,8 @@ import SwiftSugar
 
 struct AgeForm: View {
     
+    @Binding var isPresented: Bool
     let date: Date
-    let initialDateOfBirth: Date?
 
     @State var ageInYears: Int?
     @State var dateOfBirth: Date
@@ -13,25 +13,16 @@ struct AgeForm: View {
     @State var showingAgeAlert = false
     @State var showingDateOfBirthAlert = false
 
-    @State var isEditing: Bool
-    @State var isDirty: Bool = false
-    @Binding var isPresented: Bool
-    @Binding var dismissDisabled: Bool
-    
     let saveHandler: (Date?) -> ()
 
     init(
         date: Date,
         dateOfBirth: Date?,
         isPresented: Binding<Bool> = .constant(true),
-        dismissDisabled: Binding<Bool> = .constant(false),
         save: @escaping (Date?) -> ()
     ) {
         self.date = date
-        self.initialDateOfBirth = dateOfBirth
         _isPresented = isPresented
-        _dismissDisabled = dismissDisabled
-        _isEditing = State(initialValue: date.isToday)
         
         let ageInYears = dateOfBirth?.ageInYears
         _ageInYears = State(initialValue: ageInYears)
@@ -44,20 +35,18 @@ struct AgeForm: View {
     
     init(
         healthProvider: HealthProvider,
-        isPresented: Binding<Bool> = .constant(true),
-        dismissDisabled: Binding<Bool> = .constant(false)
+        isPresented: Binding<Bool> = .constant(true)
     ) {
         self.init(
             date: healthProvider.healthDetails.date,
             dateOfBirth: healthProvider.healthDetails.dateOfBirth,
             isPresented: isPresented,
-            dismissDisabled: dismissDisabled,
             save: healthProvider.saveDateOfBirth
         )
     }
     var body: some View {
         Form {
-            notice
+            dateSection
             Group {
                 healthSection
                 dateOfBirthSection
@@ -75,9 +64,6 @@ struct AgeForm: View {
             Button("Cancel") { }
         }
         .safeAreaInset(edge: .bottom) { bottomValue }
-        .navigationBarBackButtonHidden(isLegacy && isEditing)
-        .onChange(of: isEditing) { _, _ in setDismissDisabled() }
-        .onChange(of: isDirty) { _, _ in setDismissDisabled() }
         .sheet(isPresented: $showingDateOfBirthAlert) { datePickerSheet }
     }
     
@@ -130,36 +116,17 @@ struct AgeForm: View {
     }
     
     var toolbarContent: some ToolbarContent {
-        topToolbarContent(
-            isEditing: $isEditing,
-            isDirty: $isDirty,
-            isPast: isLegacy,
-            dismissAction: { isPresented = false },
-            undoAction: undo,
-            saveAction: save
-        )
-    }
-    
-    func setIsDirty() {
-        isDirty = ageInYears != nil
-        || dateOfBirth != DefaultDateOfBirth
-    }
-    
-    func setDismissDisabled() {
-        dismissDisabled = isLegacy && isEditing && isDirty
-    }
-
-    func undo() {
-        self.dateOfBirth = initialDateOfBirth ?? DefaultDateOfBirth
-        self.ageInYears = initialDateOfBirth?.ageInYears
-        customInput = IntInput(int: ageInYears)
+        ToolbarItem(placement: .topBarTrailing) {
+            Button {
+                isPresented = false
+            } label: {
+                CloseButtonLabel()
+            }
+        }
     }
     
     func handleChanges() {
-        setIsDirty()
-        if !isLegacy {
-            save()
-        }
+        save()
     }
     
     func save() {
@@ -167,22 +134,13 @@ struct AgeForm: View {
         saveHandler(dateOfBirth)
     }
 
-    var isDisabled: Bool {
-        isLegacy && !isEditing
-    }
-    
-    var controlColor: Color {
-        isDisabled ? Color(.secondaryLabel) : Color(.label)
-    }
-    
-    var isLegacy: Bool {
-        date.startOfDay < Date.now.startOfDay
-    }
-    
-    @ViewBuilder
-    var notice: some View {
-        if isLegacy {
-            NoticeSection.legacy(date, isEditing: $isEditing)
+    var dateSection: some View {
+        Section {
+            HStack {
+                Text("Date")
+                Spacer()
+                Text(date.shortDateString)
+            }
         }
     }
     
@@ -216,17 +174,14 @@ struct AgeForm: View {
         Section {
             HStack {
                 Text("Import from Apple Health")
-                    .foregroundStyle(isDisabled ? Color(.secondaryLabel) : Color.accentColor)
+                    .foregroundStyle(Color.accentColor)
                 Spacer()
                 Button {
                     setDateOfBirth(DefaultDateOfBirth)
                     handleChanges()
                 } label: {
                     AppleHealthIcon()
-//                    Image("AppleHealthIcon")
-//                        .grayscale(isDisabled ? 1 : 0)
                 }
-                .disabled(isDisabled)
             }
         }
     }
@@ -239,21 +194,18 @@ struct AgeForm: View {
                         .foregroundStyle(Color.accentColor)
                 } else {
                     Text("Date of Birth")
-                        .foregroundStyle(controlColor)
+                        .foregroundStyle(Color(.label))
                 }
                 Spacer()
                 if ageInYears != nil {
                     Text(dateOfBirth.shortDateString)
-                        .foregroundStyle(controlColor)
+                        .foregroundStyle(Color(.label))
                 }
                 Button {
                     showingDateOfBirthAlert = true
                 } label: {
                     ScalableIcon(systemName: "calendar")
-//                    Image(systemName: "calendar")
-//                        .frame(width: imageScale * scale, height: imageScale * scale)
                 }
-                .disabled(isDisabled)
             }
         }
     }
@@ -266,21 +218,18 @@ struct AgeForm: View {
                         .foregroundStyle(Color.accentColor)
                 } else {
                     Text("Age")
-                        .foregroundStyle(controlColor)
+                        .foregroundStyle(Color(.label))
                 }
                 Spacer()
                 if let ageInYears {
                     Text("\(ageInYears)")
-                        .foregroundStyle(controlColor)
+                        .foregroundStyle(Color(.label))
                 }
                 Button {
                     showingAgeAlert = true
                 } label: {
                     ScalableIcon(systemName: "pencil")
-//                    Image(systemName: "pencil")
-//                        .frame(width: imageScale * scale, height: imageScale * scale)
                 }
-                .disabled(isDisabled)
             }
         }
     }
