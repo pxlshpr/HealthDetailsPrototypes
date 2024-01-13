@@ -183,9 +183,9 @@ struct WeightForm: View {
     @ViewBuilder
     var noticeOrDateSection: some View {
 //        if isLegacy {
-        if date.startOfDay < Date.now.startOfDay {
-            NoticeSection.legacy(date, isEditing: $isEditing)
-        } else {
+//        if date.startOfDay < Date.now.startOfDay {
+//            NoticeSection.legacy(date, isEditing: $isEditing)
+//        } else {
             Section {
                 HStack {
                     Text("Date")
@@ -193,7 +193,7 @@ struct WeightForm: View {
                     Text(date.shortDateString)
                 }
             }
-        }
+//        }
     }
     
     var dailyValuePicker: some View {

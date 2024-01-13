@@ -92,13 +92,14 @@ struct HealthDetailsForm: View {
     @ViewBuilder
     var dateSection: some View {
         if !healthProvider.healthDetails.date.isToday {
-            Section {
-                HStack {
-                    Text("Date")
-                    Spacer()
-                    Text(healthProvider.healthDetails.date.shortDateString)
-                }
-            }
+            NoticeSection.legacy(healthProvider.healthDetails.date, isEditing: .constant(true))
+//            Section {
+//                HStack {
+//                    Text("Date")
+//                    Spacer()
+//                    Text(healthProvider.healthDetails.date.shortDateString)
+//                }
+//            }
         }
     }
     
