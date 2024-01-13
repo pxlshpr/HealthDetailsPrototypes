@@ -40,8 +40,8 @@ struct Notice {
         .init(
 //            title: "Legacy Data",
 //            message: "You are viewing legacy data which has been preserved to ensure any dependent goals\(date != nil ? " on this date" : "") remain unchanged.",
-            title: "Old Health Details",
-            message: "You are viewing your Health Details on a past date. Changes will not affect your current Health Details.",
+            title: "Past Health Details",
+            message: "You are viewing your Health Details for a past date.",
             date: date,
             imageName: "calendar.badge.clock",
             isEditing: isEditing
@@ -102,10 +102,8 @@ struct NoticeSection: View {
     
     var body: some View {
         Section {
-//            if !isEditing.wrappedValue {
-                noticeRow
-//            }
             dateRow
+            noticeRow
         }
         .listRowBackground(background)
     }
