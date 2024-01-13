@@ -341,10 +341,6 @@ struct DietaryEnergyPointForm: View {
             emptyValueString: Binding<String>(
                 get: { source.emptyValueString },
                 set: { _ in }
-            ),
-            isDisabled: Binding<Bool>(
-                get: { !isEditing },
-                set: { _ in }
             )
         )
 //        return HStack(alignment: .firstTextBaseline, spacing: 5) {

@@ -104,11 +104,7 @@ struct MaintenanceForm: View {
                 get: { value?.formattedEnergy },
                 set: { _ in }
             ),
-            doubleUnitString: settingsProvider.energyUnit.abbreviation,
-            isDisabled: Binding<Bool>(
-                get: { !isEditing },
-                set: { _ in }
-            )
+            doubleUnitString: settingsProvider.energyUnit.abbreviation
         )
     }
     

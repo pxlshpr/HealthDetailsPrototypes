@@ -121,8 +121,8 @@ struct HealthDetailsForm: View {
         case .weight:
             WeightForm(
                 healthProvider: healthProvider,
-                isPresented: $isPresented,
-                dismissDisabled: $dismissDisabled
+                isPresented: $isPresented
+//                dismissDisabled: $dismissDisabled
             )
         case .height:
             HeightForm(

@@ -252,8 +252,8 @@ struct TemporalVariableSection: View {
                 case .weight:
                     WeightForm(
                         healthProvider: healthProvider,
-                        isPresented: $isPresented,
-                        dismissDisabled: $dismissDisabled
+                        isPresented: $isPresented
+//                        dismissDisabled: $dismissDisabled
                     )
                 case .leanBodyMass:
                     LeanBodyMassForm(
@@ -305,7 +305,7 @@ struct TemporalVariableSection: View {
                     weight: latestWeight.weight,
                     healthProvider: healthProvider,
                     isPresented: $isPresented,
-                    dismissDisabled: $dismissDisabled,
+//                    dismissDisabled: $dismissDisabled,
                     save: { newWeight in
                         healthProvider.updateLatestWeight(newWeight)
                     }

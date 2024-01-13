@@ -129,10 +129,7 @@ struct HeightForm: View {
             doubleString: Binding<String?>(
                 get: { double?.cleanHealth }, set: { _ in }
             ),
-            doubleUnitString: doubleUnitString,
-            isDisabled: Binding<Bool>(
-                get: { isDisabled }, set: { _ in }
-            )
+            doubleUnitString: doubleUnitString
         )
     }
     
@@ -215,15 +212,6 @@ struct HeightForm: View {
                 }
             ),
             showingForm: $showingForm,
-            isPast: Binding<Bool>(
-                get: { isLegacy },
-                set: { _ in }
-            ),
-            isEditing: Binding<Bool>(
-                get: { isEditing },
-                set: { _ in }
-            ),
-//            dailyValueType: .constant(.last),
             handleChanges: handleChanges
         )
     }

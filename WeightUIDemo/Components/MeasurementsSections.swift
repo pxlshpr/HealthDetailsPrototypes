@@ -8,11 +8,7 @@ struct MeasurementsSections<U : HealthUnit>: View {
     @Binding var measurements: [any Measurable]
     @Binding var deletedHealthKitMeasurements: [any Measurable]
     @Binding var showingForm: Bool
-    @Binding var isPast: Bool
-    @Binding var isEditing: Bool
-//    @Binding var dailyValueType: DailyValueType
     
-//    var footerSuffix: String? = nil
     let handleChanges: () -> ()
     
     var body: some View {
@@ -23,7 +19,6 @@ struct MeasurementsSections<U : HealthUnit>: View {
     }
     
     var measurementsSection: some View {
-//        Section(footer: footer) {
         Section {
             cells
             lastRow
@@ -62,54 +57,14 @@ struct MeasurementsSections<U : HealthUnit>: View {
         }
     }
     
-//    var footer: some View {
-//        var string: String {
-//            let string = dailyValueType.description
-//            return if let footerSuffix {
-//                string + " " + footerSuffix
-//            } else {
-//                string
-//            }
-//        }
-//        return Group {
-//            if !measurements.isEmpty {
-//                Text(string)
-//            }
-//        }
-//    }
-    
-    var isDisabled: Bool {
-        isPast && !isEditing
-    }
-
     var lastRow: some View {
-        var shouldShow: Bool {
-            !(isDisabled && !measurements.isEmpty)
-        }
-        
-        var content: some View {
-            HStack {
-                if isDisabled {
-                    if measurements.isEmpty {
-                        Text("No Measurements")
-                            .foregroundStyle(.secondary)
-                    }
-                } else {
-                    Text("Add Measurement")
-                        .foregroundStyle(Color.accentColor)
-                }
-                Spacer()
-                Button {
-                    showingForm = true
-                } label: {
-                }
-                .disabled(isDisabled)
-            }
-        }
-        
-        return Group {
-            if shouldShow {
-                content
+        HStack {
+            Text("Add Measurement")
+                .foregroundStyle(Color.accentColor)
+            Spacer()
+            Button {
+                showingForm = true
+            } label: {
             }
         }
     }
@@ -117,7 +72,6 @@ struct MeasurementsSections<U : HealthUnit>: View {
     var cells: some View {
         ForEach(measurements, id: \.id) { measurement in
             cell(for: measurement)
-                .deleteDisabled(isPast)
         }
         .onDelete(perform: delete)
     }
@@ -145,7 +99,7 @@ struct MeasurementsSections<U : HealthUnit>: View {
             measurement: measurement,
             isDisabled: disabled,
             showDeleteButton: Binding<Bool>(
-                get: { isEditing && isPast },
+                get: { true },
                 set: { _ in }
             ),
             deleteAction: {

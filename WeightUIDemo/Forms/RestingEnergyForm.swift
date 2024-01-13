@@ -173,11 +173,7 @@ struct RestingEnergyForm: View {
                 get: { double?.formattedEnergy },
                 set: { _ in }
             ),
-            doubleUnitString: energyUnit.abbreviation,
-            isDisabled: Binding<Bool>(
-                get: { !isEditing },
-                set: { _ in }
-            )
+            doubleUnitString: energyUnit.abbreviation
         )
     }
     

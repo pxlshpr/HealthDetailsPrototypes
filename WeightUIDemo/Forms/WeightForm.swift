@@ -7,7 +7,6 @@ struct WeightForm: View {
     @Bindable var healthProvider: HealthProvider
 
     let date: Date
-    let initialWeight: HealthDetails.Weight
     
     @State var weightInKg: Double?
     @State var dailyValueType: DailyValueType
@@ -17,10 +16,7 @@ struct WeightForm: View {
 
     @State var showingForm = false
     
-    @State var isEditing: Bool
-    @State var isDirty: Bool = false
     @Binding var isPresented: Bool
-    @Binding var dismissDisabled: Bool
     
     let saveHandler: (HealthDetails.Weight) -> ()
     
@@ -29,17 +25,12 @@ struct WeightForm: View {
         weight: HealthDetails.Weight,
         healthProvider: HealthProvider,
         isPresented: Binding<Bool> = .constant(true),
-        dismissDisabled: Binding<Bool> = .constant(false),
         save: @escaping (HealthDetails.Weight) -> ()
     ) {
         self.date = date
-        self.initialWeight = weight
         self.saveHandler = save
         self.healthProvider = healthProvider
         _isPresented = isPresented
-        _dismissDisabled = dismissDisabled
-//        _isEditing = State(initialValue: date.isToday)
-        _isEditing = State(initialValue: true)
 
         _weightInKg = State(initialValue: weight.weightInKg)
         _measurements = State(initialValue: weight.measurements)
@@ -50,22 +41,20 @@ struct WeightForm: View {
     
     init(
         healthProvider: HealthProvider,
-        isPresented: Binding<Bool> = .constant(true),
-        dismissDisabled: Binding<Bool> = .constant(false)
+        isPresented: Binding<Bool> = .constant(true)
     ) {
         self.init(
             date: healthProvider.healthDetails.date,
             weight: healthProvider.healthDetails.weight,
             healthProvider: healthProvider,
             isPresented: isPresented,
-            dismissDisabled: dismissDisabled,
             save: healthProvider.saveWeight
         )
     }
     
     var body: some View {
         Form {
-            noticeOrDateSection
+            dateSection
             measurementsSections
             dailyValuePicker
             syncSection
@@ -76,9 +65,6 @@ struct WeightForm: View {
         .toolbar { toolbarContent }
         .sheet(isPresented: $showingForm) { measurementForm }
         .safeAreaInset(edge: .bottom) { bottomValue }
-//        .navigationBarBackButtonHidden(isLegacy && isEditing)
-        .onChange(of: isEditing) { _, _ in setDismissDisabled() }
-        .onChange(of: isDirty) { _, _ in setDismissDisabled() }
         .onChange(of: isSynced, isSyncedChanged)
     }
     
@@ -89,7 +75,6 @@ struct WeightForm: View {
     var explanation: some View {
         var header: some View {
             Text("Usage")
-//                .formTitleStyle()
         }
         return Section(header: header) {
             VStack(alignment: .leading) {
@@ -117,15 +102,6 @@ struct WeightForm: View {
                 }
             ),
             showingForm: $showingForm,
-            isPast: Binding<Bool>(
-                get: { isLegacy },
-                set: { _ in }
-            ),
-            isEditing: Binding<Bool>(
-                get: { isEditing },
-                set: { _ in }
-            ),
-//            dailyValueType: $dailyValueType,
             handleChanges: handleChanges
         )
     }
@@ -173,27 +149,18 @@ struct WeightForm: View {
             doubleString: Binding<String?>(
                 get: { double?.cleanHealth }, set: { _ in }
             ),
-            doubleUnitString: doubleUnitString,
-            isDisabled: Binding<Bool>(
-                get: { isDisabled }, set: { _ in }
-            )
+            doubleUnitString: doubleUnitString
         )
     }
     
-    @ViewBuilder
-    var noticeOrDateSection: some View {
-//        if isLegacy {
-//        if date.startOfDay < Date.now.startOfDay {
-//            NoticeSection.legacy(date, isEditing: $isEditing)
-//        } else {
-            Section {
-                HStack {
-                    Text("Date")
-                    Spacer()
-                    Text(date.shortDateString)
-                }
+    var dateSection: some View {
+        Section {
+            HStack {
+                Text("Date")
+                Spacer()
+                Text(date.shortDateString)
             }
-//        }
+        }
     }
     
     var dailyValuePicker: some View {
@@ -215,7 +182,6 @@ struct WeightForm: View {
             }
             .pickerStyle(.segmented)
             .listRowSeparator(.hidden)
-            .disabled(isDisabled)
         }
 
         var description: String {
@@ -232,71 +198,33 @@ struct WeightForm: View {
         }
     }
 
-    @ViewBuilder
     var syncSection: some View {
-        if !isLegacy {
-            SyncSection(
-                healthDetail: .weight,
-                isSynced: $isSynced,
-                handleChanges: handleChanges
-            )
-        }
-    }
-    
-    var toolbarContent: some ToolbarContent {
-        topToolbarContent(
-            isEditing: $isEditing,
-            isDirty: $isDirty,
-            isPast: isLegacy,
-            dismissAction: { isPresented = false },
-            undoAction: undo,
-            saveAction: save
+        SyncSection(
+            healthDetail: .weight,
+            isSynced: $isSynced,
+            handleChanges: handleChanges
         )
     }
     
-    //MARK: - Actions
-    
-    func setIsDirty() {
-        isDirty = weight != initialWeight
-    }
-    
-    func setDismissDisabled() {
-        dismissDisabled = isLegacy && isEditing && isDirty
+    var toolbarContent: some ToolbarContent {
+        ToolbarItem(placement: .topBarTrailing) {
+            Button {
+                isPresented = false
+            } label: {
+                CloseButtonLabel()
+            }
+        }
     }
 
     func handleChanges() {
         weightInKg = calculatedWeightInKg
-        setIsDirty()
-        if !isLegacy {
-            save()
-        }
+        save()
     }
 
-    func undo() {
-        self.weightInKg = initialWeight.weightInKg
-        self.measurements = initialWeight.measurements
-        self.deletedHealthKitMeasurements = initialWeight.deletedHealthKitMeasurements
-    }
-    
     func save() {
         saveHandler(weight)
     }
 
-    //MARK: - Convenience
-    
-    var isDisabled: Bool {
-        isLegacy && !isEditing
-    }
-    
-    var controlColor: Color {
-        isDisabled ? .secondary : .primary
-    }
-    
-    var isLegacy: Bool {
-        false
-//        date.startOfDay < Date.now.startOfDay
-    }
-    
     var calculatedWeightInKg: Double? {
         switch dailyValueType {
         case .average:
@@ -314,42 +242,6 @@ struct WeightForm: View {
             measurements: measurements,
             deletedHealthKitMeasurements: deletedHealthKitMeasurements
         )
-    }
-}
-
-#Preview("Current (kg)") {
-    NavigationView {
-        WeightForm(healthProvider: MockCurrentProvider)
-    }
-}
-
-#Preview("Past (kg)") {
-    NavigationView {
-        WeightForm(healthProvider: MockPastProvider)
-    }
-}
-
-#Preview("Current (st)") {
-    NavigationView {
-        WeightForm(healthProvider: MockCurrentProvider)
-    }
-}
-
-#Preview("Past (st)") {
-    NavigationView {
-        WeightForm(healthProvider: MockPastProvider)
-    }
-}
-
-#Preview("Current (lb)") {
-    NavigationView {
-        WeightForm(healthProvider: MockCurrentProvider)
-    }
-}
-
-#Preview("Past (lb)") {
-    NavigationView {
-        WeightForm(healthProvider: MockPastProvider)
     }
 }
 

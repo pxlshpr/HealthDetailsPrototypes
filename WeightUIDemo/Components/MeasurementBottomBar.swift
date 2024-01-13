@@ -9,7 +9,6 @@ struct MeasurementBottomBar: View {
     @Binding var doubleString: String?
     var prefix: Binding<String?>?
     var emptyValueString: Binding<String>?
-    @Binding var isDisabled: Bool
     
     let doubleUnitString: String
     
@@ -26,8 +25,6 @@ struct MeasurementBottomBar: View {
 
         emptyValueString: Binding<String>? = nil,
         
-        isDisabled: Binding<Bool>,
-        
         isStyledAsBottomBar: Bool = true
     ) {
         self.int = int
@@ -36,7 +33,6 @@ struct MeasurementBottomBar: View {
         self.prefix = prefix
         _double = double
         _doubleString = doubleString
-        _isDisabled = isDisabled
         self.doubleUnitString = doubleUnitString
         self.isStyledAsBottomBar = isStyledAsBottomBar
     }
@@ -63,8 +59,7 @@ struct MeasurementBottomBar: View {
                 doubleString: $doubleString,
                 doubleUnitString: doubleUnitString,
                 emptyValueString: emptyValueString,
-                prefix: prefix,
-                isDisabled: $isDisabled
+                prefix: prefix
             )
         }
     }
@@ -79,7 +74,6 @@ struct MeasurementBottomText: View {
 
     @Binding var double: Double?
     @Binding var doubleString: String?
-    @Binding var isDisabled: Bool
 
     var emptyValueString: Binding<String>?
     var prefix: Binding<String?>?
@@ -95,9 +89,7 @@ struct MeasurementBottomText: View {
         doubleUnitString: String,
 
         emptyValueString: Binding<String>? = nil,
-        prefix: Binding<String?>? = nil,
-
-        isDisabled: Binding<Bool>
+        prefix: Binding<String?>? = nil
     ) {
         self.int = int
         self.intUnitString = intUnitString
@@ -105,7 +97,6 @@ struct MeasurementBottomText: View {
         self.prefix = prefix
         _double = double
         _doubleString = doubleString
-        _isDisabled = isDisabled
         self.doubleUnitString = doubleUnitString
     }
     
@@ -116,27 +107,27 @@ struct MeasurementBottomText: View {
                 if let prefix = prefix?.wrappedValue {
                     Text(prefix)
                         .font(LargeNumberFont)
-                        .foregroundStyle(isDisabled ? .secondary : .primary)
+                        .foregroundStyle(.primary)
                 }
                 if let int = int?.wrappedValue, let intUnitString {
                     HStack(alignment: .firstTextBaseline, spacing: 5) {
                         Text("\(int)")
                             .contentTransition(.numericText(value: Double(int)))
                             .font(LargeNumberFont)
-                            .foregroundStyle(isDisabled ? .secondary : .primary)
+                            .foregroundStyle(.primary)
                         Text(intUnitString)
                             .font(LargeUnitFont)
-                            .foregroundStyle(isDisabled ? .tertiary : .secondary)
+                            .foregroundStyle(.secondary)
                     }
                 }
                 HStack(alignment: .firstTextBaseline, spacing: 5) {
                     Text("\(doubleString ?? double.clean)")
                         .contentTransition(.numericText(value: double))
                         .font(LargeNumberFont)
-                        .foregroundStyle(isDisabled ? .secondary : .primary)
+                        .foregroundStyle(.primary)
                     Text(doubleUnitString)
                         .font(LargeUnitFont)
-                        .foregroundStyle(isDisabled ? .tertiary : .secondary)
+                        .foregroundStyle(.secondary)
                 }
             }
         } else {
@@ -149,7 +140,7 @@ struct MeasurementBottomText: View {
 
                 Text(emptyValueString?.wrappedValue ?? "Not Set")
                     .font(LargeUnitFont)
-                    .foregroundStyle(isDisabled ? .tertiary : .secondary)
+                    .foregroundStyle(.secondary)
             }
         }
     }

@@ -64,8 +64,7 @@ struct DietaryEnergyForm: View {
                 get: { energyValue?.formattedEnergy },
                 set: { _ in }
             ),
-            doubleUnitString: "\(settingsProvider.energyUnit)/day",
-            isDisabled: .constant(true)
+            doubleUnitString: "\(settingsProvider.energyUnit)/day"
         )
     }
     

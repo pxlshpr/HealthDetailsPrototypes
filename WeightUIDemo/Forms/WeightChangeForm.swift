@@ -252,10 +252,6 @@ struct WeightChangeForm: View {
             doubleUnitString: bodyMassUnit.doubleUnitString,
             prefix: Binding<String?>(
                 get: { weightChangeValueIsPositive ? "+" : "-" }, set: { _ in }
-            ),
-            isDisabled: Binding<Bool>(
-                get: { !isEditing },
-                set: { _ in }
             )
         )
     }

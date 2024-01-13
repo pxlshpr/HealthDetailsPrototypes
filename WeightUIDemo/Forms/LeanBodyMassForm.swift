@@ -161,10 +161,7 @@ struct LeanBodyMassForm: View {
                 doubleString: Binding<String?>(
                     get: { double?.cleanHealth }, set: { _ in }
                 ),
-                doubleUnitString: doubleUnitString,
-                isDisabled: Binding<Bool>(
-                    get: { isDisabled }, set: { _ in }
-                )
+                doubleUnitString: doubleUnitString
             )
         }
     }
@@ -253,16 +250,6 @@ struct LeanBodyMassForm: View {
                 }
             ),
             showingForm: $showingForm,
-            isPast: Binding<Bool>(
-                get: { isLegacy },
-                set: { _ in }
-            ),
-            isEditing: Binding<Bool>(
-                get: { isEditing },
-                set: { _ in }
-            ),
-//            dailyValueType: $dailyValueType,
-//            footerSuffix: "Percentages indicate your body fat.",
             handleChanges: handleChanges
         )
     }

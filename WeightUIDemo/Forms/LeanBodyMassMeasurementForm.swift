@@ -124,8 +124,7 @@ struct LeanBodyMassMeasurementForm: View {
                 doubleString: Binding<String?>(
                     get: { double?.cleanHealth }, set: { _ in }
                 ),
-                doubleUnitString: doubleUnitString,
-                isDisabled: .constant(false)
+                doubleUnitString: doubleUnitString
             )
         }
         .padding(.horizontal, BottomValueHorizontalPadding)

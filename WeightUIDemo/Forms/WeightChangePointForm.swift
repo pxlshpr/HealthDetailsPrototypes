@@ -134,11 +134,7 @@ struct WeightChangePointForm: View {
             doubleString: Binding<String?>(
                 get: { double?.cleanHealth }, set: { _ in }
             ),
-            doubleUnitString: bodyMassUnit.doubleUnitString,
-            isDisabled: Binding<Bool>(
-                get: { !isEditing },
-                set: { _ in }
-            )
+            doubleUnitString: bodyMassUnit.doubleUnitString
         )
     }
     
@@ -188,7 +184,7 @@ struct WeightChangePointForm: View {
                     weight: point.weight,
                     healthProvider: healthProvider,
                     isPresented: $isPresented,
-                    dismissDisabled: $dismissDisabled,
+//                    dismissDisabled: $dismissDisabled,
                     save: { weight in
                         updatePoint(point, with: weight)
                     }
