@@ -87,7 +87,7 @@ struct DietaryEnergyPointForm: View {
                 style: .plain,
                 notice: .init(
                     title: "No Logged Foods",
-                    message: "There are no foods logged on this date.\n\nConsider marking it as fasted if you actually hadn't consumed anything, so that it would be set at 0 \(energyUnit.abbreviation).\n\nIf you can't accurately remember what you had consumed, choose 'Exclude this Day', to ignore this day and not count it towards your daily average.",
+                    message: "There are no foods logged on this date.\n\nConsider marking it as fasted if you actually hadn't consumed anything, so that it would be set at 0 \(energyUnit.abbreviation).\n\nIf you can't accurately remember what you had consumed, choose 'Not Included', to ignore this day and not count it towards your daily average.",
                     imageName: "questionmark.app.dashed"
                 )
             )

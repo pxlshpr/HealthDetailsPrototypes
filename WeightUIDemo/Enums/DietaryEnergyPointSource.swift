@@ -47,7 +47,8 @@ enum DietaryEnergyPointSource: Int, Codable, CaseIterable, Identifiable {
         case .healthKit:    "Apple Health Data"
         case .fasted:       "Mark as Fasted"
         case .userEntered:  "Enter Manually"
-        case .useAverage:   "Exclude this Day" /// "Exclude and Use Average"
+        case .useAverage:   "Not Included" /// "Exclude and Use Average"
+//        case .useAverage:   "Exclude this Day" /// "Exclude and Use Average"
         }
     }
 

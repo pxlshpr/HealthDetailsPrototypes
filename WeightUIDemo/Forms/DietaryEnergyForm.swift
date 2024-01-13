@@ -63,7 +63,7 @@ struct DietaryEnergyForm: View {
     
     var list: some View {
         Section {
-            ForEach(points, id: \.self) { point in
+            ForEach(points, id: \.self.date) { point in
                 NavigationLink {
                     DietaryEnergyPointForm(
                         date: date,
