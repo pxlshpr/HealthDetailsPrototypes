@@ -49,9 +49,13 @@ internal extension HealthStore {
 
 extension HealthStore {
 
-    static func dietaryEnergyTotalInKcal(for date: Date) async throws -> Double? {
-        let dict = try await dailyDietaryEnergyTotalsInKcal(for: [date])
-        return dict[date]
+    static func dietaryEnergyTotalInKcal(for date: Date) async -> Double? {
+        do {
+            let dict = try await dailyDietaryEnergyTotalsInKcal(for: [date])
+            return dict[date]
+        } catch {
+            fatalError("Error getting dietaryEnergyTotalInKcal")
+        }
     }
     
     static func dailyDietaryEnergyTotalsInKcal(for dates: [Date]) async throws -> [Date: Double] {

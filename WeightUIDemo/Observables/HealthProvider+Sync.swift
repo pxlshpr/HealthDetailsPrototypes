@@ -8,7 +8,8 @@ extension HealthProvider {
     static func syncWithHealthKitAndRecalculateAllDays() async {
         
         var days = await fetchAllDaysFromDocuments()
-        
+        let initialDays = days
+
         let start = CFAbsoluteTimeGetCurrent()
         
         /// Fetch all HealthKit weight samples from start of log (since we're not interested in any before that)
@@ -16,7 +17,7 @@ extension HealthProvider {
         
         let settingsProvider = fetchSettingsFromDocuments()
         
-        /// [x] First, fetch whatever isSynced is turned on for (weight, height, LBM)—fetch everything from the first Day's date onwards
+        /// First, fetch whatever isSynced is turned on for (weight, height, LBM)—fetch everything from the first Day's date onwards
         let weightSamples: [HKQuantitySample]? = if settingsProvider.isHealthKitSyncing(.weight) {
             await HealthStore.weightMeasurements(from: startDate)
         } else {
@@ -42,62 +43,95 @@ extension HealthProvider {
         var toDelete: [HKQuantitySample] = []
         var toExport: [any Measurable] = []
         
-        /// [ ] Go through each Day
+        /// Go through each Day
         for i in days.indices {
 
             let day = days[i]
-            print("Syncing HealthKit values for: \(day.date.shortDateString)")
+            let date = day.date
+
+//            print("Syncing HealthKit values for: \(day.date.shortDateString)")
 
             if let weightSamples {
-                days[i].healthDetails.weight.processHealthKitSamples(weightSamples, for: day.date, toDelete: &toDelete, toExport: &toExport)
+                days[i].healthDetails.weight.processHealthKitSamples(
+                    weightSamples, 
+                    for: date,
+                    toDelete: &toDelete,
+                    toExport: &toExport
+                )
             }
 
             if let heightSamples {
-                days[i].healthDetails.height.processHealthKitSamples(heightSamples, for: day.date, toDelete: &toDelete, toExport: &toExport)
+                days[i].healthDetails.height.processHealthKitSamples(
+                    heightSamples,
+                    for: date,
+                    toDelete: &toDelete,
+                    toExport: &toExport
+                )
             }
 
             if let leanBodyMassSamples {
-                days[i].healthDetails.leanBodyMass.processHealthKitSamples(leanBodyMassSamples, for: day.date, toDelete: &toDelete, toExport: &toExport)
+                days[i].healthDetails.leanBodyMass.processHealthKitSamples(
+                    leanBodyMassSamples,
+                    for: date,
+                    toDelete: &toDelete, 
+                    toExport: &toExport
+                )
             }
 
 //            if let fatPercentageSamples {
-//                days[i].healthDetails.fatPercentage.processHealthKitSamples(fatPercentageSamples, for: day.date, toDelete: &toDelete, toExport: &toExport)
+//                days[i].healthDetails.fatPercentage.processHealthKitSamples(
+//                    fatPercentageSamples,
+//                    for: day.date,
+//                    toDelete: &toDelete,
+//                    toExport: &toExport
+//                )
 //            }
 
-            /// [ ] If the day has DietaryEnergyPointSource, RestingEnergySource or ActivieEnergySource as .healthKit, fetch them and set them
+            /// If the day has DietaryEnergyPointSource, RestingEnergySource or ActivieEnergySource as .healthKit, fetch them and set them
+            let start = CFAbsoluteTimeGetCurrent()
+            await days[i].dietaryEnergyPoint?.mock_fetchFromHealthKitIfNeeded(day: day)
+            await days[i].healthDetails.maintenance.estimate.restingEnergy.mock_fetchFromHealthKitIfNeeded(date: date)
+            await days[i].healthDetails.maintenance.estimate.activeEnergy.mock_fetchFromHealthKitIfNeeded(date: date)
+            print("\(day.date.dateString) – Fetching HealthKit values took \(CFAbsoluteTimeGetCurrent()-start)s")
         }
         
-        print("We have: \(toDelete.count) to delete")
-        print("We have: \(toExport.count) to export")
+//        print("We have: \(toDelete.count) to delete")
+//        print("We have: \(toExport.count) to export")
         
-        /// [x] Once we're done, go ahead and delete all the measurements we put aside to be deleted
+        /// Once we're done, go ahead and delete all the measurements we put aside to be deleted
         if !toDelete.isEmpty {
-            let start = CFAbsoluteTimeGetCurrent()
             await HealthStore.deleteMeasurements(toDelete)
-            print("Delete took: \(CFAbsoluteTimeGetCurrent()-start)s")
         }
 
-        /// [x] Also export all the measurements we put aside
+        /// Also export all the measurements we put aside
         if !toExport.isEmpty {
-            let start = CFAbsoluteTimeGetCurrent()
             await HealthStore.saveMeasurements(toExport)
-            print("Export took: \(CFAbsoluteTimeGetCurrent()-start)s")
         }
 
-        print("syncWithHealthKitAndRecalculateAllDays took: \(CFAbsoluteTimeGetCurrent()-start)s")
-        await recalculate(days)
+        await recalculate(days, initialDays: initialDays, start: start)
     }
 }
 
 extension HealthProvider {
-    static func recalculate(_ days: [Day]) async {
+    static func recalculate(_ days: [Day], initialDays: [Day]? = nil, start: CFAbsoluteTime? = nil) async {
+        
+        let start = start ?? CFAbsoluteTimeGetCurrent()
+        let initialDays = initialDays ?? days
+
         for i in days.indices {
             
             let day = days[i]
-            print("Recalculating day: \(day.date.shortDateString)")
 
-            saveDayInDocuments(days[i])
+            if days[i] != initialDays[i] {
+                print("Saving \(days[i].date.shortDateString)")
+                saveDayInDocuments(days[i])
+            } else {
+                
+            }
         }
+        
+        print("recalculate ended after: \(CFAbsoluteTimeGetCurrent()-start)s")
+
         //TODO: We need to:
         /// [ ] Go through each Day in order
         /// [ ] Get the HealthDetails

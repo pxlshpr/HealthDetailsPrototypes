@@ -164,7 +164,7 @@ func getDocumentsDirectory() -> URL {
     FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
 }
 
-struct Day: Codable {
+struct Day: Codable, Hashable {
     let date: Date
     var healthDetails: HealthDetails
     var dietaryEnergyPoint: DietaryEnergyPoint?

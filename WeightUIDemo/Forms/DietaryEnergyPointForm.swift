@@ -141,7 +141,7 @@ struct DietaryEnergyPointForm: View {
     }
     
     func fetchHealthKitValue() async throws {
-        let kcal = try await HealthStore.dietaryEnergyTotalInKcal(for: pointDate)
+        let kcal = await HealthStore.dietaryEnergyTotalInKcal(for: pointDate)
         await MainActor.run { [kcal] in
             withAnimation {
                 healthKitValueInKcal = kcal?

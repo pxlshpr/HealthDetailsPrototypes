@@ -22,6 +22,23 @@ struct DietaryEnergyPoint: Hashable, Codable {
     var source: DietaryEnergyPointSource
 }
 
+extension DietaryEnergyPoint {
+    mutating func mock_fetchFromHealthKitIfNeeded(day: Day) async {
+        kcal = await HealthStore.dietaryEnergyTotalInKcal(for: day.date)
+    }
+    
+    mutating func fetchFromHealthKitIfNeeded(day: Day) async {
+        switch source {
+        case .healthKit:
+            kcal = await HealthStore.dietaryEnergyTotalInKcal(for: day.date)
+        case .log:
+            kcal = day.energyInKcal
+        default:
+            break
+        }
+    }
+}
+
 extension Array where Element == DietaryEnergyPoint {
     mutating func fillAverages() {
         guard let averageOfPointsNotUsingAverage else { return }
@@ -290,36 +307,71 @@ extension HealthDetails {
             var restingEnergy = RestingEnergy()
             var activeEnergy = ActiveEnergy()
             
-            struct RestingEnergy: Hashable, Codable {
+            struct RestingEnergy: HealthKitFetchable, Hashable, Codable {
                 var kcal: Double? = nil
                 var source: RestingEnergySource = .equation
                 
                 var equation: RestingEnergyEquation = .katchMcardle
-                var healthKitSyncSettings = HealthKitSyncSettings()
+                var healthKitFetchSettings = HealthKitFetchSettings()
+                
+                var isHealthKitSourced: Bool { source == .healthKit }
+                var energyType: EnergyType { .resting }
             }
 
-            struct ActiveEnergy: Hashable, Codable {
+            struct ActiveEnergy: HealthKitFetchable, Hashable, Codable {
                 var kcal: Double? = nil
                 var source: ActiveEnergySource = .activityLevel
                 
                 var activityLevel: ActivityLevel = .lightlyActive
-                var healthKitSyncSettings = HealthKitSyncSettings()
+                var healthKitFetchSettings = HealthKitFetchSettings()
+
+                var isHealthKitSourced: Bool { source == .healthKit }
+                var energyType: EnergyType { .active }
             }
             
-            struct HealthKitSyncSettings: Hashable, Codable {
-                var intervalType: HealthIntervalType = .average
-                var interval: HealthInterval = .init(3, .day)
-                var correctionValue: CorrectionValue? = nil
-                
-//                struct Correction: Hashable, Codable {
-//                    var type: CorrectionType = .divide
-//                    var correction: Double?
-//                }
-            }
-
         }
-
     }
+}
+
+protocol HealthKitFetchable {
+    var healthKitFetchSettings: HealthKitFetchSettings { get }
+    var isHealthKitSourced: Bool { get }
+    var kcal: Double? { get set }
+    var energyType: EnergyType { get }
+}
+
+extension HealthKitFetchable {
+    mutating func mock_fetchFromHealthKitIfNeeded(date: Date) async {
+        /// Test with maximum possible interval
+        self.kcal = await HealthStore.energy(
+            energyType,
+            for: .init(2, .week),
+            on: date
+        )
+    }
+    
+    mutating func fetchFromHealthKitIfNeeded(date: Date) async {
+        guard isHealthKitSourced else { return }
+        let kcal = switch healthKitFetchSettings.intervalType {
+        case .average:
+            await HealthStore.energy(
+                energyType,
+                for: healthKitFetchSettings.interval,
+                on: date
+            )
+        case .sameDay:
+            await HealthStore.energy(energyType, on: date)
+        case .previousDay:
+            await HealthStore.energy(energyType, on: date.moveDayBy(-1))
+        }
+        self.kcal = kcal
+    }
+}
+
+struct HealthKitFetchSettings: Hashable, Codable {
+    var intervalType: HealthIntervalType = .average
+    var interval: HealthInterval = .init(3, .day)
+    var correctionValue: CorrectionValue? = nil
 }
 
 //MARK: - LeanBodyMass

@@ -57,10 +57,10 @@ struct RestingEnergyForm: View {
 
         _source = State(initialValue: restingEnergy.source)
         _equation = State(initialValue: restingEnergy.equation)
-        _intervalType = State(initialValue: restingEnergy.healthKitSyncSettings.intervalType)
-        _interval = State(initialValue: restingEnergy.healthKitSyncSettings.interval)
+        _intervalType = State(initialValue: restingEnergy.healthKitFetchSettings.intervalType)
+        _interval = State(initialValue: restingEnergy.healthKitFetchSettings.interval)
    
-        if let correction = restingEnergy.healthKitSyncSettings.correctionValue {
+        if let correction = restingEnergy.healthKitFetchSettings.correctionValue {
             _applyCorrection = State(initialValue: true)
             _correctionType = State(initialValue: correction.type)
             
@@ -110,8 +110,8 @@ struct RestingEnergyForm: View {
     func appeared() {
         if !hasAppeared {
             Task {
-                try await calculateEquationValues()
-                try await fetchHealthKitValues()
+                await calculateEquationValues()
+                await fetchHealthKitValues()
             }
             hasAppeared = true
         }
@@ -126,7 +126,7 @@ struct RestingEnergyForm: View {
         switch new {
         case .active:
             Task {
-                try await fetchHealthKitValues()
+                await fetchHealthKitValues()
             }
         default:
             break
@@ -208,7 +208,7 @@ struct RestingEnergyForm: View {
             kcal: restingEnergyInKcal,
             source: source,
             equation: equation,
-            healthKitSyncSettings: .init(
+            healthKitFetchSettings: .init(
                 intervalType: intervalType,
                 interval: interval,
                 correctionValue: CorrectionValue(
@@ -225,7 +225,7 @@ struct RestingEnergyForm: View {
             
             /// Equation Values
             if source == .equation {
-                try await calculateEquationValues()
+                await calculateEquationValues()
                 try Task.checkCancellation()
                 await MainActor.run {
                     setEquationValue()
@@ -240,7 +240,7 @@ struct RestingEnergyForm: View {
                         setHealthKitValue()
                     }
                 } else {
-                    try await fetchHealthKitValues()
+                    await fetchHealthKitValues()
                 }
                 try Task.checkCancellation()
             }
@@ -251,7 +251,7 @@ struct RestingEnergyForm: View {
         }
     }
     
-    func calculateEquationValues() async throws {
+    func calculateEquationValues() async {
         var dict: [RestingEnergyEquation: Double] = [:]
         for equation in RestingEnergyEquation.allCases {
             let kcal = await healthProvider.calculateRestingEnergy(
@@ -267,17 +267,17 @@ struct RestingEnergyForm: View {
         }
     }
     
-    func fetchHealthKitValues() async throws {
-//        guard !isPreview else { return }
+    func fetchHealthKitValues() async {
         
-        let dict = try await withThrowingTaskGroup(
+        let dict = await withTaskGroup(
             of: (HealthInterval, Double?).self,
             returning: [HealthInterval: Double].self
         ) { taskGroup in
             
             for interval in HealthInterval.healthKitEnergyIntervals {
                 taskGroup.addTask {
-                    let kcal = try await HealthStore.restingEnergy(
+                    let kcal = await HealthStore.energy(
+                        .resting,
                         for: interval,
                         on: date,
                         in: .kcal
@@ -288,15 +288,15 @@ struct RestingEnergyForm: View {
 
             var dict = [HealthInterval : Double]()
 
-            while let tuple = try await taskGroup.next() {
+            while let tuple = await taskGroup.next() {
                 dict[tuple.0] = tuple.1
             }
             
             return dict
         }
         
-        let sameDayValue = try await HealthStore.restingEnergy(on: date, in: .kcal)
-        let previousDayValue = try await HealthStore.restingEnergy(on: date.moveDayBy(-1), in: .kcal)
+        let sameDayValue = await HealthStore.energy(.resting, on: date, in: .kcal)
+        let previousDayValue = await HealthStore.energy(.resting, on: date.moveDayBy(-1), in: .kcal)
 
         await MainActor.run { [dict, sameDayValue, previousDayValue] in
             withAnimation {

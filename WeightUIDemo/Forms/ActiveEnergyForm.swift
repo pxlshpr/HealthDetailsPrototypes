@@ -59,10 +59,10 @@ struct ActiveEnergyForm: View {
 
         _source = State(initialValue: activeEnergy.source)
         _activityLevel = State(initialValue: activeEnergy.activityLevel)
-        _intervalType = State(initialValue: activeEnergy.healthKitSyncSettings.intervalType)
-        _interval = State(initialValue: activeEnergy.healthKitSyncSettings.interval)
+        _intervalType = State(initialValue: activeEnergy.healthKitFetchSettings.intervalType)
+        _interval = State(initialValue: activeEnergy.healthKitFetchSettings.interval)
    
-        if let correction = activeEnergy.healthKitSyncSettings.correctionValue {
+        if let correction = activeEnergy.healthKitFetchSettings.correctionValue {
             _applyCorrection = State(initialValue: true)
             _correctionType = State(initialValue: correction.type)
             
@@ -109,7 +109,7 @@ struct ActiveEnergyForm: View {
         if !hasAppeared {
             Task {
                 try await calculateActivityLevelValues()
-                try await fetchHealthKitValues()
+                await fetchHealthKitValues()
             }
             hasAppeared = true
         }
@@ -124,7 +124,7 @@ struct ActiveEnergyForm: View {
         switch new {
         case .active:
             Task {
-                try await fetchHealthKitValues()
+                await fetchHealthKitValues()
             }
         default:
             break
@@ -188,7 +188,7 @@ struct ActiveEnergyForm: View {
             kcal: activeEnergyInKcal,
             source: source,
             activityLevel: activityLevel,
-            healthKitSyncSettings: .init(
+            healthKitFetchSettings: .init(
                 intervalType: intervalType,
                 interval: interval,
                 correctionValue: CorrectionValue(
@@ -220,7 +220,7 @@ struct ActiveEnergyForm: View {
                         setHealthKitValue()
                     }
                 } else {
-                    try await fetchHealthKitValues()
+                    await fetchHealthKitValues()
                 }
                 try Task.checkCancellation()
             }
@@ -246,15 +246,16 @@ struct ActiveEnergyForm: View {
         }
     }
     
-    func fetchHealthKitValues() async throws {
-        let dict = try await withThrowingTaskGroup(
+    func fetchHealthKitValues() async {
+        let dict = await withTaskGroup(
             of: (HealthInterval, Double?).self,
             returning: [HealthInterval: Double].self
         ) { taskGroup in
             
             for interval in HealthInterval.healthKitEnergyIntervals {
                 taskGroup.addTask {
-                    let kcal = try await HealthStore.activeEnergy(
+                    let kcal = await HealthStore.energy(
+                        .active,
                         for: interval,
                         on: date,
                         in: .kcal
@@ -265,15 +266,15 @@ struct ActiveEnergyForm: View {
 
             var dict = [HealthInterval : Double]()
 
-            while let tuple = try await taskGroup.next() {
+            while let tuple = await taskGroup.next() {
                 dict[tuple.0] = tuple.1
             }
             
             return dict
         }
         
-        let sameDayValue = try await HealthStore.activeEnergy(on: date, in: .kcal)
-        let previousDayValue = try await HealthStore.activeEnergy(on: date.moveDayBy(-1), in: .kcal)
+        let sameDayValue = await HealthStore.energy(.active, on: date, in: .kcal)
+        let previousDayValue = await HealthStore.energy(.active, on: date.moveDayBy(-1), in: .kcal)
 
         await MainActor.run { [dict, sameDayValue, previousDayValue] in
             withAnimation {

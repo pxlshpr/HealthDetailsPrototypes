@@ -33,9 +33,7 @@ extension HealthKitSyncable {
         
         let toAdd = samples.filter(shouldAdd)
             .map { MeasurementType(healthKitQuantitySample: $0) }
-        if toAdd.count > 0 {
-            print("We here")
-        }
+
         measurements.append(contentsOf: toAdd)
         measurements.sort()
     }
