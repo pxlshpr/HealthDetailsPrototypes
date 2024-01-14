@@ -23,8 +23,8 @@ struct DietaryEnergyPoint: Hashable, Codable {
 }
 
 extension DietaryEnergyPoint {
-    mutating func mock_fetchFromHealthKitIfNeeded(day: Day) async {
-        kcal = await HealthStore.dietaryEnergyTotalInKcal(for: day.date)
+    mutating func mock_fetchFromHealthKitIfNeeded(for day: Day, using statisticsCollection: HKStatisticsCollection) async {
+        kcal = await HealthStore.dietaryEnergyTotalInKcal(for: day.date, using: statisticsCollection)
     }
     
     mutating func fetchFromHealthKitIfNeeded(day: Day) async {
@@ -341,12 +341,14 @@ protocol HealthKitFetchable {
 }
 
 extension HealthKitFetchable {
-    mutating func mock_fetchFromHealthKitIfNeeded(date: Date) async {
+
+    mutating func mock_fetchFromHealthKitIfNeeded(for date: Date, using statisticsCollection: HKStatisticsCollection) async {
         /// Test with maximum possible interval
         self.kcal = await HealthStore.energy(
             energyType,
             for: .init(2, .week),
-            on: date
+            on: date,
+            using: statisticsCollection
         )
     }
     

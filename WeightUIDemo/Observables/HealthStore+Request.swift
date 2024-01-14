@@ -17,12 +17,19 @@ extension HealthStore {
         on date: Date = Date.now,
         in unit: EnergyUnit = .kcal
     ) async -> Double {
-        do {
-            return try await HealthKitEnergyRequest(type, unit, interval, date)
-                .dailyAverage()
-        } catch {
-            return 0
-        }
+        await HealthKitEnergyRequest(type, unit, interval, date)
+            .dailyAverage()
+    }
+    
+    static func energy(
+        _ type: EnergyType,
+        for interval: HealthInterval = .init(0, .day),
+        on date: Date = Date.now,
+        in unit: EnergyUnit = .kcal,
+        using statisticsCollection: HKStatisticsCollection
+    ) async -> Double {
+        await HealthKitEnergyRequest(type, unit, interval, date)
+            .dailyAverage(using: statisticsCollection)
     }
 }
 

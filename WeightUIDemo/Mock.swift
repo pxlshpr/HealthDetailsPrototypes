@@ -59,7 +59,7 @@ extension HealthProvider {
         guard !healthDetails.missingNonTemporalHealthDetails.isEmpty else { return }
         let start = CFAbsoluteTimeGetCurrent()
         
-        let numberOfDays = healthDetails.date.numberOfDaysFrom(DaysStartDate)
+        let numberOfDays = healthDetails.date.numberOfDaysFrom(LogStartDate)
         for i in 0...numberOfDays {
             let date = healthDetails.date.moveDayBy(-i)
             guard let pastHealthDetails = fetchHealthDetailsFromDocuments(date) else {

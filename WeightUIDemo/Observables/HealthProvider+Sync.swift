@@ -43,6 +43,30 @@ extension HealthProvider {
         var toDelete: [HKQuantitySample] = []
         var toExport: [any Measurable] = []
         
+        let startR = CFAbsoluteTimeGetCurrent()
+        let restingEnergyStats = await HealthStore.dailyStatistics(
+            for: .basalEnergyBurned,
+            from: LogStartDate,
+            to: Date.now
+        )
+        print("Getting all RestingEnergy took: \(CFAbsoluteTimeGetCurrent()-startR)s")
+
+        let startA = CFAbsoluteTimeGetCurrent()
+        let activeEnergyStats = await HealthStore.dailyStatistics(
+            for: .activeEnergyBurned,
+            from: LogStartDate,
+            to: Date.now
+        )
+        print("Getting all ActiveEnergy took: \(CFAbsoluteTimeGetCurrent()-startA)s")
+
+        let startD = CFAbsoluteTimeGetCurrent()
+        let dietaryEnergyStats = await HealthStore.dailyStatistics(
+            for: .dietaryEnergyConsumed,
+            from: LogStartDate,
+            to: Date.now
+        )
+        print("Getting all DietaryEnergy took: \(CFAbsoluteTimeGetCurrent()-startD)s")
+        
         /// Go through each Day
         for i in days.indices {
 
@@ -89,9 +113,15 @@ extension HealthProvider {
 
             /// If the day has DietaryEnergyPointSource, RestingEnergySource or ActivieEnergySource as .healthKit, fetch them and set them
             let start = CFAbsoluteTimeGetCurrent()
-            await days[i].dietaryEnergyPoint?.mock_fetchFromHealthKitIfNeeded(day: day)
-            await days[i].healthDetails.maintenance.estimate.restingEnergy.mock_fetchFromHealthKitIfNeeded(date: date)
-            await days[i].healthDetails.maintenance.estimate.activeEnergy.mock_fetchFromHealthKitIfNeeded(date: date)
+            await days[i].dietaryEnergyPoint?
+                .mock_fetchFromHealthKitIfNeeded(for: day, using: dietaryEnergyStats)
+            
+            await days[i].healthDetails.maintenance.estimate.restingEnergy
+                .mock_fetchFromHealthKitIfNeeded(for: date, using: restingEnergyStats)
+
+            await days[i].healthDetails.maintenance.estimate.activeEnergy
+                .mock_fetchFromHealthKitIfNeeded(for: date, using: activeEnergyStats)
+
             print("\(day.date.dateString) – Fetching HealthKit values took \(CFAbsoluteTimeGetCurrent()-start)s")
         }
         

@@ -36,19 +36,23 @@ extension HealthKitEnergyRequest {
 
 
 extension HealthKitEnergyRequest {
-    
-    func dailyAverage() async throws -> Double {
-        
-        let statisticsCollection = try await HealthStore.dailyStatistics(
+
+    func dailyAverage() async -> Double {
+        let statisticsCollection = await HealthStore.dailyStatistics(
             for: typeIdentifier,
             from: startDate,
             to: date
         )
+        return await dailyAverage(using: statisticsCollection)
+    }
+    
+    func dailyAverage(using statisticsCollection: HKStatisticsCollection) async -> Double {
         
         var sumQuantities: [Date: HKQuantity] = [:]
         for day in dateRange.days {
             guard let statistics = statisticsCollection.statistics(for: day) else {
-                throw HealthStoreError.couldNotGetStatistics
+//                throw HealthStoreError.couldNotGetStatistics
+                return 0
             }
             guard let sumQuantity = statistics.sumQuantity() else {
                 continue
