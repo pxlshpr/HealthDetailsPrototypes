@@ -1,0 +1,30 @@
+import Foundation
+import PrepShared
+
+extension HealthDetails {
+    struct LeanBodyMass: Hashable, Codable {
+        var leanBodyMassInKg: Double? = nil
+        var fatPercentage: Double? = nil
+        var measurements: [LeanBodyMassMeasurement] = []
+        var deletedHealthKitMeasurements: [LeanBodyMassMeasurement] = []
+    }
+}
+
+extension HealthDetails.LeanBodyMass {
+    func secondaryValueString() -> String? {
+        if let fatPercentage {
+            "\(fatPercentage.cleanHealth)%"
+        } else {
+            nil
+        }
+    }
+    func valueString(in unit: BodyMassUnit) -> String {
+        leanBodyMassInKg.valueString(convertedFrom: .kg, to: unit)
+    }
+}
+
+extension HealthDetails {
+    struct FatPercentage: Hashable, Codable {
+        
+    }
+}

@@ -3,6 +3,8 @@ import HealthKit
 
 protocol HealthKitSyncable {
     associatedtype MeasurementType: Measurable
+    
+    var value: Double? { get set }
     var measurements: [MeasurementType] { get set }
     var deletedHealthKitMeasurements: [MeasurementType] { get set }
     mutating func removeHealthKitQuantitySamples(notPresentIn samples: [HKQuantitySample])
@@ -37,18 +39,35 @@ extension HealthKitSyncable {
         measurements.append(contentsOf: toAdd)
         measurements.sort()
     }
+    
+    mutating func setDailyValue(for dailyValueType: DailyValueType) {
+        self.value = measurements.dailyValue(for: dailyValueType)
+    }
 }
+
 
 //MARK: - Conformances
 
 extension HealthDetails.Weight: HealthKitSyncable {
     typealias MeasurementType = WeightMeasurement
+    var value: Double? {
+        get { weightInKg }
+        set { weightInKg = newValue }
+    }
 }
 
 extension HealthDetails.LeanBodyMass: HealthKitSyncable {
     typealias MeasurementType = LeanBodyMassMeasurement
+    var value: Double? {
+        get { leanBodyMassInKg }
+        set { leanBodyMassInKg = newValue }
+    }
 }
 
 extension HealthDetails.Height: HealthKitSyncable {
     typealias MeasurementType = HeightMeasurement
+    var value: Double? {
+        get { heightInCm }
+        set { heightInCm = newValue }
+    }
 }

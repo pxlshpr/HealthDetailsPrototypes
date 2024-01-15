@@ -1,0 +1,73 @@
+import Foundation
+
+extension HealthDetails {
+    
+    var missingNonTemporalHealthDetails: [HealthDetail] {
+        HealthDetail.allNonTemporalHealthDetails.filter { !hasSet($0) }
+    }
+
+    func data(for healthDetail: HealthDetail) -> Any? {
+        switch healthDetail {
+        case .maintenance:      maintenance
+        case .age:              dateOfBirthComponents
+        case .sex:              biologicalSex
+        case .weight:           weight
+        case .leanBodyMass:     leanBodyMass
+        case .height:           height
+        case .preganancyStatus: pregnancyStatus
+        case .smokingStatus:    smokingStatus
+        }
+    }
+    
+    func hasSet(_ healthDetail: HealthDetail) -> Bool {
+        switch healthDetail {
+        case .maintenance:      maintenance.kcal != nil
+        case .age:              ageInYears != nil
+        case .sex:              biologicalSex != .notSet
+        case .weight:           weight.weightInKg != nil
+        case .leanBodyMass:     leanBodyMass.leanBodyMassInKg != nil
+        case .height:           height.heightInCm != nil
+        case .preganancyStatus: pregnancyStatus != .notSet
+        case .smokingStatus:    smokingStatus != .notSet
+        }
+    }
+
+    func secondaryValueString(
+        for healthDetail: HealthDetail,
+        _ settingsProvider: SettingsProvider
+    ) -> String? {
+        switch healthDetail {
+        case .leanBodyMass:
+            leanBodyMass.secondaryValueString()
+        default:
+            nil
+        }
+    }
+    func valueString(
+        for healthDetail: HealthDetail,
+        _ settingsProvider: SettingsProvider
+    ) -> String {
+        switch healthDetail {
+        case .age:
+            if let ageInYears {
+                "\(ageInYears)"
+            } else {
+                "Not Set"
+            }
+        case .sex:
+            biologicalSex.name
+        case .weight:
+            weight.valueString(in: settingsProvider.bodyMassUnit)
+        case .leanBodyMass:
+            leanBodyMass.valueString(in: settingsProvider.bodyMassUnit)
+        case .height:
+            height.valueString(in: settingsProvider.heightUnit)
+        case .preganancyStatus:
+            pregnancyStatus.name
+        case .smokingStatus:
+            smokingStatus.name
+        case .maintenance:
+            maintenance.valueString(in: settingsProvider.energyUnit)
+        }
+    }
+}

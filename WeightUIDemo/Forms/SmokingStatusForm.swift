@@ -119,18 +119,6 @@ struct SmokingStatusForm: View {
 
 }
 
-#Preview("Current") {
-    NavigationView {
-        SmokingStatusForm(healthProvider: MockCurrentProvider)
-    }
-}
-
-#Preview("Past") {
-    NavigationView {
-        SmokingStatusForm(healthProvider: MockPastProvider)
-    }
-}
-
-#Preview("DemoView ") {
+#Preview("DemoView") {
     DemoView()
 }

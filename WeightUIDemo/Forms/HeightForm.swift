@@ -115,14 +115,7 @@ struct HeightForm: View {
     }
     
     var calculatedHeightInCm: Double? {
-        switch dailyValueType {
-        case .average:
-            measurements.compactMap { $0.heightInCm }.average
-        case .last:
-            measurements.last?.heightInCm
-        case .first:
-            measurements.first?.heightInCm
-        }
+        measurements.dailyValue(for: dailyValueType)
     }
 
     var bottomValue: some View {

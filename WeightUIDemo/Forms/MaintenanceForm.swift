@@ -319,15 +319,3 @@ struct MaintenanceForm: View {
         }
     }
 }
-
-#Preview("Current") {
-    NavigationView {
-        MaintenanceForm(healthProvider: MockCurrentProvider)
-    }
-}
-
-#Preview("Past") {
-    NavigationView {
-        MaintenanceForm(healthProvider: MockPastProvider)
-    }
-}

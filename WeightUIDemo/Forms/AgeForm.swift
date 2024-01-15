@@ -235,18 +235,6 @@ struct AgeForm: View {
     }
 }
 
-#Preview("Current") {
-    NavigationView {
-        AgeForm(healthProvider: MockCurrentProvider)
-    }
-}
-
-#Preview("Past") {
-    NavigationView {
-        AgeForm(healthProvider: MockPastProvider)
-    }
-}
-
-#Preview("DemoView ") {
+#Preview("DemoView") {
     DemoView()
 }

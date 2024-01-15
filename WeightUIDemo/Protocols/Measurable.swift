@@ -112,6 +112,14 @@ extension Array where Element: Measurable {
 }
 
 extension Array where Element: Measurable {
+    func dailyValue(for dailyValueType: DailyValueType) -> Double? {
+        switch dailyValueType {
+        case .average:  compactMap { $0.value }.average
+        case .last:     last?.value
+        case .first:    first?.value
+        }
+    }
+
     var nonHealthKitMeasurements: [Element] {
         filter { $0.healthKitUUID == nil }
     }

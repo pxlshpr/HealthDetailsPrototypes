@@ -119,31 +119,45 @@ struct LeanBodyMassForm: View {
                 .intComponent(leanBodyMassInKg, in: bodyMassUnit)
         }
         
-        return HStack(alignment: .firstTextBaseline, spacing: 5) {
-            if let fatPercentage {
-                Text("\(fatPercentage.roundedToOnePlace)")
-                    .contentTransition(.numericText(value: fatPercentage))
-                    .font(LargeNumberFont)
-                    .foregroundStyle(.primary)
-                Text("% fat")
-                    .font(LargeUnitFont)
-                    .foregroundStyle(.secondary)
-            }
-            Spacer()
-            MeasurementBottomText(
-                int: Binding<Int?>(
-                    get: { int }, set: { _ in }
-                ),
-                intUnitString: intUnitString,
-                double: Binding<Double?>(
-                    get: { double }, set: { _ in }
-                ),
-                doubleString: Binding<String?>(
-                    get: { double?.cleanHealth }, set: { _ in }
-                ),
-                doubleUnitString: doubleUnitString
-            )
-        }
+        return MeasurementBottomBar(
+            int: Binding<Int?>(
+                get: { int }, set: { _ in }
+            ),
+            intUnitString: intUnitString,
+            double: Binding<Double?>(
+                get: { double }, set: { _ in }
+            ),
+            doubleString: Binding<String?>(
+                get: { double?.cleanHealth }, set: { _ in }
+            ),
+            doubleUnitString: doubleUnitString
+        )
+
+//        return HStack(alignment: .firstTextBaseline, spacing: 5) {
+//            if let fatPercentage {
+//                Text("\(fatPercentage.roundedToOnePlace)")
+//                    .contentTransition(.numericText(value: fatPercentage))
+//                    .font(LargeNumberFont)
+//                    .foregroundStyle(.primary)
+//                Text("% fat")
+//                    .font(LargeUnitFont)
+//                    .foregroundStyle(.secondary)
+//            }
+//            Spacer()
+//            MeasurementBottomText(
+//                int: Binding<Int?>(
+//                    get: { int }, set: { _ in }
+//                ),
+//                intUnitString: intUnitString,
+//                double: Binding<Double?>(
+//                    get: { double }, set: { _ in }
+//                ),
+//                doubleString: Binding<String?>(
+//                    get: { double?.cleanHealth }, set: { _ in }
+//                ),
+//                doubleUnitString: doubleUnitString
+//            )
+//        }
     }
     
     var toolbarContent: some ToolbarContent {
@@ -160,6 +174,7 @@ struct LeanBodyMassForm: View {
     var measurementForm: some View {
         LeanBodyMassMeasurementForm(healthProvider: healthProvider) { measurement in
             measurements.append(measurement)
+            //TODO: Add a fat percentage measurement based on the latest weight – with a source of .leanBodyMass
             measurements.sort()
             handleChanges()
         }
@@ -245,17 +260,11 @@ struct LeanBodyMassForm: View {
     //MARK: - Convenience
     
     var calculatedLeanBodyMassInKg: Double? {
-        switch dailyValueType {
-        case .average:
-            measurements.compactMap { $0.leanBodyMassInKg }.average
-        case .last:
-            measurements.last?.leanBodyMassInKg
-        case .first:
-            measurements.first?.leanBodyMassInKg
-        }
+        measurements.dailyValue(for: dailyValueType)
     }
     
     var calculatedFatPercentage: Double? {
+        //TODO: Rewrite this
         switch dailyValueType {
         case .average:
             measurements.compactMap { $0.fatPercentage }.average

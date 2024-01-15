@@ -6,6 +6,10 @@ import PrepShared
     
     var settings: Settings
 
+    static var shared: SettingsProvider {
+        SettingsProvider(settings: fetchSettingsFromDocuments())
+    }
+    
     public init(
         settings: Settings = Settings()
     ) {

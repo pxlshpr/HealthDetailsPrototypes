@@ -109,15 +109,3 @@ struct PregnancyStatusForm: View {
     }
 
 }
-
-#Preview("Current") {
-    NavigationView {
-        PregnancyStatusForm(healthProvider: MockCurrentProvider)
-    }
-}
-
-#Preview("Past") {
-    NavigationView {
-        PregnancyStatusForm(healthProvider: MockPastProvider)
-    }
-}

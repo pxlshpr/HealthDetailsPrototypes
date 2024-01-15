@@ -265,11 +265,11 @@ struct TemporalVariableSection: View {
     
     @ViewBuilder
     var pastWeight: some View {
-        if let latestWeight = healthProvider.latest.weight {
+        if let (date, weight) = healthProvider.latest.weightWithDate {
             NavigationLink {
                 WeightForm(
-                    date: latestWeight.date,
-                    weight: latestWeight.weight,
+                    date: date,
+                    weight: weight,
                     healthProvider: healthProvider,
                     isPresented: $isPresented,
                     save: { newWeight in
@@ -278,9 +278,9 @@ struct TemporalVariableSection: View {
                 )
             } label: {
                 HStack {
-                    Text(latestWeight.date.shortDateString)
+                    Text(date.shortDateString)
                     Spacer()
-                    Text(latestWeight.weight.valueString(in: healthProvider.settingsProvider.bodyMassUnit))
+                    Text(weight.valueString(in: healthProvider.settingsProvider.bodyMassUnit))
                 }
             }
         }
@@ -288,11 +288,11 @@ struct TemporalVariableSection: View {
     
     @ViewBuilder
     var pastLeanBodyMass: some View {
-        if let latestLeanBodyMass = healthProvider.latest.leanBodyMass {
+        if let (date, leanBodyMass) = healthProvider.latest.leanBodyMassWithDate {
             NavigationLink {
                 LeanBodyMassForm(
-                    date: latestLeanBodyMass.date,
-                    leanBodyMass: latestLeanBodyMass.leanBodyMass,
+                    date: date,
+                    leanBodyMass: leanBodyMass,
                     healthProvider: healthProvider,
                     isPresented: $isPresented,
                     save: { leanBodyMass in
@@ -301,9 +301,9 @@ struct TemporalVariableSection: View {
                 )
             } label: {
                 HStack {
-                    Text(latestLeanBodyMass.date.shortDateString)
+                    Text(date.shortDateString)
                     Spacer()
-                    Text(latestLeanBodyMass.leanBodyMass.valueString(in: healthProvider.settingsProvider.bodyMassUnit))
+                    Text(leanBodyMass.valueString(in: healthProvider.settingsProvider.bodyMassUnit))
                 }
             }
         }
@@ -311,11 +311,11 @@ struct TemporalVariableSection: View {
     
     @ViewBuilder
     var pastMaintenance: some View {
-        if let latest = healthProvider.latest.maintenance {
+        if let (date, maintenance) = healthProvider.latest.maintenanceWithDate {
             NavigationLink {
                 MaintenanceForm(
-                    date: latest.date,
-                    maintenance: latest.maintenance,
+                    date: date,
+                    maintenance: maintenance,
                     healthProvider: healthProvider,
                     isPresented: $isPresented,
                     saveHandler: { maintenance in
@@ -324,9 +324,9 @@ struct TemporalVariableSection: View {
                 )
             } label: {
                 HStack {
-                    Text(latest.date.shortDateString)
+                    Text(date.shortDateString)
                     Spacer()
-                    Text(latest.maintenance.valueString(in: healthProvider.settingsProvider.energyUnit))
+                    Text(maintenance.valueString(in: healthProvider.settingsProvider.energyUnit))
                 }
             }
         }
@@ -334,11 +334,11 @@ struct TemporalVariableSection: View {
     
     @ViewBuilder
     var pastPregnancyStatus: some View {
-        if let latest = healthProvider.latest.pregnancyStatus {
+        if let (date, pregnancyStatus) = healthProvider.latest.pregnancyStatusWithDate {
             NavigationLink {
                 PregnancyStatusForm(
-                    date: latest.date,
-                    pregnancyStatus: latest.pregnancyStatus,
+                    date: date,
+                    pregnancyStatus: pregnancyStatus,
                     isPresented: $isPresented,
                     save: { pregnancyStatus in
                         healthProvider.updateLatestPregnancyStatus(pregnancyStatus)
@@ -346,9 +346,9 @@ struct TemporalVariableSection: View {
                 )
             } label: {
                 HStack {
-                    Text(latest.date.shortDateString)
+                    Text(date.shortDateString)
                     Spacer()
-                    Text(latest.pregnancyStatus.name)
+                    Text(pregnancyStatus.name)
                 }
             }
         }
@@ -356,11 +356,11 @@ struct TemporalVariableSection: View {
     
     @ViewBuilder
     var pastHeight: some View {
-        if let latestHeight = healthProvider.latest.height {
+        if let (date, height) = healthProvider.latest.heightWithDate {
             NavigationLink {
                 HeightForm(
-                    date: latestHeight.date,
-                    height: latestHeight.height,
+                    date: date,
+                    height: height,
                     healthProvider: healthProvider,
                     isPresented: $isPresented,
                     save: { newHeight in
@@ -369,9 +369,9 @@ struct TemporalVariableSection: View {
                 )
             } label: {
                 HStack {
-                    Text(latestHeight.date.shortDateString)
+                    Text(date.shortDateString)
                     Spacer()
-                    Text(latestHeight.height.valueString(in: healthProvider.settingsProvider.heightUnit))
+                    Text(height.valueString(in: healthProvider.settingsProvider.heightUnit))
                 }
             }
         }
@@ -446,93 +446,6 @@ struct TemporalVariableSection: View {
             false
         }
     }        
-}
-
-#Preview("Equation") {
-    NavigationView {
-        Form {
-            VariablesSections(
-                subject: .equation,
-                healthDetails: Binding<[HealthDetail]>(
-                    get: { [.weight, .height, .age, .leanBodyMass, .sex] },
-                    set: { _ in }
-                ),
-                isRequired: Binding<Bool>(
-                    get: { true },
-                    set: { _ in }
-                ),
-                healthProvider: MockCurrentProvider,
-                date: Date.now,
-                isPresented: Binding<Bool>(
-                    get: { true },
-                    set: { newValue in
-                    }
-                ),
-                showHeader: true
-            )
-        }
-    }
-}
-
-struct GoalDemo: View {
-    
-    @State var isPresented: Bool = true
-
-    var body: some View {
-        Color.clear
-            .sheet(isPresented: .constant(true)) {
-                NavigationView {
-                    Form {
-                        VariablesSections(
-                            subject: .goal,
-                            healthDetails: Binding<[HealthDetail]>(
-                                get: { [.maintenance] },
-                                set: { _ in }
-                            ),
-                            isRequired: Binding<Bool>(
-                                get: { true },
-                                set: { _ in }
-                            ),
-                            healthProvider: MockCurrentProvider,
-                            date: Date.now,
-                            isPresented: $isPresented,
-                            showHeader: true
-                        )
-                    }
-                    .navigationTitle("Goal Demo")
-                }
-            }
-    }
-}
-
-#Preview("Goal") {
-    GoalDemo()
-}
-
-#Preview("Daily Value") {
-    NavigationView {
-        Form {
-            VariablesSections(
-                subject: .dailyValue,
-                healthDetails: Binding<[HealthDetail]>(
-                    get: { [.preganancyStatus, .smokingStatus, .age, .sex] },
-                    set: { _ in }
-                ),
-                isRequired: Binding<Bool>(
-                    get: { true },
-                    set: { _ in }
-                ),
-                healthProvider: MockCurrentProvider,
-                date: Date.now,
-                isPresented: Binding<Bool>(
-                    get: { true },
-                    set: { newValue in
-                    }
-                ),
-                showHeader: true
-            )
-        }
-    }
 }
 
 #Preview("Demo") {

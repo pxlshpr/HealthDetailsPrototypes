@@ -117,6 +117,8 @@ struct WeightForm: View {
             date: date,
             settingsProvider: healthProvider.settingsProvider
         ) { int, double, time in
+            //TODO: Get provided the measurement instead
+            //TODO: We might need to convert any LBM or F% values that are now based on this day's value
             let weightInKg = bodyMassUnit.convert(int, double, to: .kg)
             let measurement = WeightMeasurement(date: time, weightInKg: weightInKg)
             measurements.append(measurement)
@@ -231,14 +233,7 @@ struct WeightForm: View {
     }
 
     var calculatedWeightInKg: Double? {
-        switch dailyValueType {
-        case .average:
-            measurements.compactMap { $0.weightInKg }.average
-        case .last:
-            measurements.last?.weightInKg
-        case .first:
-            measurements.first?.weightInKg
-        }
+        measurements.dailyValue(for: dailyValueType)
     }
 
     var weight: HealthDetails.Weight {

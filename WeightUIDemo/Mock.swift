@@ -8,86 +8,6 @@ var CurrentHealthDetails: HealthDetails {
     fetchOrCreateHealthDetailsFromDocuments(Date.now)
 }
 
-func latestHealthDetails(to date: Date = Date.now) -> HealthProvider.LatestHealthDetails {
-    let start = CFAbsoluteTimeGetCurrent()
-    var latest = HealthProvider.LatestHealthDetails()
-    
-    let numberOfDays = Date.now.numberOfDaysFrom(DaysStartDate)
-    var retrievedDetails: [HealthDetail] = []
-    for i in 1...numberOfDays {
-        let date = Date.now.moveDayBy(-i)
-        guard let healthDetails = fetchHealthDetailsFromDocuments(date) else {
-            continue
-        }
-
-        if healthDetails.hasSet(.weight) {
-            latest.weight = .init(date: date, weight: healthDetails.weight)
-            retrievedDetails.append(.weight)
-        }
-
-        if healthDetails.hasSet(.height) {
-            latest.height = .init(date: date, height: healthDetails.height)
-            retrievedDetails.append(.height)
-        }
-
-        if healthDetails.hasSet(.leanBodyMass) {
-            latest.leanBodyMass = .init(date: date, leanBodyMass: healthDetails.leanBodyMass)
-            retrievedDetails.append(.leanBodyMass)
-        }
-        
-        if healthDetails.hasSet(.preganancyStatus) {
-            latest.pregnancyStatus = .init(date: date, pregnancyStatus: healthDetails.pregnancyStatus)
-        }
-        
-        if healthDetails.hasSet(.maintenance) {
-            latest.maintenance = .init(date: date, maintenance: healthDetails.maintenance)
-        }
-
-        /// Once we get all (temporal) HealthDetails, stop searching
-        if retrievedDetails.containsAllTemporalCases {
-            break
-        }
-    }
-    
-    print("Getting latestHealthDetails for \(numberOfDays) numberOfDays took: \(CFAbsoluteTimeGetCurrent()-start)s")
-    return latest
-}
-
-extension HealthProvider {
-    //TODO: To be replaced in Prep with a function that asks backend for the earliest Days that contain age, sex, or smokingStatus to be as optimized as possible
-    func bringForwardNonTemporalHealthDetails() async {
-        guard !healthDetails.missingNonTemporalHealthDetails.isEmpty else { return }
-        let start = CFAbsoluteTimeGetCurrent()
-        
-        let numberOfDays = healthDetails.date.numberOfDaysFrom(LogStartDate)
-        for i in 0...numberOfDays {
-            let date = healthDetails.date.moveDayBy(-i)
-            guard let pastHealthDetails = fetchHealthDetailsFromDocuments(date) else {
-                continue
-            }
-
-            if !healthDetails.hasSet(.age), let dateOfBirthComponents = pastHealthDetails.dateOfBirthComponents {
-                healthDetails.dateOfBirthComponents = dateOfBirthComponents
-            }
-            
-            if !healthDetails.hasSet(.sex), pastHealthDetails.hasSet(.sex) {
-                healthDetails.biologicalSex = pastHealthDetails.biologicalSex
-            }
-            
-            if !healthDetails.hasSet(.smokingStatus), pastHealthDetails.hasSet(.smokingStatus) {
-                healthDetails.smokingStatus = pastHealthDetails.smokingStatus
-            }
-
-            /// Once we get all non-temporal HealthDetails, stop searching early
-            if healthDetails.missingNonTemporalHealthDetails.isEmpty {
-                break
-            }
-        }
-        
-        print("bringForwardNonTemporalHealthDetails() for \(numberOfDays) numberOfDays took: \(CFAbsoluteTimeGetCurrent()-start)s")
-    }
-}
-
 struct MockHealthDetailsForm: View {
     
     @Bindable var settingsProvider: SettingsProvider
@@ -121,27 +41,6 @@ struct MockHealthDetailsForm: View {
         )
     }
 }
-
-
-let MockCurrentProvider = HealthProvider(
-    healthDetails: HealthDetails(
-        date: Date.now,
-        biologicalSex: .notSet,
-        smokingStatus: .smoker
-    ),
-    settingsProvider: SettingsProvider()
-)
-
-let MockPastProvider = HealthProvider(
-    healthDetails: HealthDetails(
-        date: Date.now.moveDayBy(-1),
-        biologicalSex: .male,
-        dateOfBirthComponents: 20.dateOfBirthComponents,
-        smokingStatus: .nonSmoker,
-        pregnancyStatus: .notSet
-    ),
-    settingsProvider: SettingsProvider()
-)
 
 //MARK: Reusable
 
@@ -190,13 +89,23 @@ func fetchOrCreateDayFromDocuments(_ date: Date) -> Day {
     }
 }
 
-func fetchAllDaysFromDocuments() async -> [Day] {
+func fetchAllDaysFromDocuments(
+    from startDate: Date,
+    createIfNotExisting: Bool
+) async -> [Day] {
     //TODO: In production:
     /// [ ] Optimizing by not fetching the meals etc, only fetching fields we need
     var days: [Day] = []
-    for i in (0...Date.now.numberOfDaysFrom(LogStartDate)).reversed() {
+    for i in (0...Date.now.numberOfDaysFrom(startDate)).reversed() {
         let date = Date.now.moveDayBy(-i)
-        days.append(fetchOrCreateDayFromDocuments(date))
+        let day = if createIfNotExisting {
+            fetchOrCreateDayFromDocuments(date)
+        } else {
+            fetchDayFromDocuments(date)
+        }
+        if let day {
+            days.append(day)
+        }
     }
     return days
 }
@@ -236,14 +145,6 @@ func saveHealthDetailsInDocuments(_ healthDetails: HealthDetails) {
     var day = fetchOrCreateDayFromDocuments(healthDetails.date)
     day.healthDetails = healthDetails
     saveDayInDocuments(day)
-//    do {
-//        let filename = "\(healthDetails.date.dateString).json"
-//        let url = getDocumentsDirectory().appendingPathComponent(filename)
-//        let json = try JSONEncoder().encode(healthDetails)
-//        try json.write(to: url)
-//    } catch {
-//        fatalError()
-//    }
 }
 
 func fetchSettingsFromDocuments() -> Settings {

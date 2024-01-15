@@ -7,7 +7,10 @@ extension HealthProvider {
     /// [x] Rename to Sync with everything or something
     static func syncWithHealthKitAndRecalculateAllDays() async {
         
-        var days = await fetchAllDaysFromDocuments()
+        var days = await fetchAllDaysFromDocuments(
+            from: DaysStartDate,
+            createIfNotExisting: false
+        )
         let initialDays = days
 
         let start = CFAbsoluteTimeGetCurrent()
@@ -15,20 +18,20 @@ extension HealthProvider {
         /// Fetch all HealthKit weight samples from start of log (since we're not interested in any before that)
         let startDate = await fetchBackendLogStartDate()
         
-        let settingsProvider = fetchSettingsFromDocuments()
+        let settings = SettingsProvider.shared.settings
         
         /// First, fetch whatever isSynced is turned on for (weight, height, LBM)—fetch everything from the first Day's date onwards
-        let weightSamples: [HKQuantitySample]? = if settingsProvider.isHealthKitSyncing(.weight) {
+        let weightSamples: [HKQuantitySample]? = if settings.isHealthKitSyncing(.weight) {
             await HealthStore.weightMeasurements(from: startDate)
         } else {
             nil
         }
-        let leanBodyMassSamples: [HKQuantitySample]? = if settingsProvider.isHealthKitSyncing(.leanBodyMass) {
+        let leanBodyMassSamples: [HKQuantitySample]? = if settings.isHealthKitSyncing(.leanBodyMass) {
             await HealthStore.leanBodyMassMeasurements(from: startDate)
         } else {
             nil
         }
-        let heightSamples: [HKQuantitySample]? = if settingsProvider.isHealthKitSyncing(.height) {
+        let heightSamples: [HKQuantitySample]? = if settings.isHealthKitSyncing(.height) {
             await HealthStore.heightMeasurements(from: startDate)
         } else {
             nil
@@ -138,37 +141,36 @@ extension HealthProvider {
             await HealthStore.saveMeasurements(toExport)
         }
 
-        await recalculate(days, initialDays: initialDays, start: start)
+        await recalculateAllDays(days, initialDays: initialDays, start: start)
     }
 }
 
+extension HealthDetails {
+    mutating func recalculateDailyValues(using settings: Settings) {
+        height.setDailyValue(for: settings.dailyValueType(for: .height))
+        weight.setDailyValue(for: settings.dailyValueType(for: .weight))
+        leanBodyMass.setDailyValue(for: settings.dailyValueType(for: .leanBodyMass))
+//        healthDetails.fatPercentage.setDailyValue(for: settings.dailyValueType(for: .fatPercentage))
+    }
+    
+    mutating func recalculateLeanBodyMass() {
+        
+    }
+}
+
+extension HealthDetails.LeanBodyMass {
+    func recalculate() {
+        
+    }
+}
 extension HealthProvider {
-    static func recalculate(_ days: [Day], initialDays: [Day]? = nil, start: CFAbsoluteTime? = nil) async {
-        
-        let start = start ?? CFAbsoluteTimeGetCurrent()
-        let initialDays = initialDays ?? days
+    func recalculate() async {
+        let settings = settingsProvider.settings
 
-        for i in days.indices {
-            
-            let day = days[i]
-
-            if days[i] != initialDays[i] {
-                print("Saving \(days[i].date.shortDateString)")
-                saveDayInDocuments(days[i])
-            } else {
-                
-            }
-        }
-        
-        print("recalculate ended after: \(CFAbsoluteTimeGetCurrent()-start)s")
-
-        //TODO: We need to:
-        /// [ ] Go through each Day in order
-        /// [ ] Get the HealthDetails
-        /// [ ] Create a HealthProvider for it (which in turn fetches the latest health details)
-        /// [ ] ~~Get the HealthProvider to fetch HealthKit values~~
-        /// [ ] Now based on the Daily Value Type's, re-set the values for measurements
         /// [ ] Recalculate LBM, fat percentage
+
+        healthDetails.recalculateDailyValues(using: settings)
+
         /// [ ] Recalculate resting energy
         /// [ ] Recalculate active energy
         /// [ ] For each DietaryEnergyPoint in adaptive, re-fetch if either log, or AppleHealth
@@ -178,6 +180,44 @@ extension HealthProvider {
         /// [ ] Recalculate Maintenance based on toggle + fallback thing
         /// [ ] TBD: Re-assign RDA values
         /// [ ] TBD: Recalculate the plans for the Day as HealthDetails have changed
+    }
+    
+    static func recalculateAllDays(_ days: [Day], initialDays: [Day]? = nil, start: CFAbsoluteTime? = nil) async {
+        
+        let start = start ?? CFAbsoluteTimeGetCurrent()
+        let initialDays = initialDays ?? days
+
+        var latest: [HealthDetail: DatedHealthData] = [:]
+        for (index, day) in days.enumerated() {
+            
+            /// [ ] Create a HealthProvider for it (which in turn fetches the latest health details)
+            let settingsProvider = SettingsProvider.shared
+            let healthProvider = HealthProvider(
+                healthDetails: day.healthDetails,
+                settingsProvider: settingsProvider
+            )
+            
+            var start = CFAbsoluteTimeGetCurrent()
+            day.healthDetails.populateLatestDict(&latest)
+            print("  populateLatestDict took: \(CFAbsoluteTimeGetCurrent()-start)s")
+
+            start = CFAbsoluteTimeGetCurrent()
+            healthProvider.setLatest(latest)
+            print("  setLatest took: \(CFAbsoluteTimeGetCurrent()-start)s")
+
+            start = CFAbsoluteTimeGetCurrent()
+            await healthProvider.recalculate()
+            print("  recalculate took: \(CFAbsoluteTimeGetCurrent()-start)s")
+
+            if days[index] != initialDays[index] {
+                print("Saving \(days[index].date.shortDateString)")
+                saveDayInDocuments(days[index])
+            } else {
+                print("Not Saving \(days[index].date.shortDateString)")
+            }
+        }
+        
+        print("recalculateAllDays ended after: \(CFAbsoluteTimeGetCurrent()-start)s")
     }
 }
 
@@ -198,8 +238,11 @@ extension HealthProvider {
     
     static func recalculateAllDays() {
         Task {
-            let days = await fetchAllDaysFromDocuments()
-            await recalculate(days)
+            let days = await fetchAllDaysFromDocuments(
+                from: LogStartDate,
+                createIfNotExisting: false
+            )
+            await recalculateAllDays(days)
         }
     }
 }
