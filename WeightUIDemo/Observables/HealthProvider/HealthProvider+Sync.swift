@@ -6,12 +6,6 @@ extension HealthProvider {
     /// [x] First add the source data into HealthKitMeasurement so that we can filter out what's form Apple or us
     /// [x] Rename to Sync with everything or something
     static func syncWithHealthKitAndRecalculateAllDays() async {
-        
-        var days = await fetchAllDaysFromDocuments(
-            from: DaysStartDate,
-            createIfNotExisting: false
-        )
-        let initialDays = days
 
         let start = CFAbsoluteTimeGetCurrent()
         
@@ -42,6 +36,12 @@ extension HealthProvider {
         {
             await saveHealthKitHeightMeasurement(latestHeight)
         }
+        
+        var days = await fetchAllDaysFromDocuments(
+            from: DaysStartDate,
+            createIfNotExisting: false
+        )
+        let initialDays = days
         
         var toDelete: [HKQuantitySample] = []
         var toExport: [any Measurable] = []
@@ -184,11 +184,14 @@ extension HealthProvider {
     
     static func recalculateAllDays(_ days: [Day], initialDays: [Day]? = nil, start: CFAbsoluteTime? = nil) async {
         
+        var days = days
         let start = start ?? CFAbsoluteTimeGetCurrent()
         let initialDays = initialDays ?? days
 
         var latest: [HealthDetail: DatedHealthData] = [:]
         for (index, day) in days.enumerated() {
+            
+            var day = day
             
             /// [ ] Create a HealthProvider for it (which in turn fetches the latest health details)
             let settingsProvider = SettingsProvider.shared
@@ -209,11 +212,13 @@ extension HealthProvider {
             await healthProvider.recalculate()
             print("  recalculate took: \(CFAbsoluteTimeGetCurrent()-start)s")
 
-            if days[index] != initialDays[index] {
-                print("Saving \(days[index].date.shortDateString)")
-                saveDayInDocuments(days[index])
+            day.healthDetails = healthProvider.healthDetails
+            
+            if day != initialDays[index] {
+                print("Saving \(day.date.shortDateString)")
+                saveDayInDocuments(day)
             } else {
-                print("Not Saving \(days[index].date.shortDateString)")
+                print("Not Saving \(day.date.shortDateString)")
             }
         }
         

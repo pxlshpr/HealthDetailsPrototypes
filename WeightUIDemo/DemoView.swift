@@ -45,11 +45,22 @@ struct DemoView: View {
             Menu {
                 Button("Clear Data") {
                     deleteAllFilesInDocuments()
+
                     var settings = fetchSettingsFromDocuments()
                     settings.setHealthKitSyncing(for: .weight, to: true)
                     settings.setHealthKitSyncing(for: .height, to: true)
                     settings.setHealthKitSyncing(for: .leanBodyMass, to: true)
                     saveSettingsInDocuments(settings)
+
+                    Task {
+                        let start = CFAbsoluteTimeGetCurrent()
+                        let _ = await fetchAllDaysFromDocuments(
+                            from: LogStartDate,
+                            createIfNotExisting: true
+                        )
+                        print("Created all days in: \(CFAbsoluteTimeGetCurrent()-start)s")
+                        await HealthProvider.syncWithHealthKitAndRecalculateAllDays()
+                    }
                 }
                 Button("Reset Current") {
                     setCurrentHealthDetails()
