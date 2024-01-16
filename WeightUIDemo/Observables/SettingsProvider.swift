@@ -6,10 +6,6 @@ import PrepShared
     
     var settings: Settings
 
-    static var shared: SettingsProvider {
-        SettingsProvider(settings: fetchSettingsFromDocuments())
-    }
-    
     public init(
         settings: Settings = Settings()
     ) {
@@ -172,6 +168,8 @@ extension SettingsProvider {
 //TODO: Replace this with actual backend manipulation in Prep
 extension SettingsProvider {
     func save() {
-        saveSettingsInDocuments(settings)
+        Task {
+            await saveSettingsInDocuments(settings)
+        }
     }
 }

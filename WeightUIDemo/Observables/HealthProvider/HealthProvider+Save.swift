@@ -14,10 +14,12 @@ extension HealthProvider {
     }
     
     func saveDietaryEnergyPoint(_ point: DietaryEnergyPoint) {
-        var day = fetchOrCreateDayFromDocuments(point.date)
-        day.dietaryEnergyPoint = point
         //TODO: Get any other HealthDetails (other than the one in this HealthProvider) that uses this point and get them to update within an instantiated HealthProvider as well
-        saveDayInDocuments(day)
+        Task {
+            var day = await fetchOrCreateDayFromDocuments(point.date)
+            day.dietaryEnergyPoint = point
+            await saveDayInDocuments(day)
+        }
     }
 
     func saveRestingEnergy(_ restingEnergy: HealthDetails.Maintenance.Estimate.RestingEnergy) {
@@ -122,44 +124,44 @@ extension HealthProvider {
     //MARK: - Save for other days
 
     func saveWeight(_ weight: HealthDetails.Weight, for date: Date) async {
-        var healthDetails = fetchOrCreateHealthDetailsFromDocuments(date)
+        var healthDetails = await fetchOrCreateHealthDetailsFromDocuments(date)
         healthDetails.weight = weight
-        saveHealthDetailsInDocuments(healthDetails)
+        await saveHealthDetailsInDocuments(healthDetails)
     }
 
     func saveHeight(_ height: HealthDetails.Height, for date: Date) async {
-        var healthDetails = fetchOrCreateHealthDetailsFromDocuments(date)
+        var healthDetails = await fetchOrCreateHealthDetailsFromDocuments(date)
         healthDetails.height = height
-        saveHealthDetailsInDocuments(healthDetails)
+        await saveHealthDetailsInDocuments(healthDetails)
     }
 
     func saveMaintenance(_ maintenance: HealthDetails.Maintenance, for date: Date) async {
-        var healthDetails = fetchOrCreateHealthDetailsFromDocuments(date)
+        var healthDetails = await fetchOrCreateHealthDetailsFromDocuments(date)
         healthDetails.maintenance = maintenance
-        saveHealthDetailsInDocuments(healthDetails)
+        await saveHealthDetailsInDocuments(healthDetails)
     }
 
     func savePregnancyStatus(_ pregnancyStatus: PregnancyStatus, for date: Date) async {
-        var healthDetails = fetchOrCreateHealthDetailsFromDocuments(date)
+        var healthDetails = await fetchOrCreateHealthDetailsFromDocuments(date)
         healthDetails.pregnancyStatus = pregnancyStatus
-        saveHealthDetailsInDocuments(healthDetails)
+        await saveHealthDetailsInDocuments(healthDetails)
     }
 
     func saveFatPercentage(_ fatPercentage: HealthDetails.FatPercentage, for date: Date) async {
-        var healthDetails = fetchOrCreateHealthDetailsFromDocuments(date)
+        var healthDetails = await fetchOrCreateHealthDetailsFromDocuments(date)
         healthDetails.fatPercentage = fatPercentage
-        saveHealthDetailsInDocuments(healthDetails)
+        await saveHealthDetailsInDocuments(healthDetails)
     }
 
     func saveLeanBodyMass(_ leanBodyMass: HealthDetails.LeanBodyMass, for date: Date) async {
-        var healthDetails = fetchOrCreateHealthDetailsFromDocuments(date)
+        var healthDetails = await fetchOrCreateHealthDetailsFromDocuments(date)
         healthDetails.leanBodyMass = leanBodyMass
-        saveHealthDetailsInDocuments(healthDetails)
+        await saveHealthDetailsInDocuments(healthDetails)
     }
     
     static func saveHealthKitHeightMeasurement(_ measurement: HKQuantitySample) async {
-        var healthDetails = fetchOrCreateHealthDetailsFromDocuments(measurement.date)
+        var healthDetails = await fetchOrCreateHealthDetailsFromDocuments(measurement.date)
         healthDetails.height.addHealthKitSample(measurement)
-        saveHealthDetailsInDocuments(healthDetails)
+        await saveHealthDetailsInDocuments(healthDetails)
     }
 }

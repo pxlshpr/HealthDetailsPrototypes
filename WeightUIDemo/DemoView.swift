@@ -8,16 +8,12 @@ let DaysStartDate = Date(fromDateString: "2016_01_01")!
 
 struct DemoView: View {
     
-    @State var settingsProvider: SettingsProvider
+    @State var settingsProvider: SettingsProvider? = nil
     
     @State var pastDateBeingShown: Date? = nil
     @State var showingSettings = false
 
-    init() {
-        let settings = fetchSettingsFromDocuments()
-        let settingsProvider = SettingsProvider(settings: settings)
-        _settingsProvider = State(initialValue: settingsProvider)
-    }
+    init() { }
     
     var body: some View {
         NavigationView {
@@ -35,6 +31,12 @@ struct DemoView: View {
     
     func appeared() {
         Task {
+            let settings = await fetchSettingsFromDocuments()
+            let settingsProvider = SettingsProvider(settings: settings)
+            await MainActor.run {
+                self.settingsProvider = settingsProvider
+            }
+
             try await HealthStore.requestPermissions()
             await HealthProvider.syncWithHealthKitAndRecalculateAllDays()
         }
@@ -46,13 +48,18 @@ struct DemoView: View {
                 Button("Clear Data") {
                     deleteAllFilesInDocuments()
 
-                    var settings = fetchSettingsFromDocuments()
-                    settings.setHealthKitSyncing(for: .weight, to: true)
-                    settings.setHealthKitSyncing(for: .height, to: true)
-                    settings.setHealthKitSyncing(for: .leanBodyMass, to: true)
-                    saveSettingsInDocuments(settings)
-
                     Task {
+                        var settings = await fetchSettingsFromDocuments()
+                        settings.setHealthKitSyncing(for: .weight, to: true)
+                        settings.setHealthKitSyncing(for: .height, to: true)
+                        settings.setHealthKitSyncing(for: .leanBodyMass, to: true)
+                        await saveSettingsInDocuments(settings)
+                        let settingsProvider = SettingsProvider(settings: settings)
+
+                        await MainActor.run {
+                            self.settingsProvider = settingsProvider
+                        }
+
                         let start = CFAbsoluteTimeGetCurrent()
                         let _ = await fetchAllDaysFromDocuments(
                             from: LogStartDate,
@@ -73,49 +80,57 @@ struct DemoView: View {
     
     func setCurrentHealthDetails() {
         deleteAllFilesInDocuments()
-        var healthDetails = fetchOrCreateHealthDetailsFromDocuments(Date.now)
-        healthDetails.dateOfBirth = Date(fromDateString: "1987_06_04")!
-        healthDetails.biologicalSex = .male
-        healthDetails.weight = .init(
-            weightInKg: 96.2,
-//            dailyValueType: .average,
-            measurements: [.init(date: Date.now, weightInKg: 96.2)],
-            deletedHealthKitMeasurements: []
-        )
-//        healthDetails.height = .init(
-//            heightInCm: 177,
-//            measurements: [.init(date: Date.now, heightInCm: 177)],
-//            deletedHealthKitMeasurements: [],
-//            isSynced: false
-//        )
-        healthDetails.leanBodyMass = .init(
-            leanBodyMassInKg: 75.2,
-            fatPercentage: 21.8,
-//            dailyValueType: .average,
-            measurements: [.init(
-                date: Date.now,
+        Task {
+            var healthDetails = await fetchOrCreateHealthDetailsFromDocuments(Date.now)
+            healthDetails.dateOfBirth = Date(fromDateString: "1987_06_04")!
+            healthDetails.biologicalSex = .male
+            healthDetails.weight = .init(
+                weightInKg: 96.2,
+    //            dailyValueType: .average,
+                measurements: [.init(date: Date.now, weightInKg: 96.2)],
+                deletedHealthKitMeasurements: []
+            )
+    //        healthDetails.height = .init(
+    //            heightInCm: 177,
+    //            measurements: [.init(date: Date.now, heightInCm: 177)],
+    //            deletedHealthKitMeasurements: [],
+    //            isSynced: false
+    //        )
+            healthDetails.leanBodyMass = .init(
                 leanBodyMassInKg: 75.2,
                 fatPercentage: 21.8,
-                source: .fatPercentage)
-            ],
-            deletedHealthKitMeasurements: []
-        )
-        saveHealthDetailsInDocuments(healthDetails)
-    }
-    
-    var settingsForm: some View {
-        SettingsForm(settingsProvider, isPresented: $showingSettings)
-    }
-    
-    func healthDetailsForm(for date: Date) -> some View {
-        MockHealthDetailsForm(
-            date: date,
-            settingsProvider: settingsProvider,
-            isPresented: Binding<Bool>(
-                get: { true },
-                set: { if !$0 { pastDateBeingShown = nil } }
+    //            dailyValueType: .average,
+                measurements: [.init(
+                    date: Date.now,
+                    leanBodyMassInKg: 75.2,
+                    fatPercentage: 21.8,
+                    source: .fatPercentage)
+                ],
+                deletedHealthKitMeasurements: []
             )
-        )
+            await saveHealthDetailsInDocuments(healthDetails)
+        }
+    }
+    
+    @ViewBuilder
+    var settingsForm: some View {
+        if let settingsProvider {
+            SettingsForm(settingsProvider, isPresented: $showingSettings)
+        }
+    }
+    
+    @ViewBuilder
+    func healthDetailsForm(for date: Date) -> some View {
+        if let settingsProvider {
+            MockHealthDetailsForm(
+                date: date,
+                settingsProvider: settingsProvider,
+                isPresented: Binding<Bool>(
+                    get: { true },
+                    set: { if !$0 { pastDateBeingShown = nil } }
+                )
+            )
+        }
     }
     
     var healthDetailsSection: some View {

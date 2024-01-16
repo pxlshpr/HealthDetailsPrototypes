@@ -4,15 +4,11 @@ public var isPreview: Bool {
     return ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
 }
 
-var CurrentHealthDetails: HealthDetails {
-    fetchOrCreateHealthDetailsFromDocuments(Date.now)
-}
-
 struct MockHealthDetailsForm: View {
     
     @Bindable var settingsProvider: SettingsProvider
 
-    @State var healthProvider: HealthProvider
+    @State var healthProvider: HealthProvider? = nil
     @Binding var isPresented: Bool
     
     let date: Date
@@ -26,19 +22,35 @@ struct MockHealthDetailsForm: View {
         self.settingsProvider = settingsProvider
         _isPresented = isPresented
         
-        let healthDetails = fetchOrCreateHealthDetailsFromDocuments(date)
-        let healthProvider = HealthProvider(
-            healthDetails: healthDetails,
-            settingsProvider: settingsProvider
-        )
-        _healthProvider = State(initialValue: healthProvider)
+//        let healthDetails = fetchOrCreateHealthDetailsFromDocuments(date)
+//        let healthProvider = HealthProvider(
+//            healthDetails: healthDetails,
+//            settingsProvider: settingsProvider
+//        )
+//        _healthProvider = State(initialValue: healthProvider)
     }
 
     var body: some View {
-        HealthDetailsForm(
-            healthProvider: healthProvider,
-            isPresented: $isPresented
-        )
+        if let healthProvider {
+            HealthDetailsForm(
+                healthProvider: healthProvider,
+                isPresented: $isPresented
+            )
+        } else {
+            Color.clear
+                .onAppear {
+                    Task {
+                        let healthDetails = await fetchOrCreateHealthDetailsFromDocuments(date)
+                        let healthProvider = HealthProvider(
+                            healthDetails: healthDetails,
+                            settingsProvider: settingsProvider
+                        )
+                        await MainActor.run {
+                            self.healthProvider = healthProvider
+                        }
+                    }
+                }
+        }
     }
 }
 
@@ -75,7 +87,7 @@ struct Day: Codable, Hashable {
     }
 }
 
-func fetchOrCreateDayFromDocuments(_ date: Date) -> Day {
+func fetchOrCreateDayFromDocuments(_ date: Date) async -> Day {
     let filename = "\(date.dateString).json"
     let url = getDocumentsDirectory().appendingPathComponent(filename)
     do {
@@ -84,7 +96,7 @@ func fetchOrCreateDayFromDocuments(_ date: Date) -> Day {
         return day
     } catch {
         let day = Day(date: date)
-        saveDayInDocuments(day)
+        await saveDayInDocuments(day)
         return day
     }
 }
@@ -99,9 +111,9 @@ func fetchAllDaysFromDocuments(
     for i in (0...Date.now.numberOfDaysFrom(startDate)).reversed() {
         let date = Date.now.moveDayBy(-i)
         let day = if createIfNotExisting {
-            fetchOrCreateDayFromDocuments(date)
+            await fetchOrCreateDayFromDocuments(date)
         } else {
-            fetchDayFromDocuments(date)
+            await fetchDayFromDocuments(date)
         }
         if let day {
             days.append(day)
@@ -110,7 +122,7 @@ func fetchAllDaysFromDocuments(
     return days
 }
 
-func fetchDayFromDocuments(_ date: Date) -> Day? {
+func fetchDayFromDocuments(_ date: Date) async -> Day? {
     let filename = "\(date.dateString).json"
     let url = getDocumentsDirectory().appendingPathComponent(filename)
     do {
@@ -122,7 +134,7 @@ func fetchDayFromDocuments(_ date: Date) -> Day? {
     }
 }
 
-func saveDayInDocuments(_ day: Day) {
+func saveDayInDocuments(_ day: Day) async {
     do {
         let filename = "\(day.date.dateString).json"
         let url = getDocumentsDirectory().appendingPathComponent(filename)
@@ -133,21 +145,21 @@ func saveDayInDocuments(_ day: Day) {
     }
 }
 
-func fetchOrCreateHealthDetailsFromDocuments(_ date: Date) -> HealthDetails {
-    fetchOrCreateDayFromDocuments(date).healthDetails
+func fetchOrCreateHealthDetailsFromDocuments(_ date: Date) async -> HealthDetails {
+    await fetchOrCreateDayFromDocuments(date).healthDetails
 }
 
-func fetchHealthDetailsFromDocuments(_ date: Date) -> HealthDetails? {
-    fetchDayFromDocuments(date)?.healthDetails
+func fetchHealthDetailsFromDocuments(_ date: Date) async -> HealthDetails? {
+    await fetchDayFromDocuments(date)?.healthDetails
 }
 
-func saveHealthDetailsInDocuments(_ healthDetails: HealthDetails) {
-    var day = fetchOrCreateDayFromDocuments(healthDetails.date)
+func saveHealthDetailsInDocuments(_ healthDetails: HealthDetails) async {
+    var day = await fetchOrCreateDayFromDocuments(healthDetails.date)
     day.healthDetails = healthDetails
-    saveDayInDocuments(day)
+    await saveDayInDocuments(day)
 }
 
-func fetchSettingsFromDocuments() -> Settings {
+func fetchSettingsFromDocuments() async -> Settings {
     let filename = "settings.json"
     let url = getDocumentsDirectory().appendingPathComponent(filename)
     do {
@@ -156,12 +168,12 @@ func fetchSettingsFromDocuments() -> Settings {
         return settings
     } catch {
         let settings = Settings()
-        saveSettingsInDocuments(settings)
+        await saveSettingsInDocuments(settings)
         return settings
     }
 }
 
-func saveSettingsInDocuments(_ settings: Settings) {
+func saveSettingsInDocuments(_ settings: Settings) async {
     do {
         let filename = "settings.json"
         let url = getDocumentsDirectory().appendingPathComponent(filename)

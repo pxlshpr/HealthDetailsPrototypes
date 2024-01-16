@@ -10,27 +10,32 @@ extension HealthProvider {
     }
     
     func setBackendDietaryEnergyPoint(_ point: DietaryEnergyPoint, for date: Date) {
-        var day = fetchOrCreateDayFromDocuments(date)
-        day.dietaryEnergyPoint = point
-        saveDayInDocuments(day)
+        Task {
+            var day = await fetchOrCreateDayFromDocuments(date)
+            day.dietaryEnergyPoint = point
+            await saveDayInDocuments(day)
+        }
     }
 
     func fetchOrCreateBackendWeight(for date: Date) async -> HealthDetails.Weight {
-        let healthDetails = fetchOrCreateHealthDetailsFromDocuments(date)
+        let healthDetails = await fetchOrCreateHealthDetailsFromDocuments(date)
         return healthDetails.weight
     }
     func fetchBackendDietaryEnergyPoint(for date: Date) async -> DietaryEnergyPoint? {
-        let day = fetchOrCreateDayFromDocuments(date)
+        let day = await fetchOrCreateDayFromDocuments(date)
         return day.dietaryEnergyPoint
     }
     
     func fetchBackendEnergyInKcal(for date: Date) async -> Double? {
-        let day = fetchOrCreateDayFromDocuments(date)
+        let day = await fetchOrCreateDayFromDocuments(date)
         return day.energyInKcal
     }
     
     func save() {
-        saveHealthDetailsInDocuments(healthDetails)
+        saveTask?.cancel()
+        saveTask = Task {
+            await saveHealthDetailsInDocuments(healthDetails)
+        }
     }
 }
 
@@ -211,7 +216,7 @@ extension HealthProvider {
         guard numberOfDays >= 0 else { return }
         for i in 0...numberOfDays {
             let date = healthDetails.date.moveDayBy(-i)
-            guard let pastHealthDetails = fetchHealthDetailsFromDocuments(date) else {
+            guard let pastHealthDetails = await fetchHealthDetailsFromDocuments(date) else {
                 continue
             }
 

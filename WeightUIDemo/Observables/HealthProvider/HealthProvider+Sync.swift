@@ -12,7 +12,7 @@ extension HealthProvider {
         /// Fetch all HealthKit weight samples from start of log (since we're not interested in any before that)
         let startDate = await fetchBackendLogStartDate()
         
-        let settings = SettingsProvider.shared.settings
+        let settings = await fetchSettingsFromDocuments()
         
         /// First, fetch whatever isSynced is turned on for (weight, height, LBM)—fetch everything from the first Day's date onwards
         let weightSamples: [HKQuantitySample]? = if settings.isHealthKitSyncing(.weight) {
@@ -182,7 +182,11 @@ extension HealthProvider {
         /// [ ] TBD: Recalculate the plans for the Day as HealthDetails have changed
     }
     
-    static func recalculateAllDays(_ days: [Day], initialDays: [Day]? = nil, start: CFAbsoluteTime? = nil) async {
+    static func recalculateAllDays(
+        _ days: [Day],
+        initialDays: [Day]? = nil,
+        start: CFAbsoluteTime? = nil
+    ) async {
         
         let start = start ?? CFAbsoluteTimeGetCurrent()
         let initialDays = initialDays ?? days
@@ -193,7 +197,8 @@ extension HealthProvider {
             var day = day
             
             /// [ ] Create a HealthProvider for it (which in turn fetches the latest health details)
-            let settingsProvider = SettingsProvider.shared
+            let settings = await fetchSettingsFromDocuments()
+            let settingsProvider = SettingsProvider(settings: settings)
             let healthProvider = HealthProvider(
                 healthDetails: day.healthDetails,
                 settingsProvider: settingsProvider
@@ -216,7 +221,7 @@ extension HealthProvider {
             
             if day != initialDays[index] {
                 print("Saving \(day.date.shortDateString)")
-                saveDayInDocuments(day)
+                await saveDayInDocuments(day)
             } else {
                 print("Not Saving \(day.date.shortDateString)")
             }
