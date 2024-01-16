@@ -20,19 +20,30 @@ extension HealthDetails {
         }
     }
 
-    func populateLatestDict(_ dict: inout [HealthDetail : DatedHealthData]) {
-        for healthDetail in HealthDetail.allCases {
-            guard !dict.keys.contains(healthDetail),
-                  hasSet(healthDetail),
-                  let data = data(for: healthDetail)
-            else { continue }
-            dict[healthDetail] = (date, data)
-        }
-    }
+//    func populateLatestDict(_ dict: inout [HealthDetail : DatedHealthData]) {
+//        for healthDetail in HealthDetail.allCases {
+//            guard !dict.keys.contains(healthDetail),
+//                  hasSet(healthDetail),
+//                  let data = data(for: healthDetail)
+//            else { continue }
+//            dict[healthDetail] = (date, data)
+//        }
+//    }
 }
 
 typealias DatedHealthData = (date: Date, data: Any)
 
+extension Dictionary where Key == HealthDetail, Value == DatedHealthData {
+    mutating func fillInHealthDetails(_ healthDetails: HealthDetails) {
+        for healthDetail in HealthDetail.allCases {
+            guard !keys.contains(healthDetail),
+                  healthDetails.hasSet(healthDetail),
+                  let data = healthDetails.data(for: healthDetail)
+            else { continue }
+            self[healthDetail] = (healthDetails.date, data)
+        }
+    }
+}
 extension Dictionary where Key == HealthDetail, Value == DatedHealthData {
     var weightWithDate: (date: Date, weight: HealthDetails.Weight)? {
         guard let tuple = self[HealthDetail.weight],
