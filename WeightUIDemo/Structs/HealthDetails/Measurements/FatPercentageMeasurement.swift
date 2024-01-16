@@ -6,7 +6,7 @@ struct FatPercentageMeasurement: Hashable, Identifiable, Codable {
     let source: LeanBodyMassAndFatPercentageSource
     let date: Date
     let percent: Double
-
+    
     init(
         id: UUID,
         date: Date,
@@ -34,11 +34,13 @@ struct FatPercentageMeasurement: Hashable, Identifiable, Codable {
         self.date = date
         self.percent = percent
     }
-    
-    init(sample: HKQuantitySample) {
+}
+
+extension FatPercentageMeasurement {
+    init(healthKitQuantitySample sample: HKQuantitySample) {
         self.id = UUID()
         self.source = .healthKit(sample.uuid)
         self.date = sample.date
-        self.percent = sample.quantity.doubleValue(for: .percent())
+        self.percent = sample.quantity.doubleValue(for: .percent()) * 100.0 /// Apple Health stores percents in decimal form
     }
 }

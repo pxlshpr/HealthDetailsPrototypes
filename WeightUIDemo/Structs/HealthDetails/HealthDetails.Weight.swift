@@ -23,7 +23,7 @@ extension HealthDetails.Weight {
         else {
             return
         }
-        measurements.append(WeightMeasurement(sample: sample))
+        measurements.append(WeightMeasurement(healthKitQuantitySample: sample))
         measurements.sort()
         weightInKg = measurements.dailyValue(for: dailyValueType)
     }

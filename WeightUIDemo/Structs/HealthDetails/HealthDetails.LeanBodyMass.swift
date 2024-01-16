@@ -18,7 +18,7 @@ extension HealthDetails.LeanBodyMass {
         else {
             return
         }
-        measurements.append(LeanBodyMassMeasurement(sample: sample))
+        measurements.append(LeanBodyMassMeasurement(healthKitQuantitySample: sample))
         measurements.sort()
         leanBodyMassInKg = measurements.dailyValue(for: dailyValueType)
     }
@@ -50,7 +50,7 @@ extension HealthDetails.FatPercentage {
         else {
             return
         }
-        measurements.append(FatPercentageMeasurement(sample: sample))
+        measurements.append(FatPercentageMeasurement(healthKitQuantitySample: sample))
         measurements.sort()
         fatPercentage = measurements.dailyValue(for: dailyValueType)
     }

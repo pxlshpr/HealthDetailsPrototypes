@@ -305,6 +305,9 @@ extension HealthKitSyncable {
         settings: Settings
     ) {
         let samples = samples.filter { $0.date.startOfDay == date.startOfDay }
+        if !samples.isEmpty {
+            print("We here")
+        }
         removeHealthKitQuantitySamples(notPresentIn: samples.notOurs)
         addNewHealthKitQuantitySamples(from: samples.notOurs)
         toDelete.append(contentsOf: samples.ours.notPresent(in: measurements))

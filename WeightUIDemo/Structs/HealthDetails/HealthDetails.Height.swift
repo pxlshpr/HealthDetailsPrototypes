@@ -18,7 +18,7 @@ extension HealthDetails.Height {
         else {
             return
         }
-        measurements.append(HeightMeasurement(sample: sample))
+        measurements.append(HeightMeasurement(healthKitQuantitySample: sample))
         measurements.sort()
         heightInCm = measurements.dailyValue(for: dailyValueType)
     }

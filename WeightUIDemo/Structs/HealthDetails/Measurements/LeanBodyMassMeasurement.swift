@@ -35,10 +35,10 @@ struct LeanBodyMassMeasurement: Hashable, Identifiable, Codable {
         self.leanBodyMassInKg = leanBodyMassInKg
     }
     
-    init(sample: HKQuantitySample) {
-        self.id = UUID()
-        self.source = .healthKit(sample.uuid)
-        self.date = sample.date
-        self.leanBodyMassInKg = sample.quantity.doubleValue(for: .gramUnit(with: .kilo))
-    }
+//    init(healthKitQuantitySample sample: HKQuantitySample) {
+//        self.id = UUID()
+//        self.source = .healthKit(sample.uuid)
+//        self.date = sample.date
+//        self.leanBodyMassInKg = sample.quantity.doubleValue(for: .gramUnit(with: .kilo))
+//    }
 }
