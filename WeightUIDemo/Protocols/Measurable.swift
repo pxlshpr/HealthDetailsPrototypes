@@ -97,6 +97,20 @@ extension LeanBodyMassMeasurement: Measurable {
     }
 }
 
+extension FatPercentageMeasurement: Measurable {
+    var value: Double { fatPercentage }
+    static var healthKitUnit: HKUnit { .percent() }
+    var unit: HKUnit { .percent() }
+
+    var healthKitUUID: UUID? { source.healthKitUUID }
+    
+    var imageType: MeasurementImageType {
+        switch source {
+        case .healthKit:    .healthKit
+        default:            .systemImage(source.image, source.imageScale)
+        }
+    }
+}
 
 
 //MARK: - Array extensions

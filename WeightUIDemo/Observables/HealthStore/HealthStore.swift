@@ -1,12 +1,12 @@
 import HealthKit
 import PrepShared
 
-public class HealthStore {
+class HealthStore {
     
     internal static let shared = HealthStore()
     internal static let store: HKHealthStore = HKHealthStore()
     
-    public static var defaultUnitHandler: ((QuantityType) -> HKUnit)? = nil
+    static var defaultUnitHandler: ((QuantityType) -> HKUnit)? = nil
 }
 
 internal extension HealthStore {

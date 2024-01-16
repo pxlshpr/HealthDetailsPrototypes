@@ -12,8 +12,7 @@ extension HealthDetails {
 
 extension HealthDetails.Height {
     
-    mutating func addHealthKitSample(_ sample: HKQuantitySample) {
-        
+    mutating func addHealthKitSample(_ sample: HKQuantitySample, using dailyValueType: DailyValueType) {
         guard !measurements.contains(where: { $0.healthKitUUID == sample.uuid }),
               !deletedHealthKitMeasurements.contains(where: { $0.healthKitUUID == sample.uuid })
         else {
@@ -21,7 +20,7 @@ extension HealthDetails.Height {
         }
         measurements.append(HeightMeasurement(sample: sample))
         measurements.sort()
-        heightInCm = measurements.last?.heightInCm
+        heightInCm = measurements.dailyValue(for: dailyValueType)
     }
     
     func valueString(in unit: HeightUnit) -> String {

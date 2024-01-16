@@ -18,7 +18,7 @@ extension HealthProvider {
 }
 
 extension HealthProvider {
-
+    
     func saveMaintenance(_ maintenance: HealthDetails.Maintenance) {
         healthDetails.maintenance = maintenance
         save()
@@ -32,22 +32,22 @@ extension HealthProvider {
             await saveDayInDocuments(day)
         }
     }
-
+    
     func saveRestingEnergy(_ restingEnergy: HealthDetails.Maintenance.Estimate.RestingEnergy) {
         healthDetails.maintenance.estimate.restingEnergy = restingEnergy
         save()
     }
-
+    
     func saveEstimate(_ estimate: HealthDetails.Maintenance.Estimate) {
         healthDetails.maintenance.estimate = estimate
         save()
     }
-
+    
     func saveActiveEnergy(_ activeEnergy: HealthDetails.Maintenance.Estimate.ActiveEnergy) {
         healthDetails.maintenance.estimate.activeEnergy = activeEnergy
         save()
     }
-
+    
     func savePregnancyStatus(_ pregnancyStatus: PregnancyStatus) {
         healthDetails.pregnancyStatus = pregnancyStatus
         save()
@@ -62,7 +62,7 @@ extension HealthProvider {
         healthDetails.dateOfBirth = date
         save()
     }
-
+    
     func saveSmokingStatus(_ smokingStatus: SmokingStatus) {
         healthDetails.smokingStatus = smokingStatus
         save()
@@ -84,12 +84,12 @@ extension HealthProvider {
         healthDetails.leanBodyMass = leanBodyMass
         save()
     }
-
+    
     func saveFatPercentage(_ fatPercentage: HealthDetails.FatPercentage) {
         healthDetails.fatPercentage = fatPercentage
         save()
     }
-
+    
     //TODO: Persist changes
     /// [ ] Replace Mock coding with actual persistence
     func updateLatestWeight(_ weight: HealthDetails.Weight) {
@@ -115,7 +115,7 @@ extension HealthProvider {
             try await savePregnancyStatus(pregnancyStatus, for: date)
         }
     }
-
+    
     func updateLatestFatPercentage(_ fatPercentage: HealthDetails.FatPercentage) {
         guard let date = healthDetails.replacementsForMissing.datedFatPercentage?.date else { return }
         healthDetails.replacementsForMissing.datedFatPercentage?.fatPercentage = fatPercentage
@@ -123,7 +123,7 @@ extension HealthProvider {
             try await saveFatPercentage(fatPercentage, for: date)
         }
     }
-
+    
     func updateLatestLeanBodyMass(_ leanBodyMass: HealthDetails.LeanBodyMass) {
         guard let date = healthDetails.replacementsForMissing.datedLeanBodyMass?.date else { return }
         healthDetails.replacementsForMissing.datedLeanBodyMass?.leanBodyMass = leanBodyMass
@@ -133,46 +133,66 @@ extension HealthProvider {
     }
     
     //MARK: - Save for other days
-
+    
     func saveWeight(_ weight: HealthDetails.Weight, for date: Date) async throws {
         var healthDetails = await fetchOrCreateHealthDetailsFromDocuments(date)
         healthDetails.weight = weight
         try await saveHealthDetailsInDocuments(healthDetails)
     }
-
+    
     func saveHeight(_ height: HealthDetails.Height, for date: Date) async throws {
         var healthDetails = await fetchOrCreateHealthDetailsFromDocuments(date)
         healthDetails.height = height
         try await saveHealthDetailsInDocuments(healthDetails)
     }
-
+    
     func saveMaintenance(_ maintenance: HealthDetails.Maintenance, for date: Date) async throws {
         var healthDetails = await fetchOrCreateHealthDetailsFromDocuments(date)
         healthDetails.maintenance = maintenance
         try await saveHealthDetailsInDocuments(healthDetails)
     }
-
+    
     func savePregnancyStatus(_ pregnancyStatus: PregnancyStatus, for date: Date) async throws {
         var healthDetails = await fetchOrCreateHealthDetailsFromDocuments(date)
         healthDetails.pregnancyStatus = pregnancyStatus
         try await saveHealthDetailsInDocuments(healthDetails)
     }
-
+    
     func saveFatPercentage(_ fatPercentage: HealthDetails.FatPercentage, for date: Date) async throws {
         var healthDetails = await fetchOrCreateHealthDetailsFromDocuments(date)
         healthDetails.fatPercentage = fatPercentage
         try await saveHealthDetailsInDocuments(healthDetails)
     }
-
+    
     func saveLeanBodyMass(_ leanBodyMass: HealthDetails.LeanBodyMass, for date: Date) async throws {
         var healthDetails = await fetchOrCreateHealthDetailsFromDocuments(date)
         healthDetails.leanBodyMass = leanBodyMass
         try await saveHealthDetailsInDocuments(healthDetails)
     }
-    
-    static func saveHealthKitHeightMeasurement(_ measurement: HKQuantitySample) async throws {
-        var healthDetails = await fetchOrCreateHealthDetailsFromDocuments(measurement.date)
-        healthDetails.height.addHealthKitSample(measurement)
+}
+
+extension HealthProvider {
+    static func saveHealthKitSample(
+        _ sample: HKQuantitySample,
+        for quantityType: QuantityType
+    ) async throws {
+        let settings = await fetchSettingsFromDocuments()
+        guard let dailyValueType = settings.dailyValueType(for: quantityType) else {
+            return
+        }
+        var healthDetails = await fetchOrCreateHealthDetailsFromDocuments(sample.date.startOfDay)
+        switch quantityType {
+        case .weight:
+            healthDetails.weight.addHealthKitSample(sample, using: dailyValueType)
+        case .leanBodyMass:
+            healthDetails.leanBodyMass.addHealthKitSample(sample, using: dailyValueType)
+        case .height:
+            healthDetails.height.addHealthKitSample(sample, using: dailyValueType)
+        case .fatPercentage:
+            healthDetails.fatPercentage.addHealthKitSample(sample, using: dailyValueType)
+        default:
+            break
+        }
         try await saveHealthDetailsInDocuments(healthDetails)
     }
 }

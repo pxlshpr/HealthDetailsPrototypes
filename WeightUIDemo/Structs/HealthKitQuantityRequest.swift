@@ -55,6 +55,13 @@ extension HealthKitQuantityRequest {
             sortDescriptors: [SortDescriptor(\.startDate, order: .forward)]
         )
     }
+    
+    func mostRecentSample() async throws -> HKQuantitySample? {
+        try await samples(
+            sortDescriptors: [SortDescriptor(\.startDate, order: .reverse)],
+            limit: 1
+        ).first
+    }
 }
 
 extension HealthKitQuantityRequest {
@@ -76,5 +83,11 @@ extension HealthKitQuantityRequest {
         )
 
         return try await asyncQuery.result(for: HealthStore.store)
+    }
+}
+
+extension Optional where Wrapped == [HKQuantitySample] {
+    var isEmptyOrNil: Bool {
+        self == nil || self?.isEmpty == true
     }
 }

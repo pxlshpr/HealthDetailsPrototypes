@@ -33,7 +33,12 @@ extension Settings {
     func dailyValueType(for healthDetail: HealthDetail) -> DailyValueType {
         dailyValueTypes[healthDetail] ?? .last
     }
-    
+
+    func dailyValueType(for quantityType: QuantityType) -> DailyValueType? {
+        guard let healthDetail = quantityType.healthDetail else { return nil }
+        return dailyValueType(for: healthDetail)
+    }
+
     func isHealthKitSyncing(_ healthDetail: HealthDetail) -> Bool {
         healthKitSyncedHealthDetails.contains(healthDetail)
     }

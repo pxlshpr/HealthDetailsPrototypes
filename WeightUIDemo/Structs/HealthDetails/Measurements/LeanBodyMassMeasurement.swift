@@ -1,4 +1,5 @@
 import Foundation
+import HealthKit
 
 struct LeanBodyMassMeasurement: Hashable, Identifiable, Codable {
     let id: UUID
@@ -36,5 +37,13 @@ struct LeanBodyMassMeasurement: Hashable, Identifiable, Codable {
         self.date = date
         self.leanBodyMassInKg = leanBodyMassInKg
         self.fatPercentage = fatPercentage
+    }
+    
+    init(sample: HKQuantitySample) {
+        self.id = UUID()
+        self.source = .healthKit(sample.uuid)
+        self.date = sample.date
+        self.leanBodyMassInKg = sample.quantity.doubleValue(for: .gramUnit(with: .kilo))
+        self.fatPercentage = nil
     }
 }

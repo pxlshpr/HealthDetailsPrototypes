@@ -1,6 +1,6 @@
 import HealthKit
 
-public enum QuantityType {
+enum QuantityType {
     case weight
     case leanBodyMass
     case height
@@ -9,7 +9,7 @@ public enum QuantityType {
     case fatPercentage
 }
 
-public extension QuantityType {
+extension QuantityType {
     
     var healthKitTypeIdentifier: HKQuantityTypeIdentifier {
         switch self {
@@ -19,6 +19,16 @@ public extension QuantityType {
         case .restingEnergy:    .basalEnergyBurned
         case .activeEnergy:     .activeEnergyBurned
         case .fatPercentage:    .bodyFatPercentage
+        }
+    }
+    
+    var healthDetail: HealthDetail? {
+        switch self {
+        case .weight:           .weight
+        case .leanBodyMass:     .leanBodyMass
+        case .height:           .height
+        case .fatPercentage:    .fatPercentage
+        default:                nil
         }
     }
 }

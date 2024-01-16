@@ -4,11 +4,15 @@ import Foundation
 
 extension HealthProvider {
     
-    static func fetchBackendLogStartDate() async -> Date? {
-        //TODO: Make sure that the start date gets the first date that actually has food logged in it so that we don't get a Day we may have created to house something like a legacy height measurement.
+    //TODO: Make sure that the start date gets the first date that actually has food logged in it so that we don't get a Day we may have created to house something like a legacy height measurement.
+    static func fetchBackendLogStartDate() async -> Date {
         LogStartDate
     }
-    
+
+    static func fetchBackendDaysStartDate() async -> Date {
+        DaysStartDate
+    }
+
     func setBackendDietaryEnergyPoint(_ point: DietaryEnergyPoint, for date: Date) {
         Task {
             var day = await fetchOrCreateDayFromDocuments(date)

@@ -34,7 +34,7 @@ extension HealthStore {
 }
 
 extension HealthStore {
-    static func weightMeasurements(
+    static func weightSamples(
         in unit: BodyMassUnit = .kg,
         from startDate: Date? = nil
     ) async -> [HKQuantitySample] {
@@ -45,7 +45,7 @@ extension HealthStore {
         }
     }
     
-    static func leanBodyMassMeasurements(
+    static func leanBodyMassSamples(
         in unit: BodyMassUnit = .kg,
         from startDate: Date? = nil
     ) async -> [HKQuantitySample] {
@@ -55,8 +55,21 @@ extension HealthStore {
             return []
         }
     }
-    
-    static func heightMeasurements(
+
+    static func fatPercentageSamples(
+        from startDate: Date? = nil
+    ) async -> [HKQuantitySample] {
+        do {
+            return try await HealthKitQuantityRequest(
+                .fatPercentage,
+                HKUnit.percent()
+            ).allSamples(startingFrom: startDate) ?? []
+        } catch {
+            return []
+        }
+    }
+
+    static func heightSamples(
         in unit: HeightUnit = .cm,
         from startDate: Date? = nil
     ) async -> [HKQuantitySample] {
@@ -64,6 +77,17 @@ extension HealthStore {
             return try await HealthKitQuantityRequest(.height, unit.healthKitUnit).allSamples(startingFrom: startDate) ?? []
         } catch {
             return []
+        }
+    }
+    
+    static func mostRecentSample(for quantityType: QuantityType) async -> HKQuantitySample? {
+        do {
+            return try await HealthKitQuantityRequest(
+                quantityType,
+                quantityType.defaultUnit)
+            .mostRecentSample()
+        } catch {
+            return nil
         }
     }
 }

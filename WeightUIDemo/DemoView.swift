@@ -52,6 +52,7 @@ struct DemoView: View {
                         settings.setHealthKitSyncing(for: .weight, to: true)
                         settings.setHealthKitSyncing(for: .height, to: true)
                         settings.setHealthKitSyncing(for: .leanBodyMass, to: true)
+                        settings.setHealthKitSyncing(for: .fatPercentage, to: true)
                         await saveSettingsInDocuments(settings)
 
                         await MainActor.run { [settings] in
@@ -132,7 +133,7 @@ struct DemoView: View {
     }
     
     var healthDetailsSection: some View {
-
+        
         let numberOfDays = Date.now.numberOfDaysFrom(LogStartDate)
         
         func button(daysAgo: Int) -> some View {

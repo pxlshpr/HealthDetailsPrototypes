@@ -10,35 +10,61 @@ extension HealthProvider {
         let start = CFAbsoluteTimeGetCurrent()
         
         /// Fetch all HealthKit weight samples from start of log (since we're not interested in any before that)
-        let startDate = await fetchBackendLogStartDate()
+        let logStartDate = await fetchBackendLogStartDate()
+        var daysStartDate = logStartDate
         
         let settings = await fetchSettingsFromDocuments()
         
         /// First, fetch whatever isSynced is turned on for (weight, height, LBM)—fetch everything from the first Day's date onwards
         let weightSamples: [HKQuantitySample]? = if settings.isHealthKitSyncing(.weight) {
-            await HealthStore.weightMeasurements(from: startDate)
+            await HealthStore.weightSamples(from: logStartDate)
         } else {
             nil
         }
         let leanBodyMassSamples: [HKQuantitySample]? = if settings.isHealthKitSyncing(.leanBodyMass) {
-            await HealthStore.leanBodyMassMeasurements(from: startDate)
+            await HealthStore.leanBodyMassSamples(from: logStartDate)
+        } else {
+            nil
+        }
+        let fatPercentageSamples: [HKQuantitySample]? = if settings.isHealthKitSyncing(.fatPercentage) {
+            await HealthStore.fatPercentageSamples(from: logStartDate)
         } else {
             nil
         }
         let heightSamples: [HKQuantitySample]? = if settings.isHealthKitSyncing(.height) {
-            await HealthStore.heightMeasurements(from: startDate)
+            await HealthStore.heightSamples(from: logStartDate)
         } else {
             nil
         }
         
-        /// Special case with height – if we have do not have any data within our app's timeframe—grab the latest height available and save it
-        if (heightSamples == nil || heightSamples?.isEmpty == true), let latestHeight = await HealthStore.heightMeasurements().suffix(1).first
+        /// If we have do not have any data within our app's timeframe—grab the latest available and create a Day and save it
+        if heightSamples.isEmptyOrNil, 
+            let sample = await HealthStore.mostRecentSample(for: .height)
         {
-            try await saveHealthKitHeightMeasurement(latestHeight)
+            if sample.startDate < daysStartDate { daysStartDate = sample.startDate }
+            try await saveHealthKitSample(sample, for: .height)
         }
-        
+        if weightSamples.isEmptyOrNil, 
+            let sample = await HealthStore.mostRecentSample(for: .weight)
+        {
+            if sample.startDate < daysStartDate { daysStartDate = sample.startDate }
+            try await saveHealthKitSample(sample, for: .weight)
+        }
+        if leanBodyMassSamples.isEmptyOrNil, 
+            let sample = await HealthStore.mostRecentSample(for: .leanBodyMass)
+        {
+            if sample.startDate < daysStartDate { daysStartDate = sample.startDate }
+            try await saveHealthKitSample(sample, for: .leanBodyMass)
+        }
+        if fatPercentageSamples.isEmptyOrNil,
+           let sample = await HealthStore.mostRecentSample(for: .fatPercentage)
+        {
+            if sample.startDate < daysStartDate { daysStartDate = sample.startDate }
+            try await saveHealthKitSample(sample, for: .fatPercentage)
+        }
+
         var days = await fetchAllDaysFromDocuments(
-            from: DaysStartDate,
+            from: daysStartDate,
             createIfNotExisting: false
         )
         let initialDays = days
@@ -49,7 +75,7 @@ extension HealthProvider {
         let startR = CFAbsoluteTimeGetCurrent()
         let restingEnergyStats = await HealthStore.dailyStatistics(
             for: .basalEnergyBurned,
-            from: LogStartDate,
+            from: logStartDate,
             to: Date.now
         )
         print("Getting all RestingEnergy took: \(CFAbsoluteTimeGetCurrent()-startR)s")
@@ -57,7 +83,7 @@ extension HealthProvider {
         let startA = CFAbsoluteTimeGetCurrent()
         let activeEnergyStats = await HealthStore.dailyStatistics(
             for: .activeEnergyBurned,
-            from: LogStartDate,
+            from: logStartDate,
             to: Date.now
         )
         print("Getting all ActiveEnergy took: \(CFAbsoluteTimeGetCurrent()-startA)s")
@@ -65,7 +91,7 @@ extension HealthProvider {
         let startD = CFAbsoluteTimeGetCurrent()
         let dietaryEnergyStats = await HealthStore.dailyStatistics(
             for: .dietaryEnergyConsumed,
-            from: LogStartDate,
+            from: logStartDate,
             to: Date.now
         )
         print("Getting all DietaryEnergy took: \(CFAbsoluteTimeGetCurrent()-startD)s")
@@ -208,6 +234,9 @@ extension HealthProvider {
                 settingsProvider: settingsProvider
             )
             
+            if day.date.shortDateString == "16 Jan" {
+                print("We here")
+            }
 //            var start = CFAbsoluteTimeGetCurrent()
             latestHealthDetails.setHealthDetails(from: day.healthDetails)
 //            print("  populateLatestDict took: \(CFAbsoluteTimeGetCurrent()-start)s")
@@ -253,10 +282,12 @@ extension HealthProvider {
     }
     
     static func recalculateAllDays() async throws {
+        let startDate = await fetchBackendDaysStartDate()
+
         var start = CFAbsoluteTimeGetCurrent()
         print("recalculateAllDays() started")
         let days = await fetchAllDaysFromDocuments(
-            from: LogStartDate,
+            from: startDate,
             createIfNotExisting: false
         )
         print("     fetchAllDaysFromDocuments took: \(CFAbsoluteTimeGetCurrent()-start)s")
