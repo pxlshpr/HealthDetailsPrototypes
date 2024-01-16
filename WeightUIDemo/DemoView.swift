@@ -8,7 +8,7 @@ let DaysStartDate = Date(fromDateString: "2016_01_01")!
 
 struct DemoView: View {
     
-    @State var settingsProvider: SettingsProvider? = nil
+    @State var settingsProvider: SettingsProvider = SettingsProvider(settings: .init())
     
     @State var pastDateBeingShown: Date? = nil
     @State var showingSettings = false
@@ -32,9 +32,10 @@ struct DemoView: View {
     func appeared() {
         Task {
             let settings = await fetchSettingsFromDocuments()
-            let settingsProvider = SettingsProvider(settings: settings)
+//            let settingsProvider = SettingsProvider(settings: settings)
             await MainActor.run {
-                self.settingsProvider = settingsProvider
+//                self.settingsProvider = settingsProvider
+                self.settingsProvider.settings = settings
             }
 
             try await HealthStore.requestPermissions()
@@ -54,10 +55,11 @@ struct DemoView: View {
                         settings.setHealthKitSyncing(for: .height, to: true)
                         settings.setHealthKitSyncing(for: .leanBodyMass, to: true)
                         await saveSettingsInDocuments(settings)
-                        let settingsProvider = SettingsProvider(settings: settings)
+//                        let settingsProvider = SettingsProvider(settings: settings)
 
-                        await MainActor.run {
-                            self.settingsProvider = settingsProvider
+                        await MainActor.run { [settings] in
+//                            self.settingsProvider = settingsProvider
+                            self.settingsProvider.settings = settings
                         }
 
                         let start = CFAbsoluteTimeGetCurrent()
@@ -112,16 +114,16 @@ struct DemoView: View {
         }
     }
     
-    @ViewBuilder
+//    @ViewBuilder
     var settingsForm: some View {
-        if let settingsProvider {
+//        if let settingsProvider {
             SettingsForm(settingsProvider, isPresented: $showingSettings)
-        }
+//        }
     }
     
-    @ViewBuilder
+//    @ViewBuilder
     func healthDetailsForm(for date: Date) -> some View {
-        if let settingsProvider {
+//        if let settingsProvider {
             MockHealthDetailsForm(
                 date: date,
                 settingsProvider: settingsProvider,
@@ -130,7 +132,7 @@ struct DemoView: View {
                     set: { if !$0 { pastDateBeingShown = nil } }
                 )
             )
-        }
+//        }
     }
     
     var healthDetailsSection: some View {
