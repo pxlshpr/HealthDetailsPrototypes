@@ -6,6 +6,7 @@ enum LeanBodyMassAndFatPercentageEquation: Int, Identifiable, Codable, CaseItera
     case hume
     
     case bmi
+    case cunBAE
     
     var id: Int {
         rawValue
@@ -18,7 +19,7 @@ extension LeanBodyMassAndFatPercentageEquation {
         switch self {
         case .boer, .james, .hume:
             [.height, .weight, .biologicalSex]
-        case .bmi:
+        case .bmi, .cunBAE:
             [.height, .weight, .biologicalSex, .age]
         }
     }
@@ -29,6 +30,7 @@ extension LeanBodyMassAndFatPercentageEquation {
         case .james:    "1976"
         case .hume:     "1966"
         case .bmi:      "1991"
+        case .cunBAE:   "2012"
         }
     }
     
@@ -38,6 +40,7 @@ extension LeanBodyMassAndFatPercentageEquation {
         case .james:    "James"
         case .hume:     "Hume"
         case .bmi:      "BMI"
+        case .cunBAE:   "CUN BAE"
         }
     }
 
@@ -70,20 +73,33 @@ extension LeanBodyMassAndFatPercentageEquation {
         
         let heightInMeters = heightInCm / 100.0
         let bmi = weightInKg / pow(heightInMeters, 2)
-
-        let percent: Double? = switch biologicalSex {
-        case .female:
-            switch self {
-            case .bmi:  (1.20 * bmi) + (0.23 * Double(ageInYears)) - 5.4
-            default:    nil
-            }
-        case .male:
-            switch self {
-            case .bmi:  (1.20 * bmi) + (0.23 * Double(ageInYears)) - 16.2
-            default:    nil
-            }
-        default:        nil
+        let bmiCoefficient = biologicalSex == .female ? 5.4 : 16.2
+        let bmiSquared = pow(bmi, 2)
+        let sexMultiplier: Double = biologicalSex == .male ? 0 : 1
+        let age = Double(ageInYears)
+        
+        let percent: Double? = switch self {
+        case .bmi:
+            (1.20 * bmi) + (0.23 * age) - bmiCoefficient
+        case .cunBAE:
+            -44.988 + (0.503 * age) + (10.689 * sexMultiplier) + (3.172 * bmi) - (0.026 * bmiSquared) + (0.181 * bmi * sexMultiplier) - (0.02 * bmi * age) - (0.005 * bmiSquared * sexMultiplier) + (0.00021 * bmiSquared * age)
+        default:
+            nil
         }
+        
+//        let percent: Double? = switch biologicalSex {
+//        case .female:
+//            switch self {
+//            case .bmi:  (1.20 * bmi) + (0.23 * Double(ageInYears)) - 5.4
+//            default:    nil
+//            }
+//        case .male:
+//            switch self {
+//            case .bmi:  (1.20 * bmi) + (0.23 * Double(ageInYears)) - 16.2
+//            default:    nil
+//            }
+//        default:        nil
+//        }
         
         guard let percent else { return nil }
         return max(percent, 0)
@@ -103,6 +119,8 @@ extension LeanBodyMassAndFatPercentageEquation {
     /**
      Equations taken from: https://www.calculator.net/lean-body-mass-calculator.html)
      BMI equation: https://www.tgfitness.com/body-fat-percentage-calculator/#:~:text=The%20formula%20uses%20a%20person%27s,their%20height%20in%20meters%20squared.
+        
+     CUN-BAE: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3263863/
      */
     func calculateLeanBodyMassInKg(
         biologicalSex: BiologicalSex,

@@ -38,6 +38,7 @@ struct HealthDetailsForm: View {
             }
             Section {
                 link(for: .leanBodyMass)
+                link(for: .fatPercentage)
             }
             Section {
                 link(for: .age)
@@ -116,11 +117,10 @@ struct HealthDetailsForm: View {
                 isPresented: $isPresented
             )
         case .fatPercentage:
-//            FatPercentageForm(
-//                healthProvider: healthProvider,
-//                isPresented: $isPresented
-//            )
-            EmptyView()
+            FatPercentageForm(
+                healthProvider: healthProvider,
+                isPresented: $isPresented
+            )
         case .weight:
             WeightForm(
                 healthProvider: healthProvider,
