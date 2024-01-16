@@ -71,36 +71,49 @@ extension HealthProvider {
         healthDetails.leanBodyMass = leanBodyMass
         save()
     }
-    
+
+    func saveFatPercentage(_ fatPercentage: HealthDetails.FatPercentage) {
+        healthDetails.fatPercentage = fatPercentage
+        save()
+    }
+
     //TODO: Persist changes
     /// [ ] Replace Mock coding with actual persistence
     func updateLatestWeight(_ weight: HealthDetails.Weight) {
-        guard let date = latest.datedWeight?.date else { return }
-        latest.weight = weight
+        guard let date = healthDetails.replacementsForMissing.datedWeight?.date else { return }
+        healthDetails.replacementsForMissing.datedWeight?.weight = weight
         Task {
             await saveWeight(weight, for: date)
         }
     }
     
     func updateLatestHeight(_ height: HealthDetails.Height) {
-        guard let date = latest.datedHeight?.date else { return }
-        latest.height = height
+        guard let date = healthDetails.replacementsForMissing.datedHeight?.date else { return }
+        healthDetails.replacementsForMissing.datedHeight?.height = height
         Task {
             await saveHeight(height, for: date)
         }
     }
     
     func updateLatestPregnancyStatus(_ pregnancyStatus: PregnancyStatus) {
-        guard let date = latest.datedPregnancyStatus?.date else { return }
-        latest.pregnancyStatus = pregnancyStatus
+        guard let date = healthDetails.replacementsForMissing.datedPregnancyStatus?.date else { return }
+        healthDetails.replacementsForMissing.datedPregnancyStatus?.pregnancyStatus = pregnancyStatus
         Task {
             await savePregnancyStatus(pregnancyStatus, for: date)
         }
     }
 
+    func updateLatestFatPercentage(_ fatPercentage: HealthDetails.FatPercentage) {
+        guard let date = healthDetails.replacementsForMissing.datedFatPercentage?.date else { return }
+        healthDetails.replacementsForMissing.datedFatPercentage?.fatPercentage = fatPercentage
+        Task {
+            await saveFatPercentage(fatPercentage, for: date)
+        }
+    }
+
     func updateLatestLeanBodyMass(_ leanBodyMass: HealthDetails.LeanBodyMass) {
-        guard let date = latest.datedLeanBodyMass?.date else { return }
-        latest.leanBodyMass = leanBodyMass
+        guard let date = healthDetails.replacementsForMissing.datedLeanBodyMass?.date else { return }
+        healthDetails.replacementsForMissing.datedLeanBodyMass?.leanBodyMass = leanBodyMass
         Task {
             await saveLeanBodyMass(leanBodyMass, for: date)
         }
@@ -131,7 +144,13 @@ extension HealthProvider {
         healthDetails.pregnancyStatus = pregnancyStatus
         saveHealthDetailsInDocuments(healthDetails)
     }
-    
+
+    func saveFatPercentage(_ fatPercentage: HealthDetails.FatPercentage, for date: Date) async {
+        var healthDetails = fetchOrCreateHealthDetailsFromDocuments(date)
+        healthDetails.fatPercentage = fatPercentage
+        saveHealthDetailsInDocuments(healthDetails)
+    }
+
     func saveLeanBodyMass(_ leanBodyMass: HealthDetails.LeanBodyMass, for date: Date) async {
         var healthDetails = fetchOrCreateHealthDetailsFromDocuments(date)
         healthDetails.leanBodyMass = leanBodyMass

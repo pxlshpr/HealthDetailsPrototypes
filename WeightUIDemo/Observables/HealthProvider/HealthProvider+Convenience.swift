@@ -1,17 +1,6 @@
 import Foundation
 
 extension HealthProvider {
-    var currentOrLatestWeightInKg: Double? {
-        healthDetails.weight.weightInKg ?? latest.datedWeight?.weight.weightInKg
-    }
-    
-    var currentOrLatestLeanBodyMassInKg: Double? {
-        healthDetails.leanBodyMass.leanBodyMassInKg ?? latest.datedLeanBodyMass?.leanBodyMass.leanBodyMassInKg
-    }
-    
-    var currentOrLatestHeightInCm: Double? {
-        healthDetails.height.heightInCm ?? latest.datedHeight?.height.heightInCm
-    }
     
     var biologicalSex: BiologicalSex {
         healthDetails.biologicalSex
@@ -21,4 +10,18 @@ extension HealthProvider {
         healthDetails.ageInYears
     }
     
+}
+
+extension HealthDetails {
+    var currentOrLatestWeightInKg: Double? {
+        weight.weightInKg ?? replacementsForMissing.datedWeight?.weight.weightInKg
+    }
+    
+    var currentOrLatestLeanBodyMassInKg: Double? {
+        leanBodyMass.leanBodyMassInKg ?? replacementsForMissing.datedLeanBodyMass?.leanBodyMass.leanBodyMassInKg
+    }
+    
+    var currentOrLatestHeightInCm: Double? {
+        height.heightInCm ?? replacementsForMissing.datedHeight?.height.heightInCm
+    }
 }

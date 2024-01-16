@@ -137,9 +137,9 @@ extension HealthProvider {
         await equation.calculate(
             ageInYears: ageInYears,
             biologicalSex: biologicalSex,
-            weightInKg: currentOrLatestWeightInKg,
-            leanBodyMassInKg: currentOrLatestLeanBodyMassInKg,
-            heightInCm: currentOrLatestHeightInCm,
+            weightInKg: healthDetails.currentOrLatestWeightInKg,
+            leanBodyMassInKg: healthDetails.currentOrLatestLeanBodyMassInKg,
+            heightInCm: healthDetails.currentOrLatestHeightInCm,
             energyUnit: energyUnit
         )
 

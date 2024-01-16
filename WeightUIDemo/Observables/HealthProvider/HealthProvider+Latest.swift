@@ -1,21 +1,19 @@
 import Foundation
 
-extension HealthProvider {
-    func setLatest(_ latest: [HealthDetail : DatedHealthData]) {
-        self.latest = latest
-        healthDetails.bringForwardNonTemporalHealthDetails(from: latest)
-    }
-}
+//extension HealthProvider {
+//    func setLatest(_ latest: [HealthDetail : DatedHealthData]) {
+//        self.latest = latest
+//        healthDetails.bringForwardNonTemporalHealthDetails(from: latest)
+//    }
+//}
 
 extension HealthDetails {
     mutating func setLatestHealthDetails(_ latest: [HealthDetail : DatedHealthData]) {
-//        let latest = Latest(
-//            weight: self.weight == nil ? latest.weight,
-//            height: <#T##Height?#>,
-//            leanBodyMass: <#T##LeanBodyMass?#>,
-//            fatPercentage: <#T##FatPercentage?#>,
-//            pregnancyStatus: <#T##PregnancyStatus?#>
-//        )
+
+        /// Get any missing (temporal) health details from the dict, so that we can use them in equations etc
+        self.replacementsForMissing = extractReplacementsForMissing(from: latest)
+
+        /// Bring forward any non-temporal health details form the dict, so that we explicitly fill in the gaps with the assumption that they had not changed
         bringForwardNonTemporalHealthDetails(from: latest)
     }
 }

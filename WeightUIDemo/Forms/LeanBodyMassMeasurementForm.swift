@@ -407,11 +407,11 @@ struct LeanBodyMassMeasurementForm: View {
 //    }
     
     var currentOrLatestWeightInKg: Double? {
-        healthProvider.currentOrLatestWeightInKg
+        healthProvider.healthDetails.currentOrLatestWeightInKg
     }
     
     func calculateEquation() {
-        let heightInCm = healthProvider.currentOrLatestHeightInCm
+        let heightInCm = healthProvider.healthDetails.currentOrLatestHeightInCm
         let biologicalSex = healthProvider.biologicalSex
         
         let leanBodyMassInKg: Double? = equation.calculateInKg(

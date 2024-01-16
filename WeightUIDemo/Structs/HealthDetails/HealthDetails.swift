@@ -16,51 +16,67 @@ struct HealthDetails: Hashable, Codable {
     var dateOfBirthComponents: DateComponents?
     var biologicalSex: BiologicalSex = .notSet
     var smokingStatus: SmokingStatus = .notSet
+    
+    var replacementsForMissing = ReplacementsForMissing()
 }
 
 extension HealthDetails {
-    struct Latest: Hashable, Codable {
-        var weight: DatedWeight?
-        var height: DatedHeight?
-        var leanBodyMass: DatedLeanBodyMass?
-        var fatPercentage: DatedFatPercentage?
-        var pregnancyStatus: DatedPregnancyStatus?
+    struct ReplacementsForMissing: Hashable, Codable {
+        var datedWeight: DatedWeight?
+        var datedHeight: DatedHeight?
+        var datedLeanBodyMass: DatedLeanBodyMass?
+        var datedFatPercentage: DatedFatPercentage?
+        var datedPregnancyStatus: DatedPregnancyStatus?
+    }
+}
+
+extension HealthDetails.ReplacementsForMissing {
+    func has(_ healthDetail: HealthDetail) -> Bool {
+        switch healthDetail {
+        case .weight:           datedWeight != nil
+        case .height:           datedHeight != nil
+        case .leanBodyMass:     datedLeanBodyMass != nil
+        case .preganancyStatus: datedPregnancyStatus != nil
+        case .fatPercentage:    datedFatPercentage != nil
+        default:                false
+        }
     }
 }
 
 extension HealthDetails {
-    func extractMissingLatestHealthDetails(from dict: [HealthDetail : DatedHealthData]) -> Latest {
-        Latest(
-            weight: !hasSet(.weight) ? dict.datedWeight : nil,
-            height: !hasSet(.height) ? dict.datedHeight : nil,
-            leanBodyMass: !hasSet(.leanBodyMass) ? dict.datedLeanBodyMass : nil,
-            fatPercentage: !hasSet(.fatPercentage) ? dict.datedFatPercentage : nil,
-            pregnancyStatus: !hasSet(.preganancyStatus) ? dict.datedPregnancyStatus : nil
+    
+    func extractReplacementsForMissing(from dict: [HealthDetail : DatedHealthData]) -> ReplacementsForMissing {
+        ReplacementsForMissing(
+            datedWeight: !hasSet(.weight) ? dict.datedWeight : nil,
+            datedHeight: !hasSet(.height) ? dict.datedHeight : nil,
+            datedLeanBodyMass: !hasSet(.leanBodyMass) ? dict.datedLeanBodyMass : nil,
+            datedFatPercentage: !hasSet(.fatPercentage) ? dict.datedFatPercentage : nil,
+            datedPregnancyStatus: !hasSet(.preganancyStatus) ? dict.datedPregnancyStatus : nil
         )
     }
 }
 
 struct DatedWeight: Hashable, Codable {
     let date: Date
-    let weight: HealthDetails.Weight
+    var weight: HealthDetails.Weight
 }
 
 struct DatedHeight: Hashable, Codable {
     let date: Date
-    let height: HealthDetails.Height
+    var height: HealthDetails.Height
 }
 
 struct DatedLeanBodyMass: Hashable, Codable {
     let date: Date
-    let leanBodyMass: HealthDetails.LeanBodyMass
+    var leanBodyMass: HealthDetails.LeanBodyMass
 }
 
 struct DatedFatPercentage: Hashable, Codable {
     let date: Date
-    let fatPercentage: HealthDetails.FatPercentage
+    var fatPercentage: HealthDetails.FatPercentage
 }
 
 struct DatedPregnancyStatus: Hashable, Codable {
     let date: Date
-    let pregnancyStatus: PregnancyStatus
+    var pregnancyStatus: PregnancyStatus
 }

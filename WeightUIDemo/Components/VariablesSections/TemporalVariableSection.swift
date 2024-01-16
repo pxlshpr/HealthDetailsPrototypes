@@ -79,7 +79,7 @@ struct TemporalVariableSection: View {
     
     @ViewBuilder
     var pastWeight: some View {
-        if let dated = healthProvider.latest.datedWeight {
+        if let dated = healthProvider.healthDetails.replacementsForMissing.datedWeight {
             NavigationLink {
                 WeightForm(
                     date: dated.date,
@@ -102,7 +102,7 @@ struct TemporalVariableSection: View {
     
     @ViewBuilder
     var pastLeanBodyMass: some View {
-        if let dated = healthProvider.latest.datedLeanBodyMass {
+        if let dated = healthProvider.healthDetails.replacementsForMissing.datedLeanBodyMass {
             NavigationLink {
                 LeanBodyMassForm(
                     date: dated.date,
@@ -148,7 +148,7 @@ struct TemporalVariableSection: View {
     
     @ViewBuilder
     var pastPregnancyStatus: some View {
-        if let dated = healthProvider.latest.datedPregnancyStatus {
+        if let dated = healthProvider.healthDetails.replacementsForMissing.datedPregnancyStatus {
             NavigationLink {
                 PregnancyStatusForm(
                     date: dated.date,
@@ -170,7 +170,7 @@ struct TemporalVariableSection: View {
     
     @ViewBuilder
     var pastHeight: some View {
-        if let dated = healthProvider.latest.datedHeight {
+        if let dated = healthProvider.healthDetails.replacementsForMissing.datedHeight {
             NavigationLink {
                 HeightForm(
                     date: dated.date,
@@ -245,20 +245,7 @@ struct TemporalVariableSection: View {
     //MARK: - Convenience
     
     var hasLatestDetail: Bool {
-        switch healthDetail {
-        case .weight:
-            healthProvider.latest.weight != nil
-        case .height:
-            healthProvider.latest.height != nil
-        case .leanBodyMass:
-            healthProvider.latest.leanBodyMass != nil
-        case .preganancyStatus:
-            healthProvider.latest.pregnancyStatus != nil
-        case .maintenance:
-            healthProvider.latest.maintenance != nil
-        default:
-            false
-        }
+        healthProvider.healthDetails.replacementsForMissing.has(healthDetail)
     }
 }
 

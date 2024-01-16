@@ -184,11 +184,10 @@ extension HealthProvider {
     
     static func recalculateAllDays(_ days: [Day], initialDays: [Day]? = nil, start: CFAbsoluteTime? = nil) async {
         
-        var days = days
         let start = start ?? CFAbsoluteTimeGetCurrent()
         let initialDays = initialDays ?? days
 
-        var latest: [HealthDetail: DatedHealthData] = [:]
+        var latestHealthDetails: [HealthDetail: DatedHealthData] = [:]
         for (index, day) in days.enumerated() {
             
             var day = day
@@ -202,11 +201,11 @@ extension HealthProvider {
             
             var start = CFAbsoluteTimeGetCurrent()
 //            day.healthDetails.populateLatestDict(&latest)
-            latest.setHealthDetails(from: day.healthDetails)
+            latestHealthDetails.setHealthDetails(from: day.healthDetails)
             print("  populateLatestDict took: \(CFAbsoluteTimeGetCurrent()-start)s")
 
             start = CFAbsoluteTimeGetCurrent()
-            healthProvider.setLatest(latest)
+            healthProvider.healthDetails.setLatestHealthDetails(latestHealthDetails)
             print("  setLatest took: \(CFAbsoluteTimeGetCurrent()-start)s")
 
             start = CFAbsoluteTimeGetCurrent()
