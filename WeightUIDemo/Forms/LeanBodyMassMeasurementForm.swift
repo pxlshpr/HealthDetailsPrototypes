@@ -62,11 +62,6 @@ struct LeanBodyMassMeasurementForm: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + (hasAppeared ? 0.3 : 0)) {
             handleChanges()
         }
-
-//        if source == .equation {
-//            calculateEquation()
-//            setIsDirty()
-//        }
     }
     
     func handleChanges() {
@@ -199,10 +194,6 @@ struct LeanBodyMassMeasurementForm: View {
 
     var customSection: some View {
         func handleCustomValue() {
-//            withAnimation {
-//                percent = customInput.double
-//                setIsDirty()
-//            }
             guard source == .userEntered else { return }
             let double: Double? = if unit.hasTwoComponents {
                 doubleInput.double ?? 0
@@ -220,10 +211,6 @@ struct LeanBodyMassMeasurementForm: View {
             } else {
                 nil
             }
-//            withAnimation {
-//                leanBodyMassInKg = kg
-//                setIsDirty()
-//            }
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
                 
                 withAnimation {
@@ -272,8 +259,6 @@ struct LeanBodyMassMeasurementForm: View {
             set: { newValue in
                 withAnimation {
                     equation = newValue
-//                    calculateEquation()
-//                    setIsDirty()
                 }
                 handleChanges()
             }
@@ -330,13 +315,8 @@ struct LeanBodyMassMeasurementForm: View {
         
         withAnimation {
             source = newValue
-//            setIsDirty()
         }
         handleChanges()
-        
-//        if source == .equation {
-//            calculateEquation()
-//        }
     }
     
     var sourceSection: some View {
@@ -374,44 +354,6 @@ struct LeanBodyMassMeasurementForm: View {
         dismissDisabled = isDirty
     }
     
-    func calculateEquation() {
-//        let heightInCm = healthProvider.healthDetails.currentOrLatestHeightInCm
-//        let weightInKg = healthProvider.healthDetails.currentOrLatestWeightInKg
-//        let biologicalSex = healthProvider.biologicalSex
-//        let ageInYears = healthProvider.ageInYears
-//        
-//        let leanBodyMassInKg: Double? = equation.calculateLeanBodyMassInKg(
-//            biologicalSex: biologicalSex,
-//            weightInKg: weightInKg,
-//            heightInCm: heightInCm,
-//            ageInYears: ageInYears
-//        )
-//        
-//        withAnimation {
-//            setLeanBodyMassInKg(leanBodyMassInKg)
-//        }
-    }
-    
-    func setLeanBodyMassInKg(_ leanBodyMassInKg: Double?) {
-        guard let leanBodyMassInKg else {
-            self.leanBodyMassInKg = nil
-            doubleInput = DoubleInput(automaticallySubmitsValues: true)
-            intInput = IntInput(automaticallySubmitsValues: true)
-            return
-        }
-        
-        self.leanBodyMassInKg = leanBodyMassInKg
-        let double = BodyMassUnit.kg.doubleComponent(leanBodyMassInKg, in: unit).rounded(toPlaces: 1)
-        doubleInput = DoubleInput(double: double, automaticallySubmitsValues: true)
-        
-        intInput = if let int = BodyMassUnit.kg.intComponent(leanBodyMassInKg, in: unit) {
-            IntInput(int: int, automaticallySubmitsValues: true)
-        } else {
-            IntInput(automaticallySubmitsValues: true)
-        }
-
-    }
-
     func setIsDirty() {
         isDirty = leanBodyMassInKg != nil
     }

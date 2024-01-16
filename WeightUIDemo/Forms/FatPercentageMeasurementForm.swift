@@ -61,10 +61,6 @@ struct FatPercentageMeasurementForm: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + (hasAppeared ? 0.3 : 0)) {
             handleChanges()
         }
-//        if source == .equation {
-//            calculateEquation()
-//            setIsDirty()
-//        }
     }
     
     func handleChanges() {
@@ -98,8 +94,6 @@ struct FatPercentageMeasurementForm: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             customInput.setDouble(
                 percent?.rounded(toPlaces: 1)
-//                    .convertEnergy(from: .kcal, to: energyUnit)
-//                    .rounded(.towardZero)
             )
         }
     }
@@ -166,10 +160,6 @@ struct FatPercentageMeasurementForm: View {
 
     var customSection: some View {
         func handleCustomValue() {
-//            withAnimation {
-//                percent = customInput.double
-//                setIsDirty()
-//            }
             guard source == .userEntered else { return }
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
                 withAnimation {
@@ -216,8 +206,6 @@ struct FatPercentageMeasurementForm: View {
             set: { newValue in
                 withAnimation {
                     equation = newValue
-//                    calculateEquation()
-//                    setIsDirty()
                 }
                 handleChanges()
             }
@@ -274,13 +262,8 @@ struct FatPercentageMeasurementForm: View {
         
         withAnimation {
             source = newValue
-//            setIsDirty()
         }
         handleChanges()
-        
-//        if source == .equation {
-//            calculateEquation()
-//        }
     }
     
     var sourceSection: some View {
@@ -318,35 +301,6 @@ struct FatPercentageMeasurementForm: View {
         dismissDisabled = isDirty
     }
     
-//    func calculateEquation() {
-//        let heightInCm = healthProvider.healthDetails.currentOrLatestHeightInCm
-//        let weightInKg = healthProvider.healthDetails.currentOrLatestWeightInKg
-//        let biologicalSex = healthProvider.biologicalSex
-//        let ageInYears = healthProvider.ageInYears
-//        
-//        let percent: Double? = equation.calculateFatPercentageInPercent(
-//            biologicalSex: biologicalSex,
-//            weightInKg: weightInKg,
-//            heightInCm: heightInCm,
-//            ageInYears: ageInYears
-//        )
-//        
-//        withAnimation {
-//            setPercent(percent)
-//        }
-//    }
-    
-//    func setPercent(_ percent: Double?) {
-//        guard let percent else {
-//            self.percent = nil
-//            customInput = DoubleInput(automaticallySubmitsValues: true)
-//            return
-//        }
-//        
-//        self.percent = percent
-//        customInput = DoubleInput(double: percent, automaticallySubmitsValues: true)
-//    }
-
     func setIsDirty() {
         isDirty = percent != nil
     }
