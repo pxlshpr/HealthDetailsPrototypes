@@ -6,6 +6,20 @@ extension HealthProvider {
         healthDetails.bringForwardNonTemporalHealthDetails(from: latest)
     }
 }
+
+extension HealthDetails {
+    mutating func setLatestHealthDetails(_ latest: [HealthDetail : DatedHealthData]) {
+//        let latest = Latest(
+//            weight: self.weight == nil ? latest.weight,
+//            height: <#T##Height?#>,
+//            leanBodyMass: <#T##LeanBodyMass?#>,
+//            fatPercentage: <#T##FatPercentage?#>,
+//            pregnancyStatus: <#T##PregnancyStatus?#>
+//        )
+        bringForwardNonTemporalHealthDetails(from: latest)
+    }
+}
+
 extension HealthDetails {
     
     mutating func bringForwardNonTemporalHealthDetails(from latest: [HealthDetail : DatedHealthData] ) {
@@ -34,7 +48,7 @@ extension HealthDetails {
 typealias DatedHealthData = (date: Date, data: Any)
 
 extension Dictionary where Key == HealthDetail, Value == DatedHealthData {
-    mutating func fillInHealthDetails(_ healthDetails: HealthDetails) {
+    mutating func setHealthDetails(from healthDetails: HealthDetails) {
         for healthDetail in HealthDetail.allCases {
             guard !keys.contains(healthDetail),
                   healthDetails.hasSet(healthDetail),
@@ -45,89 +59,92 @@ extension Dictionary where Key == HealthDetail, Value == DatedHealthData {
     }
 }
 extension Dictionary where Key == HealthDetail, Value == DatedHealthData {
-    var weightWithDate: (date: Date, weight: HealthDetails.Weight)? {
+    var datedWeight: DatedWeight? {
         guard let tuple = self[HealthDetail.weight],
               let weight = tuple.data as? HealthDetails.Weight
         else { return nil }
-        return (tuple.date, weight)
+        return .init(date: tuple.date, weight: weight)
     }
     var weight: HealthDetails.Weight? {
-        get { weightWithDate?.weight }
+        get { datedWeight?.weight }
         set {
-            guard let newValue, let weightWithDate else {
+            guard let newValue, let datedWeight else {
                 self[HealthDetail.weight] = nil
                 return
             }
-            self[HealthDetail.weight] = (weightWithDate.date, newValue)
+            self[HealthDetail.weight] = (datedWeight.date, newValue)
         }
     }
     
-    var leanBodyMassWithDate: (date: Date, leanBodyMass: HealthDetails.LeanBodyMass)? {
+    var datedLeanBodyMass: DatedLeanBodyMass? {
         guard let tuple = self[HealthDetail.leanBodyMass],
               let leanBodyMass = tuple.data as? HealthDetails.LeanBodyMass
         else { return nil }
-        return (tuple.date, leanBodyMass)
+        return .init(date: tuple.date, leanBodyMass: leanBodyMass)
     }
     var leanBodyMass: HealthDetails.LeanBodyMass? {
-        get { leanBodyMassWithDate?.leanBodyMass }
+        get { datedLeanBodyMass?.leanBodyMass }
         set {
-            guard let newValue, let leanBodyMassWithDate else {
+            guard let newValue, let datedLeanBodyMass else {
                 self[HealthDetail.leanBodyMass] = nil
                 return
             }
-            self[HealthDetail.leanBodyMass] = (leanBodyMassWithDate.date, newValue)
+            self[HealthDetail.leanBodyMass] = (datedLeanBodyMass.date, newValue)
         }
     }
     
-    var maintenanceWithDate: (date: Date, maintenance: HealthDetails.Maintenance)? {
-        guard let tuple = self[HealthDetail.maintenance],
-              let maintenance = tuple.data as? HealthDetails.Maintenance
-        else { return nil }
-        return (tuple.date, maintenance)
-    }
-    var maintenance: HealthDetails.Maintenance? {
-        get { maintenanceWithDate?.maintenance }
-        set {
-            guard let newValue, let maintenanceWithDate else {
-                self[HealthDetail.maintenance] = nil
-                return
-            }
-            self[HealthDetail.maintenance] = (maintenanceWithDate.date, newValue)
-        }
-    }
-    
-    var pregnancyStatusWithDate: (date: Date, pregnancyStatus: PregnancyStatus)? {
+    var datedPregnancyStatus: DatedPregnancyStatus? {
         guard let tuple = self[HealthDetail.preganancyStatus],
-              let status = tuple.data as? PregnancyStatus
+              let pregnancyStatus = tuple.data as? PregnancyStatus
         else { return nil }
-        return (tuple.date, status)
+        return .init(date: tuple.date, pregnancyStatus: pregnancyStatus)
     }
     var pregnancyStatus: PregnancyStatus? {
-        get { pregnancyStatusWithDate?.pregnancyStatus }
+        get { datedPregnancyStatus?.pregnancyStatus }
         set {
-            guard let newValue, let pregnancyStatusWithDate else {
+            guard let newValue, let datedPregnancyStatus else {
                 self[HealthDetail.preganancyStatus] = nil
                 return
             }
-            self[HealthDetail.preganancyStatus] = (pregnancyStatusWithDate.date, newValue)
+            self[HealthDetail.preganancyStatus] = (datedPregnancyStatus.date, newValue)
         }
     }
     
-    var heightWithDate: (date: Date, height: HealthDetails.Height)? {
+    var datedHeight: DatedHeight? {
         guard let tuple = self[HealthDetail.height],
               let height = tuple.data as? HealthDetails.Height
         else { return nil }
-        return (tuple.date, height)
+        return .init(date: tuple.date, height: height)
     }
     var height: HealthDetails.Height? {
-        get { heightWithDate?.height }
+        get { datedHeight?.height }
         set {
-            guard let newValue, let heightWithDate else {
+            guard let newValue, let datedHeight else {
                 self[HealthDetail.height] = nil
                 return
             }
-            self[HealthDetail.height] = (heightWithDate.date, newValue)
+            self[HealthDetail.height] = (datedHeight.date, newValue)
         }
+    }
+    
+    var datedFatPercentage: DatedFatPercentage? {
+        guard let tuple = self[HealthDetail.fatPercentage],
+              let fatPercentage = tuple.data as? HealthDetails.FatPercentage
+        else { return nil }
+        return .init(date: tuple.date, fatPercentage: fatPercentage)
+    }
+    var fatPercentage: HealthDetails.FatPercentage? {
+        get { datedFatPercentage?.fatPercentage }
+        set {
+            guard let newValue, let datedFatPercentage else {
+                self[HealthDetail.fatPercentage] = nil
+                return
+            }
+            self[HealthDetail.fatPercentage] = (datedFatPercentage.date, newValue)
+        }
+    }
+    var maintenance: HealthDetails.Maintenance? {
+        self[HealthDetail.maintenance]?.data as? HealthDetails.Maintenance
     }
     
     var dateOfBirthComponents: DateComponents? {

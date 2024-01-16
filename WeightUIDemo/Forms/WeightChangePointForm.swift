@@ -176,7 +176,7 @@ struct WeightChangePointForm: View {
                     if let weightInKg = point.weight.weightInKg {
                         valueText(weightInKg)
                     } else {
-                        Text("Not Set")
+                        Text(NotSetString)
                             .foregroundStyle(.secondary)
                     }
                 }

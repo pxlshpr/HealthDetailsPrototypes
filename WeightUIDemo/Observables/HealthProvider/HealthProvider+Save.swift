@@ -75,7 +75,7 @@ extension HealthProvider {
     //TODO: Persist changes
     /// [ ] Replace Mock coding with actual persistence
     func updateLatestWeight(_ weight: HealthDetails.Weight) {
-        guard let (date, _) = latest.weightWithDate else { return }
+        guard let date = latest.datedWeight?.date else { return }
         latest.weight = weight
         Task {
             await saveWeight(weight, for: date)
@@ -83,23 +83,15 @@ extension HealthProvider {
     }
     
     func updateLatestHeight(_ height: HealthDetails.Height) {
-        guard let (date, _) = latest.heightWithDate else { return }
+        guard let date = latest.datedHeight?.date else { return }
         latest.height = height
         Task {
             await saveHeight(height, for: date)
         }
     }
-
-    func updateLatestMaintenance(_ maintenance: HealthDetails.Maintenance) {
-        guard let (date, _) = latest.maintenanceWithDate else { return }
-        latest.maintenance = maintenance
-        Task {
-            await saveMaintenance(maintenance, for: date)
-        }
-    }
-
+    
     func updateLatestPregnancyStatus(_ pregnancyStatus: PregnancyStatus) {
-        guard let (date, _) = latest.pregnancyStatusWithDate else { return }
+        guard let date = latest.datedPregnancyStatus?.date else { return }
         latest.pregnancyStatus = pregnancyStatus
         Task {
             await savePregnancyStatus(pregnancyStatus, for: date)
@@ -107,7 +99,7 @@ extension HealthProvider {
     }
 
     func updateLatestLeanBodyMass(_ leanBodyMass: HealthDetails.LeanBodyMass) {
-        guard let (date, _) = latest.leanBodyMassWithDate else { return }
+        guard let date = latest.datedLeanBodyMass?.date else { return }
         latest.leanBodyMass = leanBodyMass
         Task {
             await saveLeanBodyMass(leanBodyMass, for: date)

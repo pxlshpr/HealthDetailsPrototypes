@@ -111,7 +111,7 @@ struct AdaptiveMaintenanceForm: View {
                     if let weightChangeValue {
                         Text("\(weightChangeValue.cleanHealth) \(bodyMassUnit.abbreviation)")
                     } else {
-                        Text("Not Set")
+                        Text(NotSetString)
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -145,7 +145,7 @@ struct AdaptiveMaintenanceForm: View {
                     if let dailyAverageValue {
                         Text("\(dailyAverageValue.formattedEnergy) \(energyUnitString) / day")
                     } else {
-                        Text("Not Set")
+                        Text(NotSetString)
                             .foregroundStyle(.secondary)
                     }
                 }

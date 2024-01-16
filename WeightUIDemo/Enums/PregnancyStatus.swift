@@ -13,7 +13,7 @@ public extension PregnancyStatus {
         case .notPregnantOrLactating:   "None"
         case .pregnant:                 "Pregnant"
         case .lactating:                "Breastfeeding"
-        case .notSet:                   "Not Set"
+        case .notSet:                   NotSetString
         }
     }
 }

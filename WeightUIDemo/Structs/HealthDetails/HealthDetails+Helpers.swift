@@ -16,6 +16,7 @@ extension HealthDetails {
         case .height:           height
         case .preganancyStatus: pregnancyStatus
         case .smokingStatus:    smokingStatus
+        case .fatPercentage:    fatPercentage
         }
     }
     
@@ -26,6 +27,7 @@ extension HealthDetails {
         case .sex:              biologicalSex != .notSet
         case .weight:           weight.weightInKg != nil
         case .leanBodyMass:     leanBodyMass.leanBodyMassInKg != nil
+        case .fatPercentage:    fatPercentage.fatPercentage != nil
         case .height:           height.heightInCm != nil
         case .preganancyStatus: pregnancyStatus != .notSet
         case .smokingStatus:    smokingStatus != .notSet
@@ -52,7 +54,7 @@ extension HealthDetails {
             if let ageInYears {
                 "\(ageInYears)"
             } else {
-                "Not Set"
+                NotSetString
             }
         case .sex:
             biologicalSex.name
@@ -60,6 +62,8 @@ extension HealthDetails {
             weight.valueString(in: settingsProvider.bodyMassUnit)
         case .leanBodyMass:
             leanBodyMass.valueString(in: settingsProvider.bodyMassUnit)
+        case .fatPercentage:
+            fatPercentage.valueString
         case .height:
             height.valueString(in: settingsProvider.heightUnit)
         case .preganancyStatus:

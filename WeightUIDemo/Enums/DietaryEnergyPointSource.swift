@@ -15,7 +15,7 @@ enum DietaryEnergyPointSource: Int, Codable, CaseIterable, Identifiable {
         switch self {
         case .notCounted:   "Excluded"
         case .healthKit:    "No Data"
-        default:            "Not Set"
+        default:            NotSetString
         }
     }
         

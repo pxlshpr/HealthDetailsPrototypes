@@ -21,7 +21,7 @@ struct DietaryEnergyCell: View {
                 return DietaryEnergyPointSource.notCounted.name
             }
             guard let kcal = point.kcal else {
-                return "Not Set"
+                return NotSetString
             }
             let value = EnergyUnit.kcal.convert(kcal, to: energyUnit)
             return "\(value.formattedEnergy) \(energyUnit.abbreviation)"

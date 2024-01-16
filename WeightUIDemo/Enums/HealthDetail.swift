@@ -7,6 +7,7 @@ enum HealthDetail: Int, Identifiable, CaseIterable, Codable {
     case sex
     case weight
     case leanBodyMass
+    case fatPercentage
     case height
     case preganancyStatus
     case smokingStatus
@@ -21,6 +22,7 @@ enum HealthDetail: Int, Identifiable, CaseIterable, Codable {
         case .height: "Height"
         case .weight: "Weight"
         case .leanBodyMass: "Lean Body Mass"
+        case .fatPercentage: "Fat Percentage"
         case .preganancyStatus: "Pregnancy Status"
         case .smokingStatus: "Smoking Status"
         }
@@ -36,7 +38,7 @@ enum HealthDetail: Int, Identifiable, CaseIterable, Codable {
     /// Not related to time—once set, the value is brought forward to every future HealthDetail until changed
     var isNonTemporal: Bool {
         switch self {
-        case .age, .sex, .smokingStatus:
+        case .age, .sex, .smokingStatus, .maintenance:
             true
         default: 
             false
@@ -46,7 +48,7 @@ enum HealthDetail: Int, Identifiable, CaseIterable, Codable {
     /// Directly related to the date it's set on. When referenced, the date is displayed for these as they can potentially change on any future date.
     var isTemporal: Bool {
         switch self {
-        case .height, .weight, .leanBodyMass, .preganancyStatus, .maintenance:
+        case .height, .weight, .leanBodyMass, .preganancyStatus:
             true
         default: 
             false

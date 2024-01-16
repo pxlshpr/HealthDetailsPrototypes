@@ -21,13 +21,13 @@ extension Optional where Wrapped == Double {
     }
 
     func valueString(convertedFrom fromUnit: EnergyUnit, to unit: EnergyUnit) -> String {
-        guard let self else { return "Not Set" }
+        guard let self else { return NotSetString }
         let converted = fromUnit.convert(self, to: unit)
         return "\(converted.formattedEnergy) \(unit.doubleUnitString)"
     }
     
     func valueString(convertedFrom fromUnit: BodyMassUnit, to unit: BodyMassUnit) -> String {
-        guard let self else { return "Not Set" }
+        guard let self else { return NotSetString }
         let converted = fromUnit.convert(self, to: unit)
         let double = unit.doubleComponent(of: converted)
         if let int = unit.intComponent(of: converted), let intUnit = unit.intUnitString {
@@ -38,7 +38,7 @@ extension Optional where Wrapped == Double {
     }
     
     func valueString(convertedFrom fromUnit: HeightUnit, to unit: HeightUnit) -> String {
-        guard let self else { return "Not Set" }
+        guard let self else { return NotSetString }
         let converted = fromUnit.convert(self, to: unit)
         let double = unit.doubleComponent(of: converted)
         if let int = unit.intComponent(of: converted), let intUnit = unit.intUnitString {

@@ -104,7 +104,7 @@ struct AgeForm: View {
                         .font(LargeNumberFont)
                         .opacity(0)
 
-                    Text("Not Set")
+                    Text(NotSetString)
                         .font(NotSetFont)
                         .foregroundStyle(.secondary)
                 }

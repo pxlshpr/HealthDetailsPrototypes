@@ -115,6 +115,12 @@ struct HealthDetailsForm: View {
                 healthProvider: healthProvider,
                 isPresented: $isPresented
             )
+        case .fatPercentage:
+//            FatPercentageForm(
+//                healthProvider: healthProvider,
+//                isPresented: $isPresented
+//            )
+            EmptyView()
         case .weight:
             WeightForm(
                 healthProvider: healthProvider,

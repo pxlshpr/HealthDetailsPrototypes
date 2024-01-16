@@ -25,6 +25,13 @@ extension HealthDetails.LeanBodyMass {
 
 extension HealthDetails {
     struct FatPercentage: Hashable, Codable {
-        
+        var fatPercentage: Double? = nil
+    }
+}
+
+extension HealthDetails.FatPercentage {
+    var valueString: String {
+        guard let fatPercentage else { return NotSetString }
+        return "\(fatPercentage.cleanHealth) %"
     }
 }

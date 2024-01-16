@@ -138,7 +138,7 @@ struct MeasurementBottomText: View {
                     .font(LargeNumberFont)
                     .opacity(0)
 
-                Text(emptyValueString?.wrappedValue ?? "Not Set")
+                Text(emptyValueString?.wrappedValue ?? NotSetString)
                     .font(LargeUnitFont)
                     .foregroundStyle(.secondary)
             }

@@ -165,7 +165,7 @@ struct MaintenanceForm: View {
                 if let kcal = adaptive.kcal {
                     Text(healthProvider.settingsProvider.energyString(kcal))
                 } else {
-                    Text("Not Set")
+                    Text(NotSetString)
                         .foregroundStyle(.secondary)
                 }
             }
@@ -205,7 +205,7 @@ struct MaintenanceForm: View {
                 if let kcal = estimate.kcal {
                     Text(healthProvider.settingsProvider.energyString(kcal))
                 } else {
-                    Text("Not Set")
+                    Text(NotSetString)
                         .foregroundStyle(.secondary)
                 }
             }

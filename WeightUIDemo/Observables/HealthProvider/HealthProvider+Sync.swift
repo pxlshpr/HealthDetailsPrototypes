@@ -202,7 +202,7 @@ extension HealthProvider {
             
             var start = CFAbsoluteTimeGetCurrent()
 //            day.healthDetails.populateLatestDict(&latest)
-            latest.fillInHealthDetails(day.healthDetails)
+            latest.setHealthDetails(from: day.healthDetails)
             print("  populateLatestDict took: \(CFAbsoluteTimeGetCurrent()-start)s")
 
             start = CFAbsoluteTimeGetCurrent()

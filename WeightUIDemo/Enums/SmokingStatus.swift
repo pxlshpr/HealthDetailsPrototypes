@@ -13,7 +13,7 @@ public extension SmokingStatus {
         switch self {
         case .smoker:       "Smoker"
         case .nonSmoker:    "Non-smoker"
-        case .notSet:       "Not Set"
+        case .notSet:       NotSetString
         }
     }
 }

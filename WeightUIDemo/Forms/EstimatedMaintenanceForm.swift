@@ -122,7 +122,7 @@ struct EstimatedMaintenanceForm: View {
                             Text(energyUnitString)
                         }
                     } else {
-                        Text("Not Set")
+                        Text(NotSetString)
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -159,7 +159,7 @@ struct EstimatedMaintenanceForm: View {
                             Text(energyUnitString)
                         }
                     } else {
-                        Text("Not Set")
+                        Text(NotSetString)
                             .foregroundStyle(.secondary)
                     }
                 }

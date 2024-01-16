@@ -9,3 +9,5 @@ let NotSetFont = LargeUnitFont
 
 let BottomValueHorizontalPadding: CGFloat = 20
 let BottomValueVerticalPadding: CGFloat = 8
+
+let NotSetString = "Not Set"

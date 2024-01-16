@@ -13,7 +13,7 @@ extension BiologicalSex {
         switch self {
         case .female:   "Female"
         case .male:     "Male"
-        case .notSet:   "Not Set"
+        case .notSet:   NotSetString
         }
     }
 }

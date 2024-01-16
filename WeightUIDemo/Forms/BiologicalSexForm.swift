@@ -65,7 +65,7 @@ struct BiologicalSexForm: View {
                     .font(LargeNumberFont)
                     .opacity(0)
 
-                Text(biologicalSex != .notSet ? biologicalSex.name : "Not Set")
+                Text(biologicalSex != .notSet ? biologicalSex.name : NotSetString)
                     .font(LargeUnitFont)
 //                    .font(sex == .other ? LargeUnitFont : LargeNumberFont)
                     .foregroundStyle(biologicalSex != .notSet ? .primary : .secondary)

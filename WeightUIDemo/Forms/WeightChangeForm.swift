@@ -131,7 +131,7 @@ struct WeightChangeForm: View {
                         if let kg = point.kg {
                             Text(healthProvider.settingsProvider.bodyMassString(kg))
                         } else {
-                            Text("Not Set")
+                            Text(NotSetString)
                                 .foregroundStyle(.secondary)
                         }
                     }
