@@ -32,9 +32,7 @@ struct DemoView: View {
     func appeared() {
         Task {
             let settings = await fetchSettingsFromDocuments()
-//            let settingsProvider = SettingsProvider(settings: settings)
             await MainActor.run {
-//                self.settingsProvider = settingsProvider
                 self.settingsProvider.settings = settings
             }
 
@@ -55,10 +53,8 @@ struct DemoView: View {
                         settings.setHealthKitSyncing(for: .height, to: true)
                         settings.setHealthKitSyncing(for: .leanBodyMass, to: true)
                         await saveSettingsInDocuments(settings)
-//                        let settingsProvider = SettingsProvider(settings: settings)
 
                         await MainActor.run { [settings] in
-//                            self.settingsProvider = settingsProvider
                             self.settingsProvider.settings = settings
                         }
 
