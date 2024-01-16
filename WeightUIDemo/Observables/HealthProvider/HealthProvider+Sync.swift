@@ -200,10 +200,11 @@ extension HealthDetails.LeanBodyMass {
     }
 }
 extension HealthProvider {
+    
     func recalculate() async {
         let settings = settingsProvider.settings
 
-        /// [ ] Recalculate LBM, fat percentage
+        /// [ ] Recalculate LBM, fat percentage based on equations and based on each other (simply recreate these if we have a weight for the day, otherwise removing them)
 
         healthDetails.recalculateDailyValues(using: settings)
 

@@ -25,7 +25,7 @@ struct NonTemporalVariableLink: View {
                 healthProvider: healthProvider,
                 isPresented: $isPresented
             )
-        case .sex:
+        case .biologicalSex:
             BiologicalSexForm(
                 healthProvider: healthProvider,
                 isPresented: $isPresented

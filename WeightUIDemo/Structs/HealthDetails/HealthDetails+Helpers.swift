@@ -10,7 +10,7 @@ extension HealthDetails {
         switch healthDetail {
         case .maintenance:      maintenance
         case .age:              dateOfBirthComponents
-        case .sex:              biologicalSex
+        case .biologicalSex:              biologicalSex
         case .weight:           weight
         case .leanBodyMass:     leanBodyMass
         case .height:           height
@@ -24,7 +24,7 @@ extension HealthDetails {
         switch healthDetail {
         case .maintenance:      maintenance.kcal != nil
         case .age:              ageInYears != nil
-        case .sex:              biologicalSex != .notSet
+        case .biologicalSex:              biologicalSex != .notSet
         case .weight:           weight.weightInKg != nil
         case .leanBodyMass:     leanBodyMass.leanBodyMassInKg != nil
         case .fatPercentage:    fatPercentage.fatPercentage != nil
@@ -57,7 +57,7 @@ extension HealthDetails {
             } else {
                 NotSetString
             }
-        case .sex:
+        case .biologicalSex:
             biologicalSex.name
         case .weight:
             weight.valueString(in: settingsProvider.bodyMassUnit)

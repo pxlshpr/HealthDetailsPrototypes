@@ -3,10 +3,9 @@ import HealthKit
 
 struct FatPercentageMeasurement: Hashable, Identifiable, Codable {
     let id: UUID
-    let source: LeanBodyMassSource
+    let source: LeanBodyMassAndFatPercentageSource
     let date: Date
-    let fatPercentage: Double
-    let leanBodyMassInKg: Double?
+    let percent: Double
 
     init(
         id: UUID,
@@ -21,29 +20,25 @@ struct FatPercentageMeasurement: Hashable, Identifiable, Codable {
             .userEntered
         }
         self.date = date
-        self.fatPercentage = value
-        self.leanBodyMassInKg = nil
+        self.percent = value
     }
     
     init(
         id: UUID = UUID(),
         date: Date,
-        fatPercentage: Double,
-        leanBodyMassInKg: Double? = nil,
-        source: LeanBodyMassSource
+        percent: Double,
+        source: LeanBodyMassAndFatPercentageSource
     ) {
         self.id = id
         self.source = source
         self.date = date
-        self.fatPercentage = fatPercentage
-        self.leanBodyMassInKg = leanBodyMassInKg
+        self.percent = percent
     }
     
     init(sample: HKQuantitySample) {
         self.id = UUID()
         self.source = .healthKit(sample.uuid)
         self.date = sample.date
-        self.fatPercentage = sample.quantity.doubleValue(for: .percent())
-        self.leanBodyMassInKg = nil
+        self.percent = sample.quantity.doubleValue(for: .percent())
     }
 }

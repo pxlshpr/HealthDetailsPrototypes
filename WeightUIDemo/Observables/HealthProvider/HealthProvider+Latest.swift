@@ -24,7 +24,7 @@ extension HealthDetails {
         if !hasSet(.age), let components = latest.dateOfBirthComponents {
             self.dateOfBirthComponents = components
         }
-        if !hasSet(.sex), let biologicalSex = latest.biologicalSex {
+        if !hasSet(.biologicalSex), let biologicalSex = latest.biologicalSex {
             self.biologicalSex = biologicalSex
         }
         if !hasSet(.smokingStatus), let smokingStatus = latest.smokingStatus {
@@ -149,7 +149,7 @@ extension Dictionary where Key == HealthDetail, Value == DatedHealthData {
     }
     
     var biologicalSex: BiologicalSex? {
-        self[HealthDetail.sex]?.data as? BiologicalSex
+        self[HealthDetail.biologicalSex]?.data as? BiologicalSex
     }
     
     var smokingStatus: SmokingStatus? {

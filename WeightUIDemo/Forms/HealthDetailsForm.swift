@@ -41,7 +41,7 @@ struct HealthDetailsForm: View {
             }
             Section {
                 link(for: .age)
-                link(for: .sex)
+                link(for: .biologicalSex)
                 link(for: .smokingStatus)
                 link(for: .preganancyStatus)
             }
@@ -136,7 +136,7 @@ struct HealthDetailsForm: View {
                 healthProvider: healthProvider,
                 isPresented: $isPresented
             )
-        case .sex:
+        case .biologicalSex:
             BiologicalSexForm(
                 healthProvider: healthProvider,
                 isPresented: $isPresented

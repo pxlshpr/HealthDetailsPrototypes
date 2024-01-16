@@ -56,15 +56,15 @@ extension RestingEnergyEquation {
         case .cunningham:
             [.leanBodyMass]
         case .rozaShizgal:
-            [.height, .weight, .age, .sex]
+            [.height, .weight, .age, .biologicalSex]
         case .schofield:
-            [.weight, .age, .sex]
+            [.weight, .age, .biologicalSex]
         case .mifflinStJeor:
-            [.height, .weight, .age, .sex]
+            [.height, .weight, .age, .biologicalSex]
         case .harrisBenedict:
-            [.height, .weight, .age, .sex]
+            [.height, .weight, .age, .biologicalSex]
         case .henryOxford:
-            [.weight, .age, .sex]
+            [.weight, .age, .biologicalSex]
         }
     }
 }
@@ -130,7 +130,7 @@ extension RestingEnergyEquation {
 
 
 extension HealthProvider {
-    func calculateRestingEnergy(
+    func calculateRestingEnergyInKcal(
         using equation: RestingEnergyEquation,
         energyUnit: EnergyUnit
     ) async -> Double? {
@@ -142,8 +142,30 @@ extension HealthProvider {
             heightInCm: healthDetails.currentOrLatestHeightInCm,
             energyUnit: energyUnit
         )
-
     }
+    
+    func calculateFatPercentageInPercent(
+        using equation: LeanBodyMassAndFatPercentageEquation
+    ) async -> Double? {
+        await equation.calculateFatPercentageInPercent(
+            biologicalSex: biologicalSex,
+            weightInKg: healthDetails.currentOrLatestWeightInKg,
+            heightInCm: healthDetails.currentOrLatestHeightInCm,
+            ageInYears: ageInYears
+        )
+    }
+    
+    func calculateLeanBodyMassInKg(
+        using equation: LeanBodyMassAndFatPercentageEquation
+    ) async -> Double? {
+        await equation.calculateLeanBodyMassInKg(
+            biologicalSex: biologicalSex,
+            weightInKg: healthDetails.currentOrLatestWeightInKg,
+            heightInCm: healthDetails.currentOrLatestHeightInCm,
+            ageInYears: ageInYears
+        )
+    }
+
 }
 extension RestingEnergyEquation {
     

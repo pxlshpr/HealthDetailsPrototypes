@@ -57,10 +57,10 @@ extension SettingsProvider {
         set { setHealthKitSyncing(for: .leanBodyMass, to: newValue) }
     }
 
-//    var fatPercentageIsHealthKitSynced: Bool {
-//        get { settings.isHealthKitSyncing(.fatPercentage) }
-//        set { settings.setHealthKitSyncing(for: .fatPercentage, to: newValue) }
-//    }
+    var fatPercentageIsHealthKitSynced: Bool {
+        get { settings.isHealthKitSyncing(.fatPercentage) }
+        set { settings.setHealthKitSyncing(for: .fatPercentage, to: newValue) }
+    }
 
     var energyUnit: EnergyUnit {
         settings.energyUnit

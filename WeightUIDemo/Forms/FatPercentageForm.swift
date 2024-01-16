@@ -2,40 +2,40 @@ import SwiftUI
 import SwiftSugar
 import PrepShared
 
-struct LeanBodyMassForm: View {
+struct FatPercentageForm: View {
     
     @Bindable var healthProvider: HealthProvider
     @Binding var isPresented: Bool
     
     let date: Date
 
-    @State var leanBodyMassInKg: Double?
+    @State var percent: Double?
     @State var dailyValueType: DailyValueType
-    @State var measurements: [LeanBodyMassMeasurement]
-    @State var deletedHealthKitMeasurements: [LeanBodyMassMeasurement]
+    @State var measurements: [FatPercentageMeasurement]
+    @State var deletedHealthKitMeasurements: [FatPercentageMeasurement]
     @State var isSynced: Bool = true
     
     @State var showingForm = false
     
-    let saveHandler: (HealthDetails.LeanBodyMass) -> ()
+    let saveHandler: (HealthDetails.FatPercentage) -> ()
 
     init(
         date: Date,
-        leanBodyMass: HealthDetails.LeanBodyMass,
+        fatPercentage: HealthDetails.FatPercentage,
         healthProvider: HealthProvider,
         isPresented: Binding<Bool> = .constant(true),
-        save: @escaping (HealthDetails.LeanBodyMass) -> ()
+        save: @escaping (HealthDetails.FatPercentage) -> ()
     ) {
         self.date = date
         self.saveHandler = save
         self.healthProvider = healthProvider
         _isPresented = isPresented
         
-        _leanBodyMassInKg = State(initialValue: leanBodyMass.leanBodyMassInKg)
-        _measurements = State(initialValue: leanBodyMass.measurements)
-        _dailyValueType = State(initialValue: healthProvider.settingsProvider.settings.dailyValueType(for: .leanBodyMass))
-        _deletedHealthKitMeasurements = State(initialValue: leanBodyMass.deletedHealthKitMeasurements)
-        _isSynced = State(initialValue: healthProvider.settingsProvider.leanBodyMassIsHealthKitSynced)
+        _percent = State(initialValue: fatPercentage.fatPercentage)
+        _measurements = State(initialValue: fatPercentage.measurements)
+        _dailyValueType = State(initialValue: healthProvider.settingsProvider.settings.dailyValueType(for: .fatPercentage))
+        _deletedHealthKitMeasurements = State(initialValue: fatPercentage.deletedHealthKitMeasurements)
+        _isSynced = State(initialValue: healthProvider.settingsProvider.fatPercentageIsHealthKitSynced)
     }
     
     init(
@@ -44,10 +44,10 @@ struct LeanBodyMassForm: View {
     ) {
         self.init(
             date: healthProvider.healthDetails.date,
-            leanBodyMass: healthProvider.healthDetails.leanBodyMass,
+            fatPercentage: healthProvider.healthDetails.fatPercentage,
             healthProvider: healthProvider,
             isPresented: isPresented,
-            save: healthProvider.saveLeanBodyMass
+            save: healthProvider.saveFatPercentage
         )
     }
 
@@ -60,7 +60,7 @@ struct LeanBodyMassForm: View {
             syncSection
             explanation
         }
-        .navigationTitle("Lean Body Mass")
+        .navigationTitle("Body Fat Percentage")
         .navigationBarTitleDisplayMode(.large)
         .toolbar { toolbarContent }
         .sheet(isPresented: $showingForm) { measurementForm }
@@ -70,24 +70,24 @@ struct LeanBodyMassForm: View {
     
     var convertedMeasurementsSections: some View {
         var header: some View {
-            Text("Converted Fat Percentages")
+            Text("Converted Lean Body Masses")
         }
         var footer: some View {
-            Text("These measurements have been converted from your fat percentage measurements using your weight for the day.")
+            Text("These measurements have been converted from your lean body mass measurements using your weight for the day.")
         }
         
         return Section(header: header, footer: footer) {
             HStack {
                 Text("11:20 pm")
                 Spacer()
-                Text("71.5 kg")
+                Text("22.5 %")
             }
             .foregroundStyle(.secondary)
         }
     }
     
     func isSyncedChanged(old: Bool, new: Bool) {
-        healthProvider.setHealthKitSyncing(for: .leanBodyMass, to: new)
+        healthProvider.setHealthKitSyncing(for: .fatPercentage, to: new)
     }
 
     var explanation: some View {
@@ -98,9 +98,7 @@ struct LeanBodyMassForm: View {
         
         return Section(header: header) {
             VStack(alignment: .leading) {
-                Text("Your lean body mass is the weight of your body minus your body fat (adipose tissue). It is used when:")
-                dotPoint("Creating goals. For example, you could create a protein goal relative to your lean body mass instead of your weight.")
-                dotPoint("Calculating your Resting Energy using certain equations.")
+                Text("Your body fat percentage is the weight of fat in your body, compared to your total body weight, which includes muscles, bones, water and so on. It is used when calculating your Resting Energy using certain equations.")
             }
         }
     }
@@ -115,38 +113,15 @@ struct LeanBodyMassForm: View {
         }
     }
     
-    var bodyMassUnit: BodyMassUnit {
-        healthProvider.settingsProvider.bodyMassUnit
-    }
-    
     var bottomValue: some View {
-        var intUnitString: String? { bodyMassUnit.intUnitString }
-        var doubleUnitString: String { bodyMassUnit.doubleUnitString }
-        
-        var double: Double? {
-            guard let leanBodyMassInKg else { return nil }
-            return BodyMassUnit.kg
-                .doubleComponent(leanBodyMassInKg, in: bodyMassUnit)
-        }
-        
-        var int: Int? {
-            guard let leanBodyMassInKg else { return nil }
-            return BodyMassUnit.kg
-                .intComponent(leanBodyMassInKg, in: bodyMassUnit)
-        }
-        
         return MeasurementBottomBar(
-            int: Binding<Int?>(
-                get: { int }, set: { _ in }
-            ),
-            intUnitString: intUnitString,
             double: Binding<Double?>(
-                get: { double }, set: { _ in }
+                get: { percent }, set: { _ in }
             ),
             doubleString: Binding<String?>(
-                get: { double?.cleanHealth }, set: { _ in }
+                get: { percent?.cleanHealth }, set: { _ in }
             ),
-            doubleUnitString: doubleUnitString
+            doubleUnitString: "%"
         )
     }
     
@@ -161,12 +136,13 @@ struct LeanBodyMassForm: View {
     }
     
     var measurementForm: some View {
-        LeanBodyMassMeasurementForm(healthProvider: healthProvider) { measurement in
-            measurements.append(measurement)
-            //TODO: Add a fat percentage measurement based on the latest weight – with a source of .leanBodyMass
-            measurements.sort()
-            handleChanges()
-        }
+        EmptyView()
+//        LeanBodyMassMeasurementForm(healthProvider: healthProvider) { measurement in
+//            measurements.append(measurement)
+//            //TODO: Add a fat percentage measurement based on the latest weight – with a source of .leanBodyMass
+//            measurements.sort()
+//            handleChanges()
+//        }
     }
     
     var dailyValuePicker: some View {
@@ -175,7 +151,10 @@ struct LeanBodyMassForm: View {
             set: { newValue in
                 withAnimation {
                     dailyValueType = newValue
-                    healthProvider.setDailyValueType(for: .leanBodyMass, to: newValue)
+                    healthProvider.setDailyValueType(
+                        for: .fatPercentage,
+                        to: newValue
+                    )
                     handleChanges()
                 }
             }
@@ -192,7 +171,7 @@ struct LeanBodyMassForm: View {
         }
 
         var description: String {
-            dailyValueType.description(for: .leanBodyMass)
+            dailyValueType.description(for: .fatPercentage)
         }
 
         var header: some View {
@@ -207,7 +186,7 @@ struct LeanBodyMassForm: View {
     
     var syncSection: some View {
         SyncSection(
-            healthDetail: .leanBodyMass,
+            healthDetail: .fatPercentage,
             isSynced: $isSynced,
             handleChanges: handleChanges
         )
@@ -219,14 +198,14 @@ struct LeanBodyMassForm: View {
             measurements: Binding<[any Measurable]>(
                 get: { measurements },
                 set: { newValue in
-                    guard let measurements = newValue as? [LeanBodyMassMeasurement] else { return }
+                    guard let measurements = newValue as? [FatPercentageMeasurement] else { return }
                     self.measurements = measurements
                 }
             ),
             deletedHealthKitMeasurements: Binding<[any Measurable]>(
                 get: { deletedHealthKitMeasurements },
                 set: { newValue in
-                    guard let measurements = newValue as? [LeanBodyMassMeasurement] else { return }
+                    guard let measurements = newValue as? [FatPercentageMeasurement] else { return }
                     self.deletedHealthKitMeasurements = measurements
                 }
             ),
@@ -236,35 +215,35 @@ struct LeanBodyMassForm: View {
     }
     
     func save() {
-        saveHandler(leanBodyMass)
+        saveHandler(fatPercentage)
     }
     
     func handleChanges() {
-        leanBodyMassInKg = calculatedLeanBodyMassInKg
+        percent = calculatedFatPercentage
         save()
     }
     
-    var calculatedLeanBodyMassInKg: Double? {
+    var calculatedFatPercentage: Double? {
         measurements.dailyValue(for: dailyValueType)
     }
-    
-    var leanBodyMass: HealthDetails.LeanBodyMass {
-        HealthDetails.LeanBodyMass(
-            leanBodyMassInKg: calculatedLeanBodyMassInKg,
+
+    var fatPercentage: HealthDetails.FatPercentage {
+        HealthDetails.FatPercentage(
+            fatPercentage: calculatedFatPercentage,
             measurements: measurements,
             deletedHealthKitMeasurements: deletedHealthKitMeasurements
         )
     }
 }
 
-struct LeanBodyMassFormPreview: View {
+struct FatPercentageFormPreview: View {
     @State var healthProvider: HealthProvider? = nil
     
     @ViewBuilder
     var body: some View {
         if let healthProvider {
             NavigationView {
-                LeanBodyMassForm(healthProvider: healthProvider)
+                FatPercentageForm(healthProvider: healthProvider)
             }
         } else {
             Color.clear
@@ -288,7 +267,7 @@ struct LeanBodyMassFormPreview: View {
 }
 
 #Preview("Form") {
-    LeanBodyMassFormPreview()
+    FatPercentageFormPreview()
 }
 
 #Preview("Demo") {

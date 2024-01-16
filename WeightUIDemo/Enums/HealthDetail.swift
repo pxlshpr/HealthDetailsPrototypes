@@ -4,7 +4,7 @@ enum HealthDetail: Int, Identifiable, CaseIterable, Codable {
     case maintenance = 1
     
     case age
-    case sex
+    case biologicalSex
     case weight
     case leanBodyMass
     case fatPercentage
@@ -18,7 +18,7 @@ enum HealthDetail: Int, Identifiable, CaseIterable, Codable {
         switch self {
         case .maintenance:  "Maintenance Energy"
         case .age: "Age"
-        case .sex: "Biological Sex"
+        case .biologicalSex: "Biological Sex"
         case .height: "Height"
         case .weight: "Weight"
         case .leanBodyMass: "Lean Body Mass"
@@ -28,17 +28,10 @@ enum HealthDetail: Int, Identifiable, CaseIterable, Codable {
         }
     }
     
-    var syncName: String {
-        switch self {
-        case .leanBodyMass: "Lean Body Mass and Fat Percentage"
-        default: name
-        }
-    }
-    
     /// Not related to time—once set, the value is brought forward to every future HealthDetail until changed
     var isNonTemporal: Bool {
         switch self {
-        case .age, .sex, .smokingStatus, .maintenance:
+        case .age, .biologicalSex, .smokingStatus, .maintenance:
             true
         default: 
             false

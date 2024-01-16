@@ -221,7 +221,7 @@ extension HealthProvider {
                 healthDetails.dateOfBirthComponents = dateOfBirthComponents
             }
             
-            if !healthDetails.hasSet(.sex), pastHealthDetails.hasSet(.sex) {
+            if !healthDetails.hasSet(.biologicalSex), pastHealthDetails.hasSet(.biologicalSex) {
                 healthDetails.biologicalSex = pastHealthDetails.biologicalSex
             }
             

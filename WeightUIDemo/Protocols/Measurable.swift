@@ -98,7 +98,7 @@ extension LeanBodyMassMeasurement: Measurable {
 }
 
 extension FatPercentageMeasurement: Measurable {
-    var value: Double { fatPercentage }
+    var value: Double { percent }
     static var healthKitUnit: HKUnit { .percent() }
     var unit: HKUnit { .percent() }
 

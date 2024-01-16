@@ -254,7 +254,7 @@ struct RestingEnergyForm: View {
     func calculateEquationValues() async {
         var dict: [RestingEnergyEquation: Double] = [:]
         for equation in RestingEnergyEquation.allCases {
-            let kcal = await healthProvider.calculateRestingEnergy(
+            let kcal = await healthProvider.calculateRestingEnergyInKcal(
                 using: equation,
                 energyUnit: .kcal
             )

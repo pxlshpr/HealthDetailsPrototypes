@@ -2,7 +2,7 @@ import SwiftUI
 import PrepShared
 import SwiftUIIntrospect
 
-struct LeanBodyMassMeasurementForm: View {
+struct FatPercentageMeasurementForm: View {
 
     @Environment(\.dismiss) var dismiss
 
@@ -12,9 +12,8 @@ struct LeanBodyMassMeasurementForm: View {
     @State var source: LeanBodyMassAndFatPercentageSource = .equation
     @State var equation: LeanBodyMassAndFatPercentageEquation = .boer
     
-    @State var leanBodyMassInKg: Double?
-    @State var doubleInput = DoubleInput(automaticallySubmitsValues: true)
-    @State var intInput = IntInput(automaticallySubmitsValues: true)
+    @State var percent: Double?
+    @State var customInput = DoubleInput(automaticallySubmitsValues: true)
     
     @State var isDirty: Bool = false
     @State var dismissDisabled: Bool = false
@@ -23,14 +22,14 @@ struct LeanBodyMassMeasurementForm: View {
     @State var hasFocusedCustom: Bool = false
 
     @State var handleChangesTask: Task<Void, Error>? = nil
-    @State var equationValuesInKg: [LeanBodyMassAndFatPercentageEquation: Double] = [:]
+    @State var equationValuesInPercent: [LeanBodyMassAndFatPercentageEquation: Double] = [:]
     @State var hasAppeared = false
 
-    let add: (LeanBodyMassMeasurement) -> ()
+    let add: (FatPercentageMeasurement) -> ()
 
     init(
         healthProvider: HealthProvider,
-        add: @escaping (LeanBodyMassMeasurement) -> ()
+        add: @escaping (FatPercentageMeasurement) -> ()
     ) {
         self.healthProvider = healthProvider
         self.add = add
@@ -39,7 +38,7 @@ struct LeanBodyMassMeasurementForm: View {
     var body: some View {
         NavigationView {
             form
-                .navigationTitle("Lean Body Mass")
+                .navigationTitle("Body Fat Percentage")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar { toolbarContent }
                 .safeAreaInset(edge: .bottom) { bottomValue }
@@ -62,7 +61,6 @@ struct LeanBodyMassMeasurementForm: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + (hasAppeared ? 0.3 : 0)) {
             handleChanges()
         }
-
 //        if source == .equation {
 //            calculateEquation()
 //            setIsDirty()
@@ -91,41 +89,34 @@ struct LeanBodyMassMeasurementForm: View {
     
     func setEquationValue() {
         withAnimation {
-            leanBodyMassInKg = equationValuesInKg[equation]
+            percent = equationValuesInPercent[equation]
         }
         setCustomInput()
     }
     
-    var bodyMassUnit: BodyMassUnit {
-        healthProvider.settingsProvider.bodyMassUnit
-    }
-    
     func setCustomInput() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            let leanBodyMassInKg = leanBodyMassInKg?.rounded(toPlaces: 1)
-            let double: Double? = if let leanBodyMassInKg {
-                BodyMassUnit.kg.doubleComponent(leanBodyMassInKg, in: bodyMassUnit)
-            } else { nil }
-            let int: Int? = if let leanBodyMassInKg {
-                BodyMassUnit.kg.intComponent(leanBodyMassInKg, in: bodyMassUnit)
-            } else { nil }
-            doubleInput.setDouble(double)
-            intInput.setNewValue(int)
+            customInput.setDouble(
+                percent?.rounded(toPlaces: 1)
+//                    .convertEnergy(from: .kcal, to: energyUnit)
+//                    .rounded(.towardZero)
+            )
         }
     }
 
     func calculateEquationValues() async {
         var dict: [LeanBodyMassAndFatPercentageEquation: Double] = [:]
         for equation in LeanBodyMassAndFatPercentageEquation.allCases {
-            let percent = await healthProvider.calculateLeanBodyMassInKg(using: equation)
+            let percent = await healthProvider.calculateFatPercentageInPercent(using: equation)
             dict[equation] = percent
         }
         await MainActor.run { [dict] in
             withAnimation {
-                equationValuesInKg = dict
+                equationValuesInPercent = dict
             }
         }
     }
+    
     var form: some View {
         Form {
             dateTimeSection
@@ -143,38 +134,14 @@ struct LeanBodyMassMeasurementForm: View {
     }
     
     var bottomValue: some View {
-        var intUnitString: String? {
-            unit.intUnitString
-        }
-        
-        var doubleUnitString: String {
-            unit.doubleUnitString
-        }
-        
-        var double: Double? {
-            guard let leanBodyMassInKg else { return nil }
-            return BodyMassUnit.kg
-                .doubleComponent(leanBodyMassInKg, in: unit)
-        }
-        
-        var int: Int? {
-            guard let leanBodyMassInKg else { return nil }
-            return BodyMassUnit.kg
-                .intComponent(leanBodyMassInKg, in: unit)
-        }
-
-        return MeasurementBottomBar(
-            int: Binding<Int?>(
-                get: { int }, set: { _ in }
-            ),
-            intUnitString: intUnitString,
+        MeasurementBottomBar(
             double: Binding<Double?>(
-                get: { double }, set: { _ in }
+                get: { percent }, set: { _ in }
             ),
             doubleString: Binding<String?>(
-                get: { double?.cleanHealth }, set: { _ in }
+                get: { percent?.cleanHealth }, set: { _ in }
             ),
-            doubleUnitString: doubleUnitString
+            doubleUnitString: "%"
         )
     }
     
@@ -204,42 +171,19 @@ struct LeanBodyMassMeasurementForm: View {
 //                setIsDirty()
 //            }
             guard source == .userEntered else { return }
-            let double: Double? = if unit.hasTwoComponents {
-                doubleInput.double ?? 0
-            } else {
-                doubleInput.double
-            }
-            let int: Int? = if unit.hasTwoComponents {
-                intInput.int
-            } else {
-                0
-            }
-            
-            let kg: Double? = if let int, let double {
-                unit.convert(int, double, to: .kg)
-            } else {
-                nil
-            }
-//            withAnimation {
-//                leanBodyMassInKg = kg
-//                setIsDirty()
-//            }
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                
                 withAnimation {
-                    leanBodyMassInKg = kg
+                    self.percent = customInput.double
                 }
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                     handleChanges()
                 }
             }
         }
-        
-        return MeasurementInputSection(
-            type: .leanBodyMass,
-            settingsProvider: healthProvider.settingsProvider,
-            doubleInput: $doubleInput,
-            intInput: $intInput,
+
+        return SingleUnitMeasurementTextField(
+            title: "%",
+            doubleInput: $customInput,
             hasFocused: $hasFocusedCustom,
             delayFocus: true,
             handleChanges: handleCustomValue
@@ -290,8 +234,8 @@ struct LeanBodyMassMeasurementForm: View {
         
         func string(for equation: LeanBodyMassAndFatPercentageEquation) -> String {
             var string = equation.name
-            if let kg = equationValuesInKg[equation] {
-                string += " • \(kg.valueString(convertedFrom: .kg, to: bodyMassUnit))"
+            if let percent = equationValuesInPercent[equation] {
+                string += " • \(percent.cleanHealth) %"
             }
             return string
         }
@@ -356,8 +300,8 @@ struct LeanBodyMassMeasurementForm: View {
         
         var description: String {
             switch source {
-            case .equation:     "Use an equation to calculate your Lean Body Mass."
-            case .userEntered:  "Enter your Lean Body Mass manually."
+            case .equation:     "Use an equation to calculate your Fat Percentage."
+            case .userEntered:  "Enter your Fat Percentage manually."
             default:            ""
             }
         }
@@ -374,13 +318,13 @@ struct LeanBodyMassMeasurementForm: View {
         dismissDisabled = isDirty
     }
     
-    func calculateEquation() {
+//    func calculateEquation() {
 //        let heightInCm = healthProvider.healthDetails.currentOrLatestHeightInCm
 //        let weightInKg = healthProvider.healthDetails.currentOrLatestWeightInKg
 //        let biologicalSex = healthProvider.biologicalSex
 //        let ageInYears = healthProvider.ageInYears
 //        
-//        let leanBodyMassInKg: Double? = equation.calculateLeanBodyMassInKg(
+//        let percent: Double? = equation.calculateFatPercentageInPercent(
 //            biologicalSex: biologicalSex,
 //            weightInKg: weightInKg,
 //            heightInCm: heightInCm,
@@ -388,32 +332,23 @@ struct LeanBodyMassMeasurementForm: View {
 //        )
 //        
 //        withAnimation {
-//            setLeanBodyMassInKg(leanBodyMassInKg)
+//            setPercent(percent)
 //        }
-    }
+//    }
     
-    func setLeanBodyMassInKg(_ leanBodyMassInKg: Double?) {
-        guard let leanBodyMassInKg else {
-            self.leanBodyMassInKg = nil
-            doubleInput = DoubleInput(automaticallySubmitsValues: true)
-            intInput = IntInput(automaticallySubmitsValues: true)
-            return
-        }
-        
-        self.leanBodyMassInKg = leanBodyMassInKg
-        let double = BodyMassUnit.kg.doubleComponent(leanBodyMassInKg, in: unit).rounded(toPlaces: 1)
-        doubleInput = DoubleInput(double: double, automaticallySubmitsValues: true)
-        
-        intInput = if let int = BodyMassUnit.kg.intComponent(leanBodyMassInKg, in: unit) {
-            IntInput(int: int, automaticallySubmitsValues: true)
-        } else {
-            IntInput(automaticallySubmitsValues: true)
-        }
-
-    }
+//    func setPercent(_ percent: Double?) {
+//        guard let percent else {
+//            self.percent = nil
+//            customInput = DoubleInput(automaticallySubmitsValues: true)
+//            return
+//        }
+//        
+//        self.percent = percent
+//        customInput = DoubleInput(double: percent, automaticallySubmitsValues: true)
+//    }
 
     func setIsDirty() {
-        isDirty = leanBodyMassInKg != nil
+        isDirty = percent != nil
     }
     
     var date: Date {
@@ -425,11 +360,11 @@ struct LeanBodyMassMeasurementForm: View {
     }
     
     
-    var measurement: LeanBodyMassMeasurement? {
-        guard let leanBodyMassInKg else { return nil }
-        return LeanBodyMassMeasurement(
+    var measurement: FatPercentageMeasurement? {
+        guard let percent else { return nil }
+        return FatPercentageMeasurement(
             date: time,
-            leanBodyMassInKg: leanBodyMassInKg,
+            percent: percent,
             source: source
         )
     }
@@ -439,13 +374,13 @@ struct LeanBodyMassMeasurementForm: View {
     }
 }
 
-struct LeanBodyMassMeasurementFormPreview: View {
+struct FatPercentageMeasurementFormPreview: View {
     @State var healthProvider: HealthProvider? = nil
     
     @ViewBuilder
     var body: some View {
         if let healthProvider {
-            LeanBodyMassMeasurementForm(healthProvider: healthProvider) { measurement in
+            FatPercentageMeasurementForm(healthProvider: healthProvider) { measurement in
                 
             }
         } else {
@@ -462,7 +397,6 @@ struct LeanBodyMassMeasurementFormPreview: View {
                     )
                     healthDetails.biologicalSex = .male
                     healthDetails.ageInYears = 36
-
                     let settings = await fetchSettingsFromDocuments()
                     let healthProvider = HealthProvider(
                         healthDetails: healthDetails,
@@ -477,7 +411,7 @@ struct LeanBodyMassMeasurementFormPreview: View {
 }
 
 #Preview("Form") {
-    LeanBodyMassMeasurementFormPreview()
+    FatPercentageMeasurementFormPreview()
 }
 
 #Preview("DemoView") {
