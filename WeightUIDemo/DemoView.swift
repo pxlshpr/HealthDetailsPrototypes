@@ -37,7 +37,7 @@ struct DemoView: View {
             }
 
             try await HealthStore.requestPermissions()
-            await HealthProvider.syncWithHealthKitAndRecalculateAllDays()
+            try await HealthProvider.syncWithHealthKitAndRecalculateAllDays()
         }
     }
     
@@ -64,7 +64,7 @@ struct DemoView: View {
                             createIfNotExisting: true
                         )
                         print("Created all days in: \(CFAbsoluteTimeGetCurrent()-start)s")
-                        await HealthProvider.syncWithHealthKitAndRecalculateAllDays()
+                        try await HealthProvider.syncWithHealthKitAndRecalculateAllDays()
                     }
                 }
                 Button("Reset Current") {
@@ -106,7 +106,7 @@ struct DemoView: View {
                 ],
                 deletedHealthKitMeasurements: []
             )
-            await saveHealthDetailsInDocuments(healthDetails)
+            try await saveHealthDetailsInDocuments(healthDetails)
         }
     }
     

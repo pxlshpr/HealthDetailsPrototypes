@@ -153,8 +153,9 @@ func fetchHealthDetailsFromDocuments(_ date: Date) async -> HealthDetails? {
     await fetchDayFromDocuments(date)?.healthDetails
 }
 
-func saveHealthDetailsInDocuments(_ healthDetails: HealthDetails) async {
+func saveHealthDetailsInDocuments(_ healthDetails: HealthDetails) async throws {
     var day = await fetchOrCreateDayFromDocuments(healthDetails.date)
+    try Task.checkCancellation()
     day.healthDetails = healthDetails
     await saveDayInDocuments(day)
 }

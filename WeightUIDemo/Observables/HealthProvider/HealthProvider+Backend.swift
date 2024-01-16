@@ -29,14 +29,7 @@ extension HealthProvider {
     func fetchBackendEnergyInKcal(for date: Date) async -> Double? {
         let day = await fetchOrCreateDayFromDocuments(date)
         return day.energyInKcal
-    }
-    
-    func save() {
-        saveTask?.cancel()
-        saveTask = Task {
-            await saveHealthDetailsInDocuments(healthDetails)
-        }
-    }
+    }    
 }
 
 extension HealthProvider {

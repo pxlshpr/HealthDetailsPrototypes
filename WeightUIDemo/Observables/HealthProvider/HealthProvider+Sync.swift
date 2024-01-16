@@ -5,7 +5,7 @@ extension HealthProvider {
     //TODO: Consider a rewrite
     /// [x] First add the source data into HealthKitMeasurement so that we can filter out what's form Apple or us
     /// [x] Rename to Sync with everything or something
-    static func syncWithHealthKitAndRecalculateAllDays() async {
+    static func syncWithHealthKitAndRecalculateAllDays() async throws {
 
         let start = CFAbsoluteTimeGetCurrent()
         
@@ -34,7 +34,7 @@ extension HealthProvider {
         /// Special case with height – if we have do not have any data within our app's timeframe—grab the latest height available and save it
         if (heightSamples == nil || heightSamples?.isEmpty == true), let latestHeight = await HealthStore.heightMeasurements().suffix(1).first
         {
-            await saveHealthKitHeightMeasurement(latestHeight)
+            try await saveHealthKitHeightMeasurement(latestHeight)
         }
         
         var days = await fetchAllDaysFromDocuments(
@@ -141,7 +141,7 @@ extension HealthProvider {
             await HealthStore.saveMeasurements(toExport)
         }
 
-        await recalculateAllDays(days, initialDays: initialDays, start: start)
+        try await recalculateAllDays(days, initialDays: initialDays, start: start)
     }
 }
 
@@ -186,48 +186,53 @@ extension HealthProvider {
         _ days: [Day],
         initialDays: [Day]? = nil,
         start: CFAbsoluteTime? = nil
-    ) async {
+    ) async throws {
         
         let start = start ?? CFAbsoluteTimeGetCurrent()
         let initialDays = initialDays ?? days
 
         var latestHealthDetails: [HealthDetail: DatedHealthData] = [:]
+        
+        let settings = await fetchSettingsFromDocuments()
+        let settingsProvider = SettingsProvider(settings: settings)
+
+        try Task.checkCancellation()
+
         for (index, day) in days.enumerated() {
             
             var day = day
             
             /// [ ] Create a HealthProvider for it (which in turn fetches the latest health details)
-            let settings = await fetchSettingsFromDocuments()
-            let settingsProvider = SettingsProvider(settings: settings)
             let healthProvider = HealthProvider(
                 healthDetails: day.healthDetails,
                 settingsProvider: settingsProvider
             )
             
-            var start = CFAbsoluteTimeGetCurrent()
-//            day.healthDetails.populateLatestDict(&latest)
+//            var start = CFAbsoluteTimeGetCurrent()
             latestHealthDetails.setHealthDetails(from: day.healthDetails)
-            print("  populateLatestDict took: \(CFAbsoluteTimeGetCurrent()-start)s")
+//            print("  populateLatestDict took: \(CFAbsoluteTimeGetCurrent()-start)s")
 
-            start = CFAbsoluteTimeGetCurrent()
+//            start = CFAbsoluteTimeGetCurrent()
             healthProvider.healthDetails.setLatestHealthDetails(latestHealthDetails)
-            print("  setLatest took: \(CFAbsoluteTimeGetCurrent()-start)s")
+//            print("  setLatest took: \(CFAbsoluteTimeGetCurrent()-start)s")
 
-            start = CFAbsoluteTimeGetCurrent()
+//            start = CFAbsoluteTimeGetCurrent()
             await healthProvider.recalculate()
-            print("  recalculate took: \(CFAbsoluteTimeGetCurrent()-start)s")
+//            print("  recalculate took: \(CFAbsoluteTimeGetCurrent()-start)s")
 
             day.healthDetails = healthProvider.healthDetails
-            
+
+            try Task.checkCancellation()
+
             if day != initialDays[index] {
-                print("Saving \(day.date.shortDateString)")
+//                print("Saving \(day.date.shortDateString)")
                 await saveDayInDocuments(day)
             } else {
-                print("Not Saving \(day.date.shortDateString)")
+//                print("Not Saving \(day.date.shortDateString)")
             }
         }
         
-        print("recalculateAllDays ended after: \(CFAbsoluteTimeGetCurrent()-start)s")
+//        print("recalculateAllDays ended after: \(CFAbsoluteTimeGetCurrent()-start)s")
     }
 }
 
@@ -235,7 +240,8 @@ extension HealthProvider {
     func setDailyValueType(for healthDetail: HealthDetail, to type: DailyValueType) {
         settingsProvider.settings.setDailyValueType(type, for: healthDetail)
         settingsProvider.save()
-        Self.recalculateAllDays()
+        /// Calling this to only recalculate as no changes were made to save. But we want to make sure there is only one of this occurring at any given time.
+        save()
     }
     
     func setHealthKitSyncing(for healthDetail: HealthDetail, to isOn: Bool) {
@@ -246,14 +252,17 @@ extension HealthProvider {
         }
     }
     
-    static func recalculateAllDays() {
-        Task {
-            let days = await fetchAllDaysFromDocuments(
-                from: LogStartDate,
-                createIfNotExisting: false
-            )
-            await recalculateAllDays(days)
-        }
+    static func recalculateAllDays() async throws {
+        var start = CFAbsoluteTimeGetCurrent()
+        print("recalculateAllDays() started")
+        let days = await fetchAllDaysFromDocuments(
+            from: LogStartDate,
+            createIfNotExisting: false
+        )
+        print("     fetchAllDaysFromDocuments took: \(CFAbsoluteTimeGetCurrent()-start)s")
+        start = CFAbsoluteTimeGetCurrent()
+        try await recalculateAllDays(days)
+        print("     recalculateAllDays took: \(CFAbsoluteTimeGetCurrent()-start)s")
     }
 }
 

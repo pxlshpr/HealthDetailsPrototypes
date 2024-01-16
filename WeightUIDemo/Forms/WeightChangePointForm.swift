@@ -127,7 +127,7 @@ struct WeightChangePointForm: View {
             await MainActor.run {
                 points[index].weight = weight
             }
-            await healthProvider.saveWeight(weight, for: point.date)
+            try await healthProvider.saveWeight(weight, for: point.date)
             handleChanges()
         }
     }

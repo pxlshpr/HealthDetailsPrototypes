@@ -8,7 +8,7 @@ import HealthKit
     let isCurrent: Bool
     var healthDetails: HealthDetails
     
-    var saveTask: Task<Void, Never>? = nil
+    var saveTask: Task<Void, Error>? = nil
     
     init(
         healthDetails: HealthDetails,
