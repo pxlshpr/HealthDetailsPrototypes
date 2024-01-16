@@ -6,8 +6,10 @@ protocol Measurable: Identifiable {
     var healthKitUUID: UUID? { get }
     var date: Date { get }
     var value: Double { get }
+    var valueToExport: Double { get }
     static var healthKitUnit: HKUnit { get }
     var unit: HKUnit { get }
+    var quantityType: HKQuantityType { get }
 
     /// Optionals
 //    var secondaryValue: Double? { get }
@@ -20,6 +22,10 @@ protocol Measurable: Identifiable {
 
 extension Measurable {
     
+    var valueToExport: Double {
+        value
+    }
+
     init(healthKitQuantitySample sample: HKQuantitySample) {
         self.init(
             id: UUID(),
@@ -71,6 +77,7 @@ extension HeightMeasurement: Measurable {
     var value: Double { heightInCm }
     static var healthKitUnit: HKUnit { .meterUnit(with: .centi) }
     var unit: HKUnit { .meterUnit(with: .centi) }
+    var quantityType: HKQuantityType { .init(.height) }
 }
 
 
@@ -78,12 +85,14 @@ extension WeightMeasurement: Measurable {
     var value: Double { weightInKg }
     static var healthKitUnit: HKUnit { .gramUnit(with: .kilo) }
     var unit: HKUnit { .gramUnit(with: .kilo) }
+    var quantityType: HKQuantityType { .init(.bodyMass) }
 }
 
 extension LeanBodyMassMeasurement: Measurable {
     var value: Double { leanBodyMassInKg }
     static var healthKitUnit: HKUnit { .gramUnit(with: .kilo) }
     var unit: HKUnit { .gramUnit(with: .kilo) }
+    var quantityType: HKQuantityType { .init(.leanBodyMass) }
 
     var healthKitUUID: UUID? { source.healthKitUUID }
 //    var secondaryValue: Double? { fatPercentage?.rounded(toPlaces: 1) }
@@ -101,6 +110,7 @@ extension FatPercentageMeasurement: Measurable {
     var value: Double { percent }
     static var healthKitUnit: HKUnit { .percent() }
     var unit: HKUnit { .percent() }
+    var quantityType: HKQuantityType { .init(.bodyFatPercentage) }
 
     var healthKitUUID: UUID? { source.healthKitUUID }
     
@@ -109,6 +119,10 @@ extension FatPercentageMeasurement: Measurable {
         case .healthKit:    .healthKit
         default:            .systemImage(source.image, source.imageScale)
         }
+    }
+    
+    var valueToExport: Double {
+        value / 100.0
     }
 }
 

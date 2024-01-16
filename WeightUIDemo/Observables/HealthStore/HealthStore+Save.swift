@@ -14,10 +14,10 @@ extension HealthStore {
         do {
             let objects = measurements.map { measurement in
                 HKQuantitySample(
-                    type: HKQuantityType(.bodyMass),
+                    type: measurement.quantityType,
                     quantity: HKQuantity(
                         unit: measurement.unit,
-                        doubleValue: measurement.value
+                        doubleValue: measurement.valueToExport
                     ),
                     start: measurement.date,
                     end: measurement.date,

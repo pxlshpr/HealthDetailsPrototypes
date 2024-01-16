@@ -107,6 +107,8 @@ extension SettingsProvider {
             bodyMassUnit
         } else if healthUnit is HeightUnit.Type {
             heightUnit
+        } else if healthUnit is PercentUnit.Type {
+            PercentUnit.percent
         } else {
             nil
         }

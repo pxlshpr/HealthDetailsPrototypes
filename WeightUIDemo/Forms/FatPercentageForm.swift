@@ -136,13 +136,11 @@ struct FatPercentageForm: View {
     }
     
     var measurementForm: some View {
-        EmptyView()
-//        LeanBodyMassMeasurementForm(healthProvider: healthProvider) { measurement in
-//            measurements.append(measurement)
-//            //TODO: Add a fat percentage measurement based on the latest weight – with a source of .leanBodyMass
-//            measurements.sort()
-//            handleChanges()
-//        }
+        FatPercentageMeasurementForm(healthProvider: healthProvider) { measurement in
+            measurements.append(measurement)
+            measurements.sort()
+            handleChanges()
+        }
     }
     
     var dailyValuePicker: some View {
@@ -193,7 +191,7 @@ struct FatPercentageForm: View {
     }
     
     var measurementsSections: some View {
-        MeasurementsSections<BodyMassUnit>(
+        MeasurementsSections<PercentUnit>(
             settingsProvider: healthProvider.settingsProvider,
             measurements: Binding<[any Measurable]>(
                 get: { measurements },
