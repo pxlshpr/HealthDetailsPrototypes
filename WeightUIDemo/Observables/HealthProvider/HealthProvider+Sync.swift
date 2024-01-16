@@ -16,50 +16,56 @@ extension HealthProvider {
         let settings = await fetchSettingsFromDocuments()
         
         /// First, fetch whatever isSynced is turned on for (weight, height, LBM)—fetch everything from the first Day's date onwards
-        let weightSamples: [HKQuantitySample]? = if settings.isHealthKitSyncing(.weight) {
+        var weightSamples: [HKQuantitySample]? = if settings.isHealthKitSyncing(.weight) {
             await HealthStore.weightSamples(from: logStartDate)
         } else {
             nil
         }
-        let leanBodyMassSamples: [HKQuantitySample]? = if settings.isHealthKitSyncing(.leanBodyMass) {
+        var leanBodyMassSamples: [HKQuantitySample]? = if settings.isHealthKitSyncing(.leanBodyMass) {
             await HealthStore.leanBodyMassSamples(from: logStartDate)
         } else {
             nil
         }
-        let fatPercentageSamples: [HKQuantitySample]? = if settings.isHealthKitSyncing(.fatPercentage) {
+        var fatPercentageSamples: [HKQuantitySample]? = if settings.isHealthKitSyncing(.fatPercentage) {
             await HealthStore.fatPercentageSamples(from: logStartDate)
         } else {
             nil
         }
-        let heightSamples: [HKQuantitySample]? = if settings.isHealthKitSyncing(.height) {
+        var heightSamples: [HKQuantitySample]? = if settings.isHealthKitSyncing(.height) {
             await HealthStore.heightSamples(from: logStartDate)
         } else {
             nil
         }
         
         /// If we have do not have any data within our app's timeframe—grab the latest available and create a Day and save it
-        if heightSamples.isEmptyOrNil, 
+
+        if heightSamples.isEmptyOrNil,
             let sample = await HealthStore.mostRecentSample(for: .height)
         {
             if sample.startDate < daysStartDate { daysStartDate = sample.startDate }
+            /// This is crucial, otherwise it not being included in the array has the value
+            heightSamples = [sample]
             try await saveHealthKitSample(sample, for: .height)
         }
         if weightSamples.isEmptyOrNil, 
             let sample = await HealthStore.mostRecentSample(for: .weight)
         {
             if sample.startDate < daysStartDate { daysStartDate = sample.startDate }
+            weightSamples = [sample]
             try await saveHealthKitSample(sample, for: .weight)
         }
         if leanBodyMassSamples.isEmptyOrNil, 
             let sample = await HealthStore.mostRecentSample(for: .leanBodyMass)
         {
             if sample.startDate < daysStartDate { daysStartDate = sample.startDate }
+            leanBodyMassSamples = [sample]
             try await saveHealthKitSample(sample, for: .leanBodyMass)
         }
         if fatPercentageSamples.isEmptyOrNil,
            let sample = await HealthStore.mostRecentSample(for: .fatPercentage)
         {
             if sample.startDate < daysStartDate { daysStartDate = sample.startDate }
+            fatPercentageSamples = [sample]
             try await saveHealthKitSample(sample, for: .fatPercentage)
         }
 
@@ -109,7 +115,8 @@ extension HealthProvider {
                     weightSamples, 
                     for: date,
                     toDelete: &toDelete,
-                    toExport: &toExport
+                    toExport: &toExport,
+                    settings: settings
                 )
             }
 
@@ -118,7 +125,8 @@ extension HealthProvider {
                     heightSamples,
                     for: date,
                     toDelete: &toDelete,
-                    toExport: &toExport
+                    toExport: &toExport,
+                    settings: settings
                 )
             }
 
@@ -127,18 +135,20 @@ extension HealthProvider {
                     leanBodyMassSamples,
                     for: date,
                     toDelete: &toDelete, 
-                    toExport: &toExport
+                    toExport: &toExport,
+                    settings: settings
                 )
             }
 
-//            if let fatPercentageSamples {
-//                days[i].healthDetails.fatPercentage.processHealthKitSamples(
-//                    fatPercentageSamples,
-//                    for: day.date,
-//                    toDelete: &toDelete,
-//                    toExport: &toExport
-//                )
-//            }
+            if let fatPercentageSamples {
+                days[i].healthDetails.fatPercentage.processHealthKitSamples(
+                    fatPercentageSamples,
+                    for: day.date,
+                    toDelete: &toDelete,
+                    toExport: &toExport,
+                    settings: settings
+                )
+            }
 
             /// If the day has DietaryEnergyPointSource, RestingEnergySource or ActivieEnergySource as .healthKit, fetch them and set them
             let start = CFAbsoluteTimeGetCurrent()
@@ -176,7 +186,7 @@ extension HealthDetails {
         height.setDailyValue(for: settings.dailyValueType(for: .height))
         weight.setDailyValue(for: settings.dailyValueType(for: .weight))
         leanBodyMass.setDailyValue(for: settings.dailyValueType(for: .leanBodyMass))
-//        healthDetails.fatPercentage.setDailyValue(for: settings.dailyValueType(for: .fatPercentage))
+        fatPercentage.setDailyValue(for: settings.dailyValueType(for: .fatPercentage))
     }
     
     mutating func recalculateLeanBodyMass() {
@@ -237,31 +247,19 @@ extension HealthProvider {
             if day.date.shortDateString == "16 Jan" {
                 print("We here")
             }
-//            var start = CFAbsoluteTimeGetCurrent()
+
             latestHealthDetails.setHealthDetails(from: day.healthDetails)
-//            print("  populateLatestDict took: \(CFAbsoluteTimeGetCurrent()-start)s")
-
-//            start = CFAbsoluteTimeGetCurrent()
             healthProvider.healthDetails.setLatestHealthDetails(latestHealthDetails)
-//            print("  setLatest took: \(CFAbsoluteTimeGetCurrent()-start)s")
-
-//            start = CFAbsoluteTimeGetCurrent()
             await healthProvider.recalculate()
-//            print("  recalculate took: \(CFAbsoluteTimeGetCurrent()-start)s")
 
             day.healthDetails = healthProvider.healthDetails
 
             try Task.checkCancellation()
 
             if day != initialDays[index] {
-//                print("Saving \(day.date.shortDateString)")
                 await saveDayInDocuments(day)
-            } else {
-//                print("Not Saving \(day.date.shortDateString)")
             }
         }
-        
-//        print("recalculateAllDays ended after: \(CFAbsoluteTimeGetCurrent()-start)s")
     }
 }
 
@@ -302,12 +300,14 @@ extension HealthKitSyncable {
         _ samples: [HKQuantitySample],
         for date: Date,
         toDelete: inout [HKQuantitySample],
-        toExport: inout [any Measurable]
+        toExport: inout [any Measurable],
+        settings: Settings
     ) {
         let samples = samples.filter { $0.date.startOfDay == date.startOfDay }
         removeHealthKitQuantitySamples(notPresentIn: samples.notOurs)
         addNewHealthKitQuantitySamples(from: samples.notOurs)
         toDelete.append(contentsOf: samples.ours.notPresent(in: measurements))
         toExport.append(contentsOf: measurements.nonHealthKitMeasurements.notPresent(in: samples.ours))
+        setDailyValue(for: settings.dailyValueType(for: self.healthDetail))
     }
 }

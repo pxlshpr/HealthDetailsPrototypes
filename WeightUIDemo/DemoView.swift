@@ -97,14 +97,14 @@ struct DemoView: View {
     //        )
             healthDetails.leanBodyMass = .init(
                 leanBodyMassInKg: 75.2,
-                fatPercentage: 21.8,
+//                fatPercentage: 21.8,
     //            dailyValueType: .average,
                 measurements: [.init(
                     date: Date.now,
                     leanBodyMassInKg: 75.2,
-                    fatPercentage: 21.8,
-                    source: .fatPercentage)
-                ],
+//                    fatPercentage: 21.8,
+                    source: .userEntered
+                )],
                 deletedHealthKitMeasurements: []
             )
             try await saveHealthDetailsInDocuments(healthDetails)

@@ -64,12 +64,12 @@ struct LeanBodyMassMeasurementForm: View {
             case .equation:
                 equationSection
                 equationVariablesSections
-            case .fatPercentage:
-                fatPercentageEnterSection
-                weightSection
+//            case .fatPercentage:
+//                fatPercentageEnterSection
+//                weightSection
             case .userEntered:
                 customSection
-                weightSection
+//                weightSection
             default:
                 EmptyView()
             }
@@ -136,7 +136,7 @@ struct LeanBodyMassMeasurementForm: View {
         return LeanBodyMassMeasurement(
             date: time,
             leanBodyMassInKg: leanBodyMassInKg,
-            fatPercentage: fatPercentageInput.double,
+//            fatPercentage: fatPercentageInput.double,
             source: source
         )
     }
@@ -172,7 +172,7 @@ struct LeanBodyMassMeasurementForm: View {
             intInput: $intInput,
             hasFocused: $hasFocusedCustom,
             delayFocus: true,
-            footer: "The weight below will be used to calculate your Fat Percentage.",
+//            footer: "The weight below will be used to calculate your Fat Percentage.",
             handleChanges: handleCustomValue
         )
     }
@@ -204,7 +204,8 @@ struct LeanBodyMassMeasurementForm: View {
                 set: { _ in }
             ),
             isRequired: Binding<Bool>(
-                get: { self.source == .fatPercentage },
+//                get: { self.source == .fatPercentage },
+                get: { true },
                 set: { _ in }
             ),
             healthProvider: healthProvider,
@@ -293,14 +294,14 @@ struct LeanBodyMassMeasurementForm: View {
         if newValue == .userEntered {
             hasFocusedCustom = false
         }
-        if newValue == .fatPercentage {
-            hasFocusedFatPercentage = false
-        }
+//        if newValue == .fatPercentage {
+//            hasFocusedFatPercentage = false
+//        }
         
         /// If we're moving away from fat percentage, round it off to 1 decimal place
-        if source == .fatPercentage, newValue != .fatPercentage {
-            setFatPercentage(fatPercentageInput.double?.rounded(toPlaces: 1))
-        }
+//        if source == .fatPercentage, newValue != .fatPercentage {
+//            setFatPercentage(fatPercentageInput.double?.rounded(toPlaces: 1))
+//        }
         
         withAnimation {
             source = newValue
@@ -310,8 +311,8 @@ struct LeanBodyMassMeasurementForm: View {
         switch source {
         case .userEntered:
             break
-        case .fatPercentage:
-            break
+//        case .fatPercentage:
+//            break
         case .equation:
             calculateEquation()
         default:
@@ -336,12 +337,10 @@ struct LeanBodyMassMeasurementForm: View {
         
         var description: String {
             switch source {
-            case .healthKit:
+            case .healthKit, .fatPercentage:
                 ""
             case .equation:
                 "Use an equation to calculate your Lean Body Mass."
-            case .fatPercentage:
-                "Use your fat percentage to calculate your Lean Body Mass."
             case .userEntered:
                 "Enter your Lean Body Mass manually."
             }

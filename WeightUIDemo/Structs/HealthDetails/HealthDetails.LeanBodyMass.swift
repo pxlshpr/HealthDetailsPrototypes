@@ -5,7 +5,7 @@ import HealthKit
 extension HealthDetails {
     struct LeanBodyMass: Hashable, Codable {
         var leanBodyMassInKg: Double? = nil
-        var fatPercentage: Double? = nil
+//        var fatPercentage: Double? = nil
         var measurements: [LeanBodyMassMeasurement] = []
         var deletedHealthKitMeasurements: [LeanBodyMassMeasurement] = []
     }
@@ -23,13 +23,13 @@ extension HealthDetails.LeanBodyMass {
         leanBodyMassInKg = measurements.dailyValue(for: dailyValueType)
     }
     
-    func secondaryValueString() -> String? {
-        if let fatPercentage {
-            "\(fatPercentage.cleanHealth)%"
-        } else {
-            nil
-        }
-    }
+//    func secondaryValueString() -> String? {
+//        if let fatPercentage {
+//            "\(fatPercentage.cleanHealth)%"
+//        } else {
+//            nil
+//        }
+//    }
     func valueString(in unit: BodyMassUnit) -> String {
         leanBodyMassInKg.valueString(convertedFrom: .kg, to: unit)
     }

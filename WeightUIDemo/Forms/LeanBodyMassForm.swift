@@ -56,6 +56,7 @@ struct LeanBodyMassForm: View {
         Form {
             dateSection
             measurementsSections
+            convertedMeasurementsSections
             dailyValuePicker
             syncSection
             explanation
@@ -66,6 +67,24 @@ struct LeanBodyMassForm: View {
         .sheet(isPresented: $showingForm) { measurementForm }
         .safeAreaInset(edge: .bottom) { bottomValue }
         .onChange(of: isSynced, isSyncedChanged)
+    }
+    
+    var convertedMeasurementsSections: some View {
+        var header: some View {
+            Text("Converted Fat Percentages")
+        }
+        var footer: some View {
+            Text("These measurements have been converted from your fat percentage measurements using your weight for the day.")
+        }
+        
+        return Section(header: header, footer: footer) {
+            HStack {
+                Text("11:20 pm")
+                Spacer()
+                Text("71.5 kg")
+            }
+            .foregroundStyle(.secondary)
+        }
     }
     
     func isSyncedChanged(old: Bool, new: Bool) {
@@ -263,26 +282,60 @@ struct LeanBodyMassForm: View {
         measurements.dailyValue(for: dailyValueType)
     }
     
-    var calculatedFatPercentage: Double? {
-        //TODO: Rewrite this
-        switch dailyValueType {
-        case .average:
-            measurements.compactMap { $0.fatPercentage }.average
-        case .last:
-            measurements.last?.fatPercentage
-        case .first:
-            measurements.first?.fatPercentage
-        }
-    }
+//    var calculatedFatPercentage: Double? {
+//        //TODO: Rewrite this
+//        switch dailyValueType {
+//        case .average:
+//            measurements.compactMap { $0.fatPercentage }.average
+//        case .last:
+//            measurements.last?.fatPercentage
+//        case .first:
+//            measurements.first?.fatPercentage
+//        }
+//    }
     
     var leanBodyMass: HealthDetails.LeanBodyMass {
         HealthDetails.LeanBodyMass(
             leanBodyMassInKg: calculatedLeanBodyMassInKg,
-            fatPercentage: calculatedFatPercentage,
+//            fatPercentage: calculatedFatPercentage,
             measurements: measurements,
             deletedHealthKitMeasurements: deletedHealthKitMeasurements
         )
     }
+}
+
+struct LeanBodyMassFormPreview: View {
+    @State var healthProvider: HealthProvider? = nil
+    
+    @ViewBuilder
+    var body: some View {
+        if let healthProvider {
+            NavigationView {
+                LeanBodyMassForm(healthProvider: healthProvider)
+            }
+        } else {
+            Color.clear
+                .task {
+                    var healthDetails = await fetchOrCreateHealthDetailsFromDocuments(Date.now)
+                    healthDetails.weight = .init(
+                        weightInKg: 95,
+                        measurements: [.init(date: Date.now, weightInKg: 95)]
+                    )
+                    let settings = await fetchSettingsFromDocuments()
+                    let healthProvider = HealthProvider(
+                        healthDetails: healthDetails,
+                        settingsProvider: SettingsProvider(settings: settings)
+                    )
+                    await MainActor.run {
+                        self.healthProvider = healthProvider
+                    }
+                }
+        }
+    }
+}
+
+#Preview("Form") {
+    LeanBodyMassFormPreview()
 }
 
 #Preview("Demo") {

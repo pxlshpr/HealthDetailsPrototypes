@@ -10,8 +10,8 @@ protocol Measurable: Identifiable {
     var unit: HKUnit { get }
 
     /// Optionals
-    var secondaryValue: Double? { get }
-    var secondaryValueUnit: String? { get }
+//    var secondaryValue: Double? { get }
+//    var secondaryValueUnit: String? { get }
     var imageType: MeasurementImageType { get }
     
     init(healthKitQuantitySample: HKQuantitySample)
@@ -86,8 +86,8 @@ extension LeanBodyMassMeasurement: Measurable {
     var unit: HKUnit { .gramUnit(with: .kilo) }
 
     var healthKitUUID: UUID? { source.healthKitUUID }
-    var secondaryValue: Double? { fatPercentage?.rounded(toPlaces: 1) }
-    var secondaryValueUnit: String? { "%" }
+//    var secondaryValue: Double? { fatPercentage?.rounded(toPlaces: 1) }
+//    var secondaryValueUnit: String? { "%" }
     
     var imageType: MeasurementImageType {
         switch source {

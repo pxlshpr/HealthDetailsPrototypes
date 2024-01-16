@@ -61,13 +61,13 @@ struct HealthDetailsForm: View {
     func link(for healthDetail: HealthDetail) -> some View {
         var details: HealthDetails { healthProvider.healthDetails }
         
-        @ViewBuilder
-        var secondaryText: some View {
-            if let secondary = details.secondaryValueString(for: healthDetail, healthProvider.settingsProvider) {
-                Text(secondary)
-                    .foregroundStyle(.secondary)
-            }
-        }
+//        @ViewBuilder
+//        var secondaryText: some View {
+//            if let secondary = details.secondaryValueString(for: healthDetail, healthProvider.settingsProvider) {
+//                Text(secondary)
+//                    .foregroundStyle(.secondary)
+//            }
+//        }
         
         var primaryText: some View {
             Text(details.valueString(for: healthDetail, healthProvider.settingsProvider))

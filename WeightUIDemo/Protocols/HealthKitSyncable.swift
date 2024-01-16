@@ -9,6 +9,8 @@ protocol HealthKitSyncable {
     var deletedHealthKitMeasurements: [MeasurementType] { get set }
     mutating func removeHealthKitQuantitySamples(notPresentIn samples: [HKQuantitySample])
     mutating func addNewHealthKitQuantitySamples(from samples: [HKQuantitySample])
+    
+    var healthDetail: HealthDetail { get }
 }
 
 //MARK: - Default implementations
@@ -50,6 +52,7 @@ extension HealthKitSyncable {
 
 extension HealthDetails.Weight: HealthKitSyncable {
     typealias MeasurementType = WeightMeasurement
+    var healthDetail: HealthDetail { .weight }
     var value: Double? {
         get { weightInKg }
         set { weightInKg = newValue }
@@ -58,14 +61,25 @@ extension HealthDetails.Weight: HealthKitSyncable {
 
 extension HealthDetails.LeanBodyMass: HealthKitSyncable {
     typealias MeasurementType = LeanBodyMassMeasurement
+    var healthDetail: HealthDetail { .leanBodyMass }
     var value: Double? {
         get { leanBodyMassInKg }
         set { leanBodyMassInKg = newValue }
     }
 }
 
+extension HealthDetails.FatPercentage: HealthKitSyncable {
+    typealias MeasurementType = FatPercentageMeasurement
+    var healthDetail: HealthDetail { .fatPercentage }
+    var value: Double? {
+        get { fatPercentage }
+        set { fatPercentage = newValue }
+    }
+}
+
 extension HealthDetails.Height: HealthKitSyncable {
     typealias MeasurementType = HeightMeasurement
+    var healthDetail: HealthDetail { .height }
     var value: Double? {
         get { heightInCm }
         set { heightInCm = newValue }

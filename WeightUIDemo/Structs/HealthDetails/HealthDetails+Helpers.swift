@@ -34,17 +34,18 @@ extension HealthDetails {
         }
     }
 
-    func secondaryValueString(
-        for healthDetail: HealthDetail,
-        _ settingsProvider: SettingsProvider
-    ) -> String? {
-        switch healthDetail {
-        case .leanBodyMass:
-            leanBodyMass.secondaryValueString()
-        default:
-            nil
-        }
-    }
+//    func secondaryValueString(
+//        for healthDetail: HealthDetail,
+//        _ settingsProvider: SettingsProvider
+//    ) -> String? {
+//        switch healthDetail {
+//        case .leanBodyMass:
+//            leanBodyMass.secondaryValueString()
+//        default:
+//            nil
+//        }
+//    }
+
     func valueString(
         for healthDetail: HealthDetail,
         _ settingsProvider: SettingsProvider

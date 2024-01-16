@@ -6,7 +6,7 @@ struct LeanBodyMassMeasurement: Hashable, Identifiable, Codable {
     let source: LeanBodyMassSource
     let date: Date
     let leanBodyMassInKg: Double
-    let fatPercentage: Double? /// e.g. 10 for 10%
+//    let fatPercentage: Double? /// e.g. 10 for 10%
 
     init(
         id: UUID,
@@ -22,21 +22,21 @@ struct LeanBodyMassMeasurement: Hashable, Identifiable, Codable {
         }
         self.date = date
         self.leanBodyMassInKg = value
-        self.fatPercentage = nil
+//        self.fatPercentage = nil
     }
     
     init(
         id: UUID = UUID(),
         date: Date,
         leanBodyMassInKg: Double,
-        fatPercentage: Double? = nil,
+//        fatPercentage: Double? = nil,
         source: LeanBodyMassSource
     ) {
         self.id = id
         self.source = source
         self.date = date
         self.leanBodyMassInKg = leanBodyMassInKg
-        self.fatPercentage = fatPercentage
+//        self.fatPercentage = fatPercentage
     }
     
     init(sample: HKQuantitySample) {
@@ -44,6 +44,6 @@ struct LeanBodyMassMeasurement: Hashable, Identifiable, Codable {
         self.source = .healthKit(sample.uuid)
         self.date = sample.date
         self.leanBodyMassInKg = sample.quantity.doubleValue(for: .gramUnit(with: .kilo))
-        self.fatPercentage = nil
+//        self.fatPercentage = nil
     }
 }

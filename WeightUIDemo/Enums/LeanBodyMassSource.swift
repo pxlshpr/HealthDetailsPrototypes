@@ -7,7 +7,7 @@ enum LeanBodyMassSource: Codable, Hashable {
     case userEntered
     
     static var formCases: [LeanBodyMassSource] {
-        [ .userEntered, .fatPercentage, .equation]
+        [ .userEntered, .equation]
     }
     
     var isFromHealthKit: Bool {
@@ -28,18 +28,14 @@ enum LeanBodyMassSource: Codable, Hashable {
         switch self {
         case .healthKit:        "Apple Health"
         case .equation:         "Equation"
-        case .fatPercentage:    "Fat %"
+        case .fatPercentage:    "Fat Percentage"
         case .userEntered:      "Manual"
         }
     }
     
-//    var id: Int {
-//        self
-//    }
-    
     var imageScale: Double {
         switch self {
-        case .equation, .fatPercentage:
+        case .equation:
             0.8
         default:
             1.0
@@ -48,12 +44,10 @@ enum LeanBodyMassSource: Codable, Hashable {
     
     var image: String {
         switch self {
-        case .healthKit:
+        case .healthKit, .fatPercentage:
             ""
         case .equation:
             "function"
-        case .fatPercentage:
-            "percent"
         case .userEntered:
             "pencil"
         }
