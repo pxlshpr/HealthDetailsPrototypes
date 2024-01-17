@@ -160,8 +160,6 @@ extension HealthProvider {
 
             await days[i].healthDetails.maintenance.estimate.activeEnergy
                 .mock_fetchFromHealthKitIfNeeded(for: date, using: activeEnergyStats)
-
-            print("\(day.date.dateString) – Fetching HealthKit values took \(CFAbsoluteTimeGetCurrent()-start)s")
         }
         
 //        print("We have: \(toDelete.count) to delete")
@@ -201,11 +199,24 @@ extension HealthDetails {
         guard let currentOrLatestWeightInKg else { return }
         
         /// Now convert the measurements and add them
-        let convertedMeasurements = leanBodyMass.measurements.nonConverted.map {
-            FatPercentageMeasurement(
-                date: $0.date,
-                percent: calculateFatPercentage(leanBodyMassInKg: $0.leanBodyMassInKg, weightInKg: currentOrLatestWeightInKg),
-                source: $0.source,
+        let convertedMeasurements: [FatPercentageMeasurement] = leanBodyMass
+            .measurements
+            .nonConverted
+            .compactMap
+        { measurement in
+
+            /// Detect already converted values by checking if its HealthKit, and if so seeing if there is a counterpart at the same minute as this value that’s also HealthKit
+            if measurement.isHealthKitCounterpartToAMeasurement(in: fatPercentage) {
+                return nil
+            }
+
+            return FatPercentageMeasurement(
+                date: measurement.date,
+                percent: calculateFatPercentage(
+                    leanBodyMassInKg: measurement.leanBodyMassInKg,
+                    weightInKg: currentOrLatestWeightInKg
+                ),
+                source: measurement.source,
                 isConvertedFromLeanBodyMass: true
             )
         }
@@ -220,11 +231,23 @@ extension HealthDetails {
         guard let currentOrLatestWeightInKg else { return }
         
         /// Now convert the measurements and add them
-        let convertedMeasurements = fatPercentage.measurements.nonConverted.map {
-            LeanBodyMassMeasurement(
-                date: $0.date,
-                leanBodyMassInKg: calculateLeanBodyMass(fatPercentage: $0.percent, weightInKg: currentOrLatestWeightInKg),
-                source: $0.source,
+        let convertedMeasurements: [LeanBodyMassMeasurement] = fatPercentage
+            .measurements
+            .nonConverted
+            .compactMap
+        { measurement in
+
+            /// Detect already converted values by checking if its HealthKit, and if so seeing if there is a counterpart at the same minute as this value that’s also HealthKit
+            if measurement.isHealthKitCounterpartToAMeasurement(in: leanBodyMass) {
+                return nil
+            }
+
+            return LeanBodyMassMeasurement(
+                date: measurement.date,
+                leanBodyMassInKg: calculateLeanBodyMass(
+                    fatPercentage: measurement.percent,
+                    weightInKg: currentOrLatestWeightInKg),
+                source: measurement.source,
                 isConvertedFromFatPercentage: true
             )
         }
@@ -285,10 +308,6 @@ extension HealthProvider {
                 settingsProvider: settingsProvider
             )
             
-            if day.date.shortDateString == "16 Jan" {
-                print("We here")
-            }
-
             latestHealthDetails.setHealthDetails(from: day.healthDetails)
             healthProvider.healthDetails.setLatestHealthDetails(latestHealthDetails)
             await healthProvider.recalculate()
@@ -301,6 +320,7 @@ extension HealthProvider {
                 await saveDayInDocuments(day)
             }
         }
+        print("✅ Recalculation done")
     }
 }
 
@@ -344,11 +364,45 @@ extension HealthKitSyncable {
         toExport: inout [any Measurable],
         settings: Settings
     ) {
-        let samples = samples.filter { $0.date.startOfDay == date.startOfDay }
+        let samples = samples
+            .filter { $0.date.startOfDay == date.startOfDay }
+            .removingSamplesWithTheSameValueAtTheSameTime(with: MeasurementType.healthKitUnit)
+
         removeHealthKitQuantitySamples(notPresentIn: samples.notOurs)
         addNewHealthKitQuantitySamples(from: samples.notOurs)
         toDelete.append(contentsOf: samples.ours.notPresent(in: measurements))
         toExport.append(contentsOf: measurements.nonHealthKitMeasurements.notPresent(in: samples.ours))
         setDailyValue(for: settings.dailyValueType(for: self.healthDetail))
+    }
+}
+
+extension Array where Element: HKQuantitySample {
+    func removingSamplesWithTheSameValueAtTheSameTime(with unit: HKUnit) -> [HKQuantitySample] {
+        var array: [HKQuantitySample] = []
+
+        for sample in self {
+            /// If the array already contains a value at the same *minute* as this element with the same value (to 1 decimal place)
+            if let index = array.firstIndex(where: { $0.hasSameValueAndTime(as: sample, with: unit) }) {
+                /// Then replace it with this, if the UUID alphabetically precedes the existing one's UUID
+                if sample.shouldBePicked(insteadOf: array[index]) {
+                    array[index] = sample
+                }
+                /// Otherwise ignore it
+            } else {
+                array.append(sample)
+            }
+        }
+        return array
+    }
+}
+
+extension HKQuantitySample {
+    func hasSameValueAndTime(as sample: HKQuantitySample, with unit: HKUnit) -> Bool {
+        quantity.doubleValue(for: unit).rounded(toPlaces: 1) == sample.quantity.doubleValue(for: unit).rounded(toPlaces: 1)
+        && startDate.equalsIgnoringSeconds(sample.startDate)
+    }
+    
+    func shouldBePicked(insteadOf sample: HKQuantitySample) -> Bool {
+        uuid.uuidString < sample.uuid.uuidString
     }
 }

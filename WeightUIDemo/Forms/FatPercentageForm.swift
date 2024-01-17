@@ -204,7 +204,7 @@ struct FatPercentageForm: View {
         MeasurementsSections<PercentUnit>(
             settingsProvider: healthProvider.settingsProvider,
             measurements: Binding<[any Measurable]>(
-                get: { measurements },
+                get: { measurements.nonConverted },
                 set: { newValue in
                     guard let measurements = newValue as? [FatPercentageMeasurement] else { return }
                     self.measurements = measurements

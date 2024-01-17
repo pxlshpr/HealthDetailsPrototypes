@@ -59,3 +59,21 @@ extension Array where Element == FatPercentageMeasurement {
         filter { $0.isConvertedFromLeanBodyMass }
     }
 }
+
+extension FatPercentageMeasurement {
+    func isHealthKitCounterpartToAMeasurement(in leanBodyMass: HealthDetails.LeanBodyMass) -> Bool {
+        guard source.isFromHealthKit else { return false }
+        return leanBodyMass.measurements.contains(where: {
+            $0.isFromHealthKit && $0.date.equalsIgnoringSeconds(self.date)
+        })
+    }
+}
+
+extension LeanBodyMassMeasurement {
+    func isHealthKitCounterpartToAMeasurement(in fatPercentage: HealthDetails.FatPercentage) -> Bool {
+        guard source.isFromHealthKit else { return false }
+        return fatPercentage.measurements.contains(where: {
+            $0.isFromHealthKit && $0.date.equalsIgnoringSeconds(self.date)
+        })
+    }
+}
