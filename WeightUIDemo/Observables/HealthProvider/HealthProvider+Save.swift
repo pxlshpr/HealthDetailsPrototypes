@@ -7,12 +7,18 @@ import HealthKit
 /// [ ] Send a notification so that DailyValues set on this day get updated too if dependent on the HealthDetail
 
 extension HealthProvider {
-    func save() {
+    func save(forceHealthKitResync: Bool = false) {
         saveTask?.cancel()
         saveTask = Task {
             try await saveHealthDetailsInDocuments(healthDetails)
             try Task.checkCancellation()
 
+            //TODO: Resync
+            /// [ ] If we were passed the forceHealthKitResync flag OR
+            /// [ ] If healthDetails contains any change in measurements that are syncable
+            /// [ ] Then resync instead of just recalculating
+            /// [ ] Now make sure that when saving health details for another date, like with `saveHeight(_:for:)`, we return a flag indicating if changes were made (since its in a different HealthDetails struct), and use that to forceHealthResync in the functions like `updateLatestHeight(_:)` etc
+            
             /// Recalculate all days
             try await Self.recalculateAllDays()
             
