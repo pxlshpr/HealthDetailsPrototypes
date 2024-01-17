@@ -260,6 +260,7 @@ extension HealthDetails.LeanBodyMass {
         
     }
 }
+
 extension HealthProvider {
     
     func recalculate() async {

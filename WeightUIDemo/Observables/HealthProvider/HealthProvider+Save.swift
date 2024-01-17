@@ -96,21 +96,25 @@ extension HealthProvider {
         save()
     }
     
-    //TODO: Persist changes
-    /// [ ] Replace Mock coding with actual persistence
+    //TODO: Replace Mock coding with actual persistence
+
     func updateLatestWeight(_ weight: HealthDetails.Weight) {
         guard let date = healthDetails.replacementsForMissing.datedWeight?.date else { return }
         healthDetails.replacementsForMissing.datedWeight?.weight = weight
+        
         Task {
             try await saveWeight(weight, for: date)
+            save()
         }
     }
     
     func updateLatestHeight(_ height: HealthDetails.Height) {
         guard let date = healthDetails.replacementsForMissing.datedHeight?.date else { return }
         healthDetails.replacementsForMissing.datedHeight?.height = height
+
         Task {
             try await saveHeight(height, for: date)
+            save()
         }
     }
     
@@ -119,6 +123,7 @@ extension HealthProvider {
         healthDetails.replacementsForMissing.datedPregnancyStatus?.pregnancyStatus = pregnancyStatus
         Task {
             try await savePregnancyStatus(pregnancyStatus, for: date)
+            save()
         }
     }
     
@@ -127,6 +132,7 @@ extension HealthProvider {
         healthDetails.replacementsForMissing.datedFatPercentage?.fatPercentage = fatPercentage
         Task {
             try await saveFatPercentage(fatPercentage, for: date)
+            save()
         }
     }
     
@@ -135,6 +141,7 @@ extension HealthProvider {
         healthDetails.replacementsForMissing.datedLeanBodyMass?.leanBodyMass = leanBodyMass
         Task {
             try await saveLeanBodyMass(leanBodyMass, for: date)
+            save()
         }
     }
     
