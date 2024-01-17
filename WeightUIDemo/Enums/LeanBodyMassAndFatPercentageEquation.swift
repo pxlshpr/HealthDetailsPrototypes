@@ -15,6 +15,24 @@ enum LeanBodyMassAndFatPercentageEquation: Int, Identifiable, Codable, CaseItera
 
 extension LeanBodyMassAndFatPercentageEquation {
     
+    var variables: Variables {
+        .required(requiredHealthDetails, variablesExplanation)
+    }
+    
+    var variablesExplanation: String {
+        let conjunction = requiredHealthDetails.count == 1 ? "is" : "are"
+        return "Your \(variablesDescription) \(conjunction) required for the \(name) equation."
+    }
+
+    var variablesDescription: String {
+        switch self {
+        case .boer, .james, .hume:
+            "Biological Sex, Weight and Height"
+        case .bmi, .cunBAE:
+            "Age, Biological Sex, Weight and Height"
+        }
+    }
+
     var requiredHealthDetails: [HealthDetail] {
         switch self {
         case .boer, .james, .hume:

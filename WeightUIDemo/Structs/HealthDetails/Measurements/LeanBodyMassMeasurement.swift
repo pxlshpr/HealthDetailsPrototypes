@@ -6,6 +6,7 @@ struct LeanBodyMassMeasurement: Hashable, Identifiable, Codable {
     let source: LeanBodyMassAndFatPercentageSource
     let date: Date
     let leanBodyMassInKg: Double
+    let isConvertedFromFatPercentage: Bool
 
     init(
         id: UUID,
@@ -21,24 +22,30 @@ struct LeanBodyMassMeasurement: Hashable, Identifiable, Codable {
         }
         self.date = date
         self.leanBodyMassInKg = value
+        self.isConvertedFromFatPercentage = false
     }
     
     init(
         id: UUID = UUID(),
         date: Date,
         leanBodyMassInKg: Double,
-        source: LeanBodyMassAndFatPercentageSource
+        source: LeanBodyMassAndFatPercentageSource,
+        isConvertedFromFatPercentage: Bool = false
     ) {
         self.id = id
         self.source = source
         self.date = date
         self.leanBodyMassInKg = leanBodyMassInKg
+        self.isConvertedFromFatPercentage = isConvertedFromFatPercentage
+    }
+}
+
+extension Array where Element == LeanBodyMassMeasurement {
+    var nonConverted: [LeanBodyMassMeasurement] {
+        filter { !$0.isConvertedFromFatPercentage }
     }
     
-//    init(healthKitQuantitySample sample: HKQuantitySample) {
-//        self.id = UUID()
-//        self.source = .healthKit(sample.uuid)
-//        self.date = sample.date
-//        self.leanBodyMassInKg = sample.quantity.doubleValue(for: .gramUnit(with: .kilo))
-//    }
+    var converted: [LeanBodyMassMeasurement] {
+        filter { $0.isConvertedFromFatPercentage }
+    }
 }

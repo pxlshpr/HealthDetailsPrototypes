@@ -7,7 +7,8 @@ extension HealthStore {
         do {
             try await self.store.delete(toDelete)
         } catch {
-            fatalError("Error deleting measurements: \(error.localizedDescription)")
+            /// This can happen when objects already deleted are tried to be deleted again
+//            fatalError("Error deleting measurements: \(error.localizedDescription)")
         }
     }
     static func saveMeasurements(_ measurements: [any Measurable]) async {

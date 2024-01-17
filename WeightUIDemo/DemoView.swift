@@ -13,6 +13,8 @@ struct DemoView: View {
     @State var pastDateBeingShown: Date? = nil
     @State var showingSettings = false
 
+    @AppStorage("initialLaunchCompleted") var initialLaunchCompleted: Bool = false
+    
     init() { }
     
     var body: some View {
@@ -35,79 +37,51 @@ struct DemoView: View {
             await MainActor.run {
                 self.settingsProvider.settings = settings
             }
+            
+            if initialLaunchCompleted {
+                try await HealthStore.requestPermissions()
+                try await HealthProvider.syncWithHealthKitAndRecalculateAllDays()
+            } else {
+                resetData()
+            }
+        }
+    }
+    
+    func resetData() {
+        deleteAllFilesInDocuments()
 
-            try await HealthStore.requestPermissions()
+        Task {
+            var settings = await fetchSettingsFromDocuments()
+            settings.setHealthKitSyncing(for: .weight, to: true)
+            settings.setHealthKitSyncing(for: .height, to: true)
+            settings.setHealthKitSyncing(for: .leanBodyMass, to: true)
+            settings.setHealthKitSyncing(for: .fatPercentage, to: true)
+            await saveSettingsInDocuments(settings)
+
+            await MainActor.run { [settings] in
+                self.settingsProvider.settings = settings
+            }
+
+            let start = CFAbsoluteTimeGetCurrent()
+            let _ = await fetchAllDaysFromDocuments(
+                from: LogStartDate,
+                createIfNotExisting: true
+            )
+            print("Created all days in: \(CFAbsoluteTimeGetCurrent()-start)s")
             try await HealthProvider.syncWithHealthKitAndRecalculateAllDays()
+            initialLaunchCompleted = true
         }
     }
     
     var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .topBarTrailing) {
             Menu {
-                Button("Clear Data") {
-                    deleteAllFilesInDocuments()
-
-                    Task {
-                        var settings = await fetchSettingsFromDocuments()
-                        settings.setHealthKitSyncing(for: .weight, to: true)
-                        settings.setHealthKitSyncing(for: .height, to: true)
-                        settings.setHealthKitSyncing(for: .leanBodyMass, to: true)
-                        settings.setHealthKitSyncing(for: .fatPercentage, to: true)
-                        await saveSettingsInDocuments(settings)
-
-                        await MainActor.run { [settings] in
-                            self.settingsProvider.settings = settings
-                        }
-
-                        let start = CFAbsoluteTimeGetCurrent()
-                        let _ = await fetchAllDaysFromDocuments(
-                            from: LogStartDate,
-                            createIfNotExisting: true
-                        )
-                        print("Created all days in: \(CFAbsoluteTimeGetCurrent()-start)s")
-                        try await HealthProvider.syncWithHealthKitAndRecalculateAllDays()
-                    }
-                }
-                Button("Reset Current") {
-                    setCurrentHealthDetails()
+                Button("Reset Data") {
+                    resetData()
                 }
             } label: {
                 Image(systemName: "ellipsis.circle")
             }
-        }
-    }
-    
-    func setCurrentHealthDetails() {
-        deleteAllFilesInDocuments()
-        Task {
-            var healthDetails = await fetchOrCreateHealthDetailsFromDocuments(Date.now)
-            healthDetails.dateOfBirth = Date(fromDateString: "1987_06_04")!
-            healthDetails.biologicalSex = .male
-            healthDetails.weight = .init(
-                weightInKg: 96.2,
-    //            dailyValueType: .average,
-                measurements: [.init(date: Date.now, weightInKg: 96.2)],
-                deletedHealthKitMeasurements: []
-            )
-    //        healthDetails.height = .init(
-    //            heightInCm: 177,
-    //            measurements: [.init(date: Date.now, heightInCm: 177)],
-    //            deletedHealthKitMeasurements: [],
-    //            isSynced: false
-    //        )
-            healthDetails.leanBodyMass = .init(
-                leanBodyMassInKg: 75.2,
-//                fatPercentage: 21.8,
-    //            dailyValueType: .average,
-                measurements: [.init(
-                    date: Date.now,
-                    leanBodyMassInKg: 75.2,
-//                    fatPercentage: 21.8,
-                    source: .userEntered
-                )],
-                deletedHealthKitMeasurements: []
-            )
-            try await saveHealthDetailsInDocuments(healthDetails)
         }
     }
     

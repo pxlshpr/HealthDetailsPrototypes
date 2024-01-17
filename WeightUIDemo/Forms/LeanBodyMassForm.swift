@@ -76,13 +76,23 @@ struct LeanBodyMassForm: View {
             Text("These measurements have been converted from your fat percentage measurements using your weight for the day.")
         }
         
-        return Section(header: header, footer: footer) {
-            HStack {
-                Text("11:20 pm")
-                Spacer()
-                Text("71.5 kg")
+        var section: some View {
+            Section(header: header, footer: footer) {
+                ForEach(measurements.converted, id: \.id) { measurement in
+                    MeasurementCell<BodyMassUnit>(
+                        measurement: measurement,
+                        settingsProvider: healthProvider.settingsProvider,
+                        isDisabled: true,
+                        deleteAction: { }
+                    )
+                }
             }
-            .foregroundStyle(.secondary)
+        }
+        
+        return Group {
+            if !measurements.converted.isEmpty {
+                section
+            }
         }
     }
     
@@ -217,7 +227,7 @@ struct LeanBodyMassForm: View {
         MeasurementsSections<BodyMassUnit>(
             settingsProvider: healthProvider.settingsProvider,
             measurements: Binding<[any Measurable]>(
-                get: { measurements },
+                get: { measurements.nonConverted },
                 set: { newValue in
                     guard let measurements = newValue as? [LeanBodyMassMeasurement] else { return }
                     self.measurements = measurements

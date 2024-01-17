@@ -76,13 +76,23 @@ struct FatPercentageForm: View {
             Text("These measurements have been converted from your lean body mass measurements using your weight for the day.")
         }
         
-        return Section(header: header, footer: footer) {
-            HStack {
-                Text("11:20 pm")
-                Spacer()
-                Text("22.5 %")
+        var section: some View {
+            Section(header: header, footer: footer) {
+                ForEach(measurements.converted, id: \.id) { measurement in
+                    MeasurementCell<PercentUnit>(
+                        measurement: measurement,
+                        settingsProvider: healthProvider.settingsProvider,
+                        isDisabled: true,
+                        deleteAction: { }
+                    )
+                }
             }
-            .foregroundStyle(.secondary)
+        }
+        
+        return Group {
+            if !measurements.converted.isEmpty {
+                section
+            }
         }
     }
     

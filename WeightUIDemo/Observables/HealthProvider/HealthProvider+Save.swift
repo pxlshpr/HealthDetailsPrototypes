@@ -12,7 +12,13 @@ extension HealthProvider {
         saveTask = Task {
             try await saveHealthDetailsInDocuments(healthDetails)
             try Task.checkCancellation()
+
+            /// Recalculate all days
             try await Self.recalculateAllDays()
+            
+            /// Once complete, re-fetch the health details for this date and set it here in this provider
+            let healthDetails = await fetchOrCreateHealthDetailsFromDocuments(healthDetails.date)
+            self.healthDetails = healthDetails
         }
     }
 }

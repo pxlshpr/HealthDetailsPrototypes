@@ -192,6 +192,44 @@ extension HealthDetails {
     mutating func recalculateLeanBodyMass() {
         
     }
+    
+    mutating func convertLeanBodyMassesToFatPercentages() {
+        /// Remove all the previous converted fat percentages
+        fatPercentage.measurements.removeAll(where: { $0.isConvertedFromLeanBodyMass })
+
+        /// See if we sitll have a weight available before continuing
+        guard let currentOrLatestWeightInKg else { return }
+        
+        /// Now convert the measurements and add them
+        let convertedMeasurements = leanBodyMass.measurements.nonConverted.map {
+            FatPercentageMeasurement(
+                date: $0.date,
+                percent: calculateFatPercentage(leanBodyMassInKg: $0.leanBodyMassInKg, weightInKg: currentOrLatestWeightInKg),
+                source: $0.source,
+                isConvertedFromLeanBodyMass: true
+            )
+        }
+        fatPercentage.measurements.append(contentsOf: convertedMeasurements)
+    }
+    
+    mutating func convertFatPercentagesToLeanBodyMasses() {
+        /// Remove all the previous converted lean body masses
+        leanBodyMass.measurements.removeAll(where: { $0.isConvertedFromFatPercentage })
+
+        /// See if we sitll have a weight available before continuing
+        guard let currentOrLatestWeightInKg else { return }
+        
+        /// Now convert the measurements and add them
+        let convertedMeasurements = fatPercentage.measurements.nonConverted.map {
+            LeanBodyMassMeasurement(
+                date: $0.date,
+                leanBodyMassInKg: calculateLeanBodyMass(fatPercentage: $0.percent, weightInKg: currentOrLatestWeightInKg),
+                source: $0.source,
+                isConvertedFromFatPercentage: true
+            )
+        }
+        leanBodyMass.measurements.append(contentsOf: convertedMeasurements)
+    }
 }
 
 extension HealthDetails.LeanBodyMass {
@@ -205,7 +243,9 @@ extension HealthProvider {
         let settings = settingsProvider.settings
 
         /// [ ] Recalculate LBM, fat percentage based on equations and based on each other (simply recreate these if we have a weight for the day, otherwise removing them)
-
+        healthDetails.convertLeanBodyMassesToFatPercentages()
+        healthDetails.convertFatPercentagesToLeanBodyMasses()
+        
         healthDetails.recalculateDailyValues(using: settings)
 
         /// [ ] Recalculate resting energy

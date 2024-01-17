@@ -235,9 +235,9 @@ struct LeanBodyMassMeasurementForm: View {
 
     var equationVariablesSections: some View {
         VariablesSections(
-            subject: .equation,
-            healthDetails: Binding<[HealthDetail]>(
-                get: { equation.requiredHealthDetails },
+            type: .equation,
+            variables: Binding<Variables>(
+                get: { equation.variables },
                 set: { _ in }
             ),
             healthProvider: healthProvider,

@@ -3,7 +3,7 @@ import Foundation
 enum LeanBodyMassAndFatPercentageSource: Codable, Hashable {
     case healthKit(UUID)
     case equation
-    case converted
+//    case converted
     case userEntered
     
     static var formCases: [LeanBodyMassAndFatPercentageSource] {
@@ -28,7 +28,7 @@ enum LeanBodyMassAndFatPercentageSource: Codable, Hashable {
         switch self {
         case .healthKit:        "Apple Health"
         case .equation:         "Equation"
-        case .converted:        "Converted"
+//        case .converted:        "Converted"
         case .userEntered:      "Manual"
         }
     }
@@ -44,7 +44,7 @@ enum LeanBodyMassAndFatPercentageSource: Codable, Hashable {
     
     var image: String {
         switch self {
-        case .healthKit, .converted:
+        case .healthKit:
             ""
         case .equation:
             "function"

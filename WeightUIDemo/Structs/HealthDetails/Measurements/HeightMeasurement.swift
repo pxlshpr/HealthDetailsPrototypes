@@ -27,11 +27,5 @@ struct HeightMeasurement: Hashable, Identifiable, Codable {
         self.date = date
         self.heightInCm = value
     }    
-//    init(sample: HKQuantitySample) {
-//        self.id = UUID()
-//        self.healthKitUUID = sample.uuid
-//        self.date = sample.date
-//        self.heightInCm = sample.quantity.doubleValue(for: .meterUnit(with: .centi))
-//    }
 }
 

@@ -26,11 +26,5 @@ struct WeightMeasurement: Hashable, Identifiable, Codable {
         self.healthKitUUID = healthKitUUID
         self.date = date
         self.weightInKg = value
-    }    
-//    init(sample: HKQuantitySample) {
-//        self.id = UUID()
-//        self.healthKitUUID = sample.uuid
-//        self.date = sample.date
-//        self.weightInKg = sample.quantity.doubleValue(for: .gramUnit(with: .kilo))
-//    }
+    }
 }
