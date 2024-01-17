@@ -579,6 +579,98 @@ struct LeanBodyMassEquationVariablesSectionsPreview: View {
     LeanBodyMassEquationVariablesSectionsPreview()
 }
 
+struct GoalVariablesSectionsPreview: View {
+    
+    @State var healthProvider: HealthProvider? = nil
+    
+    @ViewBuilder
+    var body: some View {
+        if let healthProvider {
+            NavigationView {
+                Form {
+                    VariablesSections(
+                        type: .goal,
+                        variables: Binding<Variables>(
+                            get: { .required([.maintenance], "Your Maintenance Energy is required for this goal.") },
+                            set: { _ in }
+                        ),
+                        healthProvider: healthProvider,
+                        date: healthProvider.healthDetails.date,
+                        isPresented: .constant(true),
+                        showHeader: true
+                    )
+                }
+            }
+        } else {
+            Color.clear
+                .task {
+                    var healthDetails = await fetchOrCreateHealthDetailsFromDocuments(Date.now)
+                    healthDetails.weight = .init(
+                        weightInKg: 95,
+                        measurements: [.init(date: Date.now, weightInKg: 95)]
+                    )
+                    let settings = await fetchSettingsFromDocuments()
+                    let healthProvider = HealthProvider(
+                        healthDetails: healthDetails,
+                        settingsProvider: SettingsProvider(settings: settings)
+                    )
+                    await MainActor.run {
+                        self.healthProvider = healthProvider
+                    }
+                }
+        }
+    }
+}
+#Preview("Goal") {
+    GoalVariablesSectionsPreview()
+}
+
+struct DailyValueVariablesSectionsPreview: View {
+    
+    @State var healthProvider: HealthProvider? = nil
+    
+    @ViewBuilder
+    var body: some View {
+        if let healthProvider {
+            NavigationView {
+                Form {
+                    VariablesSections(
+                        type: .dailyValue,
+                        variables: Binding<Variables>(
+                            get: { .required([.smokingStatus], "Your Smoking Status is required to pick a recommended daily value for Magnesium.") },
+                            set: { _ in }
+                        ),
+                        healthProvider: healthProvider,
+                        date: healthProvider.healthDetails.date,
+                        isPresented: .constant(true),
+                        showHeader: true
+                    )
+                }
+            }
+        } else {
+            Color.clear
+                .task {
+                    var healthDetails = await fetchOrCreateHealthDetailsFromDocuments(Date.now)
+                    healthDetails.weight = .init(
+                        weightInKg: 95,
+                        measurements: [.init(date: Date.now, weightInKg: 95)]
+                    )
+                    let settings = await fetchSettingsFromDocuments()
+                    let healthProvider = HealthProvider(
+                        healthDetails: healthDetails,
+                        settingsProvider: SettingsProvider(settings: settings)
+                    )
+                    await MainActor.run {
+                        self.healthProvider = healthProvider
+                    }
+                }
+        }
+    }
+}
+#Preview("Daily Value") {
+    DailyValueVariablesSectionsPreview()
+}
+
 #Preview("Demo") {
     DemoView()
 }

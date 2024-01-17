@@ -58,7 +58,7 @@ extension LeanBodyMassAndFatPercentageEquation {
         case .james:    "James"
         case .hume:     "Hume"
         case .bmi:      "BMI"
-        case .cunBAE:   "CUN BAE"
+        case .cunBAE:   "CUN-BAE"
         }
     }
 

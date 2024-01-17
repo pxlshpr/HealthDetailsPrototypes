@@ -31,7 +31,7 @@ enum HealthDetail: Int, Identifiable, CaseIterable, Codable {
     /// Not related to time—once set, the value is brought forward to every future HealthDetail until changed
     var isNonTemporal: Bool {
         switch self {
-        case .age, .biologicalSex, .smokingStatus, .maintenance:
+        case .age, .biologicalSex, .smokingStatus:
             true
         default: 
             false
@@ -40,12 +40,7 @@ enum HealthDetail: Int, Identifiable, CaseIterable, Codable {
     
     /// Directly related to the date it's set on. When referenced, the date is displayed for these as they can potentially change on any future date.
     var isTemporal: Bool {
-        switch self {
-        case .height, .weight, .leanBodyMass, .preganancyStatus, .fatPercentage:
-            true
-        default: 
-            false
-        }
+        !isNonTemporal
     }
     
     static var allNonTemporalHealthDetails: [HealthDetail] {
