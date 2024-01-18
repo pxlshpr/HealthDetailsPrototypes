@@ -132,6 +132,9 @@ struct AdaptiveMaintenanceForm: View {
             for index in 0..<movingAverageInterval.numberOfDays {
                 let date = point.date.startOfDay.moveDayBy(-index)
                 let weight = await HealthProvider.fetchOrCreateBackendWeight(for: date)
+                if date.isToday {
+                    print("Here we go")
+                }
                 weights[date] = weight
             }
             

@@ -15,7 +15,9 @@ extension HealthProvider {
             print("🙅🏽‍♂️ Cancelling redundant save()")
             return
         }
-        
+
+        print("💾 Saving HealthProvider for: \(healthDetails.date.shortDateString)")
+
         saveTask?.cancel()
         saveTask = Task {
             /// Set this before we call `refetchHealthDetails()` which would override the `unsavedHealthDetails` making the changes undetectable
@@ -33,11 +35,14 @@ extension HealthProvider {
             try Task.checkCancellation()
             
             if shouldResync  {
+                print("✨ shouldResync is true so Syncing")
                 /// If any syncable measurements were changed, trigger a sync (and subsequent recalculate)
                 try await Self.syncWithHealthKitAndRecalculateAllDays()
 
                 /// Refetch HealthDetails as the sync and recalculate may have modified it further
                 await refetchHealthDetails()
+            } else {
+                print("🥖 shouldResync is false so not syncing")
             }
         }
     }

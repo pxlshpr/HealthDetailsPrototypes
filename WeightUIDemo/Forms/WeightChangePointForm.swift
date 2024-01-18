@@ -164,7 +164,10 @@ struct WeightChangePointForm: View {
                     self.weight = weight
                 }
                 Task {
-                    _ = try await healthProvider.saveWeight(weight, for: date)
+                    let didModify = try await healthProvider.saveWeight(weight, for: date)
+                    if date.startOfDay == healthProvider.healthDetails.date.startOfDay {
+                        healthProvider.healthDetails.weight = weight
+                    }
                     handleChanges()
                 }
             }

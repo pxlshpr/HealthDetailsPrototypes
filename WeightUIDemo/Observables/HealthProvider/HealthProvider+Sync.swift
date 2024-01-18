@@ -4,6 +4,8 @@ import HealthKit
 extension HealthProvider {
     
     static func syncWithHealthKitAndRecalculateAllDays() async throws {
+        print("🔄 syncWithHealthKitAndRecalculateAllDays() started...")
+
         let start = CFAbsoluteTimeGetCurrent()
 
         let settings = await fetchSettingsFromDocuments()
