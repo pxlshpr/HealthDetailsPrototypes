@@ -1,4 +1,5 @@
 import Foundation
+import PrepShared
 
 extension Array where Element == Double {
     var average: Double? {
@@ -41,15 +42,15 @@ public extension Date {
 }
 
 extension Date {
-    init?(fromDateString string: String) {
-        let dateFormatter = DateFormatter()
-        dateFormatter.locale = Locale(identifier: "en_US_POSIX")
-        dateFormatter.dateFormat = "yyyy_MM_dd"
-        guard let date = dateFormatter.date(from: string) else {
-            return nil
-        }
-        self = date
-    }
+//    init?(fromDateString string: String) {
+//        let dateFormatter = DateFormatter()
+//        dateFormatter.locale = Locale(identifier: "en_US_POSIX")
+//        dateFormatter.dateFormat = "yyyy_MM_dd"
+//        guard let date = dateFormatter.date(from: string) else {
+//            return nil
+//        }
+//        self = date
+//    }
     
     init?(fromDateTimeString string: String) {
         let dateFormatter = DateFormatter()

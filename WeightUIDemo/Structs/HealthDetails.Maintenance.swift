@@ -177,6 +177,20 @@ extension HealthDetails.Maintenance {
     }
 }
 
+extension HealthDetails.Maintenance.Adaptive {
+    mutating func setKcal() {
+    }
+}
+extension HealthDetails.Maintenance.Estimate {
+    mutating func setKcal() {
+        kcal = if let resting = restingEnergy.kcal, let active = activeEnergy.kcal {
+            resting + active
+        } else {
+            nil
+        }
+    }
+}
+
 extension HealthDetails.Maintenance {
     mutating func setKcal() {
         kcal = switch type {

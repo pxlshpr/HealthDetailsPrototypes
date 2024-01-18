@@ -60,7 +60,7 @@ extension HealthProvider {
         try await DayProvider.recalculateAllDays(
             days,
             initialDays: initialDays,
-            start: start,
+            syncStart: start,
             cancellable: false /// Disallow the recalculation to be cancellable as the sync takes some time and any new recalculation
         )
     }
@@ -142,51 +142,52 @@ extension HealthProvider {
         print("Fetching dietary energy point from HealthKit for all those days")
 
         start = CFAbsoluteTimeGetCurrent()
-        for (index, day) in days.enumerated() {
+        for (date, day) in days {
+            let initialDay = day
             /// If the point doesn't exist, create it
             if day.dietaryEnergyPoint == nil {
                 if let kcal = await HealthStore.dietaryEnergyTotalInKcal(
                     for: day.date,
                     using: stats
                 ) {
-                    days[index].dietaryEnergyPoint = .init(
+                    days[date]?.dietaryEnergyPoint = .init(
                         date: day.date,
                         kcal: kcal,
                         source: .healthKit
                     )
                 } else {
-                    days[index].dietaryEnergyPoint = .init(
+                    days[date]?.dietaryEnergyPoint = .init(
                         date: day.date,
                         source: .notCounted
                     )
                 }
             } else {
-                await days[index].dietaryEnergyPoint?.fetchFromHealthKitIfNeeded(
+                await days[date]?.dietaryEnergyPoint?.fetchFromHealthKitIfNeeded(
                     day: day,
                     using: stats
                 )
             }
             
-            if days[index] != day {
-                await saveDayInDocuments(days[index])
+            if let updatedDay = days[date], updatedDay != initialDay {
+                await saveDayInDocuments(updatedDay)
             }
         }
         print("Took: \(CFAbsoluteTimeGetCurrent()-start)s")
     }
     
     static func syncAndFetchAllDetails(
-        days: inout [Day],
+        days: inout [Date : Day],
         samples: [QuantityType : [HKQuantitySample]],
         stats: [QuantityType : HKStatisticsCollection],
         toDelete: inout [HKQuantitySample],
         toExport: inout [any Measurable],
         settings: Settings
     ) async {
-        for i in days.indices {
+        for date in days.keys {
             
             for quantityType in QuantityType.syncedTypes {
                 guard let samples = samples[quantityType] else { continue }
-                days[i].healthDetails.syncWithHealthKit(
+                days[date]?.healthDetails.syncWithHealthKit(
                     quantityType: quantityType,
                     samples: samples,
                     toDelete: &toDelete,
@@ -197,7 +198,7 @@ extension HealthProvider {
             
             for quantityType in QuantityType.fetchedTypes {
                 guard let stats = stats[quantityType] else { continue }
-                await days[i].fetchFromHealthKitIfNeeded(
+                await days[date]?.fetchFromHealthKitIfNeeded(
                     quantityType: quantityType,
                     using: stats
                 )

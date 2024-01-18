@@ -5,7 +5,7 @@ extension HealthProvider {
     func recalculate(
         latestHealthDetails: [HealthDetail: DatedHealthData],
         settings: Settings,
-        days: [Day]
+        days: [Date : Day]
     ) async {
         /// Do this before we calculate anything so that we have the latest available
         healthDetails.setLatestHealthDetails(latestHealthDetails)
@@ -77,18 +77,27 @@ extension HealthProvider {
         healthDetails.fatPercentage.setDailyValue(for: dailyValue)
     }
 
-    func recalculateMaintenance(_ days: [Day]) async {
+    func recalculateMaintenance(_ days: [Date : Day]) async {
         await recalculateEstimatedMaintenanace()
 
-        await recalculateDietaryEnergy(days)
+        await recalculateAdaptiveMaintenance(days)
         /// [ ] If WeightChange is .usingPoints, either fetch each weight or fetch the moving average components and calculate the average
         /// [ ] Reclaculate Adaptive
         /// [ ] Recalculate Maintenance based on toggle + fallback thing
         
         healthDetails.maintenance.setKcal()
     }
+    func recalculateAdaptiveMaintenance(_ days: [Date : Day]) async {
+        await recalculateDietaryEnergy(days)
+        await recalculateWeightChange(days)
+        healthDetails.maintenance.adaptive.setKcal()
+    }
+
+    func recalculateWeightChange(_ days: [Date : Day]) async {
+        
+    }
     
-    func recalculateDietaryEnergy(_ days: [Day]) async {
+    func recalculateDietaryEnergy(_ days: [Date : Day]) async {
         /// [ ] If we don't have enough points for DietaryEnergyPoint, create them
         /// [ ] Choose `.healthKit` as the source for any new ones that we can't fetch a log value for
         
@@ -97,14 +106,15 @@ extension HealthProvider {
         /// [ ] Recalculate DietaryEnergy
         
         let interval = healthDetails.maintenance.adaptive.interval
-        let date = healthDetails.date
+        let date = healthDetails.date.startOfDay
 
         var points: [DietaryEnergyPoint] = []
         for index in 0..<interval.numberOfDays {
             let date = date.moveDayBy(-(index + 1))
             
             /// Fetch the point if it exists
-            if let point = await HealthProvider.fetchBackendDietaryEnergyPoint(for: date) {
+            if let point = days[date]?.dietaryEnergyPoint {
+//            if let point = await HealthProvider.fetchBackendDietaryEnergyPoint(for: date) {
 //                print("Fetched existing point for: \(date.shortDateString)")
                 points.append(point)
             } else {
@@ -112,19 +122,17 @@ extension HealthProvider {
                 points.append(point)
             }
         }
+        if date.shortDateString == "1 Jan 2022" {
+            print("We here")
+        }
         healthDetails.maintenance.adaptive.dietaryEnergy.kcalPerDay = HealthDetails.Maintenance.Adaptive.DietaryEnergy.calculateKcalPerDay(for: points)
     }
     
     func recalculateEstimatedMaintenanace() async {
         await recalculateRestingEnergy()
         await recalculateActiveEnergy()
-        let estimate = healthDetails.maintenance.estimate
-        guard let resting = estimate.restingEnergy.kcal,
-              let active = estimate.activeEnergy.kcal else {
-            healthDetails.maintenance.estimate.kcal = nil
-            return
-        }
-        healthDetails.maintenance.estimate.kcal = resting + active
+        
+        healthDetails.maintenance.estimate.setKcal()
     }
     
     func recalculateRestingEnergy() async {

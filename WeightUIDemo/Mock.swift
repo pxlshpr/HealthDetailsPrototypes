@@ -93,6 +93,28 @@ func fetchAllDaysFromDocuments(
     from startDate: Date,
     to endDate: Date = Date.now,
     createIfNotExisting: Bool
+) async -> [Date : Day] {
+    //TODO: In production:
+    /// [ ] Optimizing by not fetching the meals etc, only fetching fields we need
+    var days: [Date : Day] = [:]
+    for i in (0...endDate.numberOfDaysFrom(startDate)).reversed() {
+        let date = endDate.moveDayBy(-i)
+        let day = if createIfNotExisting {
+            await fetchOrCreateDayFromDocuments(date)
+        } else {
+            await fetchDayFromDocuments(date)
+        }
+        if let day {
+            days[date.startOfDay] = day
+        }
+    }
+    return days
+}
+
+func _fetchAllDaysFromDocuments(
+    from startDate: Date,
+    to endDate: Date = Date.now,
+    createIfNotExisting: Bool
 ) async -> [Day] {
     //TODO: In production:
     /// [ ] Optimizing by not fetching the meals etc, only fetching fields we need

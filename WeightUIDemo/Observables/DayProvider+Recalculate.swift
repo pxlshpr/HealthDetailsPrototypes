@@ -17,8 +17,8 @@ extension DayProvider {
     }
 
     static func recalculateAllDays(
-        _ days: [Day],
-        initialDays: [Day]? = nil,
+        _ days: [Date : Day],
+        initialDays: [Date : Day]? = nil,
         syncStart: CFAbsoluteTime? = nil,
         cancellable: Bool = true
     ) async throws {
@@ -37,9 +37,13 @@ extension DayProvider {
             try Task.checkCancellation()
         }
         
-        for (index, day) in days.enumerated() {
+        for (date, day) in days {
             
-            let initialDay = initialDays[index]
+            guard let initialDay = initialDays[date] else {
+                fatalError() /// Remove in production
+            }
+            
+//            let initialDay = day
             var day = day
             
             /// [ ] Create a HealthProvider for it (which in turn fetches the latest health details)
