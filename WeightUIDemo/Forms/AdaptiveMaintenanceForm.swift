@@ -205,7 +205,11 @@ struct AdaptiveMaintenanceForm: View {
                     Text("Dietary Energy")
                     Spacer()
                     if let dailyAverageValue {
-                        Text("\(dailyAverageValue.formattedEnergy) \(energyUnitString) / day")
+                        HStack(spacing: 3) {
+                            Text("\(dailyAverageValue.formattedEnergy)")
+                                .contentTransition(.numericText(value: dailyAverageValue))
+                            Text("\(energyUnitString) / day")
+                        }
                     } else {
                         Text(NotSetString)
                             .foregroundStyle(.secondary)
