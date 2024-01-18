@@ -59,7 +59,7 @@ extension HealthProvider {
                 }
             }
 //            healthDetails.maintenance.adaptive.dietaryEnergy = .init(points: points)
-            healthDetails.maintenance.adaptive.dietaryEnergy = .init(kcalPerDay: points.average)
+            healthDetails.maintenance.adaptive.dietaryEnergy = .init(kcalPerDay: points.kcalPerDay)
         }
         
         func fetchWeightChangeData() async {

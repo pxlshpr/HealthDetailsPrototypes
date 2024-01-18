@@ -1,7 +1,7 @@
 import Foundation
 import HealthKit
 
-protocol HealthKitEnergy: SumthinSumthin {
+protocol HealthKitEnergy: HealthKitFetchable {
     var healthKitFetchSettings: HealthKitFetchSettings? { get }
     var isHealthKitSourced: Bool { get }
     var kcal: Double? { get set }

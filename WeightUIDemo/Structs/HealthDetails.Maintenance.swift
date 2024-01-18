@@ -28,7 +28,8 @@ extension HealthDetails {
                 self.kcal = kcal
                 self.interval = interval
 //                self.dietaryEnergy = dietaryEnergy
-                self.dietaryEnergy = .init(kcalPerDay: dietaryEnergyPoints.average)
+//                self.dietaryEnergy = .init(kcalPerDay: dietaryEnergyPoints.kcalPerDay)
+                self.dietaryEnergy = .init(points: dietaryEnergyPoints)
                 self.weightChange = weightChange
                 
 //                let result = Self.calculate(
@@ -54,18 +55,21 @@ extension HealthDetails {
             struct DietaryEnergy: Hashable, Codable {
                 var kcalPerDay: Double?
 //                var points: [DietaryEnergyPoint]
+
+                init(kcalPerDay: Double? = nil) {
+                    self.kcalPerDay = kcalPerDay
+                }
                 
-//                init(points: [DietaryEnergyPoint] = []) {
-//                    var points = points
-//                    points.fillAverages()
-//                    self.points = points
-//                    self.kcalPerDay = points.average
-//                }
-                
-                static func calculateKcalPerDay(for points: [DietaryEnergyPoint] = []) -> Double? {
+                init(points: [DietaryEnergyPoint]) {
                     var points = points
                     points.fillAverages()
-                    return points.average
+                    self.kcalPerDay = points.kcalPerDay
+                }
+                
+                static func calculateKcalPerDay(for points: [DietaryEnergyPoint]) -> Double? {
+                    var points = points
+                    points.fillAverages()
+                    return points.kcalPerDay
                 }
                 
 //                var isEmpty: Bool {

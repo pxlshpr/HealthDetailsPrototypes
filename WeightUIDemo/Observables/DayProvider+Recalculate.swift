@@ -50,7 +50,8 @@ extension DayProvider {
             
             await healthProvider.recalculate(
                 latestHealthDetails: latestHealthDetails,
-                settings: settings
+                settings: settings,
+                days: days
             )
 
             latestHealthDetails.extractLatestHealthDetails(from: day.healthDetails)

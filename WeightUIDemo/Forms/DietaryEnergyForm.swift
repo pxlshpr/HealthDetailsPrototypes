@@ -93,7 +93,7 @@ struct DietaryEnergyForm: View {
     
     func handleChanges() {
         points.fillAverages()
-        kcalsPerDay = points.average
+        kcalsPerDay = points.kcalPerDay
         save()
     }
     
@@ -122,7 +122,8 @@ struct DietaryEnergyForm: View {
     }
     
     var dietaryEnergy: HealthDetails.Maintenance.Adaptive.DietaryEnergy {
-        .init(kcalPerDay: points.average)
+        .init(kcalPerDay: points.kcalPerDay)
+//        .init(points: points)
 //        .init(
 //            points: points
 //        )

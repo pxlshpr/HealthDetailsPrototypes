@@ -7,11 +7,11 @@ struct DietaryEnergyPoint: Hashable, Codable {
     var source: DietaryEnergyPointSource
 }
 
-protocol SumthinSumthin {
+protocol HealthKitFetchable {
     mutating func fetchFromHealthKitIfNeeded(day: Day, using stats: HKStatisticsCollection) async
 }
 
-extension DietaryEnergyPoint: SumthinSumthin {
+extension DietaryEnergyPoint: HealthKitFetchable {
     mutating func fetchFromHealthKitIfNeeded(day: Day, using stats: HKStatisticsCollection) async {
         switch source {
         case .healthKit:
@@ -43,7 +43,7 @@ extension Array where Element == DietaryEnergyPoint {
         return Double(sum) / Double(values.count)
     }
     
-    var average: Double? {
+    var kcalPerDay: Double? {
         let values = self
             .compactMap { $0.kcal }
         guard !values.isEmpty else { return nil }

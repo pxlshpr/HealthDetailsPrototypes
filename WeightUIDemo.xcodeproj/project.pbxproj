@@ -112,6 +112,7 @@
 		E2A888EE2B5920C3004FCAF8 /* HealthDetails+Recalculate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2A888ED2B5920C3004FCAF8 /* HealthDetails+Recalculate.swift */; };
 		E2A888F12B59860D004FCAF8 /* HKQuantitySample.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2A888F02B59860D004FCAF8 /* HKQuantitySample.swift */; };
 		E2A888F32B598EF9004FCAF8 /* Day.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2A888F22B598EF9004FCAF8 /* Day.swift */; };
+		E2A888F52B599D29004FCAF8 /* HealthProvider+Legacy.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2A888F42B599D29004FCAF8 /* HealthProvider+Legacy.swift */; };
 		E2BAE3222B30B601003C5B7F /* WeightUIDemoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2BAE3212B30B601003C5B7F /* WeightUIDemoApp.swift */; };
 		E2BAE3242B30B601003C5B7F /* DemoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2BAE3232B30B601003C5B7F /* DemoView.swift */; };
 		E2BAE3262B30B602003C5B7F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E2BAE3252B30B602003C5B7F /* Assets.xcassets */; };
@@ -246,6 +247,7 @@
 		E2A888ED2B5920C3004FCAF8 /* HealthDetails+Recalculate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HealthDetails+Recalculate.swift"; sourceTree = "<group>"; };
 		E2A888F02B59860D004FCAF8 /* HKQuantitySample.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HKQuantitySample.swift; sourceTree = "<group>"; };
 		E2A888F22B598EF9004FCAF8 /* Day.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Day.swift; sourceTree = "<group>"; };
+		E2A888F42B599D29004FCAF8 /* HealthProvider+Legacy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HealthProvider+Legacy.swift"; sourceTree = "<group>"; };
 		E2BAE31E2B30B601003C5B7F /* WeightUIDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WeightUIDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E2BAE3212B30B601003C5B7F /* WeightUIDemoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightUIDemoApp.swift; sourceTree = "<group>"; };
 		E2BAE3232B30B601003C5B7F /* DemoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoView.swift; sourceTree = "<group>"; };
@@ -303,6 +305,7 @@
 				E2A888E52B591F4F004FCAF8 /* HealthProvider+Recalculate.swift */,
 				E225DCEC2B55D907007D0BCB /* HealthProvider+Save.swift */,
 				E2A5404D2B51D3BF00CF1FE2 /* HealthProvider+Sync.swift */,
+				E2A888F42B599D29004FCAF8 /* HealthProvider+Legacy.swift */,
 			);
 			path = HealthProvider;
 			sourceTree = "<group>";
@@ -779,6 +782,7 @@
 				E2F79F5A2B348C4D00A09BDF /* AgeForm.swift in Sources */,
 				E25AC7F62B4156F90063F6E2 /* MeasurementForm.swift in Sources */,
 				E2F16EB02B31CAA8004AD1BA /* WeightForm.swift in Sources */,
+				E2A888F52B599D29004FCAF8 /* HealthProvider+Legacy.swift in Sources */,
 				E2103AFF2B35B27C00B0C381 /* WeightChangeForm.swift in Sources */,
 				E225DCEB2B55D8EE007D0BCB /* HealthDetails+Helpers.swift in Sources */,
 				E23A25142B39F09100BDAECE /* MeasurementBottomBar.swift in Sources */,
