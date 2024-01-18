@@ -9,13 +9,14 @@ struct DietaryEnergyForm: View {
     let date: Date
     
     @State var kcalsPerDay: Double?
-    @State var points: [DietaryEnergyPoint]
+    @Binding var points: [DietaryEnergyPoint]
 
     let saveHandler: (HealthDetails.Maintenance.Adaptive.DietaryEnergy) -> ()
     
     init(
         date: Date = Date.now,
         dietaryEnergy: HealthDetails.Maintenance.Adaptive.DietaryEnergy,
+        points: Binding<[DietaryEnergyPoint]>,
         healthProvider: HealthProvider,
         isPresented: Binding<Bool> = .constant(true),
         saveHandler: @escaping (HealthDetails.Maintenance.Adaptive.DietaryEnergy) -> ()
@@ -26,7 +27,8 @@ struct DietaryEnergyForm: View {
         _isPresented = isPresented
         
         _kcalsPerDay = State(initialValue: dietaryEnergy.kcalPerDay)
-        _points = State(initialValue: dietaryEnergy.points)
+        _points = points
+//        _points = State(initialValue: dietaryEnergy.points)
     }
 
     var body: some View {
@@ -120,9 +122,10 @@ struct DietaryEnergyForm: View {
     }
     
     var dietaryEnergy: HealthDetails.Maintenance.Adaptive.DietaryEnergy {
-        .init(
-            points: points
-        )
+        .init(kcalPerDay: points.average)
+//        .init(
+//            points: points
+//        )
     }
     
     var explanation: some View {

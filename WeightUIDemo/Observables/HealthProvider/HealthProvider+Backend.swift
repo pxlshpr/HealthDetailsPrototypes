@@ -58,7 +58,8 @@ extension HealthProvider {
                     Self.setBackendDietaryEnergyPoint(point, for: date)
                 }
             }
-            healthDetails.maintenance.adaptive.dietaryEnergy = .init(points: points)
+//            healthDetails.maintenance.adaptive.dietaryEnergy = .init(points: points)
+            healthDetails.maintenance.adaptive.dietaryEnergy = .init(kcalPerDay: points.average)
         }
         
         func fetchWeightChangeData() async {

@@ -67,6 +67,35 @@ extension HealthProvider {
             try await saveHealthKitSample(sample, for: .fatPercentage)
         }
 
+        let startD = CFAbsoluteTimeGetCurrent()
+        let dietaryStartDate = logStartDate.moveDayBy(-(HealthInterval(MaxAdaptiveWeeks, .week).numberOfDays + 1))
+        let dietaryEnergyStats = await HealthStore.dailyStatistics(
+            for: .dietaryEnergyConsumed,
+            from: dietaryStartDate,
+            to: Date.now
+        )
+        print("Getting all DietaryEnergy took: \(CFAbsoluteTimeGetCurrent()-startD)s")
+        print("Fetching or Creating all days for dietary starting from: \(dietaryStartDate.shortDateString)")
+        let startDD = CFAbsoluteTimeGetCurrent()
+        var dietaryDays = await fetchAllDaysFromDocuments(
+            from: dietaryStartDate,
+            createIfNotExisting: true
+        )
+        print("Took: \(CFAbsoluteTimeGetCurrent()-startDD)s")
+        print("Fetching dietary energy point from HealthKit for all those days")
+        let startDD2 = CFAbsoluteTimeGetCurrent()
+        for (index, dietaryDay) in dietaryDays.enumerated() {
+            if dietaryDay.dietaryEnergyPoint == nil {
+                dietaryDays[index].dietaryEnergyPoint = .init(date: dietaryDay.date, source: .healthKit)
+            }
+            await dietaryDays[index].dietaryEnergyPoint?
+                .mock_fetchFromHealthKitIfNeeded(for: dietaryDay, using: dietaryEnergyStats)
+            if let kcal = dietaryDays[index].dietaryEnergyPoint?.kcal {
+                print("  HealthKit dietaryEnergy set for \(dietaryDay.date.shortDateString) \(kcal)")
+            }
+        }
+        print("Took: \(CFAbsoluteTimeGetCurrent()-startDD2)s")
+
         var days = await fetchAllDaysFromDocuments(
             from: daysStartDate,
             createIfNotExisting: false
@@ -92,14 +121,6 @@ extension HealthProvider {
         )
         print("Getting all ActiveEnergy took: \(CFAbsoluteTimeGetCurrent()-startA)s")
 
-        let startD = CFAbsoluteTimeGetCurrent()
-        let dietaryEnergyStats = await HealthStore.dailyStatistics(
-            for: .dietaryEnergyConsumed,
-            from: logStartDate,
-            to: Date.now
-        )
-        print("Getting all DietaryEnergy took: \(CFAbsoluteTimeGetCurrent()-startD)s")
-        
         /// Go through each Day
         for i in days.indices {
 
@@ -148,10 +169,7 @@ extension HealthProvider {
                 )
             }
 
-            /// If the day has DietaryEnergyPointSource, RestingEnergySource or ActivieEnergySource as .healthKit, fetch them and set them
-            await days[i].dietaryEnergyPoint?
-                .mock_fetchFromHealthKitIfNeeded(for: day, using: dietaryEnergyStats)
-            
+            /// If the day has RestingEnergySource or ActivieEnergySource as .healthKit, fetch them and set them
             await days[i].healthDetails.maintenance.estimate.restingEnergy
                 .mock_fetchFromHealthKitIfNeeded(for: date, using: restingEnergyStats)
 

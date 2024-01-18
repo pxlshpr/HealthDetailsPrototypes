@@ -70,13 +70,20 @@ extension HealthProvider {
     func recalculateMaintenance() async {
         await recalculateEstimatedMaintenanace()
 
-        /// [ ] For each DietaryEnergyPoint in adaptive, re-fetch if either log, or AppleHealth
-        /// [ ] Recalculate DietaryEnergy
+        await recalculateDietaryEnergy()
         /// [ ] If WeightChange is .usingPoints, either fetch each weight or fetch the moving average components and calculate the average
         /// [ ] Reclaculate Adaptive
         /// [ ] Recalculate Maintenance based on toggle + fallback thing
         
         healthDetails.maintenance.setKcal()
+    }
+    
+    func recalculateDietaryEnergy() async {
+        /// [ ] If we don't have enough points for DietaryEnergyPoint, create them
+        /// [ ] Choose `.healthKit` as the source for any new ones that we can't fetch a log value for
+        
+        /// [ ] For each DietaryEnergyPoint in adaptive, re-fetch if either log, or AppleHealth
+        /// [ ] Recalculate DietaryEnergy
     }
     
     func recalculateEstimatedMaintenanace() async {
@@ -92,9 +99,6 @@ extension HealthProvider {
     }
     
     func recalculateRestingEnergy() async {
-        if self.healthDetails.date.shortDateString == "18 Jan" {
-            print("We here")
-        }
         let restingEnergy = healthDetails.maintenance.estimate.restingEnergy
         guard 
             restingEnergy.source == .equation, 

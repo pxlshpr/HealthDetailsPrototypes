@@ -2,6 +2,8 @@ import SwiftUI
 import SwiftSugar
 import PrepShared
 
+let MaxAdaptiveWeeks: Int = 2
+
 struct AdaptiveMaintenanceForm: View {
     
     @Bindable var healthProvider: HealthProvider
@@ -18,6 +20,8 @@ struct AdaptiveMaintenanceForm: View {
     
     @State var showingInfo = false
 
+    @State var dietaryEnergyPoints: [DietaryEnergyPoint] = []
+    
     init(
         date: Date = Date.now,
         adaptive: HealthDetails.Maintenance.Adaptive,
@@ -47,12 +51,66 @@ struct AdaptiveMaintenanceForm: View {
         .navigationTitle("Adaptive")
         .navigationBarTitleDisplayMode(.large)
         .toolbar { toolbarContent }
-        .sheet(isPresented: $showingInfo) {
-            AdaptiveMaintenanceInfo(interval: $interval)
-        }
+        .sheet(isPresented: $showingInfo) { AdaptiveMaintenanceInfo(interval: $interval) }
+        .onAppear(perform: appeared)
         .safeAreaInset(edge: .bottom) { bottomValue }
     }
     
+    
+    func appeared() {
+        Task {
+            await fetchPoints()
+        }
+    }
+    
+    func fetchPoints() async {
+        let start = CFAbsoluteTimeGetCurrent()
+        print("Fetching points: 🍏")
+        var points: [DietaryEnergyPoint] = []
+        for index in 0..<interval.numberOfDays {
+            let date = date.moveDayBy(-(index + 1))
+            
+            /// Fetch the point if it exists
+            if let point = await HealthProvider.fetchBackendDietaryEnergyPoint(for: date) 
+            {
+                print("Fetched existing point for: \(date.shortDateString)")
+                points.append(point)
+            } 
+            /// Otherwise check if we have a value in the log for it and create a point for it if needed
+            else if let energyInKcal = await DayProvider.fetchBackendEnergyInKcal(for: date) 
+            {
+                print("No existing point for: \(date.shortDateString) – created one with log value")
+                /// Create a `.log` sourced `DietaryEnergyPoint` for this date
+                let point = DietaryEnergyPoint(
+                    date: date,
+                    kcal: energyInKcal,
+                    source: .log
+                )
+                points.append(point)
+
+                /// Set this in the backend too
+                HealthProvider.setBackendDietaryEnergyPoint(point, for: date)
+            } 
+            /// Finally, as a fallback—create an exclusionary `DietaryEnergyPoint` for this date
+            else
+            {
+                print("No existing point for: \(date.shortDateString) – created one as `.notCounted`")
+                let point = DietaryEnergyPoint(
+                    date: date,
+                    source: .notCounted
+                )
+                points.append(point)
+
+                /// Set this in the backend too
+                HealthProvider.setBackendDietaryEnergyPoint(point, for: date)
+            }
+        }
+        print("🍏 Took \(CFAbsoluteTimeGetCurrent()-start)s")
+        await MainActor.run { [points] in
+            self.dietaryEnergyPoints = points
+        }
+    }
+
     var energyUnit: EnergyUnit { healthProvider.settingsProvider.energyUnit }
     var bodyMassUnit: BodyMassUnit { healthProvider.settingsProvider.bodyMassUnit }
     var energyUnitString: String { healthProvider.settingsProvider.energyUnit.abbreviation }
@@ -131,6 +189,7 @@ struct AdaptiveMaintenanceForm: View {
                 DietaryEnergyForm(
                     date: date,
                     dietaryEnergy: dietaryEnergy,
+                    points: $dietaryEnergyPoints,
                     healthProvider: healthProvider,
                     isPresented: $isPresented,
                     saveHandler: { dietaryEnergy in
@@ -171,7 +230,7 @@ struct AdaptiveMaintenanceForm: View {
                 Stepper(
                     "",
                     value: weeksBinding,
-                    in: 1...2
+                    in: 1...MaxAdaptiveWeeks
                 )
                 .fixedSize()
                 Spacer()
@@ -207,13 +266,16 @@ struct AdaptiveMaintenanceForm: View {
         .init(
             kcal: adaptiveInKcal,
             interval: interval,
-            dietaryEnergy: dietaryEnergy,
+            dietaryEnergyPoints: dietaryEnergyPoints,
             weightChange: weightChange
         )
     }
     
     func handleChanges() {
-        save()
+        Task {
+            await fetchPoints()
+            save()
+        }
     }
     
     var explanation: some View {

@@ -50,4 +50,11 @@ extension Array where Element == DietaryEnergyPoint {
         let sum = values.reduce(0) { $0 + $1 }
         return Double(sum) / Double(values.count)
     }
+    
+    var totalInKcal: Double? {
+        guard !isEmpty else { return nil }
+        return self
+            .compactMap { $0.kcal }
+            .reduce(0) { $0 + $1 }
+    }
 }
