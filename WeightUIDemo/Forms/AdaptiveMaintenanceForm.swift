@@ -69,14 +69,84 @@ struct AdaptiveMaintenanceForm: View {
     }
     
     func fetchPoints() async {
-        //TODO: Run these in parallel
         await fetchDietaryEnergyPoints()
-        await fetchStartingWeightPoint()
-//        await fetchEndingWeightPoint()
+        await fetchWeightPoints()
     }
     
-    func fetchStartingWeightPoint() async {
-        
+    func fetchWeightPoints() async {
+        guard weightChange.type == .usingPoints else {
+            startWeight = nil
+            startWeightMovingAverageWeights = [:]
+            endWeight = nil
+            endWeightMovingAverageWeights = [:]
+            return
+        }
+        let points = WeightChange.Points(date: date, interval: interval)
+        weightChange.points = points
+        await fetchStartWeightPoint(points.start)
+        await fetchEndWeightPoint(points.end)
+
+        await MainActor.run {
+            withAnimation {
+                weightChange.kg = if let end = weightChange.points?.end.kg, let start = weightChange.points?.start.kg {
+                    end - start
+                } else {
+                    nil
+                }
+            }
+        }
+    }
+    
+    func fetchStartWeightPoint(_ point: WeightChangePoint) async {
+        if let movingAverageInterval = point.movingAverageInterval {
+
+            var weights: [Date : HealthDetails.Weight] = [:]
+            for index in 0..<movingAverageInterval.numberOfDays {
+                let date = point.date.startOfDay.moveDayBy(-index)
+                let weight = await HealthProvider.fetchOrCreateBackendWeight(for: date)
+                weights[date] = weight
+            }
+            
+            await MainActor.run { [weights] in
+                startWeight = nil
+                startWeightMovingAverageWeights = weights
+                weightChange.points?.start.kg = weights.values
+                    .compactMap { $0.weightInKg }
+                    .average
+            }
+
+        } else {
+            let weight = await HealthProvider.fetchOrCreateBackendWeight(for: point.date)
+            await MainActor.run {
+                startWeight = weight
+                startWeightMovingAverageWeights = [:]
+                weightChange.points?.start.kg = weight.weightInKg
+            }
+        }
+    }
+    
+    func fetchEndWeightPoint(_ point: WeightChangePoint) async {
+        if let movingAverageInterval = point.movingAverageInterval {
+
+            var weights: [Date : HealthDetails.Weight] = [:]
+            for index in 0..<movingAverageInterval.numberOfDays {
+                let date = point.date.startOfDay.moveDayBy(-index)
+                let weight = await HealthProvider.fetchOrCreateBackendWeight(for: date)
+                weights[date] = weight
+            }
+            
+            endWeight = nil
+            endWeightMovingAverageWeights = weights
+            weightChange.points?.end.kg = weights.values
+                .compactMap { $0.weightInKg }
+                .average
+
+        } else {
+            let weight = await HealthProvider.fetchOrCreateBackendWeight(for: point.date)
+            endWeight = weight
+            endWeightMovingAverageWeights = [:]
+            weightChange.points?.end.kg = weight.weightInKg
+        }
     }
     
     func fetchDietaryEnergyPoints() async {

@@ -176,12 +176,15 @@ extension HealthProvider {
     //MARK: - Save for other days
     
     func saveWeight(_ weight: HealthDetails.Weight, for date: Date) async throws -> Bool {
+        print("💾 Saving weight: \(String(describing: weight.weightInKg)) for \(date.shortDateString)")
         var healthDetails = await fetchOrCreateHealthDetailsFromDocuments(date)
         guard healthDetails.weight != weight else {
+            print("  Weight hasn't changed, so not saving")
             return false
         }
         healthDetails.weight = weight
         try await saveHealthDetailsInDocuments(healthDetails)
+        print("  Weight set and saved 💾")
         return true
     }
     

@@ -24,7 +24,7 @@ struct WeightChangePointForm: View {
     let saveHandler: (WeightChangePoint) -> ()
     
     @State var hasFetchedBackendWeights: Bool = false
-    @State var backendWeights: [Date: HealthDetails.Weight] = [:]
+//    @State var backendWeights: [Date: HealthDetails.Weight] = [:]
     @State var handleChangesTask: Task<Void, Error>? = nil
     @State var hasAppeared = false
 
@@ -72,9 +72,9 @@ struct WeightChangePointForm: View {
     
     func appeared() {
         if !hasAppeared {
-            Task {
-                try await fetchBackendWeights()
-            }
+//            Task {
+//                try await fetchBackendWeights()
+//            }
             hasAppeared = true
         }
     }
@@ -126,21 +126,7 @@ struct WeightChangePointForm: View {
             doubleUnitString: bodyMassUnit.doubleUnitString
         )
     }
-    
-//    func updateMovingAverageWeight(_ point: WeightChangePoint.MovingAverage.Point, with weight: HealthDetails.Weight) {
-//        Task {
-//            guard let index = points.firstIndex(where: { $0.id == point.id }) else {
-//                return
-//            }
-//            backendWeights[point.date] = weight
-//            await MainActor.run {
-//                points[index].weight = weight
-//            }
-//            try await healthProvider.saveWeight(weight, for: point.date)
-//            handleChanges()
-//        }
-//    }
-    
+        
     var weightsSection: some View {
         func link(for date: Date) -> some View {
             func valueText(_ weightInKg: Double) -> some View {
@@ -171,6 +157,18 @@ struct WeightChangePointForm: View {
                 movingAverageWeights[date] ?? .init()
             }
             
+            func saveWeight(_ weight: HealthDetails.Weight) {
+                if useMovingAverage {
+                    movingAverageWeights[date] = weight
+                } else {
+                    self.weight = weight
+                }
+                Task {
+                    _ = try await healthProvider.saveWeight(weight, for: date)
+                    handleChanges()
+                }
+            }
+
             return NavigationLink {
                 WeightForm(
                     date: date,
@@ -178,12 +176,12 @@ struct WeightChangePointForm: View {
                     healthProvider: healthProvider,
                     isPresented: $isPresented,
                     save: { weight in
-//                        updateMovingAverageWeight(point, with: weight)
+                        saveWeight(weight)
                     }
                 )
             } label: {
                 HStack {
-                    Text(point.date.shortDateString)
+                    Text(date.shortDateString)
                     Spacer()
                     if let weightInKg = weight.weightInKg {
                         valueText(weightInKg)
@@ -306,27 +304,29 @@ struct WeightChangePointForm: View {
     }
     
     func handleChanges() {
-        handleChangesTask?.cancel()
-        handleChangesTask = Task {
-            if hasFetchedBackendWeights {
-                await MainActor.run {
-                    setPoints()
-                }
-            } else {
-                try await fetchBackendWeights()
-            }
-            try Task.checkCancellation()
+        setWeightInKg()
+        save()
+//        handleChangesTask?.cancel()
+//        handleChangesTask = Task {
+//            if hasFetchedBackendWeights {
+//                await MainActor.run {
+//                    setPoints()
+//                }
+//            } else {
+//                try await fetchBackendWeights()
+//            }
+//            try Task.checkCancellation()
 
-            await MainActor.run {
-                save()
-            }
-        }
+//            await MainActor.run {
+//                save()
+//            }
+//        }
     }
     
     func datesForPoints(numberOfDays: Int) -> [Date] {
         var dates: [Date] = []
         for i in 0..<numberOfDays {
-            dates.append(point.date.moveDayBy(-i))
+            dates.append(point.date.startOfDay.moveDayBy(-i))
         }
         return dates
     }
@@ -340,39 +340,46 @@ struct WeightChangePointForm: View {
         return datesForPoints(numberOfDays: numberOfDays)
     }
 
-    func fetchBackendWeights() async throws {
-        let dict = try await withThrowingTaskGroup(
-            of: (Date, HealthDetails.Weight?).self,
-            returning: [Date: HealthDetails.Weight].self
-        ) { taskGroup in
-            
-            for date in allPossibleDatesForMovingAverage {
-                taskGroup.addTask {
-                    let weight = await HealthProvider.fetchOrCreateBackendWeight(for: date)
-                    return (date, weight)
-                }
-            }
-
-            var dict = [Date : HealthDetails.Weight]()
-
-            while let tuple = try await taskGroup.next() {
-                dict[tuple.0] = tuple.1
-            }
-            
-            return dict
-        }
-        
-        await MainActor.run { [dict] in
-            withAnimation {
-                backendWeights = dict
-            }
-            setPoints()
-            hasFetchedBackendWeights = true
-        }
-    }
+//    func fetchBackendWeights() async throws {
+//        let dict = try await withThrowingTaskGroup(
+//            of: (Date, HealthDetails.Weight?).self,
+//            returning: [Date: HealthDetails.Weight].self
+//        ) { taskGroup in
+//            
+//            for date in allPossibleDatesForMovingAverage {
+//                taskGroup.addTask {
+//                    let weight = await HealthProvider.fetchOrCreateBackendWeight(for: date)
+//                    return (date, weight)
+//                }
+//            }
+//
+//            var dict = [Date : HealthDetails.Weight]()
+//
+//            while let tuple = try await taskGroup.next() {
+//                dict[tuple.0] = tuple.1
+//            }
+//            
+//            return dict
+//        }
+//        
+//        await MainActor.run { [dict] in
+//            withAnimation {
+//                backendWeights = dict
+//            }
+//            setPoints()
+//            hasFetchedBackendWeights = true
+//        }
+//    }
     
-    func setPoints() {
+    func setWeightInKg() {
         //TODO: Do this
+        withAnimation {
+            self.weightInKg = if point.movingAverageInterval == nil {
+                weight?.weightInKg
+            } else {
+                movingAverageWeights.values.compactMap { $0.weightInKg }.average
+            }
+        }
 //        var points: [WeightChangePoint.MovingAverage.Point] = []
 //        for date in datesForPoints {
 //            points.append(.init(date: date, weight: backendWeights[date] ?? .init()))
