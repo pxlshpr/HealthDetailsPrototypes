@@ -34,13 +34,20 @@ public extension ActivityLevel {
     }
 }
 
+extension ActivityLevel {
+    func calculate(for restingEnergyInKcal: Double) -> Double {
+        let total = scaleFactor * restingEnergyInKcal
+        return total - restingEnergyInKcal
+    }
+}
+
 extension ActivityLevel: Pickable {
     public var pickedTitle: String { name }
     public var menuTitle: String { name }
     public var detail: String? {
         "× \(scaleFactor.cleanWithoutRounding)"
     }
-    public static var `default`: ActivityLevel { .sedentary }
+    public static var `default`: ActivityLevel { .lightlyActive }
 }
 
 extension ActivityLevel {

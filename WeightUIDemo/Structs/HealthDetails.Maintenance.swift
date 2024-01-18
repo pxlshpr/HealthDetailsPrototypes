@@ -73,31 +73,34 @@ extension HealthDetails {
             var restingEnergy = RestingEnergy()
             var activeEnergy = ActiveEnergy()
             
-            struct RestingEnergy: HealthKitFetchable, Hashable, Codable {
+            struct RestingEnergy: Hashable, Codable {
                 var kcal: Double? = nil
                 var source: RestingEnergySource = .equation
-                
-                var equation: RestingEnergyEquation = .katchMcardle
-                var healthKitFetchSettings = HealthKitFetchSettings()
-                
-                var isHealthKitSourced: Bool { source == .healthKit }
-                var energyType: EnergyType { .resting }
+                var equation: RestingEnergyEquation?
+                var healthKitFetchSettings: HealthKitFetchSettings?
             }
-
-            struct ActiveEnergy: HealthKitFetchable, Hashable, Codable {
+            
+            struct ActiveEnergy: Hashable, Codable {
                 var kcal: Double? = nil
                 var source: ActiveEnergySource = .activityLevel
-                
-                var activityLevel: ActivityLevel = .lightlyActive
-                var healthKitFetchSettings = HealthKitFetchSettings()
-
-                var isHealthKitSourced: Bool { source == .healthKit }
-                var energyType: EnergyType { .active }
+                var activityLevel: ActivityLevel?
+                var healthKitFetchSettings: HealthKitFetchSettings?
             }
             
         }
     }
 }
+
+extension HealthDetails.Maintenance.Estimate.RestingEnergy: HealthKitEnergy {
+    var isHealthKitSourced: Bool { source == .healthKit }
+    var energyType: EnergyType { .resting }
+}
+
+extension HealthDetails.Maintenance.Estimate.ActiveEnergy: HealthKitEnergy {
+    var isHealthKitSourced: Bool { source == .healthKit }
+    var energyType: EnergyType { .active }
+}
+
 
 extension HealthDetails.Maintenance.Adaptive {
     static func calculate(
@@ -129,5 +132,24 @@ extension HealthDetails.Maintenance.Adaptive {
 extension HealthDetails.Maintenance {
     func valueString(in unit: EnergyUnit) -> String {
         kcal.valueString(convertedFrom: .kcal, to: unit)
+    }
+}
+
+extension HealthDetails.Maintenance {
+    mutating func setKcal() {
+        kcal = switch type {
+        case .adaptive:
+            if let adaptive = adaptive.kcal {
+                adaptive
+            } else {
+                if useEstimateAsFallback {
+                    estimate.kcal
+                } else {
+                    nil
+                }
+            }
+        case .estimated:
+            estimate.kcal
+        }
     }
 }

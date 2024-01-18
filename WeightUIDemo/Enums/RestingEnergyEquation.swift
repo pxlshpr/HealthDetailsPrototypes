@@ -141,8 +141,7 @@ extension RestingEnergyEquation {
 
 extension HealthProvider {
     func calculateRestingEnergyInKcal(
-        using equation: RestingEnergyEquation,
-        energyUnit: EnergyUnit
+        using equation: RestingEnergyEquation
     ) async -> Double? {
         await equation.calculate(
             ageInYears: ageInYears,
@@ -150,7 +149,7 @@ extension HealthProvider {
             weightInKg: healthDetails.currentOrLatestWeightInKg,
             leanBodyMassInKg: healthDetails.currentOrLatestLeanBodyMassInKg,
             heightInCm: healthDetails.currentOrLatestHeightInCm,
-            energyUnit: energyUnit
+            energyUnit: .kcal
         )
     }
     

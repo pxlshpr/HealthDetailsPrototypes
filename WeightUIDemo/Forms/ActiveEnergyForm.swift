@@ -58,11 +58,12 @@ struct ActiveEnergyForm: View {
         ))
 
         _source = State(initialValue: activeEnergy.source)
-        _activityLevel = State(initialValue: activeEnergy.activityLevel)
-        _intervalType = State(initialValue: activeEnergy.healthKitFetchSettings.intervalType)
-        _interval = State(initialValue: activeEnergy.healthKitFetchSettings.interval)
+        _activityLevel = State(initialValue: activeEnergy.activityLevel ?? .default)
+        let healthKitFetchSettings = activeEnergy.healthKitFetchSettings ?? HealthKitFetchSettings()
+        _intervalType = State(initialValue: healthKitFetchSettings.intervalType)
+        _interval = State(initialValue: healthKitFetchSettings.interval)
    
-        if let correction = activeEnergy.healthKitFetchSettings.correctionValue {
+        if let correction = healthKitFetchSettings.correctionValue {
             _applyCorrection = State(initialValue: true)
             _correctionType = State(initialValue: correction.type)
             
@@ -184,11 +185,8 @@ struct ActiveEnergyForm: View {
     }
 
     var activeEnergy: HealthDetails.Maintenance.Estimate.ActiveEnergy {
-        .init(
-            kcal: activeEnergyInKcal,
-            source: source,
-            activityLevel: activityLevel,
-            healthKitFetchSettings: .init(
+        var healthKitFetchSettings: HealthKitFetchSettings {
+            .init(
                 intervalType: intervalType,
                 interval: interval,
                 correctionValue: CorrectionValue(
@@ -196,6 +194,13 @@ struct ActiveEnergyForm: View {
                     double: correctionValueInKcalIfEnergy
                 )
             )
+        }
+
+        return .init(
+            kcal: activeEnergyInKcal,
+            source: source,
+            activityLevel: source == .activityLevel ? activityLevel : nil,
+            healthKitFetchSettings: source == .healthKit ? healthKitFetchSettings : nil
         )
     }
     
@@ -235,8 +240,9 @@ struct ActiveEnergyForm: View {
         guard let restingEnergyInKcal else { return }
         var dict: [ActivityLevel: Double] = [:]
         for activityLevel in ActivityLevel.allCases {
-            let total = activityLevel.scaleFactor * restingEnergyInKcal
-            let kcal = total - restingEnergyInKcal
+            let kcal = activityLevel.calculate(for: restingEnergyInKcal)
+//            let total = activityLevel.scaleFactor * restingEnergyInKcal
+//            let kcal = total - restingEnergyInKcal
             dict[activityLevel] = kcal
         }
         await MainActor.run { [dict] in

@@ -56,11 +56,13 @@ struct RestingEnergyForm: View {
         ))
 
         _source = State(initialValue: restingEnergy.source)
-        _equation = State(initialValue: restingEnergy.equation)
-        _intervalType = State(initialValue: restingEnergy.healthKitFetchSettings.intervalType)
-        _interval = State(initialValue: restingEnergy.healthKitFetchSettings.interval)
+        _equation = State(initialValue: restingEnergy.equation ?? .default)
+        
+        let healthKitFetchSettings = restingEnergy.healthKitFetchSettings ?? HealthKitFetchSettings()
+        _intervalType = State(initialValue: healthKitFetchSettings.intervalType)
+        _interval = State(initialValue: healthKitFetchSettings.interval)
    
-        if let correction = restingEnergy.healthKitFetchSettings.correctionValue {
+        if let correction = healthKitFetchSettings.correctionValue {
             _applyCorrection = State(initialValue: true)
             _correctionType = State(initialValue: correction.type)
             
@@ -204,11 +206,8 @@ struct RestingEnergyForm: View {
     }
     
     var restingEnergy: HealthDetails.Maintenance.Estimate.RestingEnergy {
-        .init(
-            kcal: restingEnergyInKcal,
-            source: source,
-            equation: equation,
-            healthKitFetchSettings: .init(
+        var healthKitFetchSettings: HealthKitFetchSettings {
+            .init(
                 intervalType: intervalType,
                 interval: interval,
                 correctionValue: CorrectionValue(
@@ -216,6 +215,13 @@ struct RestingEnergyForm: View {
                     double: correctionValueInKcalIfEnergy
                 )
             )
+        }
+        
+        return .init(
+            kcal: restingEnergyInKcal,
+            source: source,
+            equation: source == .equation ? equation : nil ,
+            healthKitFetchSettings: source == .healthKit ? healthKitFetchSettings : nil
         )
     }
     
@@ -254,10 +260,7 @@ struct RestingEnergyForm: View {
     func calculateEquationValues() async {
         var dict: [RestingEnergyEquation: Double] = [:]
         for equation in RestingEnergyEquation.allCases {
-            let kcal = await healthProvider.calculateRestingEnergyInKcal(
-                using: equation,
-                energyUnit: .kcal
-            )
+            let kcal = await healthProvider.calculateRestingEnergyInKcal(using: equation)
             dict[equation] = kcal
         }
         await MainActor.run { [dict] in

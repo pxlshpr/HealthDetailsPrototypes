@@ -1,14 +1,14 @@
 import Foundation
 import HealthKit
 
-protocol HealthKitFetchable {
-    var healthKitFetchSettings: HealthKitFetchSettings { get }
+protocol HealthKitEnergy {
+    var healthKitFetchSettings: HealthKitFetchSettings? { get }
     var isHealthKitSourced: Bool { get }
     var kcal: Double? { get set }
     var energyType: EnergyType { get }
 }
 
-extension HealthKitFetchable {
+extension HealthKitEnergy {
 
     mutating func mock_fetchFromHealthKitIfNeeded(for date: Date, using statisticsCollection: HKStatisticsCollection) async {
         /// Test with maximum possible interval
@@ -21,7 +21,7 @@ extension HealthKitFetchable {
     }
     
     mutating func fetchFromHealthKitIfNeeded(date: Date) async {
-        guard isHealthKitSourced else { return }
+        guard isHealthKitSourced, let healthKitFetchSettings else { return }
         let kcal = switch healthKitFetchSettings.intervalType {
         case .average:
             await HealthStore.energy(

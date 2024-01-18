@@ -5,7 +5,7 @@ extension HealthProvider {
     func recalculate() async {
         let settings = settingsProvider.settings
 
-        /// [ ] Recalculate LBM, fat percentage based on equations and based on each other (simply recreate these if we have a weight for the day, otherwise removing them)
+        /// Recalculate LBM, fat percentage based on equations and based on each other (simply recreate these if we have a weight for the day, otherwise removing them)
         await recalculateLeanBodyMasses()
         await recalculateFatPercentages()
         healthDetails.convertLeanBodyMassesToFatPercentages()
@@ -68,12 +68,48 @@ extension HealthProvider {
     }
 
     func recalculateMaintenance() async {
-        /// [ ] Recalculate resting energy
-        /// [ ] Recalculate active energy
+        await recalculateEstimatedMaintenanace()
+
         /// [ ] For each DietaryEnergyPoint in adaptive, re-fetch if either log, or AppleHealth
         /// [ ] Recalculate DietaryEnergy
         /// [ ] If WeightChange is .usingPoints, either fetch each weight or fetch the moving average components and calculate the average
         /// [ ] Reclaculate Adaptive
         /// [ ] Recalculate Maintenance based on toggle + fallback thing
+        
+        healthDetails.maintenance.setKcal()
+    }
+    
+    func recalculateEstimatedMaintenanace() async {
+        await recalculateRestingEnergy()
+        await recalculateActiveEnergy()
+        let estimate = healthDetails.maintenance.estimate
+        guard let resting = estimate.restingEnergy.kcal,
+              let active = estimate.activeEnergy.kcal else {
+            healthDetails.maintenance.estimate.kcal = nil
+            return
+        }
+        healthDetails.maintenance.estimate.kcal = resting + active
+    }
+    
+    func recalculateRestingEnergy() async {
+        let restingEnergy = healthDetails.maintenance.estimate.restingEnergy
+        guard 
+            restingEnergy.source == .equation, 
+            let equation = restingEnergy.equation
+        else { return }
+        let kcal = await calculateRestingEnergyInKcal(using: equation)
+        healthDetails.maintenance.estimate.restingEnergy.kcal = kcal
+    }
+    
+    func recalculateActiveEnergy() async {
+        let activeEnergy = healthDetails.maintenance.estimate.activeEnergy
+        guard
+            let restingEnergyInKcal = healthDetails.maintenance.estimate.restingEnergy.kcal,
+            activeEnergy.source == .activityLevel,
+            let activityLevel = activeEnergy.activityLevel
+        else { return }
+        
+        let kcal = activityLevel.calculate(for: restingEnergyInKcal)
+        healthDetails.maintenance.estimate.activeEnergy.kcal = kcal
     }
 }
