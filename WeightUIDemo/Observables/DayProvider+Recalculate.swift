@@ -48,10 +48,13 @@ extension DayProvider {
                 settingsProvider: settingsProvider
             )
             
-            latestHealthDetails.setHealthDetails(from: day.healthDetails)
-            healthProvider.healthDetails.setLatestHealthDetails(latestHealthDetails)
-            await healthProvider.recalculate()
+            await healthProvider.something(
+                latestHealthDetails: latestHealthDetails,
+                settings: settings
+            )
 
+            latestHealthDetails.extractLatestHealthDetails(from: day.healthDetails)
+            
             day.healthDetails = healthProvider.healthDetails
 
             if cancellable {
@@ -68,5 +71,25 @@ extension DayProvider {
             }
         }
         print("✅ recalculateAllDays done")
+    }
+}
+
+extension HealthProvider {
+    func something(latestHealthDetails: [HealthDetail: DatedHealthData], settings: Settings) async {
+        /// Do this before we calculate anything so that we have the latest available
+        healthDetails.setLatestHealthDetails(latestHealthDetails)
+
+        /// Recalculate LBM, fat percentage based on equations – before converting to their counterparts (otherwise we're calculating on possibly invalid values)
+        await recalculateLeanBodyMasses()
+        await recalculateFatPercentages()
+
+        /// Convert LBM and fat percentage to their counterparts – before setting latest health details
+        healthDetails.convertLeanBodyMassesToFatPercentages()
+        healthDetails.convertFatPercentagesToLeanBodyMasses()
+
+        /// Now recalculate Daily Values (do this after any lean body mass / fat percentage modifications have been done)
+        healthDetails.recalculateDailyValues(using: settings)
+
+        await recalculateMaintenance()
     }
 }

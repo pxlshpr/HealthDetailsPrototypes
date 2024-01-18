@@ -46,7 +46,7 @@ extension HealthDetails {
 typealias DatedHealthData = (date: Date, data: Any)
 
 extension Dictionary where Key == HealthDetail, Value == DatedHealthData {
-    mutating func setHealthDetails(from healthDetails: HealthDetails) {
+    mutating func extractLatestHealthDetails(from healthDetails: HealthDetails) {
         for healthDetail in HealthDetail.allCases {
             guard healthDetails.hasSet(healthDetail),
                   let data = healthDetails.data(for: healthDetail)

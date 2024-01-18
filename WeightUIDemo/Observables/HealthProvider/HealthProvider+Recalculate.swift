@@ -1,22 +1,7 @@
 import SwiftUI
 
 extension HealthProvider {
-    
-    func recalculate() async {
-        let settings = settingsProvider.settings
 
-        /// Recalculate LBM, fat percentage based on equations and based on each other (simply recreate these if we have a weight for the day, otherwise removing them)
-        await recalculateLeanBodyMasses()
-        await recalculateFatPercentages()
-        healthDetails.convertLeanBodyMassesToFatPercentages()
-        healthDetails.convertFatPercentagesToLeanBodyMasses()
-        
-        /// Now recalculate Daily Values (do this after any lean body mass / fat percentage modifications have been done)
-        healthDetails.recalculateDailyValues(using: settings)
-
-        await recalculateMaintenance()
-    }
-    
     func recalculateLeanBodyMasses() async {
         let initial = healthDetails.leanBodyMass
         for (index, measurement) in initial.measurements.enumerated() {
