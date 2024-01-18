@@ -76,14 +76,14 @@ extension HealthDetails {
             struct RestingEnergy: Hashable, Codable {
                 var kcal: Double? = nil
                 var source: RestingEnergySource = .equation
-                var equation: RestingEnergyEquation?
+                var equation: RestingEnergyEquation? = .katchMcardle
                 var healthKitFetchSettings: HealthKitFetchSettings?
             }
             
             struct ActiveEnergy: Hashable, Codable {
                 var kcal: Double? = nil
                 var source: ActiveEnergySource = .activityLevel
-                var activityLevel: ActivityLevel?
+                var activityLevel: ActivityLevel? = .lightlyActive
                 var healthKitFetchSettings: HealthKitFetchSettings?
             }
             

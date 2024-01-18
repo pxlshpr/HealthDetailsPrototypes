@@ -92,6 +92,9 @@ extension HealthProvider {
     }
     
     func recalculateRestingEnergy() async {
+        if self.healthDetails.date.shortDateString == "18 Jan" {
+            print("We here")
+        }
         let restingEnergy = healthDetails.maintenance.estimate.restingEnergy
         guard 
             restingEnergy.source == .equation, 
