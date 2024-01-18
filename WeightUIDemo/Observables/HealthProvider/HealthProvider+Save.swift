@@ -229,6 +229,25 @@ extension HealthProvider {
 }
 
 extension HealthProvider {
+    func setDailyValueType(for healthDetail: HealthDetail, to type: DailyValueType) {
+        settingsProvider.settings.setDailyValueType(type, for: healthDetail)
+        settingsProvider.save()
+        /// Calling this to only recalculate as no changes were made to save. But we want to make sure there is only one of this occurring at any given time.
+        save()
+    }
+    
+    func setHealthKitSyncing(for healthDetail: HealthDetail, to isOn: Bool) {
+        settingsProvider.settings.setHealthKitSyncing(for: healthDetail, to: isOn)
+        settingsProvider.save()
+        if isOn {
+            Task {
+                try await HealthProvider.syncWithHealthKitAndRecalculateAllDays()
+            }
+        }
+    }
+}
+
+extension HealthProvider {
     static func saveHealthKitSample(
         _ sample: HKQuantitySample,
         for quantityType: QuantityType

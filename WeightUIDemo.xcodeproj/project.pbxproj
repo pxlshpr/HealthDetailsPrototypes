@@ -110,6 +110,8 @@
 		E2A888EA2B591F96004FCAF8 /* DayProvider+Recalculate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2A888E92B591F96004FCAF8 /* DayProvider+Recalculate.swift */; };
 		E2A888EC2B59200F004FCAF8 /* DayProvider+Backend.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2A888EB2B59200F004FCAF8 /* DayProvider+Backend.swift */; };
 		E2A888EE2B5920C3004FCAF8 /* HealthDetails+Recalculate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2A888ED2B5920C3004FCAF8 /* HealthDetails+Recalculate.swift */; };
+		E2A888F12B59860D004FCAF8 /* HKQuantitySample.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2A888F02B59860D004FCAF8 /* HKQuantitySample.swift */; };
+		E2A888F32B598EF9004FCAF8 /* Day.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2A888F22B598EF9004FCAF8 /* Day.swift */; };
 		E2BAE3222B30B601003C5B7F /* WeightUIDemoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2BAE3212B30B601003C5B7F /* WeightUIDemoApp.swift */; };
 		E2BAE3242B30B601003C5B7F /* DemoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2BAE3232B30B601003C5B7F /* DemoView.swift */; };
 		E2BAE3262B30B602003C5B7F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E2BAE3252B30B602003C5B7F /* Assets.xcassets */; };
@@ -242,6 +244,8 @@
 		E2A888E92B591F96004FCAF8 /* DayProvider+Recalculate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DayProvider+Recalculate.swift"; sourceTree = "<group>"; };
 		E2A888EB2B59200F004FCAF8 /* DayProvider+Backend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DayProvider+Backend.swift"; sourceTree = "<group>"; };
 		E2A888ED2B5920C3004FCAF8 /* HealthDetails+Recalculate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HealthDetails+Recalculate.swift"; sourceTree = "<group>"; };
+		E2A888F02B59860D004FCAF8 /* HKQuantitySample.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HKQuantitySample.swift; sourceTree = "<group>"; };
+		E2A888F22B598EF9004FCAF8 /* Day.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Day.swift; sourceTree = "<group>"; };
 		E2BAE31E2B30B601003C5B7F /* WeightUIDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WeightUIDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E2BAE3212B30B601003C5B7F /* WeightUIDemoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightUIDemoApp.swift; sourceTree = "<group>"; };
 		E2BAE3232B30B601003C5B7F /* DemoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoView.swift; sourceTree = "<group>"; };
@@ -388,6 +392,7 @@
 			isa = PBXGroup;
 			children = (
 				E2103B002B35BC0D00B0C381 /* Unsorted Extensions.swift */,
+				E2A888F02B59860D004FCAF8 /* HKQuantitySample.swift */,
 				E2F4184C2B3D8EA0004E2DAB /* ViewModifiers.swift */,
 				E2A6B7F02B551FE600479317 /* Double.swift */,
 			);
@@ -458,17 +463,18 @@
 		E28C693C2B3F0A63005E0096 /* Structs */ = {
 			isa = PBXGroup;
 			children = (
-				E2A6B7F82B55205E00479317 /* HealthDetails */,
-				E28C693D2B3F0A6C005E0096 /* LeanBodyMassData.swift */,
+				E2A888F22B598EF9004FCAF8 /* Day.swift */,
 				E2A6B7E02B551EE500479317 /* DietaryEnergyPoint.swift */,
-				E2A6B7E22B551EFB00479317 /* WeightChangePoint.swift */,
-				E228EA342B46CFEF00A44ADC /* HealthKitQuantityRequest.swift */,
-				E228EA322B46C84500A44ADC /* HealthKitMeasurement.swift */,
-				E228EA282B46C7EA00A44ADC /* HealthKitEnergyRequest.swift */,
-				E28ED80D2B41F5A10076BA50 /* Settings.swift */,
-				E25AC7F32B414BAA0063F6E2 /* Measurement.swift */,
-				E2A6B7E82B551F5200479317 /* WeightChange.swift */,
+				E2A6B7F82B55205E00479317 /* HealthDetails */,
 				E2A6B7EA2B551F8000479317 /* HealthDetails.Maintenance.swift */,
+				E228EA282B46C7EA00A44ADC /* HealthKitEnergyRequest.swift */,
+				E228EA322B46C84500A44ADC /* HealthKitMeasurement.swift */,
+				E228EA342B46CFEF00A44ADC /* HealthKitQuantityRequest.swift */,
+				E28C693D2B3F0A6C005E0096 /* LeanBodyMassData.swift */,
+				E25AC7F32B414BAA0063F6E2 /* Measurement.swift */,
+				E28ED80D2B41F5A10076BA50 /* Settings.swift */,
+				E2A6B7E82B551F5200479317 /* WeightChange.swift */,
+				E2A6B7E22B551EFB00479317 /* WeightChangePoint.swift */,
 			);
 			path = Structs;
 			sourceTree = "<group>";
@@ -653,6 +659,7 @@
 			files = (
 				E28ED80A2B41BD440076BA50 /* DatePickerSheet.swift in Sources */,
 				E2A6B7E52B551F1800479317 /* WeightChangeType.swift in Sources */,
+				E2A888F32B598EF9004FCAF8 /* Day.swift in Sources */,
 				E23A25282B3C4A2F00BDAECE /* AdaptiveDietaryEnergyInfo.swift in Sources */,
 				E2A6B7EF2B551FC000479317 /* HealthKitFetchSettings.swift in Sources */,
 				E23A25202B3B52FC00BDAECE /* MaintenanceInfo.swift in Sources */,
@@ -776,6 +783,7 @@
 				E225DCEB2B55D8EE007D0BCB /* HealthDetails+Helpers.swift in Sources */,
 				E23A25142B39F09100BDAECE /* MeasurementBottomBar.swift in Sources */,
 				E2923FD32B42D7CD0008F010 /* SyncSection.swift in Sources */,
+				E2A888F12B59860D004FCAF8 /* HKQuantitySample.swift in Sources */,
 				E28C69422B3F508E005E0096 /* HealthDetail.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

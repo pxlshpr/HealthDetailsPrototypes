@@ -91,3 +91,9 @@ extension Optional where Wrapped == [HKQuantitySample] {
         self == nil || self?.isEmpty == true
     }
 }
+
+extension Date {
+    var earliestDateForDietaryEnergyPoints: Date {
+        moveDayBy(-(HealthInterval(MaxAdaptiveWeeks, .week).numberOfDays))
+    }
+}

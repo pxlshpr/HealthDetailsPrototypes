@@ -75,18 +75,6 @@ func getDocumentsDirectory() -> URL {
     FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
 }
 
-struct Day: Codable, Hashable {
-    let date: Date
-    var healthDetails: HealthDetails
-    var dietaryEnergyPoint: DietaryEnergyPoint?
-    var energyInKcal: Double?
-    
-    init(date: Date) {
-        self.date = date
-        self.healthDetails = HealthDetails(date: date)
-    }
-}
-
 func fetchOrCreateDayFromDocuments(_ date: Date) async -> Day {
     let filename = "\(date.dateString).json"
     let url = getDocumentsDirectory().appendingPathComponent(filename)

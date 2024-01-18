@@ -85,3 +85,23 @@ extension HealthDetails.Height: HealthKitSyncable {
         set { heightInCm = newValue }
     }
 }
+
+extension HealthKitSyncable {
+    mutating func processHealthKitSamples(
+        _ samples: [HKQuantitySample],
+        for date: Date,
+        toDelete: inout [HKQuantitySample],
+        toExport: inout [any Measurable],
+        settings: Settings
+    ) {
+        let samples = samples
+            .filter { $0.date.startOfDay == date.startOfDay }
+            .removingSamplesWithTheSameValueAtTheSameTime(with: MeasurementType.healthKitUnit)
+
+        removeHealthKitQuantitySamples(notPresentIn: samples.notOurs)
+        addNewHealthKitQuantitySamples(from: samples.notOurs)
+        toDelete.append(contentsOf: samples.ours.notPresent(in: measurements))
+        toExport.append(contentsOf: measurements.nonHealthKitMeasurements.notPresent(in: samples.ours))
+        setDailyValue(for: settings.dailyValueType(for: self.healthDetail))
+    }
+}

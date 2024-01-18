@@ -7,10 +7,19 @@ enum QuantityType {
     case restingEnergy
     case activeEnergy
     case fatPercentage
+    case dietaryEnergy
 }
 
 extension QuantityType {
     
+    static var syncedTypes: [QuantityType] {
+        [.weight, .leanBodyMass, .fatPercentage, .height]
+    }
+
+    static var fetchedTypes: [QuantityType] {
+        [.restingEnergy, .activeEnergy, .dietaryEnergy]
+    }
+
     var healthKitTypeIdentifier: HKQuantityTypeIdentifier {
         switch self {
         case .weight:           .bodyMass
@@ -19,6 +28,7 @@ extension QuantityType {
         case .restingEnergy:    .basalEnergyBurned
         case .activeEnergy:     .activeEnergyBurned
         case .fatPercentage:    .bodyFatPercentage
+        case .dietaryEnergy:    .dietaryEnergyConsumed
         }
     }
     
@@ -42,6 +52,7 @@ extension QuantityType {
         case .restingEnergy:    .kilocalorie()
         case .activeEnergy:     .kilocalorie()
         case .fatPercentage:    .percent()
+        case .dietaryEnergy:    .kilocalorie()
         }
     }
 }
