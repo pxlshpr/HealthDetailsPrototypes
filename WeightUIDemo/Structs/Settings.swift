@@ -34,7 +34,7 @@ extension Settings {
         dailyValueTypes[healthDetail] ?? .last
     }
 
-    func dailyValueType(for quantityType: QuantityType) -> DailyValueType? {
+    func dailyValueType(forQuantityType quantityType: QuantityType) -> DailyValueType? {
         guard let healthDetail = quantityType.healthDetail else { return nil }
         return dailyValueType(for: healthDetail)
     }

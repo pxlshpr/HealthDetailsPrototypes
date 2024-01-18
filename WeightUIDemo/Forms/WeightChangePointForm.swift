@@ -277,7 +277,7 @@ struct WeightChangePointForm: View {
             
             for date in allPossibleDatesForMovingAverage {
                 taskGroup.addTask {
-                    let weight = await healthProvider.fetchOrCreateBackendWeight(for: date)
+                    let weight = await HealthProvider.fetchOrCreateBackendWeight(for: date)
                     return (date, weight)
                 }
             }

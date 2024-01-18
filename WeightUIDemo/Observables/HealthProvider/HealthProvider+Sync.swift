@@ -2,15 +2,13 @@ import SwiftUI
 import HealthKit
 
 extension HealthProvider {
-    //TODO: Consider a rewrite
-    /// [x] First add the source data into HealthKitMeasurement so that we can filter out what's form Apple or us
-    /// [x] Rename to Sync with everything or something
+
     static func syncWithHealthKitAndRecalculateAllDays() async throws {
 
         let start = CFAbsoluteTimeGetCurrent()
         
         /// Fetch all HealthKit weight samples from start of log (since we're not interested in any before that)
-        let logStartDate = await fetchBackendLogStartDate()
+        let logStartDate = await DayProvider.fetchBackendLogStartDate()
         var daysStartDate = logStartDate
         
         let settings = await fetchSettingsFromDocuments()
@@ -151,7 +149,6 @@ extension HealthProvider {
             }
 
             /// If the day has DietaryEnergyPointSource, RestingEnergySource or ActivieEnergySource as .healthKit, fetch them and set them
-            let start = CFAbsoluteTimeGetCurrent()
             await days[i].dietaryEnergyPoint?
                 .mock_fetchFromHealthKitIfNeeded(for: day, using: dietaryEnergyStats)
             
@@ -175,7 +172,12 @@ extension HealthProvider {
             await HealthStore.saveMeasurements(toExport)
         }
 
-        try await recalculateAllDays(days, initialDays: initialDays, start: start)
+        try await DayProvider.recalculateAllDays(
+            days,
+            initialDays: initialDays,
+            start: start,
+            cancellable: false /// Disallow the recalculation to be cancellable as the sync takes some time and any new recalculation
+        )
     }
 }
 
@@ -185,10 +187,6 @@ extension HealthDetails {
         weight.setDailyValue(for: settings.dailyValueType(for: .weight))
         leanBodyMass.setDailyValue(for: settings.dailyValueType(for: .leanBodyMass))
         fatPercentage.setDailyValue(for: settings.dailyValueType(for: .fatPercentage))
-    }
-    
-    mutating func recalculateLeanBodyMass() {
-        
     }
     
     mutating func convertLeanBodyMassesToFatPercentages() {
@@ -255,75 +253,6 @@ extension HealthDetails {
     }
 }
 
-extension HealthDetails.LeanBodyMass {
-    func recalculate() {
-        
-    }
-}
-
-extension HealthProvider {
-    
-    func recalculate() async {
-        let settings = settingsProvider.settings
-
-        /// [ ] Recalculate LBM, fat percentage based on equations and based on each other (simply recreate these if we have a weight for the day, otherwise removing them)
-        healthDetails.convertLeanBodyMassesToFatPercentages()
-        healthDetails.convertFatPercentagesToLeanBodyMasses()
-        
-        healthDetails.recalculateDailyValues(using: settings)
-
-        /// [ ] Recalculate resting energy
-        /// [ ] Recalculate active energy
-        /// [ ] For each DietaryEnergyPoint in adaptive, re-fetch if either log, or AppleHealth
-        /// [ ] Recalculate DietaryEnergy
-        /// [ ] If WeightChange is .usingPoints, either fetch each weight or fetch the moving average components and calculate the average
-        /// [ ] Reclaculate Adaptive
-        /// [ ] Recalculate Maintenance based on toggle + fallback thing
-        /// [ ] TBD: Re-assign RDA values
-        /// [ ] TBD: Recalculate the plans for the Day as HealthDetails have changed
-    }
-    
-    static func recalculateAllDays(
-        _ days: [Day],
-        initialDays: [Day]? = nil,
-        start: CFAbsoluteTime? = nil
-    ) async throws {
-        
-        let start = start ?? CFAbsoluteTimeGetCurrent()
-        let initialDays = initialDays ?? days
-
-        var latestHealthDetails: [HealthDetail: DatedHealthData] = [:]
-        
-        let settings = await fetchSettingsFromDocuments()
-        let settingsProvider = SettingsProvider(settings: settings)
-
-        try Task.checkCancellation()
-
-        for (index, day) in days.enumerated() {
-            
-            var day = day
-            
-            /// [ ] Create a HealthProvider for it (which in turn fetches the latest health details)
-            let healthProvider = HealthProvider(
-                healthDetails: day.healthDetails,
-                settingsProvider: settingsProvider
-            )
-            
-            latestHealthDetails.setHealthDetails(from: day.healthDetails)
-            healthProvider.healthDetails.setLatestHealthDetails(latestHealthDetails)
-            await healthProvider.recalculate()
-
-            day.healthDetails = healthProvider.healthDetails
-
-            try Task.checkCancellation()
-
-            if day != initialDays[index] {
-                await saveDayInDocuments(day)
-            }
-        }
-        print("✅ Recalculation done")
-    }
-}
 
 extension HealthProvider {
     func setDailyValueType(for healthDetail: HealthDetail, to type: DailyValueType) {
@@ -339,21 +268,6 @@ extension HealthProvider {
         if isOn {
 //            resyncAndRecalculateAllDays()
         }
-    }
-    
-    static func recalculateAllDays() async throws {
-        let startDate = await fetchBackendDaysStartDate()
-
-        var start = CFAbsoluteTimeGetCurrent()
-        print("recalculateAllDays() started")
-        let days = await fetchAllDaysFromDocuments(
-            from: startDate,
-            createIfNotExisting: false
-        )
-        print("     fetchAllDaysFromDocuments took: \(CFAbsoluteTimeGetCurrent()-start)s")
-        start = CFAbsoluteTimeGetCurrent()
-        try await recalculateAllDays(days)
-        print("     recalculateAllDays took: \(CFAbsoluteTimeGetCurrent()-start)s")
     }
 }
 

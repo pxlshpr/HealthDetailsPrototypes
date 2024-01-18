@@ -4,16 +4,12 @@ import Foundation
 
 extension HealthProvider {
     
-    //TODO: Make sure that the start date gets the first date that actually has food logged in it so that we don't get a Day we may have created to house something like a legacy height measurement.
-    static func fetchBackendLogStartDate() async -> Date {
-        LogStartDate
+    static func fetchOrCreateBackendWeight(for date: Date) async -> HealthDetails.Weight {
+        let healthDetails = await fetchOrCreateHealthDetailsFromDocuments(date)
+        return healthDetails.weight
     }
-
-    static func fetchBackendDaysStartDate() async -> Date {
-        DaysStartDate
-    }
-
-    func setBackendDietaryEnergyPoint(_ point: DietaryEnergyPoint, for date: Date) {
+    
+    static func setBackendDietaryEnergyPoint(_ point: DietaryEnergyPoint, for date: Date) {
         Task {
             var day = await fetchOrCreateDayFromDocuments(date)
             day.dietaryEnergyPoint = point
@@ -21,19 +17,10 @@ extension HealthProvider {
         }
     }
 
-    func fetchOrCreateBackendWeight(for date: Date) async -> HealthDetails.Weight {
-        let healthDetails = await fetchOrCreateHealthDetailsFromDocuments(date)
-        return healthDetails.weight
-    }
-    func fetchBackendDietaryEnergyPoint(for date: Date) async -> DietaryEnergyPoint? {
+    static func fetchBackendDietaryEnergyPoint(for date: Date) async -> DietaryEnergyPoint? {
         let day = await fetchOrCreateDayFromDocuments(date)
         return day.dietaryEnergyPoint
     }
-    
-    func fetchBackendEnergyInKcal(for date: Date) async -> Double? {
-        let day = await fetchOrCreateDayFromDocuments(date)
-        return day.energyInKcal
-    }    
 }
 
 extension HealthProvider {
@@ -46,9 +33,9 @@ extension HealthProvider {
             for index in 0..<numberOfDays {
                 let date = healthDetails.date.moveDayBy(-(index + 1))
                 
-                if let point = await fetchBackendDietaryEnergyPoint(for: date) {
+                if let point = await Self.fetchBackendDietaryEnergyPoint(for: date) {
                     points.append(point)
-                } else if let energyInKcal = await fetchBackendEnergyInKcal(for: date) {
+                } else if let energyInKcal = await DayProvider.fetchBackendEnergyInKcal(for: date) {
                     /// Create a `.log` sourced `DietaryEnergyPoint` for this date
                     let point = DietaryEnergyPoint(
                         date: date,
@@ -58,7 +45,7 @@ extension HealthProvider {
                     points.append(point)
 
                     /// Set this in the backend
-                    setBackendDietaryEnergyPoint(point, for: date)
+                    Self.setBackendDietaryEnergyPoint(point, for: date)
                 } else {
                     /// Fallback to creating an exclusionary `DietaryEnergyPoint` for this date
                     let point = DietaryEnergyPoint(
@@ -68,7 +55,7 @@ extension HealthProvider {
                     points.append(point)
 
                     /// Set this in the backend
-                    setBackendDietaryEnergyPoint(point, for: date)
+                    Self.setBackendDietaryEnergyPoint(point, for: date)
                 }
             }
             healthDetails.maintenance.adaptive.dietaryEnergy = .init(points: points)
@@ -114,7 +101,7 @@ extension HealthProvider {
                         let date = point.date.moveDayBy(-index)
 
                         /// Try and fetch the `HealthDetails.Weight?` from the backend for the computed date
-                        let weight = await fetchOrCreateBackendWeight(for: date)
+                        let weight = await Self.fetchOrCreateBackendWeight(for: date)
 
                         /// If we get it, then create a `WeightChangePoint.MovingAverage.Point` with it and append it to the array. If we don't have it, then create the point with a nil `weight` and still append it.
                         let point = WeightChangePoint.MovingAverage.Point(date: date, weight: weight)
@@ -131,7 +118,7 @@ extension HealthProvider {
                     point.weight = nil
                 } else {
                     /// If its not using a movingAverage, fetch the `HealthDetails.Weight?` from the backend for the date
-                    let weight = await fetchOrCreateBackendWeight(for: point.date)
+                    let weight = await Self.fetchOrCreateBackendWeight(for: point.date)
                     /// Set this weight's `weightInKg` value as the `kg` value
                     point.kg = weight.weightInKg
                     point.weight = weight

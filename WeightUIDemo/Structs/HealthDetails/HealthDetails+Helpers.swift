@@ -76,3 +76,12 @@ extension HealthDetails {
         }
     }
 }
+
+extension HealthDetails {
+    func containsChangesInSyncableMeasurements(from other: HealthDetails) -> Bool {
+        weight != other.weight
+        || height != other.height
+        || leanBodyMass != other.leanBodyMass
+        || fatPercentage != other.fatPercentage
+    }
+}

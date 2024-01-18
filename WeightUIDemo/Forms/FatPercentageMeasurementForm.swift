@@ -10,7 +10,7 @@ struct FatPercentageMeasurementForm: View {
     
     @State var time = Date.now
     @State var source: LeanBodyMassAndFatPercentageSource = .equation
-    @State var equation: LeanBodyMassAndFatPercentageEquation = .boer
+    @State var equation: LeanBodyMassAndFatPercentageEquation = .cunBAE
     
     @State var percent: Double?
     @State var customInput = DoubleInput(automaticallySubmitsValues: true)
@@ -319,7 +319,8 @@ struct FatPercentageMeasurementForm: View {
         return FatPercentageMeasurement(
             date: time,
             percent: percent,
-            source: source
+            source: source,
+            equation: source == .equation ? equation : nil
         )
     }
     

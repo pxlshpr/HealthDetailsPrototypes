@@ -6,6 +6,8 @@ import HealthKit
     var settingsProvider: SettingsProvider
     
     let isCurrent: Bool
+    
+    var unsavedHealthDetails: HealthDetails
     var healthDetails: HealthDetails
     
     var saveTask: Task<Void, Error>? = nil
@@ -16,6 +18,7 @@ import HealthKit
     ) {
         self.settingsProvider = settingsProvider
         self.isCurrent = healthDetails.date.isToday
+        self.unsavedHealthDetails = healthDetails
         self.healthDetails = healthDetails
     }
 }

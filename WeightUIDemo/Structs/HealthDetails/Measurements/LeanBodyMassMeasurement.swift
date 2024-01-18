@@ -4,8 +4,9 @@ import HealthKit
 struct LeanBodyMassMeasurement: Hashable, Identifiable, Codable {
     let id: UUID
     let source: LeanBodyMassAndFatPercentageSource
+    let equation: LeanBodyMassAndFatPercentageEquation?
     let date: Date
-    let leanBodyMassInKg: Double
+    var leanBodyMassInKg: Double
     let isConvertedFromFatPercentage: Bool
 
     init(
@@ -20,6 +21,7 @@ struct LeanBodyMassMeasurement: Hashable, Identifiable, Codable {
         } else {
             .userEntered
         }
+        self.equation = nil
         self.date = date
         self.leanBodyMassInKg = value
         self.isConvertedFromFatPercentage = false
@@ -30,11 +32,13 @@ struct LeanBodyMassMeasurement: Hashable, Identifiable, Codable {
         date: Date,
         leanBodyMassInKg: Double,
         source: LeanBodyMassAndFatPercentageSource,
+        equation: LeanBodyMassAndFatPercentageEquation? = nil,
         isConvertedFromFatPercentage: Bool = false
     ) {
         self.id = id
         self.source = source
         self.date = date
+        self.equation = equation
         self.leanBodyMassInKg = leanBodyMassInKg
         self.isConvertedFromFatPercentage = isConvertedFromFatPercentage
     }

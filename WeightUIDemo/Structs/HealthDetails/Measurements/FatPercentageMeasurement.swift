@@ -4,10 +4,11 @@ import HealthKit
 struct FatPercentageMeasurement: Hashable, Identifiable, Codable {
     let id: UUID
     let source: LeanBodyMassAndFatPercentageSource
-    let isConvertedFromLeanBodyMass: Bool
+    let equation: LeanBodyMassAndFatPercentageEquation?
     let date: Date
-    let percent: Double
-    
+    var percent: Double
+    let isConvertedFromLeanBodyMass: Bool
+
     init(
         id: UUID,
         date: Date,
@@ -20,6 +21,7 @@ struct FatPercentageMeasurement: Hashable, Identifiable, Codable {
         } else {
             .userEntered
         }
+        self.equation = nil
         self.date = date
         self.percent = value
         self.isConvertedFromLeanBodyMass = false
@@ -30,12 +32,14 @@ struct FatPercentageMeasurement: Hashable, Identifiable, Codable {
         date: Date,
         percent: Double,
         source: LeanBodyMassAndFatPercentageSource,
+        equation: LeanBodyMassAndFatPercentageEquation? = nil,
         isConvertedFromLeanBodyMass: Bool = false
     ) {
         self.id = id
         self.source = source
         self.date = date
         self.percent = percent
+        self.equation = equation
         self.isConvertedFromLeanBodyMass = isConvertedFromLeanBodyMass
     }
 }
@@ -44,6 +48,7 @@ extension FatPercentageMeasurement {
     init(healthKitQuantitySample sample: HKQuantitySample) {
         self.id = UUID()
         self.source = .healthKit(sample.uuid)
+        self.equation = nil
         self.date = sample.date
         self.percent = sample.quantity.doubleValue(for: .percent()) * 100.0 /// Apple Health stores percents in decimal form
         self.isConvertedFromLeanBodyMass = false

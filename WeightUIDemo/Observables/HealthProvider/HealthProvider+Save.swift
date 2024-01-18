@@ -7,25 +7,47 @@ import HealthKit
 /// [ ] Send a notification so that DailyValues set on this day get updated too if dependent on the HealthDetail
 
 extension HealthProvider {
-    func save(forceHealthKitResync: Bool = false) {
+    func save(didModifyPastHealthDetails: Bool = false) {
+        let healthDetailsDidChange = healthDetails != unsavedHealthDetails
+        
+        /// Safeguard against any redundant calls to save to avoid cancelling the ongoing task and redundantly interacting with the backend
+        guard healthDetailsDidChange || didModifyPastHealthDetails else {
+            print("🙅🏽‍♂️ Cancelling redundant save()")
+            return
+        }
+        
         saveTask?.cancel()
         saveTask = Task {
+            /// Set this before we call `refetchHealthDetails()` which would override the `unsavedHealthDetails` making the changes undetectable
+            let shouldResync = didModifyPastHealthDetails || healthDetails.containsChangesInSyncableMeasurements(from: unsavedHealthDetails)
+            
             try await saveHealthDetailsInDocuments(healthDetails)
             try Task.checkCancellation()
 
-            //TODO: Resync
-            /// [ ] If we were passed the forceHealthKitResync flag OR
-            /// [ ] If healthDetails contains any change in measurements that are syncable
-            /// [ ] Then resync instead of just recalculating
-            /// [ ] Now make sure that when saving health details for another date, like with `saveHeight(_:for:)`, we return a flag indicating if changes were made (since its in a different HealthDetails struct), and use that to forceHealthResync in the functions like `updateLatestHeight(_:)` etc
+            /// Do this first to ensure that recalculations happen instantly (since in most cases, the sync is simply to provide the Health App with new measurements)
+            try await DayProvider.recalculateAllDays()
+
+            /// Refetch HealthDetails as recalculations may have modified it further
+            await refetchHealthDetails()
+
+            try Task.checkCancellation()
             
-            /// Recalculate all days
-            try await Self.recalculateAllDays()
-            
-            /// Once complete, re-fetch the health details for this date and set it here in this provider
-            let healthDetails = await fetchOrCreateHealthDetailsFromDocuments(healthDetails.date)
-            self.healthDetails = healthDetails
+            if shouldResync  {
+                /// If any syncable measurements were changed, trigger a sync (and subsequent recalculate)
+                try await Self.syncWithHealthKitAndRecalculateAllDays()
+
+                /// Refetch HealthDetails as the sync and recalculate may have modified it further
+                await refetchHealthDetails()
+            }
         }
+    }
+    
+    func refetchHealthDetails() async {
+        let healthDetails = await fetchOrCreateHealthDetailsFromDocuments(healthDetails.date)
+        self.healthDetails = healthDetails
+
+        /// Also save it as the `unsavedHealthDetails` so that we can check if a resync is needed with the next save
+        self.unsavedHealthDetails = healthDetails
     }
 }
 
@@ -109,8 +131,8 @@ extension HealthProvider {
         healthDetails.replacementsForMissing.datedWeight?.weight = weight
         
         Task {
-            try await saveWeight(weight, for: date)
-            save()
+            let didModify = try await saveWeight(weight, for: date)
+            save(didModifyPastHealthDetails: didModify)
         }
     }
     
@@ -119,8 +141,8 @@ extension HealthProvider {
         healthDetails.replacementsForMissing.datedHeight?.height = height
 
         Task {
-            try await saveHeight(height, for: date)
-            save()
+            let didModify = try await saveHeight(height, for: date)
+            save(didModifyPastHealthDetails: didModify)
         }
     }
     
@@ -137,8 +159,8 @@ extension HealthProvider {
         guard let date = healthDetails.replacementsForMissing.datedFatPercentage?.date else { return }
         healthDetails.replacementsForMissing.datedFatPercentage?.fatPercentage = fatPercentage
         Task {
-            try await saveFatPercentage(fatPercentage, for: date)
-            save()
+            let didModify = try await saveFatPercentage(fatPercentage, for: date)
+            save(didModifyPastHealthDetails: didModify)
         }
     }
     
@@ -146,23 +168,51 @@ extension HealthProvider {
         guard let date = healthDetails.replacementsForMissing.datedLeanBodyMass?.date else { return }
         healthDetails.replacementsForMissing.datedLeanBodyMass?.leanBodyMass = leanBodyMass
         Task {
-            try await saveLeanBodyMass(leanBodyMass, for: date)
-            save()
+            let didModify = try await saveLeanBodyMass(leanBodyMass, for: date)
+            save(didModifyPastHealthDetails: didModify)
         }
     }
     
     //MARK: - Save for other days
     
-    func saveWeight(_ weight: HealthDetails.Weight, for date: Date) async throws {
+    func saveWeight(_ weight: HealthDetails.Weight, for date: Date) async throws -> Bool {
         var healthDetails = await fetchOrCreateHealthDetailsFromDocuments(date)
+        guard healthDetails.weight != weight else {
+            return false
+        }
         healthDetails.weight = weight
         try await saveHealthDetailsInDocuments(healthDetails)
+        return true
     }
     
-    func saveHeight(_ height: HealthDetails.Height, for date: Date) async throws {
+    func saveHeight(_ height: HealthDetails.Height, for date: Date) async throws -> Bool {
         var healthDetails = await fetchOrCreateHealthDetailsFromDocuments(date)
+        guard healthDetails.height != height else {
+            return false
+        }
         healthDetails.height = height
         try await saveHealthDetailsInDocuments(healthDetails)
+        return true
+    }
+    
+    func saveFatPercentage(_ fatPercentage: HealthDetails.FatPercentage, for date: Date) async throws -> Bool {
+        var healthDetails = await fetchOrCreateHealthDetailsFromDocuments(date)
+        guard healthDetails.fatPercentage != fatPercentage else {
+            return false
+        }
+        healthDetails.fatPercentage = fatPercentage
+        try await saveHealthDetailsInDocuments(healthDetails)
+        return true
+    }
+    
+    func saveLeanBodyMass(_ leanBodyMass: HealthDetails.LeanBodyMass, for date: Date) async throws -> Bool {
+        var healthDetails = await fetchOrCreateHealthDetailsFromDocuments(date)
+        guard healthDetails.leanBodyMass != leanBodyMass else {
+            return false
+        }
+        healthDetails.leanBodyMass = leanBodyMass
+        try await saveHealthDetailsInDocuments(healthDetails)
+        return true
     }
     
     func saveMaintenance(_ maintenance: HealthDetails.Maintenance, for date: Date) async throws {
@@ -176,18 +226,6 @@ extension HealthProvider {
         healthDetails.pregnancyStatus = pregnancyStatus
         try await saveHealthDetailsInDocuments(healthDetails)
     }
-    
-    func saveFatPercentage(_ fatPercentage: HealthDetails.FatPercentage, for date: Date) async throws {
-        var healthDetails = await fetchOrCreateHealthDetailsFromDocuments(date)
-        healthDetails.fatPercentage = fatPercentage
-        try await saveHealthDetailsInDocuments(healthDetails)
-    }
-    
-    func saveLeanBodyMass(_ leanBodyMass: HealthDetails.LeanBodyMass, for date: Date) async throws {
-        var healthDetails = await fetchOrCreateHealthDetailsFromDocuments(date)
-        healthDetails.leanBodyMass = leanBodyMass
-        try await saveHealthDetailsInDocuments(healthDetails)
-    }
 }
 
 extension HealthProvider {
@@ -196,7 +234,7 @@ extension HealthProvider {
         for quantityType: QuantityType
     ) async throws {
         let settings = await fetchSettingsFromDocuments()
-        guard let dailyValueType = settings.dailyValueType(for: quantityType) else {
+        guard let dailyValueType = settings.dailyValueType(forQuantityType: quantityType) else {
             return
         }
         var healthDetails = await fetchOrCreateHealthDetailsFromDocuments(sample.date.startOfDay)

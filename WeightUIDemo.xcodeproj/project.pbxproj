@@ -105,6 +105,10 @@
 		E2A6B7FF2B5520C900479317 /* HealthDetails.Weight.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2A6B7FE2B5520C900479317 /* HealthDetails.Weight.swift */; };
 		E2A6B8012B55210600479317 /* HealthDetails.LeanBodyMass.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2A6B8002B55210600479317 /* HealthDetails.LeanBodyMass.swift */; };
 		E2A6B8032B55214C00479317 /* FatPercentageMeasurement.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2A6B8022B55214C00479317 /* FatPercentageMeasurement.swift */; };
+		E2A888E62B591F4F004FCAF8 /* HealthProvider+Recalculate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2A888E52B591F4F004FCAF8 /* HealthProvider+Recalculate.swift */; };
+		E2A888E82B591F7A004FCAF8 /* DayProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2A888E72B591F7A004FCAF8 /* DayProvider.swift */; };
+		E2A888EA2B591F96004FCAF8 /* DayProvider+Recalculate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2A888E92B591F96004FCAF8 /* DayProvider+Recalculate.swift */; };
+		E2A888EC2B59200F004FCAF8 /* DayProvider+Backend.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2A888EB2B59200F004FCAF8 /* DayProvider+Backend.swift */; };
 		E2BAE3222B30B601003C5B7F /* WeightUIDemoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2BAE3212B30B601003C5B7F /* WeightUIDemoApp.swift */; };
 		E2BAE3242B30B601003C5B7F /* DemoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2BAE3232B30B601003C5B7F /* DemoView.swift */; };
 		E2BAE3262B30B602003C5B7F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E2BAE3252B30B602003C5B7F /* Assets.xcassets */; };
@@ -232,6 +236,10 @@
 		E2A6B7FE2B5520C900479317 /* HealthDetails.Weight.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthDetails.Weight.swift; sourceTree = "<group>"; };
 		E2A6B8002B55210600479317 /* HealthDetails.LeanBodyMass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthDetails.LeanBodyMass.swift; sourceTree = "<group>"; };
 		E2A6B8022B55214C00479317 /* FatPercentageMeasurement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FatPercentageMeasurement.swift; sourceTree = "<group>"; };
+		E2A888E52B591F4F004FCAF8 /* HealthProvider+Recalculate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HealthProvider+Recalculate.swift"; sourceTree = "<group>"; };
+		E2A888E72B591F7A004FCAF8 /* DayProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayProvider.swift; sourceTree = "<group>"; };
+		E2A888E92B591F96004FCAF8 /* DayProvider+Recalculate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DayProvider+Recalculate.swift"; sourceTree = "<group>"; };
+		E2A888EB2B59200F004FCAF8 /* DayProvider+Backend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DayProvider+Backend.swift"; sourceTree = "<group>"; };
 		E2BAE31E2B30B601003C5B7F /* WeightUIDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WeightUIDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E2BAE3212B30B601003C5B7F /* WeightUIDemoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightUIDemoApp.swift; sourceTree = "<group>"; };
 		E2BAE3232B30B601003C5B7F /* DemoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoView.swift; sourceTree = "<group>"; };
@@ -288,6 +296,7 @@
 				E225DCE62B55D85A007D0BCB /* HealthProvider+Latest.swift */,
 				E225DCEC2B55D907007D0BCB /* HealthProvider+Save.swift */,
 				E2A5404D2B51D3BF00CF1FE2 /* HealthProvider+Sync.swift */,
+				E2A888E52B591F4F004FCAF8 /* HealthProvider+Recalculate.swift */,
 			);
 			path = HealthProvider;
 			sourceTree = "<group>";
@@ -468,6 +477,9 @@
 				E225DCE12B55D82A007D0BCB /* HealthProvider */,
 				E225DCEE2B55D9DD007D0BCB /* HealthStore */,
 				E28ED80B2B41F57D0076BA50 /* SettingsProvider.swift */,
+				E2A888E72B591F7A004FCAF8 /* DayProvider.swift */,
+				E2A888E92B591F96004FCAF8 /* DayProvider+Recalculate.swift */,
+				E2A888EB2B59200F004FCAF8 /* DayProvider+Backend.swift */,
 			);
 			path = Observables;
 			sourceTree = "<group>";
@@ -661,6 +673,7 @@
 				E2261F7C2B3716B4007B7DDD /* ActiveEnergySource.swift in Sources */,
 				E2103AF32B3592DE00B0C381 /* MaintenanceForm.swift in Sources */,
 				E2923FD52B42D9FE0008F010 /* AppleHealthIcon.swift in Sources */,
+				E2A888EA2B591F96004FCAF8 /* DayProvider+Recalculate.swift in Sources */,
 				E28F37502B53294700378EA2 /* HealthKitSyncable.swift in Sources */,
 				E225DCFB2B574232007D0BCB /* HealthDetails+FatPercentage.swift in Sources */,
 				E2D47E332B3736340095B00C /* RestingEnergyForm.swift in Sources */,
@@ -669,6 +682,7 @@
 				E2A5404E2B51D3BF00CF1FE2 /* HealthProvider+Sync.swift in Sources */,
 				E228EA2F2B46C82A00A44ADC /* HealthStore+Request.swift in Sources */,
 				E225DCED2B55D907007D0BCB /* HealthProvider+Save.swift in Sources */,
+				E2A888EC2B59200F004FCAF8 /* DayProvider+Backend.swift in Sources */,
 				E2BAE3242B30B601003C5B7F /* DemoView.swift in Sources */,
 				E2F16EAE2B31CA8D004AD1BA /* WeightChangePointForm.swift in Sources */,
 				E28F374C2B53066700378EA2 /* DietaryEnergyPointSourceImage.swift in Sources */,
@@ -678,6 +692,7 @@
 				E28ED8152B41FA7A0076BA50 /* SettingsForm.swift in Sources */,
 				E2261F7E2B371873007B7DDD /* ActivityLevel.swift in Sources */,
 				E2A6B7F72B55203C00479317 /* LeanBodyMassMeasurement.swift in Sources */,
+				E2A888E82B591F7A004FCAF8 /* DayProvider.swift in Sources */,
 				E28E4BBF2B3E150500F89FDC /* LeanBodyMassMeasurementForm.swift in Sources */,
 				E28ED8062B41B76E0076BA50 /* HealthProvider.swift in Sources */,
 				E23A25222B3B530E00BDAECE /* InfoSection.swift in Sources */,
@@ -698,6 +713,7 @@
 				E228EA312B46C83A00A44ADC /* QuantityType.swift in Sources */,
 				E23A251A2B3B1FFB00BDAECE /* HealthDetailsForm.swift in Sources */,
 				E2A6B7FF2B5520C900479317 /* HealthDetails.Weight.swift in Sources */,
+				E2A888E62B591F4F004FCAF8 /* HealthProvider+Recalculate.swift in Sources */,
 				E2A6B7FD2B5520A500479317 /* HealthDetails.Height.swift in Sources */,
 				E2103B092B360E9E00B0C381 /* DietaryEnergyPointForm.swift in Sources */,
 				E2D47E372B3738600095B00C /* RestingEnergyEquation.swift in Sources */,
