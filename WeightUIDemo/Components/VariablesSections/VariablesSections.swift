@@ -2,36 +2,34 @@ import SwiftUI
 
 enum Variables {
     case required([HealthDetail], String)
-    case either(HealthDetail, HealthDetail, String)
+    
+    /// Will ask for either Lean Body Mass or Fat Percentage and Weight (to calculate it)
+    case leanBodyMass(String)
     
     var temporal: [HealthDetail] {
         switch self {
-        case .required(let array, _):
-            return array.temporalHealthDetails
-        case .either(let healthDetail, let healthDetail2, _):
-            guard healthDetail.isTemporal, healthDetail2.isTemporal else {
-                return []
-            }
-            return [healthDetail, healthDetail2]
+        case .required(let array, _):   array.temporalHealthDetails
+        case .leanBodyMass:             [.leanBodyMass, .fatPercentage, .weight]
         }
     }
     
     var nonTemporal: [HealthDetail] {
         switch self {
-        case .required(let array, _):
-            return array.nonTemporalHealthDetails
-        case .either(let healthDetail, let healthDetail2, _):
-            guard healthDetail.isNonTemporal, healthDetail2.isNonTemporal else {
-                return []
-            }
-            return [healthDetail, healthDetail2]
+        case .required(let array, _):   array.nonTemporalHealthDetails
+        case .leanBodyMass:             []
         }
     }
-    
     var description: String {
         switch self {
         case .required(_, let string):  string
-        case .either(_, _, let string): string
+        case .leanBodyMass(let string): string
+        }
+    }
+    
+    var isLeanBodyMass: Bool {
+        switch self {
+        case .leanBodyMass: true
+        default:            false
         }
     }
 }
@@ -121,8 +119,25 @@ struct VariablesSections: View {
         }
         
         return Group {
-            ForEach(Array(variables.temporal.enumerated()), id: \.offset) { index, variable in
-                section(for: variable, index: index)
+            ForEach(Array(variables.temporal.enumerated()), id: \.offset) { index, healthDetail in
+                section(for: healthDetail, index: index)
+                
+                /// Special case for `.leanBodyMass` where we insert an "or" after the section for lean body mass
+                if variables.isLeanBodyMass, healthDetail == .leanBodyMass {
+                    Section {
+                        HStack {
+                            VStack {
+                                Divider()
+                            }
+                            Text("or")
+                            VStack {
+                                Divider()
+                            }
+                        }
+                        .listRowBackground(EmptyView())
+                    }
+                    .listSectionSpacing(.compact)
+                }
             }
         }
     }

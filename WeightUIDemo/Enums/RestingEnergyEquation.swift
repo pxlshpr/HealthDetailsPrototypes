@@ -51,7 +51,7 @@ extension RestingEnergyEquation {
     
     var variables: Variables {
         if requiredHealthDetails == [.leanBodyMass] {
-            .either(.leanBodyMass, .fatPercentage, variablesExplanation)
+            .leanBodyMass(variablesExplanation)
         } else {
             .required(requiredHealthDetails, variablesExplanation)
         }
@@ -79,14 +79,19 @@ extension RestingEnergyEquation {
 extension RestingEnergyEquation {
     
     var variablesExplanation: String {
-        let conjunction = requiredHealthDetails.count == 1 ? "is" : "are"
-        return "Your \(variablesDescription) \(conjunction) required for the \(name) equation."
+        switch self {
+        case .katchMcardle, .cunningham:
+            return "Your Lean Body Mass is required for the \(name) equation. You could alternatively provide your Fat Percentage and Weight."
+        default:
+            let conjunction = requiredHealthDetails.count == 1 ? "is" : "are"
+            return "Your \(variablesDescription) \(conjunction) required for the \(name) equation."
+        }
     }
     
     var variablesDescription: String {
         switch self {
         case .katchMcardle, .cunningham:
-            "Lean Body Mass or Fat Percentage"
+            ""
         case .rozaShizgal, .mifflinStJeor, .harrisBenedict:
             "Age, Biological Sex, Weight and Height"
         case .schofield, .henryOxford:
