@@ -72,7 +72,9 @@ struct AdaptiveMaintenanceForm: View {
         await fetchDietaryEnergyPoints()
         await fetchWeightPoints()
         await MainActor.run {
-            self.adaptiveInKcal = adaptive.kcal
+            withAnimation {
+                self.adaptiveInKcal = adaptive.kcal
+            }
         }
     }
     
