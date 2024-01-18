@@ -20,9 +20,18 @@ struct WeightChangeForm: View {
 
     let saveHandler: (WeightChange) -> ()
 
+    @Binding var startWeight: HealthDetails.Weight?
+    @Binding var startWeightMovingAverageWeights: [Date : HealthDetails.Weight]
+    @Binding var endWeight: HealthDetails.Weight?
+    @Binding var endWeightMovingAverageWeights: [Date : HealthDetails.Weight]
+
     init(
         date: Date = Date.now,
         weightChange: WeightChange,
+        startWeight: Binding<HealthDetails.Weight?>,
+        startWeightMovingAverageWeights: Binding<[Date : HealthDetails.Weight]>,
+        endWeight: Binding<HealthDetails.Weight?>,
+        endWeightMovingAverageWeights: Binding<[Date : HealthDetails.Weight]>,
         healthProvider: HealthProvider,
         isPresented: Binding<Bool> = .constant(true),
         saveHandler: @escaping (WeightChange) -> ()
@@ -58,6 +67,11 @@ struct WeightChangeForm: View {
         _intInput = State(initialValue: IntInput(int: int, automaticallySubmitsValues: true))
 
         _isPresented = isPresented
+        
+        _startWeight = startWeight
+        _startWeightMovingAverageWeights = startWeightMovingAverageWeights
+        _endWeight = endWeight
+        _endWeightMovingAverageWeights = endWeightMovingAverageWeights
     }
     
     var body: some View {
@@ -100,18 +114,38 @@ struct WeightChangeForm: View {
             
             @ViewBuilder
             var footer: some View {
-                if let points = point.movingAverage?.points,
-                   let end = points.first, let start = points.last
-                {
-                    Text("This is a moving average of your weight from \(start.date.shortDateString) to \(end.date.shortDateString)")
+                if let interval = point.movingAverageInterval {
+                    Text("This is a moving average of your weight from \(interval.startDate(with: point.date).shortDateString) to \(point.date.shortDateString)")
                 }
             }
             
+            let weight = Binding<HealthDetails.Weight?>(
+                get: { isEndWeight ? endWeight : startWeight },
+                set: { newValue in
+                    switch isEndWeight {
+                    case true:  endWeight = newValue
+                    case false: startWeight = newValue
+                    }
+                }
+            )
+
+            let movingAverageWeights = Binding<[Date : HealthDetails.Weight]>(
+                get: { isEndWeight ? endWeightMovingAverageWeights : startWeightMovingAverageWeights },
+                set: { newValue in
+                    switch isEndWeight {
+                    case true:  endWeightMovingAverageWeights = newValue
+                    case false: startWeightMovingAverageWeights = newValue
+                    }
+                }
+            )
+
             return Section(header: header, footer: footer) {
                 NavigationLink {
                     WeightChangePointForm(
                         date: date,
                         point: point,
+                        weight: weight,
+                        movingAverageWeights: movingAverageWeights,
                         isEndWeight: isEndWeight,
                         healthProvider: healthProvider,
                         isPresented: $isPresented,

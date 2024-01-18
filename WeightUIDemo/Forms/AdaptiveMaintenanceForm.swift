@@ -21,7 +21,12 @@ struct AdaptiveMaintenanceForm: View {
     @State var showingInfo = false
 
     @State var dietaryEnergyPoints: [DietaryEnergyPoint] = []
-    
+
+    @State var startWeight: HealthDetails.Weight? = nil
+    @State var startWeightMovingAverageWeights: [Date : HealthDetails.Weight] = [:]
+    @State var endWeight: HealthDetails.Weight? = nil
+    @State var endWeightMovingAverageWeights: [Date : HealthDetails.Weight] = [:]
+
     init(
         date: Date = Date.now,
         adaptive: HealthDetails.Maintenance.Adaptive,
@@ -64,6 +69,17 @@ struct AdaptiveMaintenanceForm: View {
     }
     
     func fetchPoints() async {
+        //TODO: Run these in parallel
+        await fetchDietaryEnergyPoints()
+        await fetchStartingWeightPoint()
+//        await fetchEndingWeightPoint()
+    }
+    
+    func fetchStartingWeightPoint() async {
+        
+    }
+    
+    func fetchDietaryEnergyPoints() async {
         let start = CFAbsoluteTimeGetCurrent()
         print("Fetching points: 🍏")
         var points: [DietaryEnergyPoint] = []
@@ -71,13 +87,13 @@ struct AdaptiveMaintenanceForm: View {
             let date = date.moveDayBy(-(index + 1))
             
             /// Fetch the point if it exists
-            if let point = await HealthProvider.fetchBackendDietaryEnergyPoint(for: date) 
+            if let point = await HealthProvider.fetchBackendDietaryEnergyPoint(for: date)
             {
                 print("Fetched existing point for: \(date.shortDateString)")
                 points.append(point)
-            } 
+            }
             /// Otherwise check if we have a value in the log for it and create a point for it if needed
-            else if let energyInKcal = await DayProvider.fetchBackendEnergyInKcal(for: date) 
+            else if let energyInKcal = await DayProvider.fetchBackendEnergyInKcal(for: date)
             {
                 print("No existing point for: \(date.shortDateString) – created one with log value")
                 /// Create a `.log` sourced `DietaryEnergyPoint` for this date
@@ -90,7 +106,7 @@ struct AdaptiveMaintenanceForm: View {
 
                 /// Set this in the backend too
                 HealthProvider.setBackendDietaryEnergyPoint(point, for: date)
-            } 
+            }
             /// Finally, as a fallback—create an exclusionary `DietaryEnergyPoint` for this date
             else
             {
@@ -158,6 +174,10 @@ struct AdaptiveMaintenanceForm: View {
                 WeightChangeForm(
                     date: date,
                     weightChange: weightChange,
+                    startWeight: $startWeight,
+                    startWeightMovingAverageWeights: $startWeightMovingAverageWeights,
+                    endWeight: $endWeight,
+                    endWeightMovingAverageWeights: $endWeightMovingAverageWeights,
                     healthProvider: healthProvider,
                     isPresented: $isPresented,
                     saveHandler: { weightChange in
