@@ -19,13 +19,13 @@ extension DayProvider {
     static func recalculateAllDays(
         _ days: [Day],
         initialDays: [Day]? = nil,
-        start: CFAbsoluteTime? = nil,
+        syncStart: CFAbsoluteTime? = nil,
         cancellable: Bool = true
     ) async throws {
         
         print("🤖 recalculateAllDays started")
 
-        let start = start ?? CFAbsoluteTimeGetCurrent()
+        let start = CFAbsoluteTimeGetCurrent()
         let initialDays = initialDays ?? days
 
         var latestHealthDetails: [HealthDetail: DatedHealthData] = [:]
@@ -71,6 +71,9 @@ extension DayProvider {
                 await saveDayInDocuments(day)
             }
         }
-        print("✅ recalculateAllDays done")
+        print("✅ recalculateAllDays done in: \(CFAbsoluteTimeGetCurrent()-start)s")
+        if let syncStart {
+            print("✅ syncWithHealthKitAndRecalculateAllDays done in: \(CFAbsoluteTimeGetCurrent()-syncStart)s")
+        }
     }
 }

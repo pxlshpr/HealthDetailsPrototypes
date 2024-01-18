@@ -95,8 +95,6 @@ extension HealthProvider {
         
         /// [ ] For each DietaryEnergyPoint in adaptive, re-fetch if either log, or AppleHealth
         /// [ ] Recalculate DietaryEnergy
-        print("🍏 recalculateDietaryEnergy() ...")
-        let start = CFAbsoluteTimeGetCurrent()
         
         let interval = healthDetails.maintenance.adaptive.interval
         let date = healthDetails.date
@@ -115,7 +113,6 @@ extension HealthProvider {
             }
         }
         healthDetails.maintenance.adaptive.dietaryEnergy.kcalPerDay = HealthDetails.Maintenance.Adaptive.DietaryEnergy.calculateKcalPerDay(for: points)
-        print("... 🍏 took \(CFAbsoluteTimeGetCurrent()-start)s")
     }
     
     func recalculateEstimatedMaintenanace() async {
