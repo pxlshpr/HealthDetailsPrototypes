@@ -108,6 +108,9 @@ struct AdaptiveMaintenanceForm: View {
         print("🍏 Took \(CFAbsoluteTimeGetCurrent()-start)s")
         await MainActor.run { [points] in
             self.dietaryEnergyPoints = points
+            withAnimation {
+                dietaryEnergy = .init(points: points)
+            }
         }
     }
 
