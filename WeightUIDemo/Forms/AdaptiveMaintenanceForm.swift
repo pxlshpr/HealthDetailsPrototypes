@@ -71,6 +71,9 @@ struct AdaptiveMaintenanceForm: View {
     func fetchPoints() async {
         await fetchDietaryEnergyPoints()
         await fetchWeightPoints()
+        await MainActor.run {
+            self.adaptiveInKcal = adaptive.kcal
+        }
     }
     
     func fetchWeightPoints() async {
@@ -263,7 +266,11 @@ struct AdaptiveMaintenanceForm: View {
                     Text("Weight Change")
                     Spacer()
                     if let weightChangeValue {
-                        Text("\(weightChangeValue.cleanHealth) \(bodyMassUnit.abbreviation)")
+                        HStack(spacing: 5) {
+                            Text("\(weightChangeValue > 0 ? "+" : "")\(weightChangeValue.cleanHealth)")
+                                .contentTransition(.numericText(value: weightChangeValue))
+                            Text(bodyMassUnit.abbreviation)
+                        }
                     } else {
                         Text(NotSetString)
                             .foregroundStyle(.secondary)

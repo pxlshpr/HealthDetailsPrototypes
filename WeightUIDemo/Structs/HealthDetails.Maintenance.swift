@@ -21,40 +21,34 @@ extension HealthDetails {
             init(
                 kcal: Double? = nil,
                 interval: HealthInterval = .init(1, .week),
-//                dietaryEnergy: DietaryEnergy = DietaryEnergy(),
-                dietaryEnergyPoints: [DietaryEnergyPoint] = [],
+                dietaryEnergyPoints points: [DietaryEnergyPoint] = [],
                 weightChange: WeightChange = WeightChange()
             ) {
                 self.kcal = kcal
                 self.interval = interval
-//                self.dietaryEnergy = dietaryEnergy
-//                self.dietaryEnergy = .init(kcalPerDay: dietaryEnergyPoints.kcalPerDay)
-                self.dietaryEnergy = .init(points: dietaryEnergyPoints)
+                self.dietaryEnergy = .init(points: points)
                 self.weightChange = weightChange
-                
+
+                self.kcal = self.calculate()
+            }
+//
 //                let result = Self.calculate(
 //                    weightChange: weightChange,
-//                    dietaryEnergy: dietaryEnergy,
+//                    dietaryEnergyPoints: dietaryEnergyPoints,
 //                    interval: interval
 //                )
-                let result = Self.calculate(
-                    weightChange: weightChange,
-                    dietaryEnergyPoints: dietaryEnergyPoints,
-                    interval: interval
-                )
-                switch result {
-                case .success(let value):
-                    self.kcal = value
-                    self.error = nil
-                case .failure(let error):
-                    self.kcal = nil
-                    self.error = error
-                }
-            }
+//                switch result {
+//                case .success(let value):
+//                    self.kcal = value
+//                    self.error = nil
+//                case .failure(let error):
+//                    self.kcal = nil
+//                    self.error = error
+//                }
+//            }
             
             struct DietaryEnergy: Hashable, Codable {
                 var kcalPerDay: Double?
-//                var points: [DietaryEnergyPoint]
 
                 init(kcalPerDay: Double? = nil) {
                     self.kcalPerDay = kcalPerDay
@@ -71,17 +65,6 @@ extension HealthDetails {
                     points.fillAverages()
                     return points.kcalPerDay
                 }
-                
-//                var isEmpty: Bool {
-//                    !points.contains(where: { $0.kcal != nil })
-//                }
-                
-//                var totalInKcal: Double? {
-//                    guard !isEmpty else { return nil }
-//                    return points
-//                        .compactMap { $0.kcal }
-//                        .reduce(0) { $0 + $1 }
-//                }
             }
         }
         
@@ -145,29 +128,38 @@ extension HealthDetails.Maintenance.Adaptive {
 //        return .success(max(value, 0))
 //    }
     
-    static func calculate(
-        weightChange: WeightChange,
-        dietaryEnergyPoints: [DietaryEnergyPoint],
-        interval: HealthInterval
-    ) -> Result<Double, MaintenanceCalculationError> {
-        
+//    static func calculate(
+//        weightChange: WeightChange,
+//        dietaryEnergyPoints: [DietaryEnergyPoint],
+//        interval: HealthInterval
+//    ) -> Result<Double, MaintenanceCalculationError> {
+//        
+//        guard let weightDeltaInKcal = weightChange.energyEquivalentInKcal,
+//              let dietaryEnergyTotal = dietaryEnergyPoints.totalInKcal
+//        else {
+//            return switch (weightChange.isEmpty, dietaryEnergyPoints.isEmpty) {
+//            case (true, false): .failure(.noWeightData)
+//            case (false, true): .failure(.noNutritionData)
+//            default:            .failure(.noWeightOrNutritionData)
+//            }
+//        }
+//        
+//        let value = (dietaryEnergyTotal - weightDeltaInKcal) / Double(interval.numberOfDays)
+//        
+//        guard value > 0 else {
+//            return .failure(.weightChangeExceedsNutrition)
+//        }
+//        
+//        return .success(max(value, 0))
+//    }
+    
+    func calculate() -> Double? {
         guard let weightDeltaInKcal = weightChange.energyEquivalentInKcal,
-              let dietaryEnergyTotal = dietaryEnergyPoints.totalInKcal
-        else {
-            return switch (weightChange.isEmpty, dietaryEnergyPoints.isEmpty) {
-            case (true, false): .failure(.noWeightData)
-            case (false, true): .failure(.noNutritionData)
-            default:            .failure(.noWeightOrNutritionData)
-            }
+              let kcalPerDay = dietaryEnergy.kcalPerDay else {
+            return nil
         }
-        
-        let value = (dietaryEnergyTotal - weightDeltaInKcal) / Double(interval.numberOfDays)
-        
-        guard value > 0 else {
-            return .failure(.weightChangeExceedsNutrition)
-        }
-        
-        return .success(max(value, 0))
+        let totalKcal = kcalPerDay * Double(interval.numberOfDays)
+        return (totalKcal - weightDeltaInKcal) / Double(interval.numberOfDays)
     }
 }
 
@@ -179,6 +171,7 @@ extension HealthDetails.Maintenance {
 
 extension HealthDetails.Maintenance.Adaptive {
     mutating func setKcal() {
+        kcal = calculate()
     }
 }
 extension HealthDetails.Maintenance.Estimate {

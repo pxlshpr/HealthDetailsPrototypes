@@ -79,12 +79,7 @@ extension HealthProvider {
 
     func recalculateMaintenance(_ days: [Date : Day]) async {
         await recalculateEstimatedMaintenanace()
-
         await recalculateAdaptiveMaintenance(days)
-        /// [ ] If WeightChange is .usingPoints, either fetch each weight or fetch the moving average components and calculate the average
-        /// [ ] Reclaculate Adaptive
-        /// [ ] Recalculate Maintenance based on toggle + fallback thing
-        
         healthDetails.maintenance.setKcal()
     }
     func recalculateAdaptiveMaintenance(_ days: [Date : Day]) async {
@@ -94,16 +89,51 @@ extension HealthProvider {
     }
 
     func recalculateWeightChange(_ days: [Date : Day]) async {
+        let weightChange = healthDetails.maintenance.adaptive.weightChange
+        guard weightChange.type == .usingPoints else {
+            healthDetails.maintenance.adaptive.weightChange.points = nil
+            return
+        }
         
+        var points = weightChange.points ?? .init(date: healthDetails.date, interval: healthDetails.maintenance.adaptive.interval)
+        
+        func calculatePoint(_ point: inout WeightChangePoint) async {
+            
+            func movingAverageWeight(over interval: HealthInterval) -> Double? {
+                var weights: [Date : HealthDetails.Weight] = [:]
+                for index in 0..<interval.numberOfDays {
+                    let date = point.date.startOfDay.moveDayBy(-index)
+//                    let weight = await HealthProvider.fetchOrCreateBackendWeight(for: date)
+                    let weight = days[date]?.healthDetails.weight ?? .init()
+                    weights[date] = weight
+                }
+                
+                return weights.values
+                    .compactMap { $0.weightInKg }
+                    .average
+            }
+            
+            point.kg = if let interval = point.movingAverageInterval {
+                movingAverageWeight(over: interval)
+            } else {
+                (days[point.date]?.healthDetails.weight ?? .init())
+                    .weightInKg
+            }
+        }
+        
+        await calculatePoint(&points.start)
+        await calculatePoint(&points.end)
+        
+        let kg: Double? = if let end = points.end.kg, let start = points.start.kg {
+            end - start
+        } else {
+            nil
+        }
+        
+        healthDetails.maintenance.adaptive.weightChange.kg = kg
     }
     
     func recalculateDietaryEnergy(_ days: [Date : Day]) async {
-        /// [ ] If we don't have enough points for DietaryEnergyPoint, create them
-        /// [ ] Choose `.healthKit` as the source for any new ones that we can't fetch a log value for
-        
-        
-        /// [ ] For each DietaryEnergyPoint in adaptive, re-fetch if either log, or AppleHealth
-        /// [ ] Recalculate DietaryEnergy
         
         let interval = healthDetails.maintenance.adaptive.interval
         let date = healthDetails.date.startOfDay
@@ -114,16 +144,11 @@ extension HealthProvider {
             
             /// Fetch the point if it exists
             if let point = days[date]?.dietaryEnergyPoint {
-//            if let point = await HealthProvider.fetchBackendDietaryEnergyPoint(for: date) {
-//                print("Fetched existing point for: \(date.shortDateString)")
                 points.append(point)
             } else {
                 let point = DietaryEnergyPoint(date: date, source: .notCounted)
                 points.append(point)
             }
-        }
-        if date.shortDateString == "1 Jan 2022" {
-            print("We here")
         }
         healthDetails.maintenance.adaptive.dietaryEnergy.kcalPerDay = HealthDetails.Maintenance.Adaptive.DietaryEnergy.calculateKcalPerDay(for: points)
     }

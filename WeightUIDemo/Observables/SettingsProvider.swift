@@ -147,7 +147,7 @@ extension SettingsProvider {
     }
     
     func bodyMassString(_ kg: Double) -> String {
-        "\(BodyMassUnit.kg.convert(kg, to: bodyMassUnit).formattedEnergy) \(bodyMassUnit.abbreviation)"
+        "\(BodyMassUnit.kg.convert(kg, to: bodyMassUnit).cleanHealth) \(bodyMassUnit.abbreviation)"
     }
 }
 
