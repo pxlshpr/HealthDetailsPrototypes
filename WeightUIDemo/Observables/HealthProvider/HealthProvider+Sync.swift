@@ -68,7 +68,7 @@ extension HealthProvider {
         }
 
         let startD = CFAbsoluteTimeGetCurrent()
-        let dietaryStartDate = logStartDate.moveDayBy(-(HealthInterval(MaxAdaptiveWeeks, .week).numberOfDays + 1))
+        let dietaryStartDate = logStartDate.moveDayBy(-(HealthInterval(MaxAdaptiveWeeks, .week).numberOfDays))
         let dietaryEnergyStats = await HealthStore.dailyStatistics(
             for: .dietaryEnergyConsumed,
             from: dietaryStartDate,
@@ -79,19 +79,39 @@ extension HealthProvider {
         let startDD = CFAbsoluteTimeGetCurrent()
         var dietaryDays = await fetchAllDaysFromDocuments(
             from: dietaryStartDate,
+            to: logStartDate.moveDayBy(-1),
             createIfNotExisting: true
         )
         print("Took: \(CFAbsoluteTimeGetCurrent()-startDD)s")
         print("Fetching dietary energy point from HealthKit for all those days")
         let startDD2 = CFAbsoluteTimeGetCurrent()
         for (index, dietaryDay) in dietaryDays.enumerated() {
+            /// If the point doesn't exist, create it
             if dietaryDay.dietaryEnergyPoint == nil {
-                dietaryDays[index].dietaryEnergyPoint = .init(date: dietaryDay.date, source: .healthKit)
+                if let kcal = await HealthStore.dietaryEnergyTotalInKcal(
+                    for: dietaryDay.date,
+                    using: dietaryEnergyStats
+                ) {
+                    dietaryDays[index].dietaryEnergyPoint = .init(
+                        date: dietaryDay.date,
+                        kcal: kcal,
+                        source: .healthKit
+                    )
+                } else {
+                    dietaryDays[index].dietaryEnergyPoint = .init(
+                        date: dietaryDay.date,
+                        source: .notCounted
+                    )
+                }
+            } else {
+                await dietaryDays[index].dietaryEnergyPoint?.fetchFromHealthKitIfNeeded(
+                    day: dietaryDay,
+                    using: dietaryEnergyStats
+                )
             }
-            await dietaryDays[index].dietaryEnergyPoint?
-                .mock_fetchFromHealthKitIfNeeded(for: dietaryDay, using: dietaryEnergyStats)
-            if let kcal = dietaryDays[index].dietaryEnergyPoint?.kcal {
-                print("  HealthKit dietaryEnergy set for \(dietaryDay.date.shortDateString) \(kcal)")
+            
+            if dietaryDays[index] != dietaryDay {
+                await saveDayInDocuments(dietaryDays[index])
             }
         }
         print("Took: \(CFAbsoluteTimeGetCurrent()-startDD2)s")

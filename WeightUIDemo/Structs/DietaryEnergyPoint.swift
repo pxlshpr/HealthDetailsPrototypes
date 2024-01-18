@@ -8,14 +8,11 @@ struct DietaryEnergyPoint: Hashable, Codable {
 }
 
 extension DietaryEnergyPoint {
-    mutating func mock_fetchFromHealthKitIfNeeded(for day: Day, using statisticsCollection: HKStatisticsCollection) async {
-        kcal = await HealthStore.dietaryEnergyTotalInKcal(for: day.date, using: statisticsCollection)
-    }
     
-    mutating func fetchFromHealthKitIfNeeded(day: Day) async {
+    mutating func fetchFromHealthKitIfNeeded(day: Day, using statisticsCollection: HKStatisticsCollection) async {
         switch source {
         case .healthKit:
-            kcal = await HealthStore.dietaryEnergyTotalInKcal(for: day.date)
+            kcal = await HealthStore.dietaryEnergyTotalInKcal(for: day.date, using: statisticsCollection)
         case .log:
             kcal = day.energyInKcal
         default:

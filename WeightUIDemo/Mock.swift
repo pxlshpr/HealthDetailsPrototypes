@@ -103,13 +103,14 @@ func fetchOrCreateDayFromDocuments(_ date: Date) async -> Day {
 
 func fetchAllDaysFromDocuments(
     from startDate: Date,
+    to endDate: Date = Date.now,
     createIfNotExisting: Bool
 ) async -> [Day] {
     //TODO: In production:
     /// [ ] Optimizing by not fetching the meals etc, only fetching fields we need
     var days: [Day] = []
-    for i in (0...Date.now.numberOfDaysFrom(startDate)).reversed() {
-        let date = Date.now.moveDayBy(-i)
+    for i in (0...endDate.numberOfDaysFrom(startDate)).reversed() {
+        let date = endDate.moveDayBy(-i)
         let day = if createIfNotExisting {
             await fetchOrCreateDayFromDocuments(date)
         } else {
