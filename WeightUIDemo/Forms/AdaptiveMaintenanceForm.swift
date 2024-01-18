@@ -205,7 +205,7 @@ struct AdaptiveMaintenanceForm: View {
                     Text("Dietary Energy")
                     Spacer()
                     if let dailyAverageValue {
-                        HStack(spacing: 3) {
+                        HStack(spacing: 5) {
                             Text("\(dailyAverageValue.formattedEnergy)")
                                 .contentTransition(.numericText(value: dailyAverageValue))
                             Text("\(energyUnitString) / day")
@@ -233,7 +233,7 @@ struct AdaptiveMaintenanceForm: View {
         let weeks = weeksBinding.wrappedValue
 
         return Section("Use Data from past") {
-            HStack(spacing: 3) {
+            HStack(spacing: 5) {
                 Stepper(
                     "",
                     value: weeksBinding,
