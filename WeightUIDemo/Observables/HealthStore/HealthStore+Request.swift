@@ -37,7 +37,7 @@ extension HealthStore {
 extension HealthStore {
     
     static func samples(
-        for quantityType: QuantityType,
+        for quantityType: HealthKitType,
         from startDate: Date? = nil,
         to endDate: Date? = nil
     ) async -> [HKQuantitySample] {
@@ -55,7 +55,7 @@ extension HealthStore {
     }
     
     static func mostRecentSample(
-        for quantityType: QuantityType,
+        for quantityType: HealthKitType,
         excluding uuidsToExclude: [UUID]
     ) async -> HKQuantitySample? {
         do {

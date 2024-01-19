@@ -4,13 +4,13 @@ import PrepShared
 public enum ActiveEnergySource: Int, Codable, CaseIterable {
     case healthKit = 1
     case activityLevel
-    case userEntered
+    case manual
     
     var name: String {
         switch self {
         case .healthKit:        "Apple Health"
         case .activityLevel:    "Activity Level"
-        case .userEntered:      "Custom"
+        case .manual:      "Custom"
         }
     }
 }
@@ -21,7 +21,7 @@ extension ActiveEnergySource: Pickable {
         switch self {
         case .healthKit:        "Sync with Apple Health"
         case .activityLevel:    "Activity Level Multiplier"
-        case .userEntered:      "Custom"
+        case .manual:      "Custom"
         }
     }
     
@@ -31,7 +31,7 @@ extension ActiveEnergySource: Pickable {
         switch self {
         case .healthKit:        "heart.fill"
         case .activityLevel:    "dial.medium.fill"
-        case .userEntered:      ""
+        case .manual:      ""
         }
     }
     

@@ -67,7 +67,7 @@ extension HealthProvider {
 //                get { healthDetails.maintenance.adaptive.weightChange }
 //                set { healthDetails.maintenance.adaptive.weightChange = newValue }
 //            }
-//            guard weightChange.type == .usingPoints else { return }
+//            guard weightChange.type == .points else { return }
 //            
 //            /// As a sanity check, if `points` is nil, set it
 //            let emptyPoints = WeightChange.Points(

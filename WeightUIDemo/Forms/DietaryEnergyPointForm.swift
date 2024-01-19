@@ -15,7 +15,7 @@ struct DietaryEnergyPointForm: View {
     @State var source: DietaryEnergyPointSource
     @State var energyInKcal: Double?
 
-    @State var customInput: DoubleInput
+    @State var manualInput: DoubleInput
 
     @State var showingInfo = false
     @State var hasFocusedCustomField: Bool = true
@@ -49,7 +49,7 @@ struct DietaryEnergyPointForm: View {
         let kcal = point.source == .notCounted ? nil : point.kcal
         _source = State(initialValue: point.source)
         _energyInKcal = State(initialValue: kcal)
-        _customInput = State(initialValue: DoubleInput(
+        _manualInput = State(initialValue: DoubleInput(
             double: kcal.convertEnergy(
                 from: .kcal,
                 to: healthProvider.settingsProvider.energyUnit
@@ -62,8 +62,8 @@ struct DietaryEnergyPointForm: View {
         Form {
             dateSection
             sourcePicker
-            if source == .userEntered {
-                customSection
+            if source == .manual {
+                manualSection
             }
             missingLogDataSection
             missingHealthKitDataSection
@@ -163,7 +163,7 @@ struct DietaryEnergyPointForm: View {
     
     func setCustomInput() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            customInput.setDouble(
+            manualInput.setDouble(
                 energyInKcal?
                     .convertEnergy(from: .kcal, to: energyUnit)
                     .rounded(.towardZero)
@@ -193,7 +193,7 @@ struct DietaryEnergyPointForm: View {
     }
 
     func setSource(to newValue: DietaryEnergyPointSource) {
-        if newValue == .userEntered {
+        if newValue == .manual {
             hasFocusedCustomField = false
         }
         withAnimation {
@@ -232,7 +232,7 @@ struct DietaryEnergyPointForm: View {
                 } else {
                     source.name
                 }
-            case .fasted, .notCounted, .userEntered:
+            case .fasted, .notCounted, .manual:
                 source.name
             }
         }
@@ -343,7 +343,7 @@ struct DietaryEnergyPointForm: View {
                     }
                 }
                 
-            case .notCounted, .userEntered:
+            case .notCounted, .manual:
                 break
             }
 
@@ -353,11 +353,11 @@ struct DietaryEnergyPointForm: View {
         }
     }
     
-    var customSection: some View {
+    var manualSection: some View {
         func handleCustomValue() {
-            guard source == .userEntered else { return }
+            guard source == .manual else { return }
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                let kcal = customInput.double?.convertEnergy(from: energyUnit, to: .kcal)
+                let kcal = manualInput.double?.convertEnergy(from: energyUnit, to: .kcal)
                 withAnimation {
                     energyInKcal = kcal
                 }
@@ -369,7 +369,7 @@ struct DietaryEnergyPointForm: View {
         
         return SingleUnitMeasurementTextField(
             title: healthProvider.settingsProvider.unitString(for: .energy),
-            doubleInput: $customInput,
+            doubleInput: $manualInput,
             hasFocused: $hasFocusedCustomField,
             delayFocus: true,
             footer: nil,

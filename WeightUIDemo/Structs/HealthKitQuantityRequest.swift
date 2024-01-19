@@ -2,12 +2,12 @@ import HealthKit
 import PrepShared
 
 struct HealthKitQuantityRequest {
-    let quantityType: QuantityType
+    let quantityType: HealthKitType
     let healthKitUnit: HKUnit
 //    let date: Date
     
     init(
-        _ type: QuantityType,
+        _ type: HealthKitType,
         _ unit: HKUnit
 //        _ date: Date
     ) {

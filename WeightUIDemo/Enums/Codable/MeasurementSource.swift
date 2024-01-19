@@ -3,10 +3,10 @@ import Foundation
 enum MeasurementSource: Int, Codable, Hashable {
     case healthKit = 1
     case equation
-    case userEntered
+    case manual
     
     static var formCases: [MeasurementSource] {
-        [ .userEntered, .equation]
+        [ .manual, .equation]
     }
     
     var isFromHealthKit: Bool {
@@ -20,7 +20,7 @@ enum MeasurementSource: Int, Codable, Hashable {
         switch self {
         case .healthKit:        "Apple Health"
         case .equation:         "Equation"
-        case .userEntered:      "Manual"
+        case .manual:      "Manual"
         }
     }
     
@@ -39,7 +39,7 @@ enum MeasurementSource: Int, Codable, Hashable {
             ""
         case .equation:
             "function"
-        case .userEntered:
+        case .manual:
             "pencil"
         }
     }

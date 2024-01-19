@@ -13,7 +13,7 @@ struct FatPercentageMeasurementForm: View {
     @State var equation: LeanBodyMassAndFatPercentageEquation = .cunBAE
     
     @State var percent: Double?
-    @State var customInput = DoubleInput(automaticallySubmitsValues: true)
+    @State var manualInput = DoubleInput(automaticallySubmitsValues: true)
     
     @State var isDirty: Bool = false
     @State var dismissDisabled: Bool = false
@@ -92,7 +92,7 @@ struct FatPercentageMeasurementForm: View {
     
     func setCustomInput() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            customInput.setDouble(
+            manualInput.setDouble(
                 percent?.rounded(toPlaces: 1)
             )
         }
@@ -119,8 +119,8 @@ struct FatPercentageMeasurementForm: View {
             case .equation:
                 equationSection
                 equationVariablesSections
-            case .userEntered:
-                customSection
+            case .manual:
+                manualSection
             default:
                 EmptyView()
             }
@@ -158,12 +158,12 @@ struct FatPercentageMeasurementForm: View {
         }
     }
 
-    var customSection: some View {
+    var manualSection: some View {
         func handleCustomValue() {
-            guard source == .userEntered else { return }
+            guard source == .manual else { return }
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
                 withAnimation {
-                    self.percent = customInput.double
+                    self.percent = manualInput.double
                 }
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                     handleChanges()
@@ -173,7 +173,7 @@ struct FatPercentageMeasurementForm: View {
 
         return SingleUnitMeasurementTextField(
             title: "%",
-            doubleInput: $customInput,
+            doubleInput: $manualInput,
             hasFocused: $hasFocusedCustom,
             delayFocus: true,
             handleChanges: handleCustomValue
@@ -256,7 +256,7 @@ struct FatPercentageMeasurementForm: View {
     
     func handleNewSource(_ newValue: MeasurementSource) {
         /// Reset these immediately to make sure the text field gets focused
-        if newValue == .userEntered {
+        if newValue == .manual {
             hasFocusedCustom = false
         }
         
@@ -284,7 +284,7 @@ struct FatPercentageMeasurementForm: View {
         var description: String {
             switch source {
             case .equation:     "Use an equation to calculate your Fat Percentage."
-            case .userEntered:  "Enter your Fat Percentage manually."
+            case .manual:  "Enter your Fat Percentage manually."
             default:            ""
             }
         }

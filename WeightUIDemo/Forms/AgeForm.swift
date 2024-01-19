@@ -8,7 +8,7 @@ struct AgeForm: View {
 
     @State var ageInYears: Int?
     @State var dateOfBirth: Date
-    @State var customInput: IntInput
+    @State var manualInput: IntInput
 
     @State var showingAgeAlert = false
     @State var showingDateOfBirthAlert = false
@@ -29,7 +29,7 @@ struct AgeForm: View {
         
         let ageInYears = dateOfBirth?.ageInYears
         _ageInYears = State(initialValue: ageInYears)
-        _customInput = State(initialValue: IntInput(int: ageInYears))
+        _manualInput = State(initialValue: IntInput(int: ageInYears))
         
         _dateOfBirth = State(initialValue: dateOfBirth ?? DefaultDateOfBirth)
         
@@ -53,7 +53,7 @@ struct AgeForm: View {
             Group {
                 healthSection
                 dateOfBirthSection
-                customSection
+                manualSection
             }
             explanation
         }
@@ -61,7 +61,7 @@ struct AgeForm: View {
         .navigationBarTitleDisplayMode(.large)
         .toolbar { toolbarContent }
         .alert("Enter your age", isPresented: $showingAgeAlert) {
-            TextField("Age in years", text: customInput.binding)
+            TextField("Age in years", text: manualInput.binding)
                 .keyboardType(.numberPad)
             Button("OK", action: submitAge)
             Button("Cancel") { }
@@ -101,7 +101,7 @@ struct AgeForm: View {
         withAnimation {
             let age = dateOfBirth.ageInYears
             self.ageInYears = age
-            customInput.setNewValue(age)
+            manualInput.setNewValue(age)
         }
     }
     
@@ -165,8 +165,8 @@ struct AgeForm: View {
     
     func submitAge() {
         withAnimation {
-            customInput.submitValue()
-            ageInYears = customInput.int
+            manualInput.submitValue()
+            ageInYears = manualInput.int
             if let ageInYears {
                 dateOfBirth = ageInYears.dateOfBirth
             }
@@ -233,7 +233,7 @@ struct AgeForm: View {
         }
     }
     
-    var customSection: some View {
+    var manualSection: some View {
         Section {
             HStack {
                 if ageInYears == nil {

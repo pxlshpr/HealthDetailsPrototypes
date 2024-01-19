@@ -79,10 +79,10 @@ struct WeightChangeForm: View {
             dateSection
             typePicker
             switch type {
-            case .usingPoints:
+            case .weights:
                 weightSections
-            case .userEntered:
-                customSection
+            case .manual:
+                manualSection
                 gainOrLossSection
             }
         }
@@ -294,9 +294,9 @@ struct WeightChangeForm: View {
         saveHandler(weightChange, shouldResync)
     }
     
-    var customSection: some View {
+    var manualSection: some View {
         func handleCustomValue() {
-            guard type == .userEntered else { return }
+            guard type == .manual else { return }
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
                 let int = intInput.int ?? 0
                 let double = doubleInput.double ?? 0
@@ -354,7 +354,7 @@ struct WeightChangeForm: View {
 
     func handleChanges(_ shouldResync: Bool = false) {
         switch type {
-        case .usingPoints:
+        case .weights:
             if points == nil {
                 points = .init(
                     date: date,
@@ -363,7 +363,7 @@ struct WeightChangeForm: View {
             }
             setWeightChangeInKg(points?.weightChangeInKg)
            
-        case .userEntered:
+        case .manual:
             break
         }
         
@@ -374,7 +374,7 @@ struct WeightChangeForm: View {
         let binding = Binding<WeightChangeType>(
             get: { type },
             set: { newValue in
-                if newValue == .userEntered {
+                if newValue == .manual {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                         hasFocusedCustomField = false
                     }
@@ -398,8 +398,8 @@ struct WeightChangeForm: View {
         
         var description: String {
             switch type {
-            case .userEntered: "Enter your weight change manually."
-            case .usingPoints: "Use your starting and ending weights to calculate your weight change."
+            case .manual: "Enter your weight change manually."
+            case .weights: "Use your starting and ending weights to calculate your weight change."
             }
         }
         return Section {

@@ -93,7 +93,7 @@ extension HealthProvider {
 
     func recalculateWeightChange(_ days: [Date : Day]) async {
         let weightChange = healthDetails.maintenance.adaptive.weightChange
-        guard weightChange.type == .usingPoints else {
+        guard weightChange.type == .weights else {
             healthDetails.maintenance.adaptive.weightChange.points = nil
             return
         }

@@ -6,11 +6,7 @@ enum EnergyType {
     case active
     case dietary
 
-    var healthKitType: HKQuantityType {
-        HKQuantityType(healthKitTypeIdentifier)
-    }
-    
-    var healthKitTypeIdentifier: HKQuantityTypeIdentifier {
+    var hkQuantityTypeIdentifier: HKQuantityTypeIdentifier {
         switch self {
         case .resting:  .basalEnergyBurned
         case .active:   .activeEnergyBurned

@@ -19,7 +19,7 @@ struct ActiveEnergyForm: View {
     @State var applyCorrection: Bool = false
     @State var correctionType: CorrectionType = .divide
     @State var correctionInput = DoubleInput(automaticallySubmitsValues: true)
-    @State var customInput = DoubleInput(automaticallySubmitsValues: true)
+    @State var manualInput = DoubleInput(automaticallySubmitsValues: true)
 
     @State var activityLevelValuesInKcal: [ActivityLevel: Double] = [:]
     @State var hasFetchedHealthKitValues: Bool = false
@@ -52,7 +52,7 @@ struct ActiveEnergyForm: View {
 
         let energyUnit = healthProvider.settingsProvider.energyUnit
         _activeEnergyInKcal = State(initialValue: activeEnergy.kcal)
-        _customInput = State(initialValue: DoubleInput(
+        _manualInput = State(initialValue: DoubleInput(
             double: activeEnergy.kcal.convertEnergy(from: .kcal, to: energyUnit),
             automaticallySubmitsValues: true
         ))
@@ -88,8 +88,8 @@ struct ActiveEnergyForm: View {
             explanation
             sourceSection
             switch source {
-            case .userEntered:
-                customSection
+            case .manual:
+                manualSection
             case .activityLevel:
                 activityLevelSection
             case .healthKit:
@@ -335,7 +335,7 @@ struct ActiveEnergyForm: View {
     
     func setCustomInput() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            customInput.setDouble(
+            manualInput.setDouble(
                 activeEnergyInKcal?
                     .convertEnergy(from: .kcal, to: energyUnit)
                     .rounded(.towardZero)
@@ -403,7 +403,7 @@ struct ActiveEnergyForm: View {
             get: { source },
             set: { newValue in
                 /// Reset this immediately to make sure the text field gets focused
-                if newValue == .userEntered {
+                if newValue == .manual {
                     hasFocusedCustomField = false
                 }
                 withAnimation {
@@ -431,7 +431,7 @@ struct ActiveEnergyForm: View {
                     "Use the Active Energy data recorded in the Apple Health app."
                 case .activityLevel:
                     "Apply a multiplier on your Resting Energy based on how active you are."
-                case .userEntered:
+                case .manual:
                     "Enter your Active Energy manually."
                 }
             }
@@ -468,11 +468,11 @@ struct ActiveEnergyForm: View {
         }
     }
     
-    var customSection: some View {
+    var manualSection: some View {
         func handleCustomValue() {
-            guard source == .userEntered else { return }
+            guard source == .manual else { return }
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                let kcal = customInput.double?.convertEnergy(from: energyUnit, to: .kcal)
+                let kcal = manualInput.double?.convertEnergy(from: energyUnit, to: .kcal)
                 withAnimation {
                     activeEnergyInKcal = kcal
                 }
@@ -484,7 +484,7 @@ struct ActiveEnergyForm: View {
         
         return SingleUnitMeasurementTextField(
             title: energyUnit.abbreviation,
-            doubleInput: $customInput,
+            doubleInput: $manualInput,
             hasFocused: $hasFocusedCustomField,
             delayFocus: true,
             footer: nil,

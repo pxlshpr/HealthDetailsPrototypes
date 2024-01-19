@@ -4,13 +4,13 @@ import PrepShared
 public enum RestingEnergySource: Int, Codable, CaseIterable {
     case equation = 1
     case healthKit
-    case userEntered
+    case manual
     
     var name: String {
         switch self {
         case .healthKit:    "Apple Health"
         case .equation:     "Equation"
-        case .userEntered:  "Manual"
+        case .manual:  "Manual"
         }
     }
     
@@ -27,8 +27,8 @@ extension RestingEnergySource: Pickable {
 //        case .healthKit:    "Health app"
         case .healthKit:    "Sync with Apple Health"
         case .equation:     "Equation"
-//        case .userEntered:  "Entered manually"
-        case .userEntered:  "Manual"
+//        case .manual:  "Entered manually"
+        case .manual:  "Manual"
         }
     }
     
@@ -36,7 +36,7 @@ extension RestingEnergySource: Pickable {
         switch self {
         case .healthKit:    "heart.fill"
         case .equation:     "function"
-        case .userEntered:  ""
+        case .manual:  ""
         }
     }
     

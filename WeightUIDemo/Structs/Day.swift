@@ -28,7 +28,7 @@ extension HealthDetails {
 
 extension HealthDetails {
     mutating func syncWithHealthKit(
-        quantityType: QuantityType,
+        quantityType: HealthKitType,
         samples: [HKQuantitySample],
         toDelete: inout [HKQuantitySample],
         toExport: inout [any Measurable],
@@ -94,7 +94,7 @@ extension HealthDetails {
 }
 extension Day {
     mutating func fetchFromHealthKitIfNeeded(
-        quantityType: QuantityType,
+        quantityType: HealthKitType,
         using stats: HKStatisticsCollection
     ) async {
         

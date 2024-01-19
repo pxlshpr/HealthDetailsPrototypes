@@ -129,8 +129,8 @@ struct LeanBodyMassMeasurementForm: View {
             case .equation:
                 equationSection
                 equationVariablesSections
-            case .userEntered:
-                customSection
+            case .manual:
+                manualSection
             default:
                 EmptyView()
             }
@@ -192,9 +192,9 @@ struct LeanBodyMassMeasurementForm: View {
         }
     }
 
-    var customSection: some View {
+    var manualSection: some View {
         func handleCustomValue() {
-            guard source == .userEntered else { return }
+            guard source == .manual else { return }
             let double: Double? = if unit.hasTwoComponents {
                 doubleInput.double ?? 0
             } else {
@@ -309,7 +309,7 @@ struct LeanBodyMassMeasurementForm: View {
     
     func handleNewSource(_ newValue: MeasurementSource) {
         /// Reset these immediately to make sure the text field gets focused
-        if newValue == .userEntered {
+        if newValue == .manual {
             hasFocusedCustom = false
         }
         
@@ -337,7 +337,7 @@ struct LeanBodyMassMeasurementForm: View {
         var description: String {
             switch source {
             case .equation:     "Use an equation to calculate your Lean Body Mass."
-            case .userEntered:  "Enter your Lean Body Mass manually."
+            case .manual:  "Enter your Lean Body Mass manually."
             default:            ""
             }
         }

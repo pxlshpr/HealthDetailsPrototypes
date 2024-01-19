@@ -81,9 +81,9 @@ extension HealthProvider {
 
 extension HealthProvider {
     
-    static func samples(from date: Date, settings: Settings) async throws -> [QuantityType : [HKQuantitySample]] {
-        var dict: [QuantityType : [HKQuantitySample]] = [:]
-        for quantityType in QuantityType.syncedTypes {
+    static func samples(from date: Date, settings: Settings) async throws -> [HealthKitType : [HKQuantitySample]] {
+        var dict: [HealthKitType : [HKQuantitySample]] = [:]
+        for quantityType in HealthKitType.syncedTypes {
             guard let healthDetail = quantityType.healthDetail,
                   settings.isHealthKitSyncing(healthDetail) else { continue }
             dict[quantityType] = await HealthStore.samples(for: quantityType, from: date)
@@ -92,11 +92,11 @@ extension HealthProvider {
     }
     
     static func fetchMostRecentSamplesForEmptyQuantityTypes(
-        samples: inout [QuantityType : [HKQuantitySample]],
+        samples: inout [HealthKitType : [HKQuantitySample]],
         daysStartDate: inout Date,
         prelogDeletedHealthKitUUIDs: [UUID]
     ) async throws {
-        for quantityType in QuantityType.syncedTypes {
+        for quantityType in HealthKitType.syncedTypes {
             
             /// Only do this if we don't have any samples for this quantity type
             guard
@@ -137,11 +137,11 @@ extension HealthProvider {
         }
     }
     
-    static func stats(from startDate: Date) async -> [QuantityType : HKStatisticsCollection] {
+    static func stats(from startDate: Date) async -> [HealthKitType : HKStatisticsCollection] {
         let start = CFAbsoluteTimeGetCurrent()
         print("Getting all stats...")
-        var dict: [QuantityType : HKStatisticsCollection] = [:]
-        for quantityType in QuantityType.fetchedTypes {
+        var dict: [HealthKitType : HKStatisticsCollection] = [:]
+        for quantityType in HealthKitType.fetchedTypes {
             dict[quantityType] = await HealthStore.dailyStatistics(
                 for: quantityType.healthKitTypeIdentifier,
                 from: startDate,
@@ -208,8 +208,8 @@ extension HealthProvider {
     
     static func syncAndFetchAllDetails(
         days: inout [Date : Day],
-        samples: [QuantityType : [HKQuantitySample]],
-        stats: [QuantityType : HKStatisticsCollection],
+        samples: [HealthKitType : [HKQuantitySample]],
+        stats: [HealthKitType : HKStatisticsCollection],
         toDelete: inout [HKQuantitySample],
         toExport: inout [any Measurable],
         settings: Settings
@@ -217,7 +217,7 @@ extension HealthProvider {
         
         for date in days.keys.sorted() {
             
-            for quantityType in QuantityType.syncedTypes {
+            for quantityType in HealthKitType.syncedTypes {
                 guard let samples = samples[quantityType] else { continue }
                 days[date]?.healthDetails.syncWithHealthKit(
                     quantityType: quantityType,
@@ -228,7 +228,7 @@ extension HealthProvider {
                 )
             }
             
-            for quantityType in QuantityType.fetchedTypes {
+            for quantityType in HealthKitType.fetchedTypes {
                 guard let stats = stats[quantityType] else { continue }
                 await days[date]?.fetchFromHealthKitIfNeeded(
                     quantityType: quantityType,

@@ -47,7 +47,7 @@ struct MeasurementForm: View {
     var form: some View {
         Form {
             dateTimeSection
-            customSection
+            manualSection
         }
     }
     
@@ -79,7 +79,7 @@ struct MeasurementForm: View {
     
     //MARK: - Sections
 
-    var customSection: some View {
+    var manualSection: some View {
         MeasurementInputSection(
             type: type,
             settingsProvider: settingsProvider,

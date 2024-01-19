@@ -4,7 +4,7 @@ import PrepShared
 struct WeightChange: Hashable, Codable {
 
     var kg: Double?
-    var type: WeightChangeType = .usingPoints
+    var type: WeightChangeType = .weights
     var points: Points? = nil
     
     struct Points: Hashable, Codable {

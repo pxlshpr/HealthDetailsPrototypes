@@ -4,7 +4,7 @@ enum DietaryEnergyPointSource: Int, Codable, CaseIterable, Identifiable {
     case log = 1
     case healthKit
     case fasted
-    case userEntered
+    case manual
     case notCounted
 
     var id: Int {
@@ -24,7 +24,7 @@ enum DietaryEnergyPointSource: Int, Codable, CaseIterable, Identifiable {
         case .log:          "book.closed"
         case .healthKit:    "pencil"
         case .fasted:       ""
-        case .userEntered:  "pencil"
+        case .manual:  "pencil"
         case .notCounted:   "pencil.slash"
         }
     }
@@ -34,7 +34,7 @@ enum DietaryEnergyPointSource: Int, Codable, CaseIterable, Identifiable {
         case .log:          "Logged Energy"
         case .healthKit:    "Apple Health Data"
         case .fasted:       "Mark as Fasted"
-        case .userEntered:  "Enter Manually"
+        case .manual:  "Enter Manually"
         case .notCounted:   "Not Counted"
         }
     }

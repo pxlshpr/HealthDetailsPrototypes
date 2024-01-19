@@ -114,7 +114,7 @@ struct AdaptiveMaintenanceForm: View {
     }
     
     func fetchWeightPoints() async {
-        guard weightChange.type == .usingPoints else {
+        guard weightChange.type == .weights else {
             startWeight = nil
             startWeightMovingAverageWeights = [:]
             endWeight = nil

@@ -269,7 +269,7 @@ extension HealthProvider {
 extension HealthProvider {
     static func saveHealthKitSample(
         _ sample: HKQuantitySample,
-        for quantityType: QuantityType
+        for quantityType: HealthKitType
     ) async throws {
         let settings = await fetchSettingsFromDocuments()
         guard let dailyValueType = settings.dailyValueType(forQuantityType: quantityType) else {

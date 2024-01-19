@@ -572,11 +572,11 @@ struct RestingEnergyEquationVariablesSectionsPreview: View {
                     )
                     healthDetails.leanBodyMass = .init(
                         leanBodyMassInKg: 69,
-                        measurements: [.init(date: Date.now, leanBodyMassInKg: 69, source: .userEntered, healthKitUUID: nil)]
+                        measurements: [.init(date: Date.now, leanBodyMassInKg: 69, source: .manual, healthKitUUID: nil)]
                     )
                     healthDetails.fatPercentage = .init(
                         fatPercentage: 20,
-                        measurements: [.init(date: Date.now, percent: 20, source: .userEntered, healthKitUUID: nil)]
+                        measurements: [.init(date: Date.now, percent: 20, source: .manual, healthKitUUID: nil)]
                     )
                     let settings = await fetchSettingsFromDocuments()
                     let healthProvider = HealthProvider(
@@ -691,11 +691,11 @@ struct GoalVariablesSectionsPreview: View {
                                     kcal: 2000,
                                     restingEnergy: HealthDetails.Maintenance.Estimate.RestingEnergy(
                                         kcal: 1800,
-                                        source: .userEntered
+                                        source: .manual
                                     ),
                                     activeEnergy: HealthDetails.Maintenance.Estimate.ActiveEnergy(
                                         kcal: 200,
-                                        source: .userEntered
+                                        source: .manual
                                     )
                                 ),
                                 useEstimateAsFallback: false

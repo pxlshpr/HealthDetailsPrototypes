@@ -6,7 +6,7 @@ class HealthStore {
     internal static let shared = HealthStore()
     internal static let store: HKHealthStore = HKHealthStore()
     
-    static var defaultUnitHandler: ((QuantityType) -> HKUnit)? = nil
+    static var defaultUnitHandler: ((HealthKitType) -> HKUnit)? = nil
 }
 
 internal extension HealthStore {

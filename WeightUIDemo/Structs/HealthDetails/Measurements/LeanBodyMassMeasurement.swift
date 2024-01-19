@@ -20,7 +20,7 @@ struct LeanBodyMassMeasurement: Hashable, Identifiable, Codable {
         self.source = if healthKitUUID != nil {
             .healthKit
         } else {
-            .userEntered
+            .manual
         }
         self.healthKitUUID = healthKitUUID
         self.equation = nil

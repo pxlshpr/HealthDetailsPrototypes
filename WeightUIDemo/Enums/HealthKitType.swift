@@ -1,6 +1,6 @@
 import HealthKit
 
-enum QuantityType {
+enum HealthKitType {
     case weight
     case leanBodyMass
     case height
@@ -10,13 +10,13 @@ enum QuantityType {
     case dietaryEnergy
 }
 
-extension QuantityType {
+extension HealthKitType {
     
-    static var syncedTypes: [QuantityType] {
+    static var syncedTypes: [HealthKitType] {
         [.weight, .leanBodyMass, .fatPercentage, .height]
     }
 
-    static var fetchedTypes: [QuantityType] {
+    static var fetchedTypes: [HealthKitType] {
         [.restingEnergy, .activeEnergy, .dietaryEnergy]
     }
 
@@ -43,7 +43,7 @@ extension QuantityType {
     }
 }
 
-extension QuantityType {
+extension HealthKitType {
     var defaultUnit: HKUnit {
         switch self {
         case .weight:           .gramUnit(with: .kilo)
