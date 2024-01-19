@@ -144,7 +144,8 @@ extension HealthProvider {
         print("Fetching dietary energy point from HealthKit for all those days")
 
         start = CFAbsoluteTimeGetCurrent()
-        for (date, day) in days {
+        for date in days.keys.sorted() {
+            guard let day = days[date] else { continue }
             let initialDay = day
             /// If the point doesn't exist, create it
             if day.dietaryEnergyPoint == nil {
@@ -185,7 +186,8 @@ extension HealthProvider {
         toExport: inout [any Measurable],
         settings: Settings
     ) async {
-        for date in days.keys {
+        
+        for date in days.keys.sorted() {
             
             for quantityType in QuantityType.syncedTypes {
                 guard let samples = samples[quantityType] else { continue }

@@ -73,9 +73,9 @@ struct AdaptiveMaintenanceForm: View {
             ) else { return nil }
             return switch kcal {
             case _ where kcal < 0:
-                ("Weight Exceeds Nutrition", "Your weight gain far exceeds the dietary energy, making the calculation invalid. Please make sure you have accounted for all the dietary energy you consumed to make a realistic calculation.")
+                ("Dietary Energy Too Low", "Your weight gain far exceeds the dietary energy, making the calculation unrealistic.\n\nPlease make sure you have accounted for all the dietary energy you consumed to make a realistic calculation.")
             case _ where kcal < MinimumAdaptiveEnergyInKcal:
-                ("Below Minimum", "The calculated maintenance energy is below the minimum of \(HealthDetails.Maintenance.Adaptive.minimumEnergyString(in: energyUnit)) that we can safely recommend. Please make sure you have accounted for all the dietary energy you consumed to make a realistic calculation.")
+                ("Dietary Energy Too Low", "The calculated maintenance energy is below the minimum of \(HealthDetails.Maintenance.Adaptive.minimumEnergyString(in: energyUnit)) that we can safely recommend.\n\nPlease make sure you have accounted for all the dietary energy you consumed to make a realistic calculation.")
             default:
                 nil
             }

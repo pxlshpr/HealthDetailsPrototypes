@@ -37,14 +37,16 @@ extension DayProvider {
             try Task.checkCancellation()
         }
         
-        for (date, day) in days {
+        for date in days.keys.sorted() {
             
-            guard let initialDay = initialDays[date] else {
+            guard 
+                let value = days[date],
+                let initialDay = initialDays[date]
+            else {
                 fatalError() /// Remove in production
             }
             
-//            let initialDay = day
-            var day = day
+            var day = value
             
             /// [ ] Create a HealthProvider for it (which in turn fetches the latest health details)
             let healthProvider = HealthProvider(
