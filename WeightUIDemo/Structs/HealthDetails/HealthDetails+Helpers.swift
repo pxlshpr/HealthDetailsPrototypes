@@ -2,9 +2,9 @@ import Foundation
 
 extension HealthDetails {
     
-    var missingNonTemporalHealthDetails: [HealthDetail] {
-        HealthDetail.allNonTemporalHealthDetails.filter { !hasSet($0) }
-    }
+//    var missingNonTemporalHealthDetails: [HealthDetail] {
+//        HealthDetail.allNonTemporalHealthDetails.filter { !hasSet($0) }
+//    }
 
     func data(for healthDetail: HealthDetail) -> Any? {
         switch healthDetail {

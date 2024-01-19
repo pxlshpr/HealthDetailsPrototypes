@@ -43,9 +43,9 @@ enum HealthDetail: Int, Identifiable, CaseIterable, Codable {
         !isNonTemporal
     }
     
-    static var allNonTemporalHealthDetails: [HealthDetail] {
-        allCases.filter{ $0.isNonTemporal }.sorted()
-    }
+//    static var allNonTemporalHealthDetails: [HealthDetail] {
+//        allCases.filter{ $0.isNonTemporal }.sorted()
+//    }
     
     static var allTemporalHealthDetails: [HealthDetail] {
         allCases.filter{ $0.isTemporal }.sorted()

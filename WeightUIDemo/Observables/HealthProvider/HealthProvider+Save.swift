@@ -35,7 +35,7 @@ extension HealthProvider {
             try Task.checkCancellation()
             
             if resync  {
-                print("✨ resync is true so Syncing")
+                print("🔄 resync is true so Syncing")
                 /// If any syncable measurements were changed, trigger a sync (and subsequent recalculate)
                 try await Self.syncWithHealthKitAndRecalculateAllDays()
 

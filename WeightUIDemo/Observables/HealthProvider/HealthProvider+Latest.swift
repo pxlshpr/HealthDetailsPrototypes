@@ -24,6 +24,10 @@ extension HealthDetails {
             self.smokingStatus = smokingStatus
         }
         
+        if latest.maintenance != nil {
+            print("We here")
+        }
+        
         /// If the user hasn't configured this maintenance, bring forward the latest maintenance
         if !maintenance.hasConfigured, let maintenance = latest.maintenance {
             self.maintenance = maintenance
@@ -41,6 +45,8 @@ extension HealthDetails {
 //    }
 }
 
+import SwiftPrettyPrint
+
 typealias DatedHealthData = (date: Date, data: Any)
 
 extension Dictionary where Key == HealthDetail, Value == DatedHealthData {
@@ -52,6 +58,11 @@ extension Dictionary where Key == HealthDetail, Value == DatedHealthData {
                 healthDetails.maintenance.hasConfigured
             } else {
                 healthDetails.hasSet(healthDetail)
+            }
+            
+            if healthDetail == .maintenance, shouldUseAsLatest {
+                print("✨ Using as maintenance, date: \(healthDetails.date.shortDateString):")
+                Pretty.prettyPrint(healthDetails.maintenance)
             }
             
             guard shouldUseAsLatest,
@@ -148,7 +159,7 @@ extension Dictionary where Key == HealthDetail, Value == DatedHealthData {
     }
     
     var datedMaintenance: DatedMaintenance? {
-        guard let tuple = self[HealthDetail.weight],
+        guard let tuple = self[HealthDetail.maintenance],
               let maintenance = tuple.data as? HealthDetails.Maintenance
         else { return nil }
         return .init(date: tuple.date, maintenance: maintenance)
