@@ -49,11 +49,6 @@ extension DayProvider {
             
             var day = value
 
-            if date.shortDateString == "20 Jan" {
-                print("Active Energy before recalculating for 20 Jan:")
-                Pretty.prettyPrint(day.healthDetails.maintenance.estimate.activeEnergy)
-            }
-            
             /// Create a HealthProvider for it (which in turn fetches the latest health details)
             let healthProvider = HealthProvider(
                 healthDetails: day.healthDetails,
@@ -67,7 +62,7 @@ extension DayProvider {
             )
 
             /// Set this to false after `recalculate` (where its used to avoid having it rewritten)
-            healthProvider.healthDetails.maintenance.isBroughtForward = false
+//            healthProvider.healthDetails.maintenance.isBroughtForward = false
 
             latestHealthDetails.extractLatestHealthDetails(from: day.healthDetails)
             
@@ -80,11 +75,6 @@ extension DayProvider {
             if initialDay.healthDetails != day.healthDetails {
                 /// [ ] TBD: Reassign Daily Values after restructuring so that we store them in each `Day` as opposed to having a static list in Settings
                 /// [ ] TBD: Recalculate any plans on this day too
-            }
-
-            if date.shortDateString == "20 Jan" {
-                print("Active Energy before saving for 20 Jan:")
-                Pretty.prettyPrint(day.healthDetails.maintenance.estimate.activeEnergy)
             }
 
             if day != initialDay {

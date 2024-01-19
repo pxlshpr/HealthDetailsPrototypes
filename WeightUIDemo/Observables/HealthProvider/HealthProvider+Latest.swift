@@ -12,39 +12,24 @@ extension HealthDetails {
 }
 
 extension HealthDetails.Maintenance {
-    var settingsOnly: HealthDetails.Maintenance {
-        .init(
-            type: type,
-            adaptive: .init(
-                interval: adaptive.interval
-            ),
-            estimate: .init(
-                restingEnergy: .init(
-                    source: estimate.restingEnergy.source,
-                    equation: estimate.restingEnergy.equation,
-                    preferLeanBodyMass: estimate.restingEnergy.preferLeanBodyMass,
-                    healthKitFetchSettings: estimate.restingEnergy.healthKitFetchSettings
-                ),
-                activeEnergy: .init(
-                    source: estimate.activeEnergy.source,
-                    activityLevel: estimate.activeEnergy.activityLevel,
-                    healthKitFetchSettings: estimate.activeEnergy.healthKitFetchSettings
-                )
-            ),
-            useEstimateAsFallback: useEstimateAsFallback,
-            hasConfigured: false,
-            isBroughtForward: true
-        )
-    }
-    
-    var hasNilKcals: Bool {
-        kcal == nil
-        && adaptive.kcal == nil
-        && estimate.kcal == nil
-        && estimate.restingEnergy.kcal == nil
-        && estimate.activeEnergy.kcal == nil
+    mutating func setSettings(from other: HealthDetails.Maintenance) {
+        type = other.type
+        adaptive.interval = other.adaptive.interval
+        useEstimateAsFallback = other.useEstimateAsFallback
+        
+        estimate.restingEnergy.source = other.estimate.restingEnergy.source
+        estimate.restingEnergy.equation = other.estimate.restingEnergy.equation
+        estimate.restingEnergy.preferLeanBodyMass = other.estimate.restingEnergy.preferLeanBodyMass
+        estimate.restingEnergy.healthKitFetchSettings = other.estimate.restingEnergy.healthKitFetchSettings
+        
+        estimate.activeEnergy.source = other.estimate.activeEnergy.source
+        estimate.activeEnergy.activityLevel = other.estimate.activeEnergy.activityLevel
+        estimate.activeEnergy.healthKitFetchSettings = other.estimate.activeEnergy.healthKitFetchSettings
+
+        hasConfigured = false
     }
 }
+
 extension HealthDetails {
     
     mutating func bringForwardNonTemporalHealthDetails(from latest: [HealthDetail : DatedHealthData] ) {
@@ -59,23 +44,10 @@ extension HealthDetails {
         }
         
         /// If the user hasn't configured this maintenance, bring forward the latest maintenance
-        if !maintenance.hasConfigured && maintenance.hasNilKcals,
-//            !maintenance.isBroughtForward,
-            let maintenance = latest.maintenance
-        {
-            self.maintenance = maintenance.settingsOnly
+        if !maintenance.hasConfigured, let maintenance = latest.maintenance {
+            self.maintenance.setSettings(from: maintenance)
         }
     }
-
-//    func populateLatestDict(_ dict: inout [HealthDetail : DatedHealthData]) {
-//        for healthDetail in HealthDetail.allCases {
-//            guard !dict.keys.contains(healthDetail),
-//                  hasSet(healthDetail),
-//                  let data = data(for: healthDetail)
-//            else { continue }
-//            dict[healthDetail] = (date, data)
-//        }
-//    }
 }
 
 import SwiftPrettyPrint
@@ -89,7 +61,6 @@ extension Dictionary where Key == HealthDetail, Value == DatedHealthData {
             let shouldUseAsLatest = if healthDetail == .maintenance {
                 /// For maintenance, use as latest if the user configured it—regardless of whether it currently has a value or not
                 healthDetails.maintenance.hasConfigured 
-//                && !healthDetails.maintenance.isBroughtForward
             } else {
                 healthDetails.hasSet(healthDetail)
             }

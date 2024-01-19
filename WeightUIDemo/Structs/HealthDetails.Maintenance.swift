@@ -10,7 +10,7 @@ extension HealthDetails {
         var estimate = Estimate()
         var useEstimateAsFallback: Bool = true
         var hasConfigured: Bool = false
-        var isBroughtForward: Bool = false
+//        var isBroughtForward: Bool = false
         
         struct Adaptive: Hashable, Codable {
             var kcal: Double?

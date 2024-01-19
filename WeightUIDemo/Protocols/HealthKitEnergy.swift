@@ -27,9 +27,6 @@ extension HealthKitEnergy {
         day: Day,
         using stats: HKStatisticsCollection
     ) async {
-        if day.date.shortDateString == "20 Jan" {
-            print("We here")
-        }
         guard isHealthKitSourced, let healthKitFetchSettings else { return }
         let kcal = switch healthKitFetchSettings.intervalType {
         case .average:
