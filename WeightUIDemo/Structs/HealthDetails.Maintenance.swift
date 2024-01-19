@@ -152,14 +152,33 @@ extension HealthDetails.Maintenance.Adaptive {
 //        
 //        return .success(max(value, 0))
 //    }
-    
-    func calculate() -> Double? {
+
+    static func calculate(
+        interval: HealthInterval,
+        weightChange: WeightChange,
+        dietaryEnergy: DietaryEnergy
+    ) -> Double? {
         guard let weightDeltaInKcal = weightChange.energyEquivalentInKcal,
               let kcalPerDay = dietaryEnergy.kcalPerDay else {
             return nil
         }
         let totalKcal = kcalPerDay * Double(interval.numberOfDays)
-        return (totalKcal - weightDeltaInKcal) / Double(interval.numberOfDays)
+        let kcal = (totalKcal - weightDeltaInKcal) / Double(interval.numberOfDays)
+
+        guard kcal >= MinimumAdaptiveEnergyInKcal else { return nil }
+        return kcal
+    }
+    func calculate() -> Double? {
+        Self.calculate(
+            interval: interval,
+            weightChange: weightChange,
+            dietaryEnergy: dietaryEnergy
+        )
+    }
+    
+    static func minimumEnergyString(in energyUnit: EnergyUnit) -> String {
+        let converted = EnergyUnit.kcal.convert(MinimumAdaptiveEnergyInKcal, to: energyUnit)
+        return "\(converted.formattedEnergy) \(energyUnit.abbreviation)"
     }
 }
 

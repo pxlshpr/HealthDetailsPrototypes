@@ -4,6 +4,8 @@ import PrepShared
 
 let MaxAdaptiveWeeks: Int = 2
 
+let MinimumAdaptiveEnergyInKcal: Double = 1000
+
 struct AdaptiveMaintenanceForm: View {
     
     @Bindable var healthProvider: HealthProvider
@@ -51,6 +53,7 @@ struct AdaptiveMaintenanceForm: View {
             intervalSection
             dietaryEnergyLink
             weightChangeLink
+            invalidCalculationSection
             explanation
         }
         .navigationTitle("Adaptive")
@@ -61,6 +64,38 @@ struct AdaptiveMaintenanceForm: View {
         .safeAreaInset(edge: .bottom) { bottomValue }
     }
     
+    var invalidCalculationSection: some View {
+        var titleAndMessage: (String, String)? {
+            guard let kcal = HealthDetails.Maintenance.Adaptive.calculate(
+                interval: interval,
+                weightChange: weightChange,
+                dietaryEnergy: dietaryEnergy
+            ) else { return nil }
+            return switch kcal {
+            case _ where kcal < 0:
+                ("Weight Exceeds Nutrition", "Your weight gain far exceeds the dietary energy, making the calculation invalid. Please make sure you have accounted for all the dietary energy you consumed to make a realistic calculation.")
+            case _ where kcal < MinimumAdaptiveEnergyInKcal:
+                ("Below Minimum", "The calculated maintenance energy is below the minimum of \(HealthDetails.Maintenance.Adaptive.minimumEnergyString(in: energyUnit)) that we can safely recommend. Please make sure you have accounted for all the dietary energy you consumed to make a realistic calculation.")
+            default:
+                nil
+            }
+        }
+        
+        return Group {
+            if let (title, message) = titleAndMessage {
+                Section {
+                    NoticeSection(
+                        style: .plain,
+                        notice: .init(
+                            title: title,
+                            message: message,
+                            imageName: "exclamationmark.triangle"
+                        )
+                    )
+                }
+            }
+        }
+    }
     
     func appeared() {
         Task {
