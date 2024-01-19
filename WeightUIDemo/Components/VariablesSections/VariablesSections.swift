@@ -48,7 +48,7 @@ struct VariablesSections: View {
         }
         
         let binding = Binding<Bool>(
-            get: { preferLeanBodyMass?.wrappedValue ?? false },
+            get: { preferLeanBodyMass?.wrappedValue ?? true },
             set: {
                 preferLeanBodyMass?.wrappedValue = $0
             }

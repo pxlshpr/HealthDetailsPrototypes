@@ -268,6 +268,9 @@ struct RestingEnergyForm: View {
     }
     
     func calculateEquationValues() async {
+        
+        healthProvider.healthDetails.maintenance.estimate.restingEnergy.preferLeanBodyMass = preferLeanBodyMass
+        
         var dict: [RestingEnergyEquation: Double] = [:]
         for equation in RestingEnergyEquation.allCases {
             let kcal = await healthProvider.calculateRestingEnergyInKcal(using: equation)
