@@ -3,7 +3,8 @@ import HealthKit
 
 struct LeanBodyMassMeasurement: Hashable, Identifiable, Codable {
     let id: UUID
-    let source: LeanBodyMassAndFatPercentageSource
+    let source: MeasurementSource
+    let healthKitUUID: UUID?
     let equation: LeanBodyMassAndFatPercentageEquation?
     let date: Date
     var leanBodyMassInKg: Double
@@ -16,11 +17,12 @@ struct LeanBodyMassMeasurement: Hashable, Identifiable, Codable {
         healthKitUUID: UUID?
     ) {
         self.id = id
-        self.source = if let healthKitUUID {
-            .healthKit(healthKitUUID)
+        self.source = if healthKitUUID != nil {
+            .healthKit
         } else {
             .userEntered
         }
+        self.healthKitUUID = healthKitUUID
         self.equation = nil
         self.date = date
         self.leanBodyMassInKg = value
@@ -31,12 +33,14 @@ struct LeanBodyMassMeasurement: Hashable, Identifiable, Codable {
         id: UUID = UUID(),
         date: Date,
         leanBodyMassInKg: Double,
-        source: LeanBodyMassAndFatPercentageSource,
+        source: MeasurementSource,
+        healthKitUUID: UUID?,
         equation: LeanBodyMassAndFatPercentageEquation? = nil,
         isConvertedFromFatPercentage: Bool = false
     ) {
         self.id = id
         self.source = source
+        self.healthKitUUID = healthKitUUID
         self.date = date
         self.equation = equation
         self.leanBodyMassInKg = leanBodyMassInKg

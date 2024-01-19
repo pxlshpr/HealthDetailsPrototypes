@@ -1,11 +1,11 @@
 import Foundation
 
-enum LeanBodyMassAndFatPercentageSource: Codable, Hashable {
-    case healthKit(UUID)
+enum MeasurementSource: Int, Codable, Hashable {
+    case healthKit = 1
     case equation
     case userEntered
     
-    static var formCases: [LeanBodyMassAndFatPercentageSource] {
+    static var formCases: [MeasurementSource] {
         [ .userEntered, .equation]
     }
     
@@ -13,13 +13,6 @@ enum LeanBodyMassAndFatPercentageSource: Codable, Hashable {
         switch self {
         case .healthKit:    true
         default:            false
-        }
-    }
-    
-    var healthKitUUID: UUID? {
-        switch self {
-        case .healthKit(let uuid):  uuid
-        default:                    nil
         }
     }
     

@@ -26,20 +26,8 @@ enum DietaryEnergyPointSource: Int, Codable, CaseIterable, Identifiable {
         case .fasted:       ""
         case .userEntered:  "pencil"
         case .notCounted:   "pencil.slash"
-//        case .notCounted:   "questionmark.square.dashed"
-//        case .notCounted:   "circle.slash"
         }
     }
-
-//    var name: String {
-//        switch self {
-//        case .log:          "Use Log"
-//        case .healthKit:    "Use Apple Health"
-//        case .fasted:       "Set as Fasted"
-//        case .userEntered:  "Enter Manually"
-//        case .notCounted:   "Not Counted" /// "Exclude and Use Average"
-//        }
-//    }
 
     var name: String {
         switch self {
@@ -48,9 +36,6 @@ enum DietaryEnergyPointSource: Int, Codable, CaseIterable, Identifiable {
         case .fasted:       "Mark as Fasted"
         case .userEntered:  "Enter Manually"
         case .notCounted:   "Not Counted"
-//        case .notCounted:   "Not Included"
-//        case .notCounted:   "Exclude and Use Average"
-//        case .notCounted:   "Exclude this Day"
         }
     }
 
@@ -63,14 +48,12 @@ enum DietaryEnergyPointSource: Int, Codable, CaseIterable, Identifiable {
 
     var backgroundColor: Color {
         switch self {
-//                case .log:  Color.accentColor
         default:    Color(.systemGray4)
         }
     }
     
     var foregroundColor: Color {
         switch self {
-//                case .log:  .white
         default:    Color(.label)
         }
     }

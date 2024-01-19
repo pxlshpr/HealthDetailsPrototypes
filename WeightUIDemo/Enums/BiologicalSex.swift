@@ -1,7 +1,7 @@
 import Foundation
 import PrepShared
 
-enum BiologicalSex: Int16, Codable, CaseIterable {
+enum BiologicalSex: Int, Codable, CaseIterable {
     case female = 1
     case male
     case notSet

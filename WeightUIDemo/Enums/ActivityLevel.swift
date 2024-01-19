@@ -1,7 +1,7 @@
 import Foundation
 import PrepShared
 
-public enum ActivityLevel: Int16, Codable, Hashable, CaseIterable {
+public enum ActivityLevel: Int, Codable, Hashable, CaseIterable {
     case sedentary = 1
     case lightlyActive
     case moderatelyActive

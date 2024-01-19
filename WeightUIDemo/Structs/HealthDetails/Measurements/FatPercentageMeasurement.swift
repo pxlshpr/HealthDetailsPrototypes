@@ -3,7 +3,8 @@ import HealthKit
 
 struct FatPercentageMeasurement: Hashable, Identifiable, Codable {
     let id: UUID
-    let source: LeanBodyMassAndFatPercentageSource
+    let source: MeasurementSource
+    let healthKitUUID: UUID?
     let equation: LeanBodyMassAndFatPercentageEquation?
     let date: Date
     var percent: Double
@@ -16,11 +17,12 @@ struct FatPercentageMeasurement: Hashable, Identifiable, Codable {
         healthKitUUID: UUID?
     ) {
         self.id = id
-        self.source = if let healthKitUUID {
-            .healthKit(healthKitUUID)
+        self.source = if healthKitUUID != nil {
+            .healthKit
         } else {
             .userEntered
         }
+        self.healthKitUUID = healthKitUUID
         self.equation = nil
         self.date = date
         self.percent = value
@@ -31,7 +33,8 @@ struct FatPercentageMeasurement: Hashable, Identifiable, Codable {
         id: UUID = UUID(),
         date: Date,
         percent: Double,
-        source: LeanBodyMassAndFatPercentageSource,
+        source: MeasurementSource,
+        healthKitUUID: UUID?,
         equation: LeanBodyMassAndFatPercentageEquation? = nil,
         isConvertedFromLeanBodyMass: Bool = false
     ) {
@@ -41,13 +44,15 @@ struct FatPercentageMeasurement: Hashable, Identifiable, Codable {
         self.percent = percent
         self.equation = equation
         self.isConvertedFromLeanBodyMass = isConvertedFromLeanBodyMass
+        self.healthKitUUID = healthKitUUID
     }
 }
 
 extension FatPercentageMeasurement {
     init(healthKitQuantitySample sample: HKQuantitySample) {
         self.id = UUID()
-        self.source = .healthKit(sample.uuid)
+        self.source = .healthKit
+        self.healthKitUUID = sample.uuid
         self.equation = nil
         self.date = sample.date
         self.percent = sample.quantity.doubleValue(for: .percent()) * 100.0 /// Apple Health stores percents in decimal form

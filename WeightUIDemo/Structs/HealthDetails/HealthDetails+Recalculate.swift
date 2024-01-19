@@ -34,6 +34,7 @@ extension HealthDetails {
                     weightInKg: currentOrLatestWeightInKg
                 ),
                 source: measurement.source,
+                healthKitUUID: measurement.healthKitUUID,
                 isConvertedFromLeanBodyMass: true
             )
         }
@@ -65,6 +66,7 @@ extension HealthDetails {
                     fatPercentage: measurement.percent,
                     weightInKg: currentOrLatestWeightInKg),
                 source: measurement.source,
+                healthKitUUID: measurement.healthKitUUID,
                 isConvertedFromFatPercentage: true
             )
         }

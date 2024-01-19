@@ -94,10 +94,6 @@ extension LeanBodyMassMeasurement: Measurable {
     var unit: HKUnit { .gramUnit(with: .kilo) }
     var quantityType: HKQuantityType { .init(.leanBodyMass) }
 
-    var healthKitUUID: UUID? { source.healthKitUUID }
-//    var secondaryValue: Double? { fatPercentage?.rounded(toPlaces: 1) }
-//    var secondaryValueUnit: String? { "%" }
-    
     var imageType: MeasurementImageType {
         switch source {
         case .healthKit:    .healthKit
@@ -112,8 +108,6 @@ extension FatPercentageMeasurement: Measurable {
     var unit: HKUnit { .percent() }
     var quantityType: HKQuantityType { .init(.bodyFatPercentage) }
 
-    var healthKitUUID: UUID? { source.healthKitUUID }
-    
     var imageType: MeasurementImageType {
         switch source {
         case .healthKit:    .healthKit

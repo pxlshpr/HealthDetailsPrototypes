@@ -1,7 +1,7 @@
 import Foundation
 import PrepShared
 
-public enum ActiveEnergySource: Int16, Codable, CaseIterable {
+public enum ActiveEnergySource: Int, Codable, CaseIterable {
     case healthKit = 1
     case activityLevel
     case userEntered

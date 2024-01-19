@@ -9,7 +9,7 @@ struct FatPercentageMeasurementForm: View {
     @Bindable var healthProvider: HealthProvider
     
     @State var time = Date.now
-    @State var source: LeanBodyMassAndFatPercentageSource = .equation
+    @State var source: MeasurementSource = .equation
     @State var equation: LeanBodyMassAndFatPercentageEquation = .cunBAE
     
     @State var percent: Double?
@@ -254,7 +254,7 @@ struct FatPercentageMeasurementForm: View {
         }
     }
     
-    func handleNewSource(_ newValue: LeanBodyMassAndFatPercentageSource) {
+    func handleNewSource(_ newValue: MeasurementSource) {
         /// Reset these immediately to make sure the text field gets focused
         if newValue == .userEntered {
             hasFocusedCustom = false
@@ -267,13 +267,13 @@ struct FatPercentageMeasurementForm: View {
     }
     
     var sourceSection: some View {
-        let binding = Binding<LeanBodyMassAndFatPercentageSource>(
+        let binding = Binding<MeasurementSource>(
             get: { source },
             set: { handleNewSource($0) }
         )
         var picker: some View {
             Picker("Source", selection: binding) {
-                ForEach(LeanBodyMassAndFatPercentageSource.formCases, id: \.self) { source in
+                ForEach(MeasurementSource.formCases, id: \.self) { source in
                     Text(source.name).tag(source)
                 }
             }
@@ -320,6 +320,7 @@ struct FatPercentageMeasurementForm: View {
             date: time,
             percent: percent,
             source: source,
+            healthKitUUID: nil,
             equation: source == .equation ? equation : nil
         )
     }

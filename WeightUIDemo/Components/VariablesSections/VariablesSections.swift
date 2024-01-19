@@ -572,11 +572,11 @@ struct RestingEnergyEquationVariablesSectionsPreview: View {
                     )
                     healthDetails.leanBodyMass = .init(
                         leanBodyMassInKg: 69,
-                        measurements: [.init(date: Date.now, leanBodyMassInKg: 69, source: .userEntered)]
+                        measurements: [.init(date: Date.now, leanBodyMassInKg: 69, source: .userEntered, healthKitUUID: nil)]
                     )
                     healthDetails.fatPercentage = .init(
                         fatPercentage: 20,
-                        measurements: [.init(date: Date.now, percent: 20, source: .userEntered)]
+                        measurements: [.init(date: Date.now, percent: 20, source: .userEntered, healthKitUUID: nil)]
                     )
                     let settings = await fetchSettingsFromDocuments()
                     let healthProvider = HealthProvider(

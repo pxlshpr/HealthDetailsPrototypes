@@ -2,14 +2,14 @@ import Foundation
 
 struct LeanBodyMassData: Codable, Hashable, Identifiable {
     let id: Int
-    let source: LeanBodyMassAndFatPercentageSource
+    let source: MeasurementSource
     let date: Date
     let value: Double
     let fatPercentage: Double?
     
     init(
         _ id: Int,
-        _ source: LeanBodyMassAndFatPercentageSource,
+        _ source: MeasurementSource,
         _ date: Date,
         _ value: Double,
         _ fatPercentage: Double? = nil
