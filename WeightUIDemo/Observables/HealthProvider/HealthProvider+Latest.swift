@@ -24,12 +24,10 @@ extension HealthDetails {
             self.smokingStatus = smokingStatus
         }
         
-        if latest.maintenance != nil {
-            print("We here")
-        }
-        
         /// If the user hasn't configured this maintenance, bring forward the latest maintenance
         if !maintenance.hasConfigured, let maintenance = latest.maintenance {
+            var maintenance = maintenance
+            maintenance.hasConfigured = false /// Reset this until the user explicitly configures it for this day
             self.maintenance = maintenance
         }
     }
