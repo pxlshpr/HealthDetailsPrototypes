@@ -51,13 +51,15 @@ extension HealthKitQuantityRequest {
             nil
         }
         return try await samples(
-            matching: predicate,
+            predicate: predicate,
             sortDescriptors: [SortDescriptor(\.startDate, order: .forward)]
         )
     }
     
-    func mostRecentSample() async throws -> HKQuantitySample? {
-        try await samples(
+    func mostRecentSample(excluding uuidsToExclude: [UUID]) async throws -> HKQuantitySample? {
+        let predicate = NSPredicate(format: "uuid NOT IN %@", uuidsToExclude.map({$0 as CVarArg}))
+        return try await samples(
+            predicate: predicate,
             sortDescriptors: [SortDescriptor(\.startDate, order: .reverse)],
             limit: 1
         ).first
@@ -69,7 +71,7 @@ extension HealthKitQuantityRequest {
     var typeIdentifier: HKQuantityTypeIdentifier { quantityType.healthKitTypeIdentifier }
 
     func samples(
-        matching predicate: NSPredicate? = nil,
+        predicate: NSPredicate? = nil,
         sortDescriptors: [SortDescriptor<HKQuantitySample>] = [],
         limit: Int? = nil
     ) async throws -> [HKQuantitySample] {

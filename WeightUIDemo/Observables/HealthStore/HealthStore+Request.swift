@@ -50,12 +50,15 @@ extension HealthStore {
         }
     }
     
-    static func mostRecentSample(for quantityType: QuantityType) async -> HKQuantitySample? {
+    static func mostRecentSample(
+        for quantityType: QuantityType,
+        excluding uuidsToExclude: [UUID]
+    ) async -> HKQuantitySample? {
         do {
             return try await HealthKitQuantityRequest(
                 quantityType,
                 quantityType.defaultUnit)
-            .mostRecentSample()
+            .mostRecentSample(excluding: uuidsToExclude)
         } catch {
             return nil
         }

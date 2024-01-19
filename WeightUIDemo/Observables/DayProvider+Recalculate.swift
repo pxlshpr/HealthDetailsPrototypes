@@ -2,7 +2,7 @@ import Foundation
 
 extension DayProvider {
     static func recalculateAllDays() async throws {
-        let startDate = await fetchBackendDaysStartDate()
+        let startDate = await fetchBackendDaysStartDate() ?? LogStartDate
 
         var start = CFAbsoluteTimeGetCurrent()
         print("recalculateAllDays() started")

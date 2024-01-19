@@ -3,8 +3,10 @@ import SwiftSugar
 
 let LargeNumberFont: Font = .system(.largeTitle, design: .rounded, weight: .bold)
 //let LogStartDate = Date(fromDateString: "2023_12_01")!
-let LogStartDate = Date(fromDateString: "2022_01_01")!
-let DaysStartDate = Date(fromDateString: "2016_01_01")!
+//let DaysStartDate = Date(fromDateString: "2016_01_01")!
+
+//let LogStartDate = Date(fromDateString: "2022_01_01")!
+let LogStartDate = Date.now.startOfDay
 
 struct DemoView: View {
     
@@ -38,11 +40,26 @@ struct DemoView: View {
                 self.settingsProvider.settings = settings
             }
             
-            if initialLaunchCompleted {
+            if initialLaunchCompleted  {
                 try await HealthStore.requestPermissions()
                 try await HealthProvider.syncWithHealthKitAndRecalculateAllDays()
             } else {
                 resetData()
+            }
+            
+            if let daysStartDate = await DayProvider.fetchBackendDaysStartDate() {
+                var preLogDates: [Date] = []
+                /// For each date from DaysStartDate till the day before LogStartDate, check if we have a Day for it, and if so append the date
+                let numberOfDays = LogStartDate.numberOfDaysFrom(daysStartDate)
+                for i in 0..<numberOfDays {
+                    let date = daysStartDate.moveDayBy(i)
+                    if let _ = await fetchDayFromDocuments(date) {
+                        preLogDates.append(date)
+                    }
+                }
+                await MainActor.run { [preLogDates] in
+                    self.preLogDates = preLogDates
+                }
             }
         }
     }
@@ -110,22 +127,30 @@ struct DemoView: View {
         
         let numberOfDays = Date.now.numberOfDaysFrom(LogStartDate)
         
-        func button(daysAgo: Int) -> some View {
-            let date = Date.now.moveDayBy(-daysAgo)
-            return Button {
-                pastDateBeingShown = date
-            } label: {
-                Text(date.shortDateString + "\(daysAgo == 0 ? " (Current)" : "")")
-            }
-        }
-        
         return Section("Health Details") {
             ForEach(0...numberOfDays, id: \.self) {
-                button(daysAgo: $0)
+                button(Date.now.moveDayBy(-$0))
             }
         }
     }
     
+    func button(_ date: Date) -> some View {
+        return Button {
+            pastDateBeingShown = date
+        } label: {
+            Text(date.shortDateString + "\(date.isToday ? " (Current)" : "")")
+        }
+    }
+    
+    @State var preLogDates: [Date] = []
+    
+    var preLogHealthDetailsSection: some View {
+        Section("Pre-Log Health Details") {
+            ForEach(preLogDates, id: \.self) {
+                button($0)
+            }
+        }
+    }
     var settingsSection: some View {
         Section {
             Button {

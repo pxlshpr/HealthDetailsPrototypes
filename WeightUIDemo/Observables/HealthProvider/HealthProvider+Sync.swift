@@ -15,10 +15,14 @@ extension HealthProvider {
         var daysStartDate = logStartDate
         
         var samples = try await samples(from: logStartDate, settings: settings)
+        let prelogDeletedHealthKitUUIDs = await DayProvider.fetchPrelogDeletedHealthKitUUIDs()
+
         try await fetchMostRecentSamplesForEmptyQuantityTypes(
             samples: &samples,
-            daysStartDate: &daysStartDate
+            daysStartDate: &daysStartDate,
+            prelogDeletedHealthKitUUIDs: prelogDeletedHealthKitUUIDs
         )
+        await DayProvider.updateDaysStartDate(daysStartDate)
         
         let earliestDateForDietaryEnergyPoints = logStartDate.earliestDateForDietaryEnergyPoints
 
@@ -84,9 +88,11 @@ extension HealthProvider {
     
     static func fetchMostRecentSamplesForEmptyQuantityTypes(
         samples: inout [QuantityType : [HKQuantitySample]],
-        daysStartDate: inout Date
+        daysStartDate: inout Date,
+        prelogDeletedHealthKitUUIDs: [UUID]
     ) async throws {
         for quantityType in QuantityType.syncedTypes {
+            
             /// Only do this if we don't have any samples for this quantity type
             guard
                 !samples.keys.contains(quantityType)
@@ -94,9 +100,24 @@ extension HealthProvider {
             else {
                 continue
             }
+
+            //TODO: Remove this in production
+            if isPreview, quantityType == .leanBodyMass {
+                let settings = await fetchSettingsFromDocuments()
+                guard let dailyValueType = settings.dailyValueType(forQuantityType: quantityType) else {
+                    return
+                }
+                var healthDetails = await fetchOrCreateHealthDetailsFromDocuments(preview_healthKitLBMDate)
+                healthDetails.leanBodyMass.preview_addHealthKitSample(dailyValueType: dailyValueType)
+                try await saveHealthDetailsInDocuments(healthDetails)
+                return
+            }
             
             /// Only continue if we there is a sample available for this type
-            guard let latestSample = await HealthStore.mostRecentSample(for: quantityType) else {
+            guard let latestSample = await HealthStore.mostRecentSample(
+                for: quantityType,
+                excluding: prelogDeletedHealthKitUUIDs
+            ) else {
                 continue
             }
             
@@ -209,4 +230,8 @@ extension HealthProvider {
             }
         }
     }
+}
+
+#Preview {
+    DemoView()
 }

@@ -15,6 +15,18 @@ struct Day: Codable, Hashable {
 import HealthKit
 
 extension HealthDetails {
+    var syncables: [any HealthKitSyncable] {
+        [leanBodyMass, weight, height, fatPercentage]
+    }
+    
+    var deletedHealthKitUUIDs: [UUID] {
+        syncables
+            .map { $0.deletedHealthKitMeasurements.compactMap { $0.healthKitUUID } }
+            .flatMap { $0 }
+    }
+}
+
+extension HealthDetails {
     mutating func syncWithHealthKit(
         quantityType: QuantityType,
         samples: [HKQuantitySample],
