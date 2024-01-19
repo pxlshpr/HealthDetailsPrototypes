@@ -12,14 +12,14 @@ struct EstimatedMaintenanceForm: View {
     @State var restingEnergy: HealthDetails.Maintenance.Estimate.RestingEnergy
     @State var activeEnergy: HealthDetails.Maintenance.Estimate.ActiveEnergy
     
-    let saveHandler: (HealthDetails.Maintenance.Estimate) -> ()
+    let saveHandler: (HealthDetails.Maintenance.Estimate, Bool) -> ()
 
     init(
         date: Date,
         estimate: HealthDetails.Maintenance.Estimate,
         healthProvider: HealthProvider,
         isPresented: Binding<Bool> = .constant(true),
-        saveHandler: @escaping (HealthDetails.Maintenance.Estimate) -> ()
+        saveHandler: @escaping (HealthDetails.Maintenance.Estimate, Bool) -> ()
     ) {
         self.date = date
         self.healthProvider = healthProvider
@@ -72,23 +72,23 @@ struct EstimatedMaintenanceForm: View {
         )
     }
     
-    func handleChanges() {
+    func handleChanges(_ shouldResync: Bool = false) {
         let estimateInKcal: Double? = if let restingEnergyInKcal = restingEnergy.kcal, let activeEnergyInKcal = activeEnergy.kcal {
             restingEnergyInKcal + activeEnergyInKcal
         } else {
             nil
         }
         self.estimateInKcal = estimateInKcal
-        save()
+        save(shouldResync)
     }
     
-    func save() {
-        saveHandler(estimate)
+    func save(_ shouldResync: Bool) {
+        saveHandler(estimate, shouldResync)
     }
     
-    func saveRestingEnergy(_ restingEnergy: HealthDetails.Maintenance.Estimate.RestingEnergy) {
+    func saveRestingEnergy(_ restingEnergy: HealthDetails.Maintenance.Estimate.RestingEnergy, shouldResync: Bool) {
         self.restingEnergy = restingEnergy
-        handleChanges()
+        handleChanges(shouldResync)
     }
 
     func saveActiveEnergy(_ activeEnergy: HealthDetails.Maintenance.Estimate.ActiveEnergy) {

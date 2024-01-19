@@ -218,9 +218,9 @@ struct MaintenanceForm: View {
                 estimate: estimate,
                 healthProvider: healthProvider,
                 isPresented: $isPresented,
-                saveHandler: { estimate in
+                saveHandler: { estimate, shouldResync in
                     self.estimate = estimate
-                    handleChanges()
+                    handleChanges(shouldResync)
                 }
             )
         }
