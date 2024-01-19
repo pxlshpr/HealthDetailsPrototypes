@@ -9,7 +9,7 @@ protocol Measurable: Identifiable {
     var valueToExport: Double { get }
     static var healthKitUnit: HKUnit { get }
     var unit: HKUnit { get }
-    var quantityType: HKQuantityType { get }
+    var hkQuantityType: HKQuantityType { get }
 
     /// Optionals
 //    var secondaryValue: Double? { get }
@@ -77,7 +77,7 @@ extension HeightMeasurement: Measurable {
     var value: Double { heightInCm }
     static var healthKitUnit: HKUnit { .meterUnit(with: .centi) }
     var unit: HKUnit { .meterUnit(with: .centi) }
-    var quantityType: HKQuantityType { .init(.height) }
+    var hkQuantityType: HKQuantityType { .init(.height) }
 }
 
 
@@ -85,14 +85,14 @@ extension WeightMeasurement: Measurable {
     var value: Double { weightInKg }
     static var healthKitUnit: HKUnit { .gramUnit(with: .kilo) }
     var unit: HKUnit { .gramUnit(with: .kilo) }
-    var quantityType: HKQuantityType { .init(.bodyMass) }
+    var hkQuantityType: HKQuantityType { .init(.bodyMass) }
 }
 
 extension LeanBodyMassMeasurement: Measurable {
     var value: Double { leanBodyMassInKg }
     static var healthKitUnit: HKUnit { .gramUnit(with: .kilo) }
     var unit: HKUnit { .gramUnit(with: .kilo) }
-    var quantityType: HKQuantityType { .init(.leanBodyMass) }
+    var hkQuantityType: HKQuantityType { .init(.leanBodyMass) }
 
     var imageType: MeasurementImageType {
         switch source {
@@ -106,7 +106,7 @@ extension FatPercentageMeasurement: Measurable {
     var value: Double { percent }
     static var healthKitUnit: HKUnit { .percent() }
     var unit: HKUnit { .percent() }
-    var quantityType: HKQuantityType { .init(.bodyFatPercentage) }
+    var hkQuantityType: HKQuantityType { .init(.bodyFatPercentage) }
 
     var imageType: MeasurementImageType {
         switch source {

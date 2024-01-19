@@ -1,12 +1,5 @@
 import Foundation
 
-//extension HealthProvider {
-//    func setLatest(_ latest: [HealthDetail : DatedHealthData]) {
-//        self.latest = latest
-//        healthDetails.bringForwardNonTemporalHealthDetails(from: latest)
-//    }
-//}
-
 extension HealthDetails {
     mutating func setLatestHealthDetails(_ latest: [HealthDetail : DatedHealthData]) {
 

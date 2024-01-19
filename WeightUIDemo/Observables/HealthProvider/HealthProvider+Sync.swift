@@ -83,10 +83,10 @@ extension HealthProvider {
     
     static func samples(from date: Date, settings: Settings) async throws -> [HealthKitType : [HKQuantitySample]] {
         var dict: [HealthKitType : [HKQuantitySample]] = [:]
-        for quantityType in HealthKitType.syncedTypes {
-            guard let healthDetail = quantityType.healthDetail,
+        for type in HealthKitType.syncedTypes {
+            guard let healthDetail = type.healthDetail,
                   settings.isHealthKitSyncing(healthDetail) else { continue }
-            dict[quantityType] = await HealthStore.samples(for: quantityType, from: date)
+            dict[type] = await HealthStore.samples(for: type, from: date)
         }
         return dict
     }
@@ -96,19 +96,19 @@ extension HealthProvider {
         daysStartDate: inout Date,
         prelogDeletedHealthKitUUIDs: [UUID]
     ) async throws {
-        for quantityType in HealthKitType.syncedTypes {
+        for type in HealthKitType.syncedTypes {
             
             /// Only do this if we don't have any samples for this quantity type
             guard
-                !samples.keys.contains(quantityType)
-                || samples[quantityType]?.isEmpty == true
+                !samples.keys.contains(type)
+                || samples[type]?.isEmpty == true
             else {
                 continue
             }
 
             /// Only continue if we there is a sample available for this type, getting the most recent one to use its date
             guard let latestSample = await HealthStore.mostRecentSample(
-                for: quantityType,
+                for: type,
                 excluding: prelogDeletedHealthKitUUIDs
             ) else {
                 continue
@@ -123,16 +123,15 @@ extension HealthProvider {
             
             /// Now grab all the pre-log recent samples for all days from daysStartDate till the log start date (so that we fetch the deleted ones too to be passed into `processHealthKitSamples`, otherwise resulting in the removal of them from being considered deleted from HealthKit—and subsequent addition back into Prep in the next sync by being more recent).
             let preLogSamples = await HealthStore.samples(
-                for: quantityType,
+                for: type,
                 from: daysStartDate,
                 to: logStartDate
             )
             
-//            samples[quantityType] = [latestSample]
-            samples[quantityType] = preLogSamples
+           samples[type] = preLogSamples
 
             for sample in preLogSamples {
-                try await saveHealthKitSample(sample, for: quantityType)
+                try await saveHealthKitSample(sample, for: type)
             }
         }
     }
@@ -141,9 +140,9 @@ extension HealthProvider {
         let start = CFAbsoluteTimeGetCurrent()
         print("Getting all stats...")
         var dict: [HealthKitType : HKStatisticsCollection] = [:]
-        for quantityType in HealthKitType.fetchedTypes {
-            dict[quantityType] = await HealthStore.dailyStatistics(
-                for: quantityType.healthKitTypeIdentifier,
+        for type in HealthKitType.fetchedTypes {
+            dict[type] = await HealthStore.dailyStatistics(
+                for: type.healthKitTypeIdentifier,
                 from: startDate,
                 to: Date.now
             )
@@ -217,10 +216,10 @@ extension HealthProvider {
         
         for date in days.keys.sorted() {
             
-            for quantityType in HealthKitType.syncedTypes {
-                guard let samples = samples[quantityType] else { continue }
+            for type in HealthKitType.syncedTypes {
+                guard let samples = samples[type] else { continue }
                 days[date]?.healthDetails.syncWithHealthKit(
-                    quantityType: quantityType,
+                    type: type,
                     samples: samples,
                     toDelete: &toDelete,
                     toExport: &toExport,
@@ -228,10 +227,10 @@ extension HealthProvider {
                 )
             }
             
-            for quantityType in HealthKitType.fetchedTypes {
-                guard let stats = stats[quantityType] else { continue }
+            for type in HealthKitType.fetchedTypes {
+                guard let stats = stats[type] else { continue }
                 await days[date]?.fetchFromHealthKitIfNeeded(
-                    quantityType: quantityType,
+                    type: type,
                     using: stats
                 )
             }

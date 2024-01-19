@@ -15,7 +15,7 @@ extension HealthStore {
         do {
             let objects = measurements.map { measurement in
                 HKQuantitySample(
-                    type: measurement.quantityType,
+                    type: measurement.hkQuantityType,
                     quantity: HKQuantity(
                         unit: measurement.unit,
                         doubleValue: measurement.valueToExport

@@ -28,7 +28,7 @@ extension HealthDetails {
 
 extension HealthDetails {
     mutating func syncWithHealthKit(
-        quantityType: HealthKitType,
+        type: HealthKitType,
         samples: [HKQuantitySample],
         toDelete: inout [HKQuantitySample],
         toExport: inout [any Measurable],
@@ -37,7 +37,7 @@ extension HealthDetails {
         
         var syncable: (any HealthKitSyncable)? {
             get {
-                switch quantityType {
+                switch type {
                 case .weight:           weight
                 case .leanBodyMass:     leanBodyMass
                 case .height:           height
@@ -47,7 +47,7 @@ extension HealthDetails {
             }
             set {
                 guard let newValue else { return }
-                switch quantityType {
+                switch type {
                 case .weight:
                     guard let weight = newValue as? Weight else { return }
                     self.weight = weight
@@ -94,13 +94,13 @@ extension HealthDetails {
 }
 extension Day {
     mutating func fetchFromHealthKitIfNeeded(
-        quantityType: HealthKitType,
+        type: HealthKitType,
         using stats: HKStatisticsCollection
     ) async {
         
         let day = self
         
-        switch quantityType {
+        switch type {
 
         case .restingEnergy:
             await healthDetails.maintenance.estimate.restingEnergy

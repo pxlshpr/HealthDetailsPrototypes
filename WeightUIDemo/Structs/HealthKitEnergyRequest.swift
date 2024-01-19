@@ -23,7 +23,7 @@ struct HealthKitEnergyRequest {
 extension HealthKitEnergyRequest {
     var intervalType: HealthIntervalType { interval.intervalType }
     var typeIdentifier: HKQuantityTypeIdentifier { energyType.hkQuantityTypeIdentifier }
-    var quantityType: HKQuantityType { HKQuantityType(typeIdentifier)}
+    var hkQuantityType: HKQuantityType { HKQuantityType(typeIdentifier)}
     var unit: HKUnit { energyUnit.healthKitUnit }
     
 //    func requestPersmissions() async throws {

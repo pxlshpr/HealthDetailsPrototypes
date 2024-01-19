@@ -37,14 +37,14 @@ extension HealthStore {
 extension HealthStore {
     
     static func samples(
-        for quantityType: HealthKitType,
+        for type: HealthKitType,
         from startDate: Date? = nil,
         to endDate: Date? = nil
     ) async -> [HKQuantitySample] {
         do {
             return try await HealthKitQuantityRequest(
-                quantityType,
-                quantityType.defaultUnit
+                type,
+                type.defaultUnit
             ).allSamples(
                 startingFrom: startDate,
                 to: endDate
@@ -55,13 +55,13 @@ extension HealthStore {
     }
     
     static func mostRecentSample(
-        for quantityType: HealthKitType,
+        for type: HealthKitType,
         excluding uuidsToExclude: [UUID]
     ) async -> HKQuantitySample? {
         do {
             return try await HealthKitQuantityRequest(
-                quantityType,
-                quantityType.defaultUnit)
+                type,
+                type.defaultUnit)
             .mostRecentSample(excluding: uuidsToExclude)
         } catch {
             return nil

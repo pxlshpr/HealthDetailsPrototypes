@@ -194,7 +194,6 @@ extension HealthProvider {
     //TODO: To be replaced in Prep with a function that asks backend for the earliest Days that contain age, sex, or smokingStatus to be as optimized as possible
     func bringForwardNonTemporalHealthDetails() async {
         guard !healthDetails.missingNonTemporalHealthDetails.isEmpty else { return }
-        let start = CFAbsoluteTimeGetCurrent()
         
         /// We use the `LogStartDate` here because non-temporal details wouldn't be set for days before that (it's only set in the case of temporal details like height, weight, fat, dietary energy, fat percentage—when the earliest available value in HealthKit for any of those is on a date before the log start date.
         let numberOfDays = healthDetails.date.numberOfDaysFrom(LogStartDate)
@@ -222,7 +221,5 @@ extension HealthProvider {
                 break
             }
         }
-        
-        print("bringForwardNonTemporalHealthDetails() for \(numberOfDays) numberOfDays took: \(CFAbsoluteTimeGetCurrent()-start)s")
     }
 }

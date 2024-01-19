@@ -269,14 +269,14 @@ extension HealthProvider {
 extension HealthProvider {
     static func saveHealthKitSample(
         _ sample: HKQuantitySample,
-        for quantityType: HealthKitType
+        for type: HealthKitType
     ) async throws {
         let settings = await fetchSettingsFromDocuments()
-        guard let dailyValueType = settings.dailyValueType(forQuantityType: quantityType) else {
+        guard let dailyValueType = settings.dailyValueType(forHealthKitType: type) else {
             return
         }
         var healthDetails = await fetchOrCreateHealthDetailsFromDocuments(sample.date.startOfDay)
-        switch quantityType {
+        switch type {
         case .weight:
             healthDetails.weight.addHealthKitSample(sample, using: dailyValueType)
         case .leanBodyMass:

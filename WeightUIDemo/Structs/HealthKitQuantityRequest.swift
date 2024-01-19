@@ -2,7 +2,7 @@ import HealthKit
 import PrepShared
 
 struct HealthKitQuantityRequest {
-    let quantityType: HealthKitType
+    let type: HealthKitType
     let healthKitUnit: HKUnit
 //    let date: Date
     
@@ -11,7 +11,7 @@ struct HealthKitQuantityRequest {
         _ unit: HKUnit
 //        _ date: Date
     ) {
-        self.quantityType = type
+        self.type = type
         self.healthKitUnit = unit
 //        self.date = date
     }
@@ -80,7 +80,7 @@ extension HealthKitQuantityRequest {
 
 extension HealthKitQuantityRequest {
     
-    var typeIdentifier: HKQuantityTypeIdentifier { quantityType.healthKitTypeIdentifier }
+    var typeIdentifier: HKQuantityTypeIdentifier { type.healthKitTypeIdentifier }
 
     func samples(
         predicate: NSPredicate? = nil,
