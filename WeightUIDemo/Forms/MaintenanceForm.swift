@@ -17,14 +17,14 @@ struct MaintenanceForm: View {
 
     @State var showingMaintenanceInfo = false
     
-    let saveHandler: (HealthDetails.Maintenance) -> ()
+    let saveHandler: (HealthDetails.Maintenance, Bool) -> ()
     
     init(
         date: Date,
         maintenance: HealthDetails.Maintenance,
         healthProvider: HealthProvider,
         isPresented: Binding<Bool> = .constant(true),
-        saveHandler: @escaping (HealthDetails.Maintenance) -> ()
+        saveHandler: @escaping (HealthDetails.Maintenance, Bool) -> ()
     ) {
         self.date = date
         self.saveHandler = saveHandler
@@ -143,8 +143,8 @@ struct MaintenanceForm: View {
         }
     }
     
-    func save() {
-        saveHandler(maintenance)
+    func save(_ shouldResync: Bool) {
+        saveHandler(maintenance, shouldResync)
     }
     
     var maintenance: HealthDetails.Maintenance {
@@ -177,9 +177,9 @@ struct MaintenanceForm: View {
                 adaptive: adaptive,
                 healthProvider: healthProvider,
                 isPresented: $isPresented,
-                saveHandler: { adaptive in
+                saveHandler: { adaptive, shouldResync in
                     self.adaptive = adaptive
-                    handleChanges()
+                    handleChanges(shouldResync)
                 }
             )
         }
@@ -237,7 +237,7 @@ struct MaintenanceForm: View {
         }
     }
 
-    func handleChanges() {
+    func handleChanges(_ shouldResync: Bool = false) {
         
         let maintenanceInKcal: Double? = switch maintenancetype {
         case .adaptive:
@@ -255,7 +255,7 @@ struct MaintenanceForm: View {
             self.maintenanceInKcal = maintenanceInKcal
         }
 
-        save()
+        save(shouldResync)
     }
     
     var valuePicker: some View {

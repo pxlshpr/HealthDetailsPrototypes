@@ -140,8 +140,22 @@ extension Dictionary where Key == HealthDetail, Value == DatedHealthData {
             self[HealthDetail.fatPercentage] = (datedFatPercentage.date, newValue)
         }
     }
+    
+    var datedMaintenance: DatedMaintenance? {
+        guard let tuple = self[HealthDetail.weight],
+              let maintenance = tuple.data as? HealthDetails.Maintenance
+        else { return nil }
+        return .init(date: tuple.date, maintenance: maintenance)
+    }
     var maintenance: HealthDetails.Maintenance? {
-        self[HealthDetail.maintenance]?.data as? HealthDetails.Maintenance
+        get { datedMaintenance?.maintenance }
+        set {
+            guard let newValue, let datedMaintenance else {
+                self[HealthDetail.maintenance] = nil
+                return
+            }
+            self[HealthDetail.maintenance] = (datedMaintenance.date, newValue)
+        }
     }
     
     var dateOfBirthComponents: DateComponents? {

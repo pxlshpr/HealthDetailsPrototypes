@@ -18,7 +18,7 @@ struct AdaptiveMaintenanceForm: View {
     @State var dietaryEnergy: HealthDetails.Maintenance.Adaptive.DietaryEnergy
     @State var weightChange: WeightChange
     
-    let saveHandler: (HealthDetails.Maintenance.Adaptive) -> ()
+    let saveHandler: (HealthDetails.Maintenance.Adaptive, Bool) -> ()
     
     @State var showingInfo = false
 
@@ -34,7 +34,7 @@ struct AdaptiveMaintenanceForm: View {
         adaptive: HealthDetails.Maintenance.Adaptive,
         healthProvider: HealthProvider,
         isPresented: Binding<Bool> = .constant(true),
-        saveHandler: @escaping (HealthDetails.Maintenance.Adaptive) -> ()
+        saveHandler: @escaping (HealthDetails.Maintenance.Adaptive, Bool) -> ()
     ) {
         self.date = date
         self.healthProvider = healthProvider
@@ -293,9 +293,9 @@ struct AdaptiveMaintenanceForm: View {
                     endWeightMovingAverageWeights: $endWeightMovingAverageWeights,
                     healthProvider: healthProvider,
                     isPresented: $isPresented,
-                    saveHandler: { weightChange in
+                    saveHandler: { weightChange, shouldResync in
                         self.weightChange = weightChange
-                        handleChanges()
+                        handleChanges(shouldResync)
                     }
                 )
             } label: {
@@ -402,8 +402,8 @@ struct AdaptiveMaintenanceForm: View {
         }
     }
 
-    func save() {
-        saveHandler(adaptive)
+    func save(_ shouldResync: Bool) {
+        saveHandler(adaptive, shouldResync)
     }
     
     var adaptive: HealthDetails.Maintenance.Adaptive {
@@ -415,10 +415,10 @@ struct AdaptiveMaintenanceForm: View {
         )
     }
     
-    func handleChanges() {
+    func handleChanges(_ shouldResync: Bool = false) {
         Task {
             await fetchPoints()
-            save()
+            save(shouldResync)
         }
     }
     

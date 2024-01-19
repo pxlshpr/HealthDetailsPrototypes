@@ -27,6 +27,7 @@ extension HealthDetails {
         var datedLeanBodyMass: DatedLeanBodyMass?
         var datedFatPercentage: DatedFatPercentage?
         var datedPregnancyStatus: DatedPregnancyStatus?
+        var datedMaintenance: DatedMaintenance?
     }
 }
 
@@ -38,6 +39,7 @@ extension HealthDetails.ReplacementsForMissing {
         case .leanBodyMass:     datedLeanBodyMass != nil
         case .preganancyStatus: datedPregnancyStatus != nil
         case .fatPercentage:    datedFatPercentage != nil
+        case .maintenance:      datedMaintenance != nil
         default:                false
         }
     }
@@ -51,7 +53,8 @@ extension HealthDetails {
             datedHeight: !hasSet(.height) ? dict.datedHeight : nil,
             datedLeanBodyMass: !hasSet(.leanBodyMass) ? dict.datedLeanBodyMass : nil,
             datedFatPercentage: !hasSet(.fatPercentage) ? dict.datedFatPercentage : nil,
-            datedPregnancyStatus: !hasSet(.preganancyStatus) ? dict.datedPregnancyStatus : nil
+            datedPregnancyStatus: !hasSet(.preganancyStatus) ? dict.datedPregnancyStatus : nil,
+            datedMaintenance: !hasSet(.maintenance) ? dict.datedMaintenance : nil
         )
     }
 }
@@ -59,6 +62,11 @@ extension HealthDetails {
 struct DatedWeight: Hashable, Codable {
     let date: Date
     var weight: HealthDetails.Weight
+}
+
+struct DatedMaintenance: Hashable, Codable {
+    let date: Date
+    var maintenance: HealthDetails.Maintenance
 }
 
 struct DatedHeight: Hashable, Codable {

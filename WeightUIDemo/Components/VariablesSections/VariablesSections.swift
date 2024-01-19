@@ -173,6 +173,7 @@ struct TemporalVariableSection: View {
             case .height:           pastHeight
             case .preganancyStatus: pastPregnancyStatus
             case .fatPercentage:    pastFatPercentage
+            case .maintenance:      pastMaintenance
             default:                EmptyView()
             }
         }
@@ -208,6 +209,11 @@ struct TemporalVariableSection: View {
                         healthProvider: healthProvider,
                         isPresented: $isPresented
                     )
+                case .maintenance:
+                    MaintenanceForm(
+                        healthProvider: healthProvider,
+                        isPresented: $isPresented
+                    )
                 default:
                     EmptyView()
                 }
@@ -228,7 +234,6 @@ struct TemporalVariableSection: View {
     
     @ViewBuilder
     var pastWeight: some View {
-//        if let dated = healthProvider.healthDetails.replacementsForMissing.datedWeight {
         if let dated = replacements?.datedWeight {
             NavigationLink {
                 WeightForm(
@@ -253,7 +258,6 @@ struct TemporalVariableSection: View {
     
     @ViewBuilder
     var pastLeanBodyMass: some View {
-//        if let dated = healthProvider.healthDetails.replacementsForMissing.datedLeanBodyMass {
         if let dated = replacements?.datedLeanBodyMass {
             NavigationLink {
                 LeanBodyMassForm(
@@ -278,7 +282,6 @@ struct TemporalVariableSection: View {
     
     @ViewBuilder
     var pastFatPercentage: some View {
-//        if let dated = healthProvider.healthDetails.replacementsForMissing.datedFatPercentage {
         if let dated = replacements?.datedFatPercentage {
             NavigationLink {
                 FatPercentageForm(
@@ -300,32 +303,32 @@ struct TemporalVariableSection: View {
             }
         }
     }
-//    @ViewBuilder
-//    var pastMaintenance: some View {
-//        if let (date, maintenance) = healthProvider.latest.maintenanceWithDate {
-//            NavigationLink {
-//                MaintenanceForm(
-//                    date: date,
-//                    maintenance: maintenance,
-//                    healthProvider: healthProvider,
-//                    isPresented: $isPresented,
-//                    saveHandler: { maintenance in
-//                        healthProvider.updateLatestMaintenance(maintenance)
-//                    }
-//                )
-//            } label: {
-//                HStack {
-//                    Text(date.shortDateString)
-//                    Spacer()
-//                    Text(maintenance.valueString(in: healthProvider.settingsProvider.energyUnit))
-//                }
-//            }
-//        }
-//    }
+    
+    @ViewBuilder
+    var pastMaintenance: some View {
+        if let dated = replacements?.datedMaintenance {
+            NavigationLink {
+                MaintenanceForm(
+                    date: dated.date,
+                    maintenance: dated.maintenance,
+                    healthProvider: healthProvider,
+                    isPresented: $isPresented,
+                    saveHandler: { maintenance, shouldResync in
+                        healthProvider.updateLatestMaintenance(maintenance)
+                    }
+                )
+            } label: {
+                HStack {
+                    Text(dated.date.shortDateString)
+                    Spacer()
+                    Text(dated.maintenance.valueString(in: healthProvider.settingsProvider.energyUnit))
+                }
+            }
+        }
+    }
     
     @ViewBuilder
     var pastPregnancyStatus: some View {
-//        if let dated = healthProvider.healthDetails.replacementsForMissing.datedPregnancyStatus {
         if let dated = replacements?.datedPregnancyStatus {
             NavigationLink {
                 PregnancyStatusForm(
@@ -349,7 +352,6 @@ struct TemporalVariableSection: View {
     
     @ViewBuilder
     var pastHeight: some View {
-//        if let dated = healthProvider.healthDetails.replacementsForMissing.datedHeight {
         if let dated = replacements?.datedHeight {
             NavigationLink {
                 HeightForm(
@@ -463,11 +465,6 @@ struct NonTemporalVariableLink: View {
             )
         case .smokingStatus:
             SmokingStatusForm(
-                healthProvider: healthProvider,
-                isPresented: $isPresented
-            )
-        case .maintenance:
-            MaintenanceForm(
                 healthProvider: healthProvider,
                 isPresented: $isPresented
             )
@@ -632,6 +629,28 @@ struct GoalVariablesSectionsPreview: View {
                     healthDetails.weight = .init(
                         weightInKg: 95,
                         measurements: [.init(date: Date.now, weightInKg: 95)]
+                    )
+                    healthDetails.replacementsForMissing = .init(
+                        datedMaintenance: .init(
+                            date: Date.now.moveDayBy(-1),
+                            maintenance: .init(
+                                type: .estimated,
+                                kcal: 2000,
+                                adaptive: .init(),
+                                estimate: .init(
+                                    kcal: 2000,
+                                    restingEnergy: HealthDetails.Maintenance.Estimate.RestingEnergy(
+                                        kcal: 1800,
+                                        source: .userEntered
+                                    ),
+                                    activeEnergy: HealthDetails.Maintenance.Estimate.ActiveEnergy(
+                                        kcal: 200,
+                                        source: .userEntered
+                                    )
+                                ),
+                                useEstimateAsFallback: false
+                            )
+                        )
                     )
                     let settings = await fetchSettingsFromDocuments()
                     let healthProvider = HealthProvider(

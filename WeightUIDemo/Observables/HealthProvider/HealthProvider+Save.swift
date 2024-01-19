@@ -7,11 +7,11 @@ import HealthKit
 /// [ ] Send a notification so that DailyValues set on this day get updated too if dependent on the HealthDetail
 
 extension HealthProvider {
-    func save(didModifyPastHealthDetails: Bool = false) {
+    func save(shouldResync: Bool = false) {
         let healthDetailsDidChange = healthDetails != unsavedHealthDetails
         
         /// Safeguard against any redundant calls to save to avoid cancelling the ongoing task and redundantly interacting with the backend
-        guard healthDetailsDidChange || didModifyPastHealthDetails else {
+        guard healthDetailsDidChange || shouldResync else {
             print("🙅🏽‍♂️ Cancelling redundant save()")
             return
         }
@@ -21,7 +21,7 @@ extension HealthProvider {
         saveTask?.cancel()
         saveTask = Task {
             /// Set this before we call `refetchHealthDetails()` which would override the `unsavedHealthDetails` making the changes undetectable
-            let shouldResync = didModifyPastHealthDetails || healthDetails.containsChangesInSyncableMeasurements(from: unsavedHealthDetails)
+            let resync = shouldResync || healthDetails.containsChangesInSyncableMeasurements(from: unsavedHealthDetails)
             
             try await saveHealthDetailsInDocuments(healthDetails)
             try Task.checkCancellation()
@@ -34,15 +34,15 @@ extension HealthProvider {
 
             try Task.checkCancellation()
             
-            if shouldResync  {
-                print("✨ shouldResync is true so Syncing")
+            if resync  {
+                print("✨ resync is true so Syncing")
                 /// If any syncable measurements were changed, trigger a sync (and subsequent recalculate)
                 try await Self.syncWithHealthKitAndRecalculateAllDays()
 
                 /// Refetch HealthDetails as the sync and recalculate may have modified it further
                 await refetchHealthDetails()
             } else {
-                print("🥖 shouldResync is false so not syncing")
+                print("🥖 resync is false so not syncing")
             }
         }
     }
@@ -58,9 +58,9 @@ extension HealthProvider {
 
 extension HealthProvider {
     
-    func saveMaintenance(_ maintenance: HealthDetails.Maintenance) {
+    func saveMaintenance(_ maintenance: HealthDetails.Maintenance, shouldResync: Bool) {
         healthDetails.maintenance = maintenance
-        save()
+        save(shouldResync: shouldResync)
     }
     
     func saveDietaryEnergyPoint(_ point: DietaryEnergyPoint) {
@@ -131,13 +131,14 @@ extension HealthProvider {
     
     //TODO: Replace Mock coding with actual persistence
 
+    /// These trigger syncs if a modification was made
     func updateLatestWeight(_ weight: HealthDetails.Weight) {
         guard let date = healthDetails.replacementsForMissing.datedWeight?.date else { return }
         healthDetails.replacementsForMissing.datedWeight?.weight = weight
         
         Task {
-            let didModify = try await saveWeight(weight, for: date)
-            save(didModifyPastHealthDetails: didModify)
+            let shouldResync = try await saveWeight(weight, for: date)
+            save(shouldResync: shouldResync)
         }
     }
     
@@ -146,10 +147,39 @@ extension HealthProvider {
         healthDetails.replacementsForMissing.datedHeight?.height = height
 
         Task {
-            let didModify = try await saveHeight(height, for: date)
-            save(didModifyPastHealthDetails: didModify)
+            let shouldResync = try await saveHeight(height, for: date)
+            save(shouldResync: shouldResync)
         }
     }
+    
+    func updateLatestFatPercentage(_ fatPercentage: HealthDetails.FatPercentage) {
+        guard let date = healthDetails.replacementsForMissing.datedFatPercentage?.date else { return }
+        healthDetails.replacementsForMissing.datedFatPercentage?.fatPercentage = fatPercentage
+        Task {
+            let shouldResync = try await saveFatPercentage(fatPercentage, for: date)
+            save(shouldResync: shouldResync)
+        }
+    }
+    
+    func updateLatestLeanBodyMass(_ leanBodyMass: HealthDetails.LeanBodyMass) {
+        guard let date = healthDetails.replacementsForMissing.datedLeanBodyMass?.date else { return }
+        healthDetails.replacementsForMissing.datedLeanBodyMass?.leanBodyMass = leanBodyMass
+        Task {
+            let shouldResync = try await saveLeanBodyMass(leanBodyMass, for: date)
+            save(shouldResync: shouldResync)
+        }
+    }
+
+    /// These do not trigger syncs if a modification was made
+    func updateLatestMaintenance(_ maintenance: HealthDetails.Maintenance, shouldResync: Bool = false) {
+        guard let date = healthDetails.replacementsForMissing.datedMaintenance?.date else { return }
+        healthDetails.replacementsForMissing.datedMaintenance?.maintenance = maintenance
+        Task {
+            try await saveMaintenance(maintenance, for: date)
+            save(shouldResync: shouldResync)
+        }
+    }
+
     
     func updateLatestPregnancyStatus(_ pregnancyStatus: PregnancyStatus) {
         guard let date = healthDetails.replacementsForMissing.datedPregnancyStatus?.date else { return }
@@ -160,36 +190,16 @@ extension HealthProvider {
         }
     }
     
-    func updateLatestFatPercentage(_ fatPercentage: HealthDetails.FatPercentage) {
-        guard let date = healthDetails.replacementsForMissing.datedFatPercentage?.date else { return }
-        healthDetails.replacementsForMissing.datedFatPercentage?.fatPercentage = fatPercentage
-        Task {
-            let didModify = try await saveFatPercentage(fatPercentage, for: date)
-            save(didModifyPastHealthDetails: didModify)
-        }
-    }
-    
-    func updateLatestLeanBodyMass(_ leanBodyMass: HealthDetails.LeanBodyMass) {
-        guard let date = healthDetails.replacementsForMissing.datedLeanBodyMass?.date else { return }
-        healthDetails.replacementsForMissing.datedLeanBodyMass?.leanBodyMass = leanBodyMass
-        Task {
-            let didModify = try await saveLeanBodyMass(leanBodyMass, for: date)
-            save(didModifyPastHealthDetails: didModify)
-        }
-    }
-    
     //MARK: - Save for other days
     
+    /// The following would trigger a sync if any modifications were made, so their return values indicate whether a modification was made so that we don't redundantly cause a sync
     func saveWeight(_ weight: HealthDetails.Weight, for date: Date) async throws -> Bool {
-        print("💾 Saving weight: \(String(describing: weight.weightInKg)) for \(date.shortDateString)")
         var healthDetails = await fetchOrCreateHealthDetailsFromDocuments(date)
         guard healthDetails.weight != weight else {
-            print("  Weight hasn't changed, so not saving")
             return false
         }
         healthDetails.weight = weight
         try await saveHealthDetailsInDocuments(healthDetails)
-        print("  Weight set and saved 💾")
         return true
     }
     
@@ -223,6 +233,7 @@ extension HealthProvider {
         return true
     }
     
+    /// We're not interested if the following result in modifications, as we wouldn't be triggering a sync even if they did (as we don't submit them to HealthKit)
     func saveMaintenance(_ maintenance: HealthDetails.Maintenance, for date: Date) async throws {
         var healthDetails = await fetchOrCreateHealthDetailsFromDocuments(date)
         healthDetails.maintenance = maintenance

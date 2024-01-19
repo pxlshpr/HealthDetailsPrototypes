@@ -18,7 +18,7 @@ struct WeightChangeForm: View {
 
     @State var hasFocusedCustomField: Bool = true
 
-    let saveHandler: (WeightChange) -> ()
+    let saveHandler: (WeightChange, Bool) -> ()
 
     @Binding var startWeight: HealthDetails.Weight?
     @Binding var startWeightMovingAverageWeights: [Date : HealthDetails.Weight]
@@ -34,7 +34,7 @@ struct WeightChangeForm: View {
         endWeightMovingAverageWeights: Binding<[Date : HealthDetails.Weight]>,
         healthProvider: HealthProvider,
         isPresented: Binding<Bool> = .constant(true),
-        saveHandler: @escaping (WeightChange) -> ()
+        saveHandler: @escaping (WeightChange, Bool) -> ()
     ) {
         self.date = date
         self.healthProvider = healthProvider
@@ -149,13 +149,13 @@ struct WeightChangeForm: View {
                         isEndWeight: isEndWeight,
                         healthProvider: healthProvider,
                         isPresented: $isPresented,
-                        saveHandler: { point in
+                        saveHandler: { point, shouldResync in
                             if isEndWeight {
                                 points?.end = point
                             } else {
                                 points?.start = point
                             }
-                            handleChanges()
+                            handleChanges(shouldResync)
                         }
                     )
                 } label: {
@@ -290,8 +290,8 @@ struct WeightChangeForm: View {
         )
     }
     
-    func save() {
-        saveHandler(weightChange)
+    func save(_ shouldResync: Bool = false) {
+        saveHandler(weightChange, shouldResync)
     }
     
     var customSection: some View {
@@ -352,7 +352,7 @@ struct WeightChangeForm: View {
         intInput = IntInput(int: int, automaticallySubmitsValues: true)
     }
 
-    func handleChanges() {
+    func handleChanges(_ shouldResync: Bool = false) {
         switch type {
         case .usingPoints:
             if points == nil {
@@ -367,7 +367,7 @@ struct WeightChangeForm: View {
             break
         }
         
-        save()
+        save(shouldResync)
     }
     
     var typePicker: some View {

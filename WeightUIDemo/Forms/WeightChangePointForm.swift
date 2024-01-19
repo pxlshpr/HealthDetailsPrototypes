@@ -21,7 +21,7 @@ struct WeightChangePointForm: View {
     @Binding var weight: HealthDetails.Weight?
     @Binding var movingAverageWeights: [Date : HealthDetails.Weight]
 
-    let saveHandler: (WeightChangePoint) -> ()
+    let saveHandler: (WeightChangePoint, Bool) -> ()
     
     @State var hasFetchedBackendWeights: Bool = false
 //    @State var backendWeights: [Date: HealthDetails.Weight] = [:]
@@ -36,7 +36,7 @@ struct WeightChangePointForm: View {
         isEndWeight: Bool = false,
         healthProvider: HealthProvider,
         isPresented: Binding<Bool> = .constant(true),
-        saveHandler: @escaping (WeightChangePoint) -> ()
+        saveHandler: @escaping (WeightChangePoint, Bool) -> ()
     ) {
         self.healthDetailsDate = date
         self.pointDate = point.date
@@ -164,11 +164,11 @@ struct WeightChangePointForm: View {
                     self.weight = weight
                 }
                 Task {
-                    _ = try await healthProvider.saveWeight(weight, for: date)
+                    let shouldResync = try await healthProvider.saveWeight(weight, for: date)
                     if date.startOfDay == healthProvider.healthDetails.date.startOfDay {
                         healthProvider.healthDetails.weight = weight
                     }
-                    handleChanges()
+                    handleChanges(shouldResync)
                 }
             }
 
@@ -271,8 +271,8 @@ struct WeightChangePointForm: View {
         }
     }
     
-    func save() {
-        saveHandler(point)
+    func save(_ shouldResync: Bool) {
+        saveHandler(point, shouldResync)
     }
     
     var point: WeightChangePoint {
@@ -306,9 +306,9 @@ struct WeightChangePointForm: View {
         }
     }
     
-    func handleChanges() {
+    func handleChanges(_ shouldResync: Bool = false) {
         setWeightInKg()
-        save()
+        save(shouldResync)
 //        handleChangesTask?.cancel()
 //        handleChangesTask = Task {
 //            if hasFetchedBackendWeights {
