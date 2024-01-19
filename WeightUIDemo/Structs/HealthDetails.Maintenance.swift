@@ -12,7 +12,6 @@ extension HealthDetails {
         
         struct Adaptive: Hashable, Codable {
             var kcal: Double?
-            var error: MaintenanceCalculationError?
             var interval: HealthInterval
             
             var dietaryEnergy = DietaryEnergy()
@@ -31,22 +30,7 @@ extension HealthDetails {
 
                 self.kcal = self.calculateIfValid()
             }
-//
-//                let result = Self.calculate(
-//                    weightChange: weightChange,
-//                    dietaryEnergyPoints: dietaryEnergyPoints,
-//                    interval: interval
-//                )
-//                switch result {
-//                case .success(let value):
-//                    self.kcal = value
-//                    self.error = nil
-//                case .failure(let error):
-//                    self.kcal = nil
-//                    self.error = error
-//                }
-//            }
-            
+
             struct DietaryEnergy: Hashable, Codable {
                 var kcalPerDay: Double?
 

@@ -92,7 +92,6 @@
 		E2A6B7E12B551EE500479317 /* DietaryEnergyPoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2A6B7E02B551EE500479317 /* DietaryEnergyPoint.swift */; };
 		E2A6B7E32B551EFB00479317 /* WeightChangePoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2A6B7E22B551EFB00479317 /* WeightChangePoint.swift */; };
 		E2A6B7E52B551F1800479317 /* WeightChangeType.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2A6B7E42B551F1800479317 /* WeightChangeType.swift */; };
-		E2A6B7E72B551F4700479317 /* MaintenanceCalculationError.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2A6B7E62B551F4700479317 /* MaintenanceCalculationError.swift */; };
 		E2A6B7E92B551F5200479317 /* WeightChange.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2A6B7E82B551F5200479317 /* WeightChange.swift */; };
 		E2A6B7EB2B551F8000479317 /* HealthDetails.Maintenance.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2A6B7EA2B551F8000479317 /* HealthDetails.Maintenance.swift */; };
 		E2A6B7ED2B551FA300479317 /* HealthKitEnergy.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2A6B7EC2B551FA300479317 /* HealthKitEnergy.swift */; };
@@ -229,7 +228,6 @@
 		E2A6B7E02B551EE500479317 /* DietaryEnergyPoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DietaryEnergyPoint.swift; sourceTree = "<group>"; };
 		E2A6B7E22B551EFB00479317 /* WeightChangePoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightChangePoint.swift; sourceTree = "<group>"; };
 		E2A6B7E42B551F1800479317 /* WeightChangeType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightChangeType.swift; sourceTree = "<group>"; };
-		E2A6B7E62B551F4700479317 /* MaintenanceCalculationError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaintenanceCalculationError.swift; sourceTree = "<group>"; };
 		E2A6B7E82B551F5200479317 /* WeightChange.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightChange.swift; sourceTree = "<group>"; };
 		E2A6B7EA2B551F8000479317 /* HealthDetails.Maintenance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthDetails.Maintenance.swift; sourceTree = "<group>"; };
 		E2A6B7EC2B551FA300479317 /* HealthKitEnergy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitEnergy.swift; sourceTree = "<group>"; };
@@ -367,31 +365,15 @@
 		E23A250C2B39E6F000BDAECE /* Enums */ = {
 			isa = PBXGroup;
 			children = (
+				E2B57D0F2B5AFA5C00859610 /* Codable */,
 				E2B57D0E2B5AF8A900859610 /* Errors */,
-				E2261F7B2B3716B4007B7DDD /* ActiveEnergySource.swift */,
-				E2261F7D2B371873007B7DDD /* ActivityLevel.swift */,
-				E2F79F552B3484F400A09BDF /* BiologicalSex.swift */,
-				E2BCCC042B3DC2D600616E9A /* CorrectionType.swift */,
-				E2103AF82B35A2FA00B0C381 /* DailyValueType.swift */,
-				E2103B0A2B36140600B0C381 /* DietaryEnergyPointSource.swift */,
 				E228EA2A2B46C80500A44ADC /* EnergyType.swift */,
-				E28C69412B3F508E005E0096 /* HealthDetail.swift */,
-				E2261F7F2B371AEF007B7DDD /* HealthIntervalType.swift */,
-				E28E4BBC2B3E14ED00F89FDC /* LeanBodyMassAndFatPercentageEquation.swift */,
-				E28E4BBA2B3E14E000F89FDC /* MeasurementSource.swift */,
-				E2A6B7E62B551F4700479317 /* MaintenanceCalculationError.swift */,
-				E2103AF42B35A2AC00B0C381 /* MaintenanceType.swift */,
 				E2923FD62B4305C80008F010 /* MeasurementImageType.swift */,
 				E2923FD82B43415E0008F010 /* MeasurementType.swift */,
 				E225DCF82B571FDC007D0BCB /* PercentUnit.swift */,
-				E2F79F712B34BEE300A09BDF /* PregnancyStatus.swift */,
 				E228EA302B46C83A00A44ADC /* QuantityType.swift */,
-				E2D47E362B3738600095B00C /* RestingEnergyEquation.swift */,
-				E2D47E342B37374F0095B00C /* RestingEnergySource.swift */,
-				E2F79F6B2B34BC1E00A09BDF /* SmokingStatus.swift */,
 				E28EAB8B2B5ABA3200646D1F /* Variables.swift */,
 				E28EAB8D2B5ABA4900646D1F /* VariablesType.swift */,
-				E2A6B7E42B551F1800479317 /* WeightChangeType.swift */,
 			);
 			path = Enums;
 			sourceTree = "<group>";
@@ -542,6 +524,29 @@
 				E228EA382B46D01D00A44ADC /* HealthKitStoreError.swift */,
 			);
 			path = Errors;
+			sourceTree = "<group>";
+		};
+		E2B57D0F2B5AFA5C00859610 /* Codable */ = {
+			isa = PBXGroup;
+			children = (
+				E2A6B7E42B551F1800479317 /* WeightChangeType.swift */,
+				E2D47E362B3738600095B00C /* RestingEnergyEquation.swift */,
+				E2D47E342B37374F0095B00C /* RestingEnergySource.swift */,
+				E2F79F712B34BEE300A09BDF /* PregnancyStatus.swift */,
+				E2261F7F2B371AEF007B7DDD /* HealthIntervalType.swift */,
+				E28E4BBC2B3E14ED00F89FDC /* LeanBodyMassAndFatPercentageEquation.swift */,
+				E2F79F6B2B34BC1E00A09BDF /* SmokingStatus.swift */,
+				E28E4BBA2B3E14E000F89FDC /* MeasurementSource.swift */,
+				E2103AF42B35A2AC00B0C381 /* MaintenanceType.swift */,
+				E28C69412B3F508E005E0096 /* HealthDetail.swift */,
+				E2261F7B2B3716B4007B7DDD /* ActiveEnergySource.swift */,
+				E2261F7D2B371873007B7DDD /* ActivityLevel.swift */,
+				E2F79F552B3484F400A09BDF /* BiologicalSex.swift */,
+				E2BCCC042B3DC2D600616E9A /* CorrectionType.swift */,
+				E2103AF82B35A2FA00B0C381 /* DailyValueType.swift */,
+				E2103B0A2B36140600B0C381 /* DietaryEnergyPointSource.swift */,
+			);
+			path = Codable;
 			sourceTree = "<group>";
 		};
 		E2BAE3152B30B601003C5B7F = {
@@ -742,7 +747,6 @@
 				E28ED8012B4181930076BA50 /* IntInput.swift in Sources */,
 				E2923FD72B4305C80008F010 /* MeasurementImageType.swift in Sources */,
 				E2D47E352B37374F0095B00C /* RestingEnergySource.swift in Sources */,
-				E2A6B7E72B551F4700479317 /* MaintenanceCalculationError.swift in Sources */,
 				E2A6B7F52B55202400479317 /* WeightMeasurement.swift in Sources */,
 				E225DCF32B566FAC007D0BCB /* TemporalVariableSection.swift in Sources */,
 				E2F79F5E2B34A2CF00A09BDF /* LeanBodyMassForm.swift in Sources */,

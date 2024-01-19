@@ -1,8 +1,8 @@
 import HealthKit
 import PrepShared
 
-enum EnergyType: Int {
-    case resting = 1
+enum EnergyType {
+    case resting
     case active
     case dietary
 

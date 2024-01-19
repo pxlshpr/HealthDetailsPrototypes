@@ -1,7 +1,7 @@
 import PrepShared
 
 public enum PregnancyStatus: Int16, Codable {
-    case notPregnantOrLactating
+    case notPregnantOrLactating = 1
     case pregnant
     case lactating
     case notSet
