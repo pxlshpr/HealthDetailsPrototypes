@@ -91,9 +91,9 @@ struct EstimatedMaintenanceForm: View {
         handleChanges(shouldResync)
     }
 
-    func saveActiveEnergy(_ activeEnergy: HealthDetails.Maintenance.Estimate.ActiveEnergy) {
+    func saveActiveEnergy(_ activeEnergy: HealthDetails.Maintenance.Estimate.ActiveEnergy, shouldResync: Bool) {
         self.activeEnergy = activeEnergy
-        handleChanges()
+        handleChanges(shouldResync)
     }
 
     var restingEnergyLink: some View {

@@ -34,7 +34,7 @@ struct ActiveEnergyForm: View {
     @State var hasFocusedCustomField: Bool = true
     @State var hasAppeared = false
 
-    let saveHandler: (HealthDetails.Maintenance.Estimate.ActiveEnergy) -> ()
+    let saveHandler: (HealthDetails.Maintenance.Estimate.ActiveEnergy, Bool) -> ()
 
     init(
         date: Date,
@@ -42,7 +42,7 @@ struct ActiveEnergyForm: View {
         restingEnergyInKcal: Double?,
         healthProvider: HealthProvider,
         isPresented: Binding<Bool> = .constant(true),
-        saveHandler: @escaping (HealthDetails.Maintenance.Estimate.ActiveEnergy) -> ()
+        saveHandler: @escaping (HealthDetails.Maintenance.Estimate.ActiveEnergy, Bool) -> ()
     ) {
         self.date = date
         self.restingEnergyInKcal = restingEnergyInKcal
@@ -493,7 +493,8 @@ struct ActiveEnergyForm: View {
     }
     
     func save() {
-        saveHandler(activeEnergy)
+        let shouldResync = source == .healthKit
+        saveHandler(activeEnergy, shouldResync)
     }
 }
 

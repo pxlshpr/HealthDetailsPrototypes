@@ -58,11 +58,6 @@ extension Dictionary where Key == HealthDetail, Value == DatedHealthData {
                 healthDetails.hasSet(healthDetail)
             }
             
-            if healthDetail == .maintenance, shouldUseAsLatest {
-                print("✨ Using as maintenance, date: \(healthDetails.date.shortDateString):")
-                Pretty.prettyPrint(healthDetails.maintenance)
-            }
-            
             guard shouldUseAsLatest,
                   let data = healthDetails.data(for: healthDetail)
             else { continue }
