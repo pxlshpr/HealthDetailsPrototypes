@@ -38,13 +38,17 @@ extension HealthStore {
     
     static func samples(
         for quantityType: QuantityType,
-        from startDate: Date? = nil
+        from startDate: Date? = nil,
+        to endDate: Date? = nil
     ) async -> [HKQuantitySample] {
         do {
             return try await HealthKitQuantityRequest(
                 quantityType,
                 quantityType.defaultUnit
-            ).allSamples(startingFrom: startDate) ?? []
+            ).allSamples(
+                startingFrom: startDate,
+                to: endDate
+            ) ?? []
         } catch {
             return []
         }

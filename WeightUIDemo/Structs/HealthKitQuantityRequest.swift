@@ -44,11 +44,21 @@ extension Array where Element == Date {
 
 extension HealthKitQuantityRequest {
 
-    func allSamples(startingFrom startDate: Date?) async throws -> [HKQuantitySample]? {
-        let predicate: NSPredicate? = if let startDate {
-            NSPredicate(format: "startDate >= %@", startDate.startOfDay as NSDate)
-        } else {
+    func allSamples(
+        startingFrom startDate: Date?,
+        to endDate: Date? = nil
+    ) async throws -> [HKQuantitySample]? {
+        var predicates: [NSPredicate] = []
+        if let startDate {
+            predicates.append(NSPredicate(format: "startDate >= %@", startDate.startOfDay as NSDate))
+        }
+        if let endDate {
+            predicates.append(NSPredicate(format: "startDate <= %@", endDate.endOfDay as NSDate))
+        }
+        let predicate: NSPredicate? = if predicates.isEmpty {
             nil
+        } else {
+            NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
         }
         return try await samples(
             predicate: predicate,
@@ -57,7 +67,9 @@ extension HealthKitQuantityRequest {
     }
     
     func mostRecentSample(excluding uuidsToExclude: [UUID]) async throws -> HKQuantitySample? {
-        let predicate = NSPredicate(format: "uuid NOT IN %@", uuidsToExclude.map({$0 as CVarArg}))
+        let predicate = NSCompoundPredicate(notPredicateWithSubpredicate: NSPredicate(
+            format: "\(HKPredicateKeyPathUUID) IN %@", uuidsToExclude)
+        )
         return try await samples(
             predicate: predicate,
             sortDescriptors: [SortDescriptor(\.startDate, order: .reverse)],

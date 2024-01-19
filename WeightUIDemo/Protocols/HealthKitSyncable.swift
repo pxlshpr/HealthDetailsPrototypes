@@ -8,7 +8,7 @@ protocol HealthKitSyncable {
     var measurements: [MeasurementType] { get set }
     var deletedHealthKitMeasurements: [MeasurementType] { get set }
     mutating func removeHealthKitQuantitySamples(notPresentIn samples: [HKQuantitySample])
-    mutating func addNewHealthKitQuantitySamples(from samples: [HKQuantitySample])
+    mutating func addNewHealthKitQuantitySamples(from samples: [HKQuantitySample], settingAsDeleted previouslyDeletedUUIDs: [UUID])
     
     var healthDetail: HealthDetail { get }
 }
@@ -28,18 +28,34 @@ extension HealthKitSyncable {
         deletedHealthKitMeasurements.removeAll(where: shouldRemove)
     }
     
-    mutating func addNewHealthKitQuantitySamples(from samples: [HKQuantitySample]) {
+    mutating func addNewHealthKitQuantitySamples(
+        from samples: [HKQuantitySample],
+        settingAsDeleted previouslyDeletedUUIDs: [UUID]
+    ) {
 
         func shouldAdd(_ sample: HKQuantitySample) -> Bool {
             !measurements.contains(where: { $0.healthKitUUID == sample.uuid })
             && !deletedHealthKitMeasurements.contains(where: { $0.healthKitUUID == sample.uuid })
         }
         
-        let toAdd = samples.filter(shouldAdd)
-            .map { MeasurementType(healthKitQuantitySample: $0) }
-
-        measurements.append(contentsOf: toAdd)
+        for sample in samples {
+            guard shouldAdd(sample) else { continue }
+            
+            let measurement = MeasurementType(healthKitQuantitySample: sample)
+            if previouslyDeletedUUIDs.contains(sample.uuid) {
+                deletedHealthKitMeasurements.append(measurement)
+            } else {
+                measurements.append(measurement)
+            }
+        }
         measurements.sort()
+        deletedHealthKitMeasurements.sort()
+        
+//        let toAdd = samples.filter(shouldAdd)
+//            .map { MeasurementType(healthKitQuantitySample: $0) }
+//
+//        measurements.append(contentsOf: toAdd)
+//        measurements.sort()
     }
     
     mutating func setDailyValue(for dailyValueType: DailyValueType) {
@@ -94,14 +110,20 @@ extension HealthKitSyncable {
         toExport: inout [any Measurable],
         settings: Settings
     ) {
-        let samples = samples
+        
+        let filtered = samples
             .filter { $0.date.startOfDay == date.startOfDay }
             .removingSamplesWithTheSameValueAtTheSameTime(with: MeasurementType.healthKitUnit)
 
-        removeHealthKitQuantitySamples(notPresentIn: samples.notOurs)
-        addNewHealthKitQuantitySamples(from: samples.notOurs)
-        toDelete.append(contentsOf: samples.ours.notPresent(in: measurements))
-        toExport.append(contentsOf: measurements.nonHealthKitMeasurements.notPresent(in: samples.ours))
+        let deletedUUIDs = deletedHealthKitMeasurements.compactMap { $0.healthKitUUID }
+        
+        removeHealthKitQuantitySamples(notPresentIn: filtered.notOurs)
+        addNewHealthKitQuantitySamples(
+            from: filtered.notOurs,
+            settingAsDeleted: deletedUUIDs
+        )
+        toDelete.append(contentsOf: filtered.ours.notPresent(in: measurements))
+        toExport.append(contentsOf: measurements.nonHealthKitMeasurements.notPresent(in: filtered.ours))
         setDailyValue(for: settings.dailyValueType(for: self.healthDetail))
     }
 }

@@ -39,6 +39,7 @@ extension HealthProvider {
             from: daysStartDate,
             createIfNotExisting: false
         )
+        
         let initialDays = days
         
         var toDelete: [HKQuantitySample] = []
@@ -52,7 +53,7 @@ extension HealthProvider {
             toExport: &toExport,
             settings: settings
         )
-        
+
         /// Once we're done, go ahead and delete all the measurements we put aside to be deleted
         if !toDelete.isEmpty {
             await HealthStore.deleteMeasurements(toDelete)
@@ -101,19 +102,7 @@ extension HealthProvider {
                 continue
             }
 
-            //TODO: Remove this in production
-            if isPreview, quantityType == .leanBodyMass {
-                let settings = await fetchSettingsFromDocuments()
-                guard let dailyValueType = settings.dailyValueType(forQuantityType: quantityType) else {
-                    return
-                }
-                var healthDetails = await fetchOrCreateHealthDetailsFromDocuments(preview_healthKitLBMDate)
-                healthDetails.leanBodyMass.preview_addHealthKitSample(dailyValueType: dailyValueType)
-                try await saveHealthDetailsInDocuments(healthDetails)
-                return
-            }
-            
-            /// Only continue if we there is a sample available for this type
+            /// Only continue if we there is a sample available for this type, getting the most recent one to use its date
             guard let latestSample = await HealthStore.mostRecentSample(
                 for: quantityType,
                 excluding: prelogDeletedHealthKitUUIDs
@@ -121,12 +110,26 @@ extension HealthProvider {
                 continue
             }
             
+            /// Keep moving the `daysStartDate` back to the earliest sample we're using
             if latestSample.startDate < daysStartDate {
                 daysStartDate = latestSample.startDate
             }
             
-            samples[quantityType] = [latestSample]
-            try await saveHealthKitSample(latestSample, for: quantityType)
+            let logStartDate = await DayProvider.fetchBackendLogStartDate()
+            
+            /// Now grab all the pre-log recent samples for all days from daysStartDate till the log start date (so that we fetch the deleted ones too to be passed into `processHealthKitSamples`, otherwise resulting in the removal of them from being considered deleted from HealthKit—and subsequent addition back into Prep in the next sync by being more recent).
+            let preLogSamples = await HealthStore.samples(
+                for: quantityType,
+                from: daysStartDate,
+                to: logStartDate
+            )
+            
+//            samples[quantityType] = [latestSample]
+            samples[quantityType] = preLogSamples
+
+            for sample in preLogSamples {
+                try await saveHealthKitSample(sample, for: quantityType)
+            }
         }
     }
     

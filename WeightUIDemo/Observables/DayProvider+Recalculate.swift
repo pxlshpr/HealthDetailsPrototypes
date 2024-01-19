@@ -39,7 +39,7 @@ extension DayProvider {
         
         for date in days.keys.sorted() {
             
-            guard 
+            guard
                 let value = days[date],
                 let initialDay = initialDays[date]
             else {
@@ -48,7 +48,7 @@ extension DayProvider {
             
             var day = value
             
-            /// [ ] Create a HealthProvider for it (which in turn fetches the latest health details)
+            /// Create a HealthProvider for it (which in turn fetches the latest health details)
             let healthProvider = HealthProvider(
                 healthDetails: day.healthDetails,
                 settingsProvider: settingsProvider
