@@ -187,7 +187,14 @@ struct TemporalVariableSection: View {
     }
     
     func replacementsChanged(old: HealthDetails.ReplacementsForMissing, new: HealthDetails.ReplacementsForMissing) {
-        newReplacements = new
+        if hasPushedForm {
+            newReplacements = new
+        } else {
+            newReplacements = nil
+            withAnimation {
+                replacements = new
+            }
+        }
     }
     
     func formDisappeared() {
@@ -195,6 +202,11 @@ struct TemporalVariableSection: View {
             replacements = newReplacements
         }
         newReplacements = nil
+        hasPushedForm = false
+    }
+    
+    func formAppeared() {
+        hasPushedForm = true
     }
     
     @ViewBuilder
@@ -211,6 +223,8 @@ struct TemporalVariableSection: View {
             }
         }
     }
+    
+    @State var hasPushedForm = false
     
     @ViewBuilder
     var currentLink: some View {
@@ -252,6 +266,7 @@ struct TemporalVariableSection: View {
                 }
             }
             .onDisappear(perform: formDisappeared)
+            .onAppear(perform: formAppeared)
         } label: {
             HStack {
                 Text(date.shortDateString)
@@ -279,6 +294,7 @@ struct TemporalVariableSection: View {
                         healthProvider.updateLatestWeight(newWeight)
                     }
                 )
+                .onAppear(perform: formAppeared)
                 .onDisappear(perform: formDisappeared)
             } label: {
                 HStack {
@@ -303,6 +319,7 @@ struct TemporalVariableSection: View {
                         healthProvider.updateLatestLeanBodyMass(leanBodyMass)
                     }
                 )
+                .onAppear(perform: formAppeared)
                 .onDisappear(perform: formDisappeared)
             } label: {
                 HStack {
@@ -327,6 +344,7 @@ struct TemporalVariableSection: View {
                         healthProvider.updateLatestFatPercentage(fatPercentage)
                     }
                 )
+                .onAppear(perform: formAppeared)
                 .onDisappear(perform: formDisappeared)
             } label: {
                 HStack {
@@ -351,6 +369,7 @@ struct TemporalVariableSection: View {
                         healthProvider.updateLatestMaintenance(maintenance)
                     }
                 )
+                .onAppear(perform: formAppeared)
                 .onDisappear(perform: formDisappeared)
             } label: {
                 HStack {
@@ -374,6 +393,7 @@ struct TemporalVariableSection: View {
                         healthProvider.updateLatestPregnancyStatus(pregnancyStatus)
                     }
                 )
+                .onAppear(perform: formAppeared)
                 .onDisappear(perform: formDisappeared)
             } label: {
                 HStack {
@@ -398,6 +418,7 @@ struct TemporalVariableSection: View {
                         healthProvider.updateLatestHeight(newHeight)
                     }
                 )
+                .onAppear(perform: formAppeared)
                 .onDisappear(perform: formDisappeared)
             } label: {
                 HStack {
