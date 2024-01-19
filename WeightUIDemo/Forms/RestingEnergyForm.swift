@@ -64,18 +64,18 @@ struct RestingEnergyForm: View {
         _intervalType = State(initialValue: healthKitFetchSettings.intervalType)
         _interval = State(initialValue: healthKitFetchSettings.interval)
    
-        if let correction = healthKitFetchSettings.correctionValue {
+        if let correction = healthKitFetchSettings.correction {
             _applyCorrection = State(initialValue: true)
             _correctionType = State(initialValue: correction.type)
             
             let correctionDouble = switch correction.type {
             case .add, .subtract:
-                correction.double.convertEnergy(
+                correction.value.convertEnergy(
                     from: .kcal,
                     to: healthProvider.settingsProvider.energyUnit
                 )
             case .multiply, .divide:
-                correction.double
+                correction.value
             }
             _correctionInput = State(initialValue: DoubleInput(
                 double: correctionDouble,
@@ -216,13 +216,18 @@ struct RestingEnergyForm: View {
     
     var restingEnergy: HealthDetails.Maintenance.Estimate.RestingEnergy {
         var healthKitFetchSettings: HealthKitFetchSettings {
-            .init(
+            var correction: HealthKitFetchSettings.Correction? {
+                guard let correctionValueInKcalIfEnergy else { return nil }
+                return HealthKitFetchSettings.Correction(
+                    type: correctionType,
+                    value: correctionValueInKcalIfEnergy
+                )
+            }
+
+            return .init(
                 intervalType: intervalType,
                 interval: interval,
-                correctionValue: CorrectionValue(
-                    type: correctionType,
-                    double: correctionValueInKcalIfEnergy
-                )
+                correction: correction
             )
         }
         

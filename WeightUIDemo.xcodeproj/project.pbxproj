@@ -41,7 +41,6 @@
 		E228EA312B46C83A00A44ADC /* QuantityType.swift in Sources */ = {isa = PBXBuildFile; fileRef = E228EA302B46C83A00A44ADC /* QuantityType.swift */; };
 		E228EA332B46C84500A44ADC /* HealthKitMeasurement.swift in Sources */ = {isa = PBXBuildFile; fileRef = E228EA322B46C84500A44ADC /* HealthKitMeasurement.swift */; };
 		E228EA352B46CFEF00A44ADC /* HealthKitQuantityRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E228EA342B46CFEF00A44ADC /* HealthKitQuantityRequest.swift */; };
-		E228EA372B46D00900A44ADC /* CharacteristicType.swift in Sources */ = {isa = PBXBuildFile; fileRef = E228EA362B46D00900A44ADC /* CharacteristicType.swift */; };
 		E228EA392B46D01D00A44ADC /* HealthKitStoreError.swift in Sources */ = {isa = PBXBuildFile; fileRef = E228EA382B46D01D00A44ADC /* HealthKitStoreError.swift */; };
 		E23A25142B39F09100BDAECE /* MeasurementBottomBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = E23A25132B39F09100BDAECE /* MeasurementBottomBar.swift */; };
 		E23A25182B39F58F00BDAECE /* SwiftHaptics in Frameworks */ = {isa = PBXBuildFile; productRef = E23A25172B39F58F00BDAECE /* SwiftHaptics */; };
@@ -182,7 +181,6 @@
 		E228EA302B46C83A00A44ADC /* QuantityType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuantityType.swift; sourceTree = "<group>"; };
 		E228EA322B46C84500A44ADC /* HealthKitMeasurement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitMeasurement.swift; sourceTree = "<group>"; };
 		E228EA342B46CFEF00A44ADC /* HealthKitQuantityRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitQuantityRequest.swift; sourceTree = "<group>"; };
-		E228EA362B46D00900A44ADC /* CharacteristicType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CharacteristicType.swift; sourceTree = "<group>"; };
 		E228EA382B46D01D00A44ADC /* HealthKitStoreError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitStoreError.swift; sourceTree = "<group>"; };
 		E23A25132B39F09100BDAECE /* MeasurementBottomBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeasurementBottomBar.swift; sourceTree = "<group>"; };
 		E23A25192B3B1FFB00BDAECE /* HealthDetailsForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthDetailsForm.swift; sourceTree = "<group>"; };
@@ -370,12 +368,8 @@
 			isa = PBXGroup;
 			children = (
 				E2261F7B2B3716B4007B7DDD /* ActiveEnergySource.swift */,
-				E28EAB8D2B5ABA4900646D1F /* VariablesType.swift */,
-				E28EAB8B2B5ABA3200646D1F /* Variables.swift */,
-				E225DCF82B571FDC007D0BCB /* PercentUnit.swift */,
 				E2261F7D2B371873007B7DDD /* ActivityLevel.swift */,
 				E2F79F552B3484F400A09BDF /* BiologicalSex.swift */,
-				E228EA362B46D00900A44ADC /* CharacteristicType.swift */,
 				E2BCCC042B3DC2D600616E9A /* CorrectionType.swift */,
 				E2103AF82B35A2FA00B0C381 /* DailyValueType.swift */,
 				E2103B0A2B36140600B0C381 /* DietaryEnergyPointSource.swift */,
@@ -389,11 +383,14 @@
 				E2103AF42B35A2AC00B0C381 /* MaintenanceType.swift */,
 				E2923FD62B4305C80008F010 /* MeasurementImageType.swift */,
 				E2923FD82B43415E0008F010 /* MeasurementType.swift */,
+				E225DCF82B571FDC007D0BCB /* PercentUnit.swift */,
 				E2F79F712B34BEE300A09BDF /* PregnancyStatus.swift */,
 				E228EA302B46C83A00A44ADC /* QuantityType.swift */,
 				E2D47E362B3738600095B00C /* RestingEnergyEquation.swift */,
 				E2D47E342B37374F0095B00C /* RestingEnergySource.swift */,
 				E2F79F6B2B34BC1E00A09BDF /* SmokingStatus.swift */,
+				E28EAB8B2B5ABA3200646D1F /* Variables.swift */,
+				E28EAB8D2B5ABA4900646D1F /* VariablesType.swift */,
 				E2A6B7E42B551F1800479317 /* WeightChangeType.swift */,
 			);
 			path = Enums;
@@ -783,7 +780,6 @@
 				E23A251E2B3B52ED00BDAECE /* HealthIntervalInfo.swift in Sources */,
 				E225DCE72B55D85A007D0BCB /* HealthProvider+Latest.swift in Sources */,
 				E2F79F542B3484CE00A09BDF /* Pickable.swift in Sources */,
-				E228EA372B46D00900A44ADC /* CharacteristicType.swift in Sources */,
 				E225DCE32B55D833007D0BCB /* HealthProvider+Convenience.swift in Sources */,
 				E2103B0B2B36140600B0C381 /* DietaryEnergyPointSource.swift in Sources */,
 				E2F16EB42B32302A004AD1BA /* NoticeSection.swift in Sources */,

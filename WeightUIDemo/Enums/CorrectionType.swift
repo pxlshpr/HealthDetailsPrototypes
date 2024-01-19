@@ -1,41 +1,41 @@
 import Foundation
 
-enum CorrectionValue: Codable, Hashable {
-    case add(kcal: Double)
-    case subtract(kcal: Double)
-    case multiply(multiplier: Double)
-    case divide(divisor: Double)
-    
-    init?(type: CorrectionType, double: Double?) {
-        guard let double else {
-            return nil
-        }
-        switch type {
-        case .add:      self = .add(kcal: double)
-        case .subtract: self = .subtract(kcal: double)
-        case .multiply: self = .multiply(multiplier: double)
-        case .divide:   self = .divide(divisor: double)
-        }
-    }
-    
-    var type: CorrectionType {
-        switch self {
-        case .add: .add
-        case .subtract: .subtract
-        case .multiply: .multiply
-        case .divide: .divide
-        }
-    }
-    
-    var double: Double {
-        switch self {
-        case .add(let kcal):            kcal
-        case .subtract(let kcal):       kcal
-        case .multiply(let multiplier): multiplier
-        case .divide(let divisor):      divisor
-        }
-    }
-}
+//enum CorrectionValue: Codable, Hashable {
+//    case add(kcal: Double)
+//    case subtract(kcal: Double)
+//    case multiply(multiplier: Double)
+//    case divide(divisor: Double)
+//    
+//    init?(type: CorrectionType, double: Double?) {
+//        guard let double else {
+//            return nil
+//        }
+//        switch type {
+//        case .add:      self = .add(kcal: double)
+//        case .subtract: self = .subtract(kcal: double)
+//        case .multiply: self = .multiply(multiplier: double)
+//        case .divide:   self = .divide(divisor: double)
+//        }
+//    }
+//    
+//    var type: CorrectionType {
+//        switch self {
+//        case .add: .add
+//        case .subtract: .subtract
+//        case .multiply: .multiply
+//        case .divide: .divide
+//        }
+//    }
+//    
+//    var double: Double {
+//        switch self {
+//        case .add(let kcal):            kcal
+//        case .subtract(let kcal):       kcal
+//        case .multiply(let multiplier): multiplier
+//        case .divide(let divisor):      divisor
+//        }
+//    }
+//}
 
 enum CorrectionType: Int, Codable, CaseIterable {
     case add = 1
