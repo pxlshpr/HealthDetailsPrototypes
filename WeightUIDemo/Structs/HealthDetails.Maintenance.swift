@@ -29,7 +29,7 @@ extension HealthDetails {
                 self.dietaryEnergy = .init(points: points)
                 self.weightChange = weightChange
 
-                self.kcal = self.calculate()
+                self.kcal = self.calculateIfValid()
             }
 //
 //                let result = Self.calculate(
@@ -163,17 +163,18 @@ extension HealthDetails.Maintenance.Adaptive {
             return nil
         }
         let totalKcal = kcalPerDay * Double(interval.numberOfDays)
-        let kcal = (totalKcal - weightDeltaInKcal) / Double(interval.numberOfDays)
-
-        guard kcal >= MinimumAdaptiveEnergyInKcal else { return nil }
-        return kcal
+        return (totalKcal - weightDeltaInKcal) / Double(interval.numberOfDays)
     }
-    func calculate() -> Double? {
-        Self.calculate(
+    
+    func calculateIfValid() -> Double? {
+        guard let kcal = Self.calculate(
             interval: interval,
             weightChange: weightChange,
             dietaryEnergy: dietaryEnergy
-        )
+        ) else { return nil }
+
+        guard kcal >= MinimumAdaptiveEnergyInKcal else { return nil }
+        return kcal
     }
     
     static func minimumEnergyString(in energyUnit: EnergyUnit) -> String {
@@ -190,7 +191,7 @@ extension HealthDetails.Maintenance {
 
 extension HealthDetails.Maintenance.Adaptive {
     mutating func setKcal() {
-        kcal = calculate()
+        kcal = calculateIfValid()
     }
 }
 extension HealthDetails.Maintenance.Estimate {
