@@ -85,7 +85,9 @@ struct DemoView: View {
                 createIfNotExisting: true
             )
             print("Created all days in: \(CFAbsoluteTimeGetCurrent()-start)s")
+
             try await HealthProvider.syncWithHealthKitAndRecalculateAllDays()
+
             initialLaunchCompleted = true
         }
     }

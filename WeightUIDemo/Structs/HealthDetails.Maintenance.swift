@@ -77,6 +77,7 @@ extension HealthDetails {
                 var kcal: Double? = nil
                 var source: RestingEnergySource = .equation
                 var equation: RestingEnergyEquation? = .katchMcardle
+                var preferLeanBodyMass: Bool = true
                 var healthKitFetchSettings: HealthKitFetchSettings?
             }
             

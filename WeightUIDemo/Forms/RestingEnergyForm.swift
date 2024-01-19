@@ -11,11 +11,12 @@ struct RestingEnergyForm: View {
     let date: Date
 
     @State var restingEnergyInKcal: Double?
-    @State var source: RestingEnergySource = .equation
-    @State var equation: RestingEnergyEquation = .katchMcardle
-    @State var intervalType: HealthIntervalType = .average
-    @State var interval: HealthInterval = .init(3, .day)
-    @State var applyCorrection: Bool = false
+    @State var source: RestingEnergySource
+    @State var equation: RestingEnergyEquation
+    @State var preferLeanBodyMass: Bool
+    @State var intervalType: HealthIntervalType
+    @State var interval: HealthInterval
+    @State var applyCorrection: Bool
     @State var correctionType: CorrectionType = .divide
     @State var correctionInput = DoubleInput(automaticallySubmitsValues: true)
     @State var customInput: DoubleInput
@@ -57,6 +58,7 @@ struct RestingEnergyForm: View {
 
         _source = State(initialValue: restingEnergy.source)
         _equation = State(initialValue: restingEnergy.equation ?? .default)
+        _preferLeanBodyMass = State(initialValue: restingEnergy.preferLeanBodyMass)
         
         let healthKitFetchSettings = restingEnergy.healthKitFetchSettings ?? HealthKitFetchSettings()
         _intervalType = State(initialValue: healthKitFetchSettings.intervalType)
@@ -173,6 +175,13 @@ struct RestingEnergyForm: View {
                 get: { equation.variables },
                 set: { _ in }
             ),
+            preferLeanBodyMass: Binding<Bool>(
+                get: { preferLeanBodyMass },
+                set: { newValue in
+                    preferLeanBodyMass = newValue
+                    handleChanges()
+                }
+            ),
             healthProvider: healthProvider,
             date: date,
             isPresented: Binding<Bool>(
@@ -220,7 +229,8 @@ struct RestingEnergyForm: View {
         return .init(
             kcal: restingEnergyInKcal,
             source: source,
-            equation: source == .equation ? equation : nil ,
+            equation: source == .equation ? equation : nil,
+            preferLeanBodyMass: preferLeanBodyMass,
             healthKitFetchSettings: source == .healthKit ? healthKitFetchSettings : nil
         )
     }

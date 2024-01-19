@@ -12,9 +12,12 @@ struct VariablesSections: View {
     /// The type that the variables are for
     let type: VariablesType
     
+    var preferLeanBodyMass: Binding<Bool>?
+    
     init(
         type: VariablesType,
         variables: Binding<Variables>,
+        preferLeanBodyMass: Binding<Bool>? = nil,
         healthProvider: HealthProvider,
         date: Date,
         isPresented: Binding<Bool>,
@@ -22,16 +25,46 @@ struct VariablesSections: View {
     ) {
         self.healthProvider = healthProvider
         self.type = type
-        _variables = variables
+        self.preferLeanBodyMass = preferLeanBodyMass
         self.date = date
-        _isPresented = isPresented
         self.showHeader = showHeader
+        _variables = variables
+        _isPresented = isPresented
     }
     
     var body: some View {
         explanation
+        leanBodyMassPicker
         nonTemporalSection
         temporalSections
+    }
+    
+    var leanBodyMassPicker: some View {
+        
+        var shouldShow: Bool {
+            variables.isLeanBodyMass
+            && preferLeanBodyMass != nil
+            && healthProvider.healthDetails.hasIncompatibleLeanBodyMassAndFatPercentageWithWeight
+        }
+        
+        let binding = Binding<Bool>(
+            get: { preferLeanBodyMass?.wrappedValue ?? false },
+            set: {
+                preferLeanBodyMass?.wrappedValue = $0
+            }
+        )
+        
+        return Group {
+            if shouldShow {
+                Section {
+                    Picker("Use", selection: binding) {
+                        Text("Lean Body Mass").tag(true)
+                        Text("Fat Percentage and Weight").tag(false)
+                    }
+                    .pickerStyle(.menu)
+                }
+            }
+        }
     }
     
     var explanation: some View {
@@ -494,6 +527,8 @@ struct RestingEnergyEquationVariablesSectionsPreview: View {
     @State var equation: RestingEnergyEquation = .katchMcardle
 //    @State var variables: Variables = RestingEnergyEquation.cunningham.variables
     
+    @State var preferLeanBodyMass: Bool = false
+    
     @ViewBuilder
     var body: some View {
         if let healthProvider {
@@ -513,6 +548,12 @@ struct RestingEnergyEquationVariablesSectionsPreview: View {
                             get: { equation.variables },
                             set: { _ in }
                         ),
+                        preferLeanBodyMass: Binding<Bool>(
+                            get: { preferLeanBodyMass },
+                            set: { newValue in
+                                self.preferLeanBodyMass = newValue
+                            }
+                        ),
                         healthProvider: healthProvider,
                         date: healthProvider.healthDetails.date,
                         isPresented: .constant(true),
@@ -523,10 +564,19 @@ struct RestingEnergyEquationVariablesSectionsPreview: View {
         } else {
             Color.clear
                 .task {
-                    var healthDetails = await fetchOrCreateHealthDetailsFromDocuments(Date.now)
+//                    var healthDetails = await fetchOrCreateHealthDetailsFromDocuments(Date.now)
+                    var healthDetails = HealthDetails(date: Date.now)
                     healthDetails.weight = .init(
                         weightInKg: 95,
                         measurements: [.init(date: Date.now, weightInKg: 95)]
+                    )
+                    healthDetails.leanBodyMass = .init(
+                        leanBodyMassInKg: 69,
+                        measurements: [.init(date: Date.now, leanBodyMassInKg: 69, source: .userEntered)]
+                    )
+                    healthDetails.fatPercentage = .init(
+                        fatPercentage: 20,
+                        measurements: [.init(date: Date.now, percent: 20, source: .userEntered)]
                     )
                     let settings = await fetchSettingsFromDocuments()
                     let healthProvider = HealthProvider(

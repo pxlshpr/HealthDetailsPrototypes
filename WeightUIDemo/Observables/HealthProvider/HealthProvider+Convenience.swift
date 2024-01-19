@@ -24,4 +24,22 @@ extension HealthDetails {
     var currentOrLatestHeightInCm: Double? {
         height.heightInCm ?? replacementsForMissing.datedHeight?.height.heightInCm
     }
+    
+    var hasIncompatibleLeanBodyMassAndFatPercentageWithWeight: Bool {
+        guard let fatPercentage = currentOrLatestFatPercentage,
+              let weight = currentOrLatestWeightInKg,
+              let leanBodyMass = currentOrLatestLeanBodyMassInKg else {
+            return false
+        }
+        
+        let calculatedLeanBodyMass = calculateLeanBodyMass(
+            fatPercentage: fatPercentage,
+            weightInKg: weight
+        )
+        return calculatedLeanBodyMass != leanBodyMass
+    }
+    
+    var currentOrLatestFatPercentage: Double? {
+        fatPercentage.fatPercentage ?? replacementsForMissing.datedFatPercentage?.fatPercentage.fatPercentage
+    }
 }

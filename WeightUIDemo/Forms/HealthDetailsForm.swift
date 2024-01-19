@@ -43,9 +43,9 @@ struct HealthDetailsForm: View {
             Section {
                 link(for: .age)
                 link(for: .biologicalSex)
-                if shouldShowSmokingStatus {
+//                if shouldShowSmokingStatus {
                     link(for: .smokingStatus)
-                }
+//                }
                 if shouldShowPregnancyStatus {
                     link(for: .preganancyStatus)
                 }
@@ -55,7 +55,7 @@ struct HealthDetailsForm: View {
     
     var shouldShowPregnancyStatus: Bool {
         healthProvider.healthDetails.biologicalSex == .female
-        && healthProvider.healthDetails.smokingStatus != .smoker
+//        && healthProvider.healthDetails.smokingStatus != .smoker
     }
     
     var shouldShowSmokingStatus: Bool {

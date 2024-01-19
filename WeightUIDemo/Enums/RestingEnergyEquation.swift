@@ -148,7 +148,9 @@ extension HealthProvider {
             biologicalSex: biologicalSex,
             weightInKg: healthDetails.currentOrLatestWeightInKg,
             leanBodyMassInKg: healthDetails.currentOrLatestLeanBodyMassInKg,
+            fatPercentage: healthDetails.currentOrLatestFatPercentage,
             heightInCm: healthDetails.currentOrLatestHeightInCm,
+            preferLeanBodyMass: healthDetails.maintenance.estimate.restingEnergy.preferLeanBodyMass,
             energyUnit: .kcal
         )
     }
@@ -183,20 +185,48 @@ extension RestingEnergyEquation {
         biologicalSex: BiologicalSex,
         weightInKg: Double?,
         leanBodyMassInKg: Double?,
+        fatPercentage: Double?,
         heightInCm: Double?,
+        preferLeanBodyMass: Bool,
         energyUnit: EnergyUnit
     ) async -> Double? {
+        
+        var chosenLeanBodyMassInKg: Double? {
+            switch (leanBodyMassInKg, fatPercentage, weightInKg) {
+            case (.some(let lbm), .some(let fatP), .some(let weight)):
+                /// If we have all 3, pick whatever the user prefers
+                if preferLeanBodyMass {
+                    lbm
+                } else {
+                    calculateLeanBodyMass(
+                        fatPercentage: fatP,
+                        weightInKg: weight
+                    )
+                }
+                
+            case (.some(let lbm), .none, .none),
+                (.some(let lbm), .none, .some),
+                (.some(let lbm), .some, .none):
+                /// If we have the lean body mass and not both fat percentage and weight, pick lean body mass regardless of what the user prefers
+                lbm
+            case (.none, .some(let fatP), .some(let weight)):
+                /// If we have fat percentage and weight, and not lean body mass, pick fat percentage and weight regardless of what the user prefers
+                calculateLeanBodyMass(fatPercentage: fatP, weightInKg: weight)
+            default:
+                nil
+            }
+        }
         
         var kcal: Double? {
             switch self {
                 
             case .katchMcardle:
-                guard let leanBodyMassInKg else { return nil }
-                return 370 + (21.6 * leanBodyMassInKg)
+                guard let lbm = chosenLeanBodyMassInKg else { return nil }
+                return 370 + (21.6 * lbm)
 
             case .cunningham:
-                guard let leanBodyMassInKg else { return nil }
-                return 500 + (22.0 * leanBodyMassInKg)
+                guard let lbm = chosenLeanBodyMassInKg else { return nil }
+                return 500 + (22.0 * lbm)
                 
             case .henryOxford:
                 guard let ageInYears, let weightInKg, biologicalSex != .notSet else { return nil }

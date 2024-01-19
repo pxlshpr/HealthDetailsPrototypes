@@ -77,8 +77,8 @@ extension HealthDetails {
         if biologicalSex == .male {
             pregnancyStatus = .notSet
         }
-        if pregnancyStatus == .lactating || pregnancyStatus == .pregnant {
-            smokingStatus = .notSet
+        if pregnancyStatus.isPregnantOrLactating, smokingStatus == .smoker {
+            smokingStatus = .nonSmoker
         }
     }
 }
