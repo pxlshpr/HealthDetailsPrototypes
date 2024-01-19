@@ -190,7 +190,7 @@ struct TemporalVariableSection: View {
         newReplacements = new
     }
     
-    func pastFormDisappeared() {
+    func formDisappeared() {
         withAnimation {
             replacements = newReplacements
         }
@@ -251,6 +251,7 @@ struct TemporalVariableSection: View {
                     EmptyView()
                 }
             }
+            .onDisappear(perform: formDisappeared)
         } label: {
             HStack {
                 Text(date.shortDateString)
@@ -278,7 +279,7 @@ struct TemporalVariableSection: View {
                         healthProvider.updateLatestWeight(newWeight)
                     }
                 )
-                .onDisappear(perform: pastFormDisappeared)
+                .onDisappear(perform: formDisappeared)
             } label: {
                 HStack {
                     Text(dated.date.shortDateString)
@@ -302,7 +303,7 @@ struct TemporalVariableSection: View {
                         healthProvider.updateLatestLeanBodyMass(leanBodyMass)
                     }
                 )
-                .onDisappear(perform: pastFormDisappeared)
+                .onDisappear(perform: formDisappeared)
             } label: {
                 HStack {
                     Text(dated.date.shortDateString)
@@ -326,7 +327,7 @@ struct TemporalVariableSection: View {
                         healthProvider.updateLatestFatPercentage(fatPercentage)
                     }
                 )
-                .onDisappear(perform: pastFormDisappeared)
+                .onDisappear(perform: formDisappeared)
             } label: {
                 HStack {
                     Text(dated.date.shortDateString)
@@ -350,6 +351,7 @@ struct TemporalVariableSection: View {
                         healthProvider.updateLatestMaintenance(maintenance)
                     }
                 )
+                .onDisappear(perform: formDisappeared)
             } label: {
                 HStack {
                     Text(dated.date.shortDateString)
@@ -372,7 +374,7 @@ struct TemporalVariableSection: View {
                         healthProvider.updateLatestPregnancyStatus(pregnancyStatus)
                     }
                 )
-                .onDisappear(perform: pastFormDisappeared)
+                .onDisappear(perform: formDisappeared)
             } label: {
                 HStack {
                     Text(dated.date.shortDateString)
@@ -396,7 +398,7 @@ struct TemporalVariableSection: View {
                         healthProvider.updateLatestHeight(newHeight)
                     }
                 )
-                .onDisappear(perform: pastFormDisappeared)
+                .onDisappear(perform: formDisappeared)
             } label: {
                 HStack {
                     Text(dated.date.shortDateString)
@@ -409,24 +411,10 @@ struct TemporalVariableSection: View {
     
     
     //MARK: - Accessory Views
-    
-//    @ViewBuilder
-//    var mainHeader: some View {
-//        if showHeader {
-//            Text(type.title)
-//                .formTitleStyle()
-//        }
-//    }
 
     var header: some View {
-//        VStack(alignment: .leading, spacing: 10) {
-//            if shouldShowMainHeader {
-//                mainHeader
-//            }
-            Text(healthDetail.name)
-//        }
+        Text(healthDetail.name)
     }
-    
     
     var footer: some View {
         var string: String? {
@@ -444,10 +432,7 @@ struct TemporalVariableSection: View {
                     suffix = ""
                 }
                 return "Since no \(healthDetail.name.lowercased()) data has been set for \(dateString), the most recent entry \(suffix)is being used."
-//            } else if isRequired {
-//                return "Your \(healthDetail.name.lowercased()) is required for this \(type.name)."
             } else {
-//                return "Your \(healthDetail.name.lowercased()) is required for this \(type.name)."
                 return nil
             }
         }
@@ -459,8 +444,6 @@ struct TemporalVariableSection: View {
         }
     }
 
-    //MARK: - Convenience
-    
     var hasLatestDetail: Bool {
         healthProvider.healthDetails.replacementsForMissing.has(healthDetail)
     }

@@ -98,13 +98,23 @@ extension HealthProvider {
     ) async throws {
         for type in HealthKitType.syncedTypes {
             
-            /// Only do this if we don't have any samples for this quantity type
-            guard
-                !samples.keys.contains(type)
-                || samples[type]?.isEmpty == true
-            else {
-                continue
+            /// If we have samples for this type
+            if let samples = samples[type] {
+                /// Remove any that have been deleted
+                let nonDeleted = samples.filter { !prelogDeletedHealthKitUUIDs.contains($0.uuid) }
+                
+                /// If we have some that aren't deleted, then skip this type as getting the most recent sample would be redundant for this
+                if !nonDeleted.isEmpty {
+                    continue
+                }
             }
+            
+//            guard
+//                !samples.keys.contains(type)
+//                || samples[type]?.isEmpty == true
+//            else {
+//                continue
+//            }
 
             /// Only continue if we there is a sample available for this type, getting the most recent one to use its date
             guard let latestSample = await HealthStore.mostRecentSample(

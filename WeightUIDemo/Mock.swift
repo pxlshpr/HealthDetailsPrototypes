@@ -97,7 +97,7 @@ func fetchAllPreLogDaysFromDocuments() async -> [Date : Day] {
     let logStartDate = await DayProvider.fetchBackendLogStartDate()
     return await fetchAllDaysFromDocuments(
         from: daysStartDate,
-        to: logStartDate.moveDayBy(-1),
+        to: logStartDate,
         createIfNotExisting: false
     )
 }
