@@ -193,13 +193,20 @@ extension HealthProvider {
 extension HealthProvider {
     //TODO: To be replaced in Prep with a function that asks backend for the earliest Days that contain age, sex, or smokingStatus to be as optimized as possible
     func bringForwardNonTemporalHealthDetails() async {
-        guard !healthDetails.missingNonTemporalHealthDetails.isEmpty else { return }
+        
+        guard !healthDetails.missingNonTemporalHealthDetails.isEmpty
+                ||
+                !healthDetails.maintenance.hasConfigured
+        else { return }
         
         /// We use the `LogStartDate` here because non-temporal details wouldn't be set for days before that (it's only set in the case of temporal details like height, weight, fat, dietary energy, fat percentage—when the earliest available value in HealthKit for any of those is on a date before the log start date.
         let numberOfDays = healthDetails.date.numberOfDaysFrom(LogStartDate)
+
         guard numberOfDays >= 0 else { return }
+
         for i in 0...numberOfDays {
             let date = healthDetails.date.moveDayBy(-i)
+            //TODO: Pass in Days
             guard let pastHealthDetails = await fetchHealthDetailsFromDocuments(date) else {
                 continue
             }
@@ -214,6 +221,11 @@ extension HealthProvider {
             
             if !healthDetails.hasSet(.smokingStatus), pastHealthDetails.hasSet(.smokingStatus) {
                 healthDetails.smokingStatus = pastHealthDetails.smokingStatus
+            }
+            
+            if !healthDetails.maintenance.hasConfigured,
+               pastHealthDetails.maintenance.hasConfigured {
+                healthDetails.maintenance = pastHealthDetails.maintenance
             }
 
             /// Once we get all non-temporal HealthDetails, stop searching early

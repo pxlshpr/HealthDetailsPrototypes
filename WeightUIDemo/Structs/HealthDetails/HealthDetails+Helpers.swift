@@ -24,7 +24,7 @@ extension HealthDetails {
         switch healthDetail {
         case .maintenance:      maintenance.kcal != nil
         case .age:              ageInYears != nil
-        case .biologicalSex:              biologicalSex != .notSet
+        case .biologicalSex:    biologicalSex != .notSet
         case .weight:           weight.weightInKg != nil
         case .leanBodyMass:     leanBodyMass.leanBodyMassInKg != nil
         case .fatPercentage:    fatPercentage.fatPercentage != nil

@@ -2,8 +2,8 @@ import Foundation
 import PrepShared
 
 public enum ActiveEnergySource: Int, Codable, CaseIterable {
-    case healthKit = 1
-    case activityLevel
+    case activityLevel = 1
+    case healthKit
     case manual
     
     var name: String {

@@ -23,6 +23,11 @@ extension HealthDetails {
         if !hasSet(.smokingStatus), let smokingStatus = latest.smokingStatus {
             self.smokingStatus = smokingStatus
         }
+        
+        /// If the user hasn't configured this maintenance, bring forward the latest maintenance
+        if !maintenance.hasConfigured, let maintenance = latest.maintenance {
+            self.maintenance = maintenance
+        }
     }
 
 //    func populateLatestDict(_ dict: inout [HealthDetail : DatedHealthData]) {
@@ -41,7 +46,15 @@ typealias DatedHealthData = (date: Date, data: Any)
 extension Dictionary where Key == HealthDetail, Value == DatedHealthData {
     mutating func extractLatestHealthDetails(from healthDetails: HealthDetails) {
         for healthDetail in HealthDetail.allCases {
-            guard healthDetails.hasSet(healthDetail),
+            
+            let shouldUseAsLatest = if healthDetail == .maintenance {
+                /// For maintenance, use as latest if the user configured it—regardless of whether it currently has a value or not
+                healthDetails.maintenance.hasConfigured
+            } else {
+                healthDetails.hasSet(healthDetail)
+            }
+            
+            guard shouldUseAsLatest,
                   let data = healthDetails.data(for: healthDetail)
             else { continue }
             self[healthDetail] = (healthDetails.date, data)

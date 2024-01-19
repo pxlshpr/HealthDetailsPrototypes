@@ -9,6 +9,7 @@ extension HealthDetails {
         var adaptive = Adaptive()
         var estimate = Estimate()
         var useEstimateAsFallback: Bool = true
+        var hasConfigured: Bool = false
         
         struct Adaptive: Hashable, Codable {
             var kcal: Double?

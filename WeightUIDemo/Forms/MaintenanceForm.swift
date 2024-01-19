@@ -153,7 +153,8 @@ struct MaintenanceForm: View {
             kcal: maintenanceInKcal,
             adaptive: adaptive,
             estimate: estimate,
-            useEstimateAsFallback: useEstimateAsFallback
+            useEstimateAsFallback: useEstimateAsFallback,
+            hasConfigured: true
         )
     }
 

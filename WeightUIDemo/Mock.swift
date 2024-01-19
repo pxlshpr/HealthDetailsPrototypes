@@ -159,9 +159,9 @@ func fetchDayFromDocuments(_ date: Date) async -> Day? {
 }
 
 func saveDayInDocuments(_ day: Day) async {
-    Pretty.print("⭐️ Saving day:")
-    Pretty.prettyPrint(day)
-    Pretty.print(" ")
+//    Pretty.print("⭐️ Saving day:")
+//    Pretty.prettyPrint(day)
+//    Pretty.print(" ")
     do {
         let filename = "\(day.date.dateString).json"
         let url = getDocumentsDirectory().appendingPathComponent(filename)

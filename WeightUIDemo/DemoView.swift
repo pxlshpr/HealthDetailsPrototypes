@@ -5,8 +5,8 @@ let LargeNumberFont: Font = .system(.largeTitle, design: .rounded, weight: .bold
 //let LogStartDate = Date(fromDateString: "2023_12_01")!
 //let DaysStartDate = Date(fromDateString: "2016_01_01")!
 
-//let LogStartDate = Date(fromDateString: "2022_01_01")!
-let LogStartDate = Date.now.startOfDay
+let LogStartDate = Date(fromDateString: "2022_01_01")!
+//let LogStartDate = Date.now.startOfDay
 
 struct DemoView: View {
     
