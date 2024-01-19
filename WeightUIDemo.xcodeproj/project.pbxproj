@@ -62,6 +62,8 @@
 		E28E4BBB2B3E14E000F89FDC /* LeanBodyMassAndFatPercentageSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = E28E4BBA2B3E14E000F89FDC /* LeanBodyMassAndFatPercentageSource.swift */; };
 		E28E4BBD2B3E14ED00F89FDC /* LeanBodyMassAndFatPercentageEquation.swift in Sources */ = {isa = PBXBuildFile; fileRef = E28E4BBC2B3E14ED00F89FDC /* LeanBodyMassAndFatPercentageEquation.swift */; };
 		E28E4BBF2B3E150500F89FDC /* LeanBodyMassMeasurementForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = E28E4BBE2B3E150500F89FDC /* LeanBodyMassMeasurementForm.swift */; };
+		E28EAB8C2B5ABA3200646D1F /* Variables.swift in Sources */ = {isa = PBXBuildFile; fileRef = E28EAB8B2B5ABA3200646D1F /* Variables.swift */; };
+		E28EAB8E2B5ABA4900646D1F /* VariablesType.swift in Sources */ = {isa = PBXBuildFile; fileRef = E28EAB8D2B5ABA4900646D1F /* VariablesType.swift */; };
 		E28ED8012B4181930076BA50 /* IntInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = E28ED8002B4181930076BA50 /* IntInput.swift */; };
 		E28ED8032B41A2990076BA50 /* HealthDetails.swift in Sources */ = {isa = PBXBuildFile; fileRef = E28ED8022B41A2990076BA50 /* HealthDetails.swift */; };
 		E28ED8062B41B76E0076BA50 /* HealthProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = E28ED8052B41B76E0076BA50 /* HealthProvider.swift */; };
@@ -199,6 +201,8 @@
 		E28E4BBA2B3E14E000F89FDC /* LeanBodyMassAndFatPercentageSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeanBodyMassAndFatPercentageSource.swift; sourceTree = "<group>"; };
 		E28E4BBC2B3E14ED00F89FDC /* LeanBodyMassAndFatPercentageEquation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeanBodyMassAndFatPercentageEquation.swift; sourceTree = "<group>"; };
 		E28E4BBE2B3E150500F89FDC /* LeanBodyMassMeasurementForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeanBodyMassMeasurementForm.swift; sourceTree = "<group>"; };
+		E28EAB8B2B5ABA3200646D1F /* Variables.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Variables.swift; sourceTree = "<group>"; };
+		E28EAB8D2B5ABA4900646D1F /* VariablesType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VariablesType.swift; sourceTree = "<group>"; };
 		E28ED8002B4181930076BA50 /* IntInput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntInput.swift; sourceTree = "<group>"; };
 		E28ED8022B41A2990076BA50 /* HealthDetails.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthDetails.swift; sourceTree = "<group>"; };
 		E28ED8052B41B76E0076BA50 /* HealthProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthProvider.swift; sourceTree = "<group>"; };
@@ -364,6 +368,8 @@
 			isa = PBXGroup;
 			children = (
 				E2261F7B2B3716B4007B7DDD /* ActiveEnergySource.swift */,
+				E28EAB8D2B5ABA4900646D1F /* VariablesType.swift */,
+				E28EAB8B2B5ABA3200646D1F /* Variables.swift */,
 				E225DCF82B571FDC007D0BCB /* PercentUnit.swift */,
 				E2261F7D2B371873007B7DDD /* ActivityLevel.swift */,
 				E2F79F552B3484F400A09BDF /* BiologicalSex.swift */,
@@ -679,6 +685,7 @@
 				E2261F802B371AEF007B7DDD /* HealthIntervalType.swift in Sources */,
 				E228EA392B46D01D00A44ADC /* HealthKitStoreError.swift in Sources */,
 				E2923FCF2B42C2860008F010 /* MeasurementsSections.swift in Sources */,
+				E28EAB8C2B5ABA3200646D1F /* Variables.swift in Sources */,
 				E28F374E2B53068000378EA2 /* DietaryEnergyCell.swift in Sources */,
 				E2F79F522B3484B900A09BDF /* PickerSection.swift in Sources */,
 				E2103B032B35BC1600B0C381 /* Constants.swift in Sources */,
@@ -717,6 +724,7 @@
 				E28E4BBF2B3E150500F89FDC /* LeanBodyMassMeasurementForm.swift in Sources */,
 				E28ED8062B41B76E0076BA50 /* HealthProvider.swift in Sources */,
 				E23A25222B3B530E00BDAECE /* InfoSection.swift in Sources */,
+				E28EAB8E2B5ABA4900646D1F /* VariablesType.swift in Sources */,
 				E2BCCC012B3DB53600616E9A /* RestingEnergyInfo.swift in Sources */,
 				E28F37522B5333E500378EA2 /* HealthStore+Save.swift in Sources */,
 				E2F79F702B34BEB300A09BDF /* PregnancyStatusForm.swift in Sources */,

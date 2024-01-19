@@ -1,39 +1,5 @@
 import SwiftUI
 
-enum Variables {
-    case required([HealthDetail], String)
-    
-    /// Will ask for either Lean Body Mass or Fat Percentage and Weight (to calculate it)
-    case leanBodyMass(String)
-    
-    var temporal: [HealthDetail] {
-        switch self {
-        case .required(let array, _):   array.temporalHealthDetails
-        case .leanBodyMass:             [.leanBodyMass, .fatPercentage, .weight]
-        }
-    }
-    
-    var nonTemporal: [HealthDetail] {
-        switch self {
-        case .required(let array, _):   array.nonTemporalHealthDetails
-        case .leanBodyMass:             []
-        }
-    }
-    var description: String {
-        switch self {
-        case .required(_, let string):  string
-        case .leanBodyMass(let string): string
-        }
-    }
-    
-    var isLeanBodyMass: Bool {
-        switch self {
-        case .leanBodyMass: true
-        default:            false
-        }
-    }
-}
-
 struct VariablesSections: View {
     
     @Bindable var healthProvider: HealthProvider
@@ -156,11 +122,46 @@ struct TemporalVariableSection: View {
     @Binding var shouldShowMainHeader: Bool
     let showHeader: Bool
 
+    //MARK: - Links
+    @State var replacements: HealthDetails.ReplacementsForMissing?
+    @State var newReplacements: HealthDetails.ReplacementsForMissing? = nil
+
+    init(
+        healthDetail: HealthDetail,
+        healthProvider: HealthProvider,
+        type: VariablesType,
+        date: Date,
+        isPresented: Binding<Bool>,
+        shouldShowMainHeader: Binding<Bool>,
+        showHeader: Bool
+    ) {
+        self.healthDetail = healthDetail
+        self.healthProvider = healthProvider
+        self.type = type
+        self.date = date
+        _isPresented = isPresented
+        _shouldShowMainHeader = shouldShowMainHeader
+        self.showHeader = showHeader
+        _replacements = State(initialValue: healthProvider.healthDetails.replacementsForMissing)
+    }
+
     var body: some View {
         Section(header: header, footer: footer) {
             pastLink
             currentLink
         }
+        .onChange(of: healthProvider.healthDetails.replacementsForMissing, replacementsChanged)
+    }
+    
+    func replacementsChanged(old: HealthDetails.ReplacementsForMissing, new: HealthDetails.ReplacementsForMissing) {
+        newReplacements = new
+    }
+    
+    func pastFormDisappeared() {
+        withAnimation {
+            replacements = newReplacements
+        }
+        newReplacements = nil
     }
     
     @ViewBuilder
@@ -225,11 +226,10 @@ struct TemporalVariableSection: View {
         }
     }
     
-    //MARK: - Links
-    
     @ViewBuilder
     var pastWeight: some View {
-        if let dated = healthProvider.healthDetails.replacementsForMissing.datedWeight {
+//        if let dated = healthProvider.healthDetails.replacementsForMissing.datedWeight {
+        if let dated = replacements?.datedWeight {
             NavigationLink {
                 WeightForm(
                     date: dated.date,
@@ -240,6 +240,7 @@ struct TemporalVariableSection: View {
                         healthProvider.updateLatestWeight(newWeight)
                     }
                 )
+                .onDisappear(perform: pastFormDisappeared)
             } label: {
                 HStack {
                     Text(dated.date.shortDateString)
@@ -252,7 +253,8 @@ struct TemporalVariableSection: View {
     
     @ViewBuilder
     var pastLeanBodyMass: some View {
-        if let dated = healthProvider.healthDetails.replacementsForMissing.datedLeanBodyMass {
+//        if let dated = healthProvider.healthDetails.replacementsForMissing.datedLeanBodyMass {
+        if let dated = replacements?.datedLeanBodyMass {
             NavigationLink {
                 LeanBodyMassForm(
                     date: dated.date,
@@ -263,6 +265,7 @@ struct TemporalVariableSection: View {
                         healthProvider.updateLatestLeanBodyMass(leanBodyMass)
                     }
                 )
+                .onDisappear(perform: pastFormDisappeared)
             } label: {
                 HStack {
                     Text(dated.date.shortDateString)
@@ -275,7 +278,8 @@ struct TemporalVariableSection: View {
     
     @ViewBuilder
     var pastFatPercentage: some View {
-        if let dated = healthProvider.healthDetails.replacementsForMissing.datedFatPercentage {
+//        if let dated = healthProvider.healthDetails.replacementsForMissing.datedFatPercentage {
+        if let dated = replacements?.datedFatPercentage {
             NavigationLink {
                 FatPercentageForm(
                     date: dated.date,
@@ -286,6 +290,7 @@ struct TemporalVariableSection: View {
                         healthProvider.updateLatestFatPercentage(fatPercentage)
                     }
                 )
+                .onDisappear(perform: pastFormDisappeared)
             } label: {
                 HStack {
                     Text(dated.date.shortDateString)
@@ -320,7 +325,8 @@ struct TemporalVariableSection: View {
     
     @ViewBuilder
     var pastPregnancyStatus: some View {
-        if let dated = healthProvider.healthDetails.replacementsForMissing.datedPregnancyStatus {
+//        if let dated = healthProvider.healthDetails.replacementsForMissing.datedPregnancyStatus {
+        if let dated = replacements?.datedPregnancyStatus {
             NavigationLink {
                 PregnancyStatusForm(
                     date: dated.date,
@@ -330,6 +336,7 @@ struct TemporalVariableSection: View {
                         healthProvider.updateLatestPregnancyStatus(pregnancyStatus)
                     }
                 )
+                .onDisappear(perform: pastFormDisappeared)
             } label: {
                 HStack {
                     Text(dated.date.shortDateString)
@@ -342,7 +349,8 @@ struct TemporalVariableSection: View {
     
     @ViewBuilder
     var pastHeight: some View {
-        if let dated = healthProvider.healthDetails.replacementsForMissing.datedHeight {
+//        if let dated = healthProvider.healthDetails.replacementsForMissing.datedHeight {
+        if let dated = replacements?.datedHeight {
             NavigationLink {
                 HeightForm(
                     date: dated.date,
@@ -353,6 +361,7 @@ struct TemporalVariableSection: View {
                         healthProvider.updateLatestHeight(newHeight)
                     }
                 )
+                .onDisappear(perform: pastFormDisappeared)
             } label: {
                 HStack {
                     Text(dated.date.shortDateString)
@@ -690,24 +699,3 @@ struct DailyValueVariablesSectionsPreview: View {
     DemoView()
 }
 
-enum VariablesType {
-    case equation
-    case goal
-    case dailyValue
-    
-    var name: String {
-        switch self {
-        case .equation:     "calculation"
-        case .goal:         "goal"
-        case .dailyValue:   "daily value"
-        }
-    }
-    
-    var title: String {
-        switch self {
-        case .equation:     "Equation Variables"
-        case .goal:         "Goal Variables"
-        case .dailyValue:   "Daily Value Variables"
-        }
-    }
-}
