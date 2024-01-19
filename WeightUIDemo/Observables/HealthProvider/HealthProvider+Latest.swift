@@ -11,6 +11,40 @@ extension HealthDetails {
     }
 }
 
+extension HealthDetails.Maintenance {
+    var settingsOnly: HealthDetails.Maintenance {
+        .init(
+            type: type,
+            adaptive: .init(
+                interval: adaptive.interval
+            ),
+            estimate: .init(
+                restingEnergy: .init(
+                    source: estimate.restingEnergy.source,
+                    equation: estimate.restingEnergy.equation,
+                    preferLeanBodyMass: estimate.restingEnergy.preferLeanBodyMass,
+                    healthKitFetchSettings: estimate.restingEnergy.healthKitFetchSettings
+                ),
+                activeEnergy: .init(
+                    source: estimate.activeEnergy.source,
+                    activityLevel: estimate.activeEnergy.activityLevel,
+                    healthKitFetchSettings: estimate.activeEnergy.healthKitFetchSettings
+                )
+            ),
+            useEstimateAsFallback: useEstimateAsFallback,
+            hasConfigured: false,
+            isBroughtForward: true
+        )
+    }
+    
+    var hasNilKcals: Bool {
+        kcal == nil
+        && adaptive.kcal == nil
+        && estimate.kcal == nil
+        && estimate.restingEnergy.kcal == nil
+        && estimate.activeEnergy.kcal == nil
+    }
+}
 extension HealthDetails {
     
     mutating func bringForwardNonTemporalHealthDetails(from latest: [HealthDetail : DatedHealthData] ) {
@@ -25,10 +59,11 @@ extension HealthDetails {
         }
         
         /// If the user hasn't configured this maintenance, bring forward the latest maintenance
-        if !maintenance.hasConfigured, let maintenance = latest.maintenance {
-            var maintenance = maintenance
-            maintenance.hasConfigured = false /// Reset this until the user explicitly configures it for this day
-            self.maintenance = maintenance
+        if !maintenance.hasConfigured && maintenance.hasNilKcals,
+//            !maintenance.isBroughtForward,
+            let maintenance = latest.maintenance
+        {
+            self.maintenance = maintenance.settingsOnly
         }
     }
 
@@ -53,7 +88,8 @@ extension Dictionary where Key == HealthDetail, Value == DatedHealthData {
             
             let shouldUseAsLatest = if healthDetail == .maintenance {
                 /// For maintenance, use as latest if the user configured it—regardless of whether it currently has a value or not
-                healthDetails.maintenance.hasConfigured
+                healthDetails.maintenance.hasConfigured 
+//                && !healthDetails.maintenance.isBroughtForward
             } else {
                 healthDetails.hasSet(healthDetail)
             }

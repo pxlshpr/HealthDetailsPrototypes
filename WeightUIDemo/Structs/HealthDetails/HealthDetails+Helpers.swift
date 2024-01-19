@@ -7,16 +7,22 @@ extension HealthDetails {
 //    }
 
     func data(for healthDetail: HealthDetail) -> Any? {
-        switch healthDetail {
-        case .maintenance:      maintenance
+        if healthDetail == .maintenance {
+            var maintenance = maintenance
+//            maintenance.isBroughtForward = false
+            return maintenance
+        }
+        return switch healthDetail {
+//        case .maintenance:      maintenance
         case .age:              dateOfBirthComponents
-        case .biologicalSex:              biologicalSex
+        case .biologicalSex:    biologicalSex
         case .weight:           weight
         case .leanBodyMass:     leanBodyMass
         case .height:           height
         case .preganancyStatus: pregnancyStatus
         case .smokingStatus:    smokingStatus
         case .fatPercentage:    fatPercentage
+        default:                nil
         }
     }
     
