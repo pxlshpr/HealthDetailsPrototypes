@@ -71,3 +71,20 @@ extension HealthDetails {
         leanBodyMass.measurements.append(contentsOf: convertedMeasurements)
     }
 }
+
+extension HealthDetails {
+    mutating func unsetPregnancyAndSmokingStatusIfNeeded() {
+        if biologicalSex == .male {
+            pregnancyStatus = .notSet
+        }
+        if pregnancyStatus == .lactating || pregnancyStatus == .pregnant {
+            smokingStatus = .notSet
+        }
+    }
+}
+
+extension PregnancyStatus {
+    var isPregnantOrLactating: Bool {
+        self == .pregnant || self == .lactating
+    }
+}

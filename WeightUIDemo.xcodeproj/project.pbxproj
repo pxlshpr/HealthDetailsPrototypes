@@ -115,6 +115,7 @@
 		E2A888F12B59860D004FCAF8 /* HKQuantitySample.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2A888F02B59860D004FCAF8 /* HKQuantitySample.swift */; };
 		E2A888F32B598EF9004FCAF8 /* Day.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2A888F22B598EF9004FCAF8 /* Day.swift */; };
 		E2A888F52B599D29004FCAF8 /* HealthProvider+Legacy.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2A888F42B599D29004FCAF8 /* HealthProvider+Legacy.swift */; };
+		E2B57D0D2B5AE01200859610 /* SwiftPrettyPrint in Frameworks */ = {isa = PBXBuildFile; productRef = E2B57D0C2B5AE01200859610 /* SwiftPrettyPrint */; };
 		E2BAE3222B30B601003C5B7F /* WeightUIDemoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2BAE3212B30B601003C5B7F /* WeightUIDemoApp.swift */; };
 		E2BAE3242B30B601003C5B7F /* DemoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2BAE3232B30B601003C5B7F /* DemoView.swift */; };
 		E2BAE3262B30B602003C5B7F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E2BAE3252B30B602003C5B7F /* Assets.xcassets */; };
@@ -289,6 +290,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E2B57D0D2B5AE01200859610 /* SwiftPrettyPrint in Frameworks */,
 				E2BAE3322B30C504003C5B7F /* SwiftSugar in Frameworks */,
 				E23A25182B39F58F00BDAECE /* SwiftHaptics in Frameworks */,
 				E28ED8112B41F5BE0076BA50 /* PrepShared in Frameworks */,
@@ -605,6 +607,7 @@
 				E23A25172B39F58F00BDAECE /* SwiftHaptics */,
 				E28ED8102B41F5BE0076BA50 /* PrepShared */,
 				E28ED8252B420F7A0076BA50 /* SwiftUIIntrospect */,
+				E2B57D0C2B5AE01200859610 /* SwiftPrettyPrint */,
 			);
 			productName = WeightUIDemo;
 			productReference = E2BAE31E2B30B601003C5B7F /* WeightUIDemo.app */;
@@ -639,6 +642,7 @@
 				E23A25162B39F58F00BDAECE /* XCRemoteSwiftPackageReference "SwiftHaptics" */,
 				E28ED80F2B41F5BE0076BA50 /* XCRemoteSwiftPackageReference "PrepShared" */,
 				E28ED8242B420F7A0076BA50 /* XCRemoteSwiftPackageReference "SwiftUI-Introspect" */,
+				E2B57D0B2B5AE01200859610 /* XCRemoteSwiftPackageReference "SwiftPrettyPrint" */,
 			);
 			productRefGroup = E2BAE31F2B30B601003C5B7F /* Products */;
 			projectDirPath = "";
@@ -1045,6 +1049,14 @@
 				minimumVersion = 1.1.1;
 			};
 		};
+		E2B57D0B2B5AE01200859610 /* XCRemoteSwiftPackageReference "SwiftPrettyPrint" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/YusukeHosonuma/SwiftPrettyPrint";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.4.0;
+			};
+		};
 		E2BAE3302B30C504003C5B7F /* XCRemoteSwiftPackageReference "SwiftSugar" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/pxlshpr/SwiftSugar";
@@ -1070,6 +1082,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = E28ED8242B420F7A0076BA50 /* XCRemoteSwiftPackageReference "SwiftUI-Introspect" */;
 			productName = SwiftUIIntrospect;
+		};
+		E2B57D0C2B5AE01200859610 /* SwiftPrettyPrint */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E2B57D0B2B5AE01200859610 /* XCRemoteSwiftPackageReference "SwiftPrettyPrint" */;
+			productName = SwiftPrettyPrint;
 		};
 		E2BAE3312B30C504003C5B7F /* SwiftSugar */ = {
 			isa = XCSwiftPackageProductDependency;

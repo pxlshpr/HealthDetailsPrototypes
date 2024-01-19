@@ -7,6 +7,9 @@ extension HealthProvider {
         settings: Settings,
         days: [Date : Day]
     ) async {
+        
+        healthDetails.unsetPregnancyAndSmokingStatusIfNeeded()
+        
         /// Do this before we calculate anything so that we have the latest available
         healthDetails.setLatestHealthDetails(latestHealthDetails)
 

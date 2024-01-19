@@ -35,7 +35,7 @@ struct BiologicalSexForm: View {
     
     var body: some View {
         Form {
-            dateSection
+//            dateSection
             picker
             explanation
         }

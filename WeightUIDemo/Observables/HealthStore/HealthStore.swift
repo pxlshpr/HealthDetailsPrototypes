@@ -49,6 +49,7 @@ internal extension HealthStore {
 }
 
 extension HealthStore {
+
     static func restingEnergyInKcalForAllDays(from date: Date) async throws {
 //        var sumQuantities: [Date: HKQuantity] = [:]
 //        for day in dateRange.days {

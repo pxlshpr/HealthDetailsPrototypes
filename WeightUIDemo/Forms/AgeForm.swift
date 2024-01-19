@@ -15,6 +15,9 @@ struct AgeForm: View {
 
     let saveHandler: (Date?) -> ()
 
+    @State var healthKitDateOfBirth: Date? = nil
+    @State var hasAppeared = false
+    
     init(
         date: Date,
         dateOfBirth: Date?,
@@ -46,7 +49,7 @@ struct AgeForm: View {
     }
     var body: some View {
         Form {
-            dateSection
+//            dateSection
             Group {
                 healthSection
                 dateOfBirthSection
@@ -65,8 +68,24 @@ struct AgeForm: View {
         }
         .safeAreaInset(edge: .bottom) { bottomValue }
         .sheet(isPresented: $showingDateOfBirthAlert) { datePickerSheet }
+        .onAppear(perform: appeared)
     }
     
+    func appeared() {
+        if !hasAppeared {
+            Task {
+                await fetchHealthKitValue()
+            }
+            hasAppeared = true
+        }
+    }
+    
+    func fetchHealthKitValue() async {
+        let date = try? await HealthStore.dateOfBirthComponents()?.date
+        await MainActor.run {
+            self.healthKitDateOfBirth = date
+        }
+    }
     var datePickerSheet: some View {
         DatePickerSheet("Date of Birth", Binding<Date>(
             get: { self.dateOfBirth },
@@ -177,7 +196,11 @@ struct AgeForm: View {
                     .foregroundStyle(Color.accentColor)
                 Spacer()
                 Button {
-                    setDateOfBirth(DefaultDateOfBirth)
+                    if let healthKitDateOfBirth {
+                        setDateOfBirth(healthKitDateOfBirth)
+                    } else {
+                        ageInYears = nil
+                    }
                     handleChanges()
                 } label: {
                     AppleHealthIcon()
