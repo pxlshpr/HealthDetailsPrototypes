@@ -155,7 +155,7 @@ struct TemporalVariableSection: View {
     @Binding var shouldShowMainHeader: Bool
     let showHeader: Bool
 
-    //MARK: - Links
+    @State var hasPushedForm = false
     @State var replacements: HealthDetails.ReplacementsForMissing?
     @State var newReplacements: HealthDetails.ReplacementsForMissing? = nil
 
@@ -224,11 +224,17 @@ struct TemporalVariableSection: View {
         }
     }
     
-    @State var hasPushedForm = false
-    
-    @ViewBuilder
     var currentLink: some View {
-        NavigationLink {
+        
+        var dateString: String {
+            if date.isToday {
+                "Today"
+            } else {
+                date.shortDateString
+            }
+        }
+        
+        return NavigationLink {
             Group {
                 switch healthDetail {
                 case .height:
@@ -269,7 +275,7 @@ struct TemporalVariableSection: View {
             .onAppear(perform: formAppeared)
         } label: {
             HStack {
-                Text(date.shortDateString)
+                Text(dateString)
                 Spacer()
                 if healthProvider.healthDetails.hasSet(healthDetail)  {
                     Text(healthProvider.healthDetails.valueString(for: healthDetail, healthProvider.settingsProvider))

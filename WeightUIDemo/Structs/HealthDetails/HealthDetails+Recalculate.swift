@@ -1,11 +1,11 @@
 import Foundation
 
 extension HealthDetails {
-    mutating func recalculateDailyValues(using settings: Settings) {
-        height.setDailyValue(for: settings.dailyValueType(for: .height))
-        weight.setDailyValue(for: settings.dailyValueType(for: .weight))
-        leanBodyMass.setDailyValue(for: settings.dailyValueType(for: .leanBodyMass))
-        fatPercentage.setDailyValue(for: settings.dailyValueType(for: .fatPercentage))
+    mutating func recalculateDailyMeasurements(using settings: Settings) {
+        height.setDailyMeasurement(for: settings.dailyMeasurementType(for: .height))
+        weight.setDailyMeasurement(for: settings.dailyMeasurementType(for: .weight))
+        leanBodyMass.setDailyMeasurement(for: settings.dailyMeasurementType(for: .leanBodyMass))
+        fatPercentage.setDailyMeasurement(for: settings.dailyMeasurementType(for: .fatPercentage))
     }
     
     mutating func convertLeanBodyMassesToFatPercentages() {

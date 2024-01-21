@@ -17,7 +17,7 @@ extension Array where Element == HealthDetails.Weight {
 }
 
 extension HealthDetails.Weight {
-    mutating func addHealthKitSample(_ sample: HKQuantitySample, using dailyValueType: DailyValueType) {
+    mutating func addHealthKitSample(_ sample: HKQuantitySample, using dailyMeasurementType: DailyMeasurementType) {
         guard !measurements.contains(where: { $0.healthKitUUID == sample.uuid }),
               !deletedHealthKitMeasurements.contains(where: { $0.healthKitUUID == sample.uuid })
         else {
@@ -25,7 +25,7 @@ extension HealthDetails.Weight {
         }
         measurements.append(WeightMeasurement(healthKitQuantitySample: sample))
         measurements.sort()
-        weightInKg = measurements.dailyValue(for: dailyValueType)
+        weightInKg = measurements.dailyMeasurement(for: dailyMeasurementType)
     }
 
     func valueString(in unit: BodyMassUnit) -> String {

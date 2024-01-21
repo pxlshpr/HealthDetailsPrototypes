@@ -49,9 +49,11 @@ struct DemoView: View {
             }
             
             if let daysStartDate = await DayProvider.fetchBackendDaysStartDate() {
-                var preLogDates: [Date] = []
-                /// For each date from DaysStartDate till the day before LogStartDate, check if we have a Day for it, and if so append the date
                 let numberOfDays = LogStartDate.numberOfDaysFrom(daysStartDate)
+                guard numberOfDays > 0 else { return }
+                var preLogDates: [Date] = []
+
+                /// For each date from DaysStartDate till the day before LogStartDate, check if we have a Day for it, and if so append the date
                 for i in 0..<numberOfDays {
                     let date = daysStartDate.moveDayBy(i)
                     if let _ = await fetchDayFromDocuments(date) {

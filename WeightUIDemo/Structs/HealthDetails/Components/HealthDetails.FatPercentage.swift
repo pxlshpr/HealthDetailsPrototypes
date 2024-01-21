@@ -11,7 +11,7 @@ extension HealthDetails {
 }
 
 extension HealthDetails.FatPercentage {
-    mutating func addHealthKitSample(_ sample: HKQuantitySample, using dailyValueType: DailyValueType) {
+    mutating func addHealthKitSample(_ sample: HKQuantitySample, using dailyMeasurementType: DailyMeasurementType) {
         guard !measurements.contains(where: { $0.healthKitUUID == sample.uuid }),
               !deletedHealthKitMeasurements.contains(where: { $0.healthKitUUID == sample.uuid })
         else {
@@ -19,7 +19,7 @@ extension HealthDetails.FatPercentage {
         }
         measurements.append(FatPercentageMeasurement(healthKitQuantitySample: sample))
         measurements.sort()
-        fatPercentage = measurements.dailyValue(for: dailyValueType)
+        fatPercentage = measurements.dailyMeasurement(for: dailyMeasurementType)
     }
 
     var valueString: String {

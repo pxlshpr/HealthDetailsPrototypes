@@ -12,7 +12,7 @@ struct WeightForm: View {
     @State var measurements: [WeightMeasurement]
     @State var deletedHealthKitMeasurements: [WeightMeasurement]
 
-    @State var dailyValueType: DailyValueType
+    @State var dailyMeasurementType: DailyMeasurementType
     @State var isSynced: Bool = true
 
     @State var showingForm = false
@@ -37,7 +37,7 @@ struct WeightForm: View {
         _measurements = State(initialValue: weight.measurements)
         _deletedHealthKitMeasurements = State(initialValue: weight.deletedHealthKitMeasurements)
 
-        _dailyValueType = State(initialValue: healthProvider.settingsProvider.settings.dailyValueType(for: .weight))
+        _dailyMeasurementType = State(initialValue: healthProvider.settingsProvider.settings.dailyMeasurementType(for: .weight))
         _isSynced = State(initialValue: healthProvider.settingsProvider.weightIsHealthKitSynced)
     }
     
@@ -58,7 +58,7 @@ struct WeightForm: View {
         Form {
             dateSection
             measurementsSections
-            dailyValuePicker
+            dailyMeasurementTypePicker
             syncSection
             explanation
         }
@@ -177,13 +177,13 @@ struct WeightForm: View {
         }
     }
 
-    var dailyValuePicker: some View {
-        let binding = Binding<DailyValueType>(
-            get: { dailyValueType },
+    var dailyMeasurementTypePicker: some View {
+        let binding = Binding<DailyMeasurementType>(
+            get: { dailyMeasurementType },
             set: { newValue in
                 withAnimation {
-                    dailyValueType = newValue
-                    healthProvider.setDailyValueType(for: .weight, to: newValue)
+                    dailyMeasurementType = newValue
+                    healthProvider.setDailyMeasurementType(for: .weight, to: newValue)
                     handleChanges()
                 }
             }
@@ -191,7 +191,7 @@ struct WeightForm: View {
         
         var pickerRow: some View {
             Picker("", selection: binding) {
-                ForEach(DailyValueType.allCases, id: \.self) {
+                ForEach(DailyMeasurementType.allCases, id: \.self) {
                     Text($0.name).tag($0)
                 }
             }
@@ -200,7 +200,7 @@ struct WeightForm: View {
         }
 
         var description: String {
-            dailyValueType.description(for: .weight)
+            dailyMeasurementType.description(for: .weight)
         }
 
         var header: some View {
@@ -231,7 +231,7 @@ struct WeightForm: View {
     }
 
     var calculatedWeightInKg: Double? {
-        measurements.dailyValue(for: dailyValueType)
+        measurements.dailyMeasurement(for: dailyMeasurementType)
     }
 
     var weight: HealthDetails.Weight {

@@ -4,7 +4,7 @@ import HealthKit
 //TODO: For each of these:
 /// [ ] Recalculate any HealthDetails like calculated LBM, Resting Energy
 /// [ ] This could affect plans so make sure this occurs
-/// [ ] Send a notification so that DailyValues set on this day get updated too if dependent on the HealthDetail
+/// [ ] Send a notification so that DailyMeasurements set on this day get updated too if dependent on the HealthDetail
 
 extension HealthProvider {
     func save(shouldResync: Bool = false) {
@@ -248,8 +248,8 @@ extension HealthProvider {
 }
 
 extension HealthProvider {
-    func setDailyValueType(for healthDetail: HealthDetail, to type: DailyValueType) {
-        settingsProvider.settings.setDailyValueType(type, for: healthDetail)
+    func setDailyMeasurementType(for healthDetail: HealthDetail, to type: DailyMeasurementType) {
+        settingsProvider.settings.setDailyMeasurementType(type, for: healthDetail)
         settingsProvider.save()
         /// Calling this to only recalculate as no changes were made to save. But we want to make sure there is only one of this occurring at any given time.
         save()
@@ -272,19 +272,19 @@ extension HealthProvider {
         for type: HealthKitType
     ) async throws {
         let settings = await fetchSettingsFromDocuments()
-        guard let dailyValueType = settings.dailyValueType(forHealthKitType: type) else {
+        guard let dailyMeasurementType = settings.dailyMeasurementType(forHealthKitType: type) else {
             return
         }
         var healthDetails = await fetchOrCreateHealthDetailsFromDocuments(sample.date.startOfDay)
         switch type {
         case .weight:
-            healthDetails.weight.addHealthKitSample(sample, using: dailyValueType)
+            healthDetails.weight.addHealthKitSample(sample, using: dailyMeasurementType)
         case .leanBodyMass:
-            healthDetails.leanBodyMass.addHealthKitSample(sample, using: dailyValueType)
+            healthDetails.leanBodyMass.addHealthKitSample(sample, using: dailyMeasurementType)
         case .height:
-            healthDetails.height.addHealthKitSample(sample, using: dailyValueType)
+            healthDetails.height.addHealthKitSample(sample, using: dailyMeasurementType)
         case .fatPercentage:
-            healthDetails.fatPercentage.addHealthKitSample(sample, using: dailyValueType)
+            healthDetails.fatPercentage.addHealthKitSample(sample, using: dailyMeasurementType)
         default:
             break
         }

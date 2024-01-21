@@ -12,7 +12,7 @@ struct HeightForm: View {
     @State var measurements: [HeightMeasurement]
     @State var deletedHealthKitMeasurements: [HeightMeasurement]
     
-    @State var dailyValueType: DailyValueType
+    @State var dailyMeasurementType: DailyMeasurementType
     @State var isSynced: Bool
 
     @State var showingForm = false
@@ -37,7 +37,7 @@ struct HeightForm: View {
         _measurements = State(initialValue: height.measurements)
         _deletedHealthKitMeasurements = State(initialValue: height.deletedHealthKitMeasurements)
         
-        _dailyValueType = State(initialValue: healthProvider.settingsProvider.settings.dailyValueType(for: .weight))
+        _dailyMeasurementType = State(initialValue: healthProvider.settingsProvider.settings.dailyMeasurementType(for: .weight))
         _isSynced = State(initialValue: healthProvider.settingsProvider.heightIsHealthKitSynced)
     }
 
@@ -58,7 +58,7 @@ struct HeightForm: View {
         Form {
             dateSection
             measurementsSections
-            dailyValuePicker
+            dailyMeasurementTypePicker
             syncSection
             explanation
         }
@@ -70,13 +70,13 @@ struct HeightForm: View {
         .onChange(of: isSynced, isSyncedChanged)
     }
     
-    var dailyValuePicker: some View {
-        let binding = Binding<DailyValueType>(
-            get: { dailyValueType },
+    var dailyMeasurementTypePicker: some View {
+        let binding = Binding<DailyMeasurementType>(
+            get: { dailyMeasurementType },
             set: { newValue in
                 withAnimation {
-                    dailyValueType = newValue
-                    healthProvider.setDailyValueType(for: .height, to: newValue)
+                    dailyMeasurementType = newValue
+                    healthProvider.setDailyMeasurementType(for: .height, to: newValue)
                     handleChanges()
                 }
             }
@@ -84,7 +84,7 @@ struct HeightForm: View {
         
         var pickerRow: some View {
             Picker("", selection: binding) {
-                ForEach(DailyValueType.allCases, id: \.self) {
+                ForEach(DailyMeasurementType.allCases, id: \.self) {
                     Text($0.name).tag($0)
                 }
             }
@@ -93,7 +93,7 @@ struct HeightForm: View {
         }
 
         var description: String {
-            dailyValueType.description(for: .height)
+            dailyMeasurementType.description(for: .height)
         }
 
         var header: some View {
@@ -115,7 +115,7 @@ struct HeightForm: View {
     }
     
     var calculatedHeightInCm: Double? {
-        measurements.dailyValue(for: dailyValueType)
+        measurements.dailyMeasurement(for: dailyMeasurementType)
     }
 
     var bottomValue: some View {

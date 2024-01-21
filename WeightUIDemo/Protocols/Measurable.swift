@@ -134,8 +134,8 @@ extension Array where Element: Measurable {
 }
 
 extension Array where Element: Measurable {
-    func dailyValue(for dailyValueType: DailyValueType) -> Double? {
-        switch dailyValueType {
+    func dailyMeasurement(for dailyMeasurementType: DailyMeasurementType) -> Double? {
+        switch dailyMeasurementType {
         case .average:  compactMap { $0.value }.average
         case .last:     last?.value
         case .first:    first?.value

@@ -10,7 +10,7 @@ struct FatPercentageForm: View {
     let date: Date
 
     @State var percent: Double?
-    @State var dailyValueType: DailyValueType
+    @State var dailyMeasurementType: DailyMeasurementType
     @State var measurements: [FatPercentageMeasurement]
     @State var deletedHealthKitMeasurements: [FatPercentageMeasurement]
     @State var isSynced: Bool = true
@@ -33,7 +33,7 @@ struct FatPercentageForm: View {
         
         _percent = State(initialValue: fatPercentage.fatPercentage)
         _measurements = State(initialValue: fatPercentage.measurements)
-        _dailyValueType = State(initialValue: healthProvider.settingsProvider.settings.dailyValueType(for: .fatPercentage))
+        _dailyMeasurementType = State(initialValue: healthProvider.settingsProvider.settings.dailyMeasurementType(for: .fatPercentage))
         _deletedHealthKitMeasurements = State(initialValue: fatPercentage.deletedHealthKitMeasurements)
         _isSynced = State(initialValue: healthProvider.settingsProvider.fatPercentageIsHealthKitSynced)
     }
@@ -56,7 +56,7 @@ struct FatPercentageForm: View {
             dateSection
             measurementsSections
             convertedMeasurementsSections
-            dailyValuePicker
+            dailyMeasurementTypePicker
             syncSection
             explanation
         }
@@ -153,13 +153,13 @@ struct FatPercentageForm: View {
         }
     }
     
-    var dailyValuePicker: some View {
-        let binding = Binding<DailyValueType>(
-            get: { dailyValueType },
+    var dailyMeasurementTypePicker: some View {
+        let binding = Binding<DailyMeasurementType>(
+            get: { dailyMeasurementType },
             set: { newValue in
                 withAnimation {
-                    dailyValueType = newValue
-                    healthProvider.setDailyValueType(
+                    dailyMeasurementType = newValue
+                    healthProvider.setDailyMeasurementType(
                         for: .fatPercentage,
                         to: newValue
                     )
@@ -170,7 +170,7 @@ struct FatPercentageForm: View {
         
         var pickerRow: some View {
             Picker("", selection: binding) {
-                ForEach(DailyValueType.allCases, id: \.self) {
+                ForEach(DailyMeasurementType.allCases, id: \.self) {
                     Text($0.name).tag($0)
                 }
             }
@@ -179,7 +179,7 @@ struct FatPercentageForm: View {
         }
 
         var description: String {
-            dailyValueType.description(for: .fatPercentage)
+            dailyMeasurementType.description(for: .fatPercentage)
         }
 
         var header: some View {
@@ -232,7 +232,7 @@ struct FatPercentageForm: View {
     }
     
     var calculatedFatPercentage: Double? {
-        measurements.dailyValue(for: dailyValueType)
+        measurements.dailyMeasurement(for: dailyMeasurementType)
     }
 
     var fatPercentage: HealthDetails.FatPercentage {

@@ -97,7 +97,7 @@ struct WeightChangeForm: View {
             HStack {
                 Text("Period")
                 Spacer()
-                Text(dateIntervalString)
+                Text(intervalString)
             }
         }
     }
@@ -325,15 +325,13 @@ struct WeightChangeForm: View {
         )
     }
     
-    var dateIntervalString: String {
-        let startDate = healthProvider.healthDetails.maintenance
-            .adaptive.interval.startDate(with: date)
-        return "\(startDate.shortDateString) to \(date.shortDateString)"
+    var intervalString: String {
+        healthProvider.healthDetails.adaptiveMaintenanceIntervalString
     }
     
     var explanation: some View {
         Section {
-            Text("This represents the change in your weight from \(dateIntervalString), which is used to calculate your Adaptive Maintenance Energy.")
+            Text("This represents the change in your weight from \(intervalString), which is used to calculate your Adaptive Maintenance Energy.")
         }
     }
     

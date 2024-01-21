@@ -10,7 +10,7 @@ struct LeanBodyMassForm: View {
     let date: Date
 
     @State var leanBodyMassInKg: Double?
-    @State var dailyValueType: DailyValueType
+    @State var dailyMeasurementType: DailyMeasurementType
     @State var measurements: [LeanBodyMassMeasurement]
     @State var deletedHealthKitMeasurements: [LeanBodyMassMeasurement]
     @State var isSynced: Bool = true
@@ -33,7 +33,7 @@ struct LeanBodyMassForm: View {
         
         _leanBodyMassInKg = State(initialValue: leanBodyMass.leanBodyMassInKg)
         _measurements = State(initialValue: leanBodyMass.measurements)
-        _dailyValueType = State(initialValue: healthProvider.settingsProvider.settings.dailyValueType(for: .leanBodyMass))
+        _dailyMeasurementType = State(initialValue: healthProvider.settingsProvider.settings.dailyMeasurementType(for: .leanBodyMass))
         _deletedHealthKitMeasurements = State(initialValue: leanBodyMass.deletedHealthKitMeasurements)
         _isSynced = State(initialValue: healthProvider.settingsProvider.leanBodyMassIsHealthKitSynced)
     }
@@ -56,7 +56,7 @@ struct LeanBodyMassForm: View {
             dateSection
             measurementsSections
             convertedMeasurementsSections
-            dailyValuePicker
+            dailyMeasurementTypePicker
             syncSection
             explanation
         }
@@ -179,13 +179,13 @@ struct LeanBodyMassForm: View {
         }
     }
     
-    var dailyValuePicker: some View {
-        let binding = Binding<DailyValueType>(
-            get: { dailyValueType },
+    var dailyMeasurementTypePicker: some View {
+        let binding = Binding<DailyMeasurementType>(
+            get: { dailyMeasurementType },
             set: { newValue in
                 withAnimation {
-                    dailyValueType = newValue
-                    healthProvider.setDailyValueType(for: .leanBodyMass, to: newValue)
+                    dailyMeasurementType = newValue
+                    healthProvider.setDailyMeasurementType(for: .leanBodyMass, to: newValue)
                     handleChanges()
                 }
             }
@@ -193,7 +193,7 @@ struct LeanBodyMassForm: View {
         
         var pickerRow: some View {
             Picker("", selection: binding) {
-                ForEach(DailyValueType.allCases, id: \.self) {
+                ForEach(DailyMeasurementType.allCases, id: \.self) {
                     Text($0.name).tag($0)
                 }
             }
@@ -202,7 +202,7 @@ struct LeanBodyMassForm: View {
         }
 
         var description: String {
-            dailyValueType.description(for: .leanBodyMass)
+            dailyMeasurementType.description(for: .leanBodyMass)
         }
 
         var header: some View {
@@ -255,7 +255,7 @@ struct LeanBodyMassForm: View {
     }
     
     var calculatedLeanBodyMassInKg: Double? {
-        measurements.dailyValue(for: dailyValueType)
+        measurements.dailyMeasurement(for: dailyMeasurementType)
     }
     
     var leanBodyMass: HealthDetails.LeanBodyMass {

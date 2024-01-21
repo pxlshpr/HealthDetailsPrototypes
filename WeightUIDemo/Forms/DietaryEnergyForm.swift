@@ -100,9 +100,9 @@ struct DietaryEnergyForm: View {
     var dateSection: some View {
         Section {
             HStack {
-                Text("Date")
+                Text("Period")
                 Spacer()
-                Text(date.shortDateString)
+                Text(healthProvider.healthDetails.adaptiveMaintenanceIntervalString)
             }
         }
     }

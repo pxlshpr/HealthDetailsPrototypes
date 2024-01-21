@@ -58,8 +58,8 @@ extension HealthKitSyncable {
 //        measurements.sort()
     }
     
-    mutating func setDailyValue(for dailyValueType: DailyValueType) {
-        self.value = measurements.dailyValue(for: dailyValueType)
+    mutating func setDailyMeasurement(for dailyMeasurementType: DailyMeasurementType) {
+        self.value = measurements.dailyMeasurement(for: dailyMeasurementType)
     }
 }
 
@@ -124,6 +124,6 @@ extension HealthKitSyncable {
         )
         toDelete.append(contentsOf: filtered.ours.notPresent(in: measurements))
         toExport.append(contentsOf: measurements.nonHealthKitMeasurements.notPresent(in: filtered.ours))
-        setDailyValue(for: settings.dailyValueType(for: self.healthDetail))
+        setDailyMeasurement(for: settings.dailyMeasurementType(for: self.healthDetail))
     }
 }

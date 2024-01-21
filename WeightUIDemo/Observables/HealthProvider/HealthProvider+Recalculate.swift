@@ -22,7 +22,7 @@ extension HealthProvider {
         healthDetails.convertFatPercentagesToLeanBodyMasses()
 
         /// Now recalculate Daily Values (do this after any lean body mass / fat percentage modifications have been done)
-        healthDetails.recalculateDailyValues(using: settings)
+        healthDetails.recalculateDailyMeasurements(using: settings)
 
         await recalculateMaintenance(days)
     }
@@ -51,8 +51,8 @@ extension HealthProvider {
         guard healthDetails.leanBodyMass != initial else { return }
 
         /// Re-set the daily value based on the new measurements
-        let dailyValue = settingsProvider.settings.dailyValueType(for: .leanBodyMass)
-        healthDetails.leanBodyMass.setDailyValue(for: dailyValue)
+        let type = settingsProvider.settings.dailyMeasurementType(for: .leanBodyMass)
+        healthDetails.leanBodyMass.setDailyMeasurement(for: type)
     }
     
     func recalculateFatPercentages() async {
@@ -76,8 +76,8 @@ extension HealthProvider {
         guard healthDetails.fatPercentage != initial else { return }
 
         /// Re-set the daily value based on the new measurements
-        let dailyValue = settingsProvider.settings.dailyValueType(for: .fatPercentage)
-        healthDetails.fatPercentage.setDailyValue(for: dailyValue)
+        let type = settingsProvider.settings.dailyMeasurementType(for: .fatPercentage)
+        healthDetails.fatPercentage.setDailyMeasurement(for: type)
     }
 
     func recalculateMaintenance(_ days: [Date : Day]) async {

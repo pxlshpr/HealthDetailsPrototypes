@@ -18,7 +18,7 @@ struct Settings: Codable, Hashable {
     var displayedMicros: [Micro] = []
     
     var healthKitSyncedHealthDetails: [HealthDetail] = []
-    var dailyValueTypes: [HealthDetail : DailyValueType] = [:]
+    var dailyMeasurementTypes: [HealthDetail : DailyMeasurementType] = [:]
     
     /// Removed because these should be per-day, similar to `Plan` and `HealthDetails`
 //    public var dailyValues: [Micro: DailyValue] = [:]
@@ -26,17 +26,17 @@ struct Settings: Codable, Hashable {
 
 extension Settings {
 
-    mutating func setDailyValueType(_ type: DailyValueType, for healthDetail: HealthDetail) {
-        dailyValueTypes[healthDetail] = type
+    mutating func setDailyMeasurementType(_ type: DailyMeasurementType, for healthDetail: HealthDetail) {
+        dailyMeasurementTypes[healthDetail] = type
     }
 
-    func dailyValueType(for healthDetail: HealthDetail) -> DailyValueType {
-        dailyValueTypes[healthDetail] ?? .last
+    func dailyMeasurementType(for healthDetail: HealthDetail) -> DailyMeasurementType {
+        dailyMeasurementTypes[healthDetail] ?? .last
     }
 
-    func dailyValueType(forHealthKitType type: HealthKitType) -> DailyValueType? {
+    func dailyMeasurementType(forHealthKitType type: HealthKitType) -> DailyMeasurementType? {
         guard let healthDetail = type.healthDetail else { return nil }
-        return dailyValueType(for: healthDetail)
+        return dailyMeasurementType(for: healthDetail)
     }
 
     func isHealthKitSyncing(_ healthDetail: HealthDetail) -> Bool {
