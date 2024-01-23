@@ -156,63 +156,6 @@ public extension String {
     }
 }
 
-import PrepShared
-
-extension HeightUnit: HealthUnit {
-    public static var secondaryUnit: String? { "in" }
-    public var hasTwoComponents: Bool { self == .ft }
-    
-//    public func intComponent(_ value: Double, in other: HeightUnit) -> Int? {
-//        guard other.hasTwoComponents else {
-//            return nil
-//        }
-//        let converted = convert(value, to: other)
-//        return Int(converted)
-//    }
-//    
-//    public func doubleComponent(_ value: Double, in other: HeightUnit) -> Double {
-//        let converted = convert(value, to: other)
-//        return if other.hasTwoComponents {
-//            (converted - converted.whole) * Self.upperSecondaryUnitValue
-//        } else {
-//            converted
-//        }
-//    }
-    
-    public func intComponent(_ value: Double, in other: HeightUnit) -> Int? {
-        let converted = convert(value, to: other)
-        return other.intComponent(of: converted)
-    }
-    
-    public func doubleComponent(_ value: Double, in other: HeightUnit) -> Double {
-        let converted = convert(value, to: other)
-        return other.doubleComponent(of: converted)
-    }
-    
-    public func intComponent(of value: Double) -> Int? {
-        guard hasTwoComponents else { return nil }
-        return Int(value)
-    }
-    
-    public func doubleComponent(of value: Double) -> Double {
-        return if hasTwoComponents {
-            (value - value.whole) * Self.upperSecondaryUnitValue
-        } else {
-            value
-        }
-    }
-    
-    public var intUnitString: String? {
-        self == .ft ? "ft" : nil
-    }
-    
-    public var doubleUnitString: String {
-        self == .ft ? "in" : abbreviation
-    }
-}
-
-
-
 extension BodyMassUnit: HealthUnit {
     public static var secondaryUnit: String? { "lb" }
     public var hasTwoComponents: Bool { self == .st }
@@ -259,28 +202,95 @@ extension BodyMassUnit: HealthUnit {
     }
 }
 
-//TODO: Move this into HealthUnit
-extension HeightUnit {
-    func convert(_ int: Int, _ double: Double, to other: HeightUnit) -> Double {
-        let value = if self.hasTwoComponents {
-            Double(int) + (double / Self.upperSecondaryUnitValue)
+import PrepShared
+
+extension HeightUnit: HealthUnit {
+    public static var secondaryUnit: String? { "in" }
+    public var hasTwoComponents: Bool { self == .ft }
+    
+//    public func intComponent(_ value: Double, in other: HeightUnit) -> Int? {
+//        guard other.hasTwoComponents else {
+//            return nil
+//        }
+//        let converted = convert(value, to: other)
+//        return Int(converted)
+//    }
+//
+//    public func doubleComponent(_ value: Double, in other: HeightUnit) -> Double {
+//        let converted = convert(value, to: other)
+//        return if other.hasTwoComponents {
+//            (converted - converted.whole) * Self.upperSecondaryUnitValue
+//        } else {
+//            converted
+//        }
+//    }
+    
+    public func intComponent(_ value: Double, in other: HeightUnit) -> Int? {
+        let converted = convert(value, to: other)
+        return other.intComponent(of: converted)
+    }
+    
+    public func doubleComponent(_ value: Double, in other: HeightUnit) -> Double {
+        let converted = convert(value, to: other)
+        return other.doubleComponent(of: converted)
+    }
+    
+    public func intComponent(of value: Double) -> Int? {
+        guard hasTwoComponents else { return nil }
+        return Int(value)
+    }
+    
+    public func doubleComponent(of value: Double) -> Double {
+        return if hasTwoComponents {
+            (value - value.whole) * Self.upperSecondaryUnitValue
         } else {
-            double
+            value
         }
-        return self.convert(value, to: other)
+    }
+    
+    public var intUnitString: String? {
+        self == .ft ? "ft" : nil
+    }
+    
+    public var doubleUnitString: String {
+        self == .ft ? "in" : abbreviation
     }
 }
 
-extension BodyMassUnit {
-    func convert(_ int: Int, _ double: Double, to other: BodyMassUnit) -> Double {
-        let value = if self.hasTwoComponents {
-            Double(int) + (double / Self.upperSecondaryUnitValue)
-        } else {
-            double
-        }
-        return self.convert(value, to: other)
-    }
-}
+
+//TODO: Move this into HealthUnit
+//extension HealthUnit {
+//    func convert(_ int: Int, _ double: Double, to other: Self) -> Double {
+//        let value = if self.hasTwoComponents, let upper = Self.upperSecondaryUnitValue {
+//            Double(int) + (double / upper)
+//        } else {
+//            double
+//        }
+//        return self.convert(value, to: other)
+//    }
+//}
+
+//extension HeightUnit {
+//    func convert(_ int: Int, _ double: Double, to other: HeightUnit) -> Double {
+//        let value = if self.hasTwoComponents {
+//            Double(int) + (double / Self.upperSecondaryUnitValue)
+//        } else {
+//            double
+//        }
+//        return self.convert(value, to: other)
+//    }
+//}
+//
+//extension BodyMassUnit {
+//    func convert(_ int: Int, _ double: Double, to other: BodyMassUnit) -> Double {
+//        let value = if self.hasTwoComponents {
+//            Double(int) + (double / Self.upperSecondaryUnitValue)
+//        } else {
+//            double
+//        }
+//        return self.convert(value, to: other)
+//    }
+//}
 
 extension HeightUnit {
     var secondaryUnit: String? {

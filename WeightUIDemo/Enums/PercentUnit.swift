@@ -14,4 +14,8 @@ extension PercentUnit: HealthUnit {
     var pickedTitle: String { "" }
     var menuTitle: String  { "" }
     static var `default`: PercentUnit = .percent
+    
+    func convert(_ value: Double, to other: PercentUnit) -> Double {
+        value
+    }
 }
